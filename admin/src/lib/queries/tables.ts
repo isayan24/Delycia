@@ -13,7 +13,6 @@ export const useTableMutations = () => {
       table_number: string
       capacity: number
       zone: string
-      accessToken: string
     }) => createTable({ data }),
     onSuccess: (_, variables) => {
       // Invalidate tables list for this restaurant
@@ -25,8 +24,7 @@ export const useTableMutations = () => {
 
   // Delete table mutation
   const deleteMutation = useMutation({
-    mutationFn: (data: { id: string; accessToken: string }) =>
-      deleteTable({ data }),
+    mutationFn: (data: { id: string }) => deleteTable({ data }),
     onSuccess: () => {
       // Invalidate all tables lists
       queryClient.invalidateQueries({ queryKey: queryKeys.tables.all })

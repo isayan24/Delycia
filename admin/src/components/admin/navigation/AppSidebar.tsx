@@ -16,7 +16,7 @@ import {
   SidebarFooter,
   SidebarRail,
 } from '@/components/ui/sidebar'
-import { getUser } from '@/helpers/user/getUser'
+import { useAuth } from '@/hooks/useAuth'
 import { AdminNavMain } from './AdminNavMain'
 import { AdminSidebarProfile } from './AdminSidebarProfile'
 // tokenService no longer needed - using httpOnly cookies
@@ -39,39 +39,15 @@ function ClientOnlySidebar({ children }: { children: React.ReactNode }) {
 // This is sample data.
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  // const currUser: User = session?.user as User;
-
-  // No longer need accessToken - user data is in sessionService
-
-  const [userData, setUserData] = React.useState<{
-    username?: string
-    // email?: string;
-    profile_pic?: string
-  } | null>(null)
-
-  React.useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        // Call getUser - it will use httpOnly cookies automatically
-        const data = await getUser()
-        if (data?.user) {
-          setUserData(data.user)
-        }
-      } catch (err) {
-        console.error('Failed to fetch user data for sidebar:', err)
-      }
-    }
-
-    fetchUser()
-  }, [])
+  const { user } = useAuth()
 
   // Sidebar always shown - auth is handled at route level
 
   const data = {
     user: {
-      name: userData?.username || 'Guest',
-      email: 'guest@example.com',
-      avatar: userData?.profile_pic || './delycia-logo.jpg',
+      name: user?.name || user?.username || user?.phone_number || 'Guest',
+      email: user?.email || 'guest@example.com',
+      avatar: user?.profile_pic || './delycia-logo.jpg',
     },
     navMain: [
       {

@@ -9,26 +9,29 @@ import {
   deleteAllVariants,
   updateVariants,
 } from '@/helpers/inventory/variants/operations'
+import { getAccessTokenFromCookie } from '@/lib/server-cookies'
 
 export const Route = createFileRoute('/api/inventory')({
   server: {
     handlers: {
       POST: async ({ request }) => {
         try {
-          const data: any = await request.json()
-
-          const { token, variants } = data
+          // Get token from httpOnly cookie
+          const token = getAccessTokenFromCookie(request)
 
           if (!token) {
             return new Response(
               JSON.stringify({
                 status: 401,
-                message: 'Access token is required',
+                message: 'Not authenticated',
                 error: true,
               }),
               { status: 401, headers: { 'Content-Type': 'application/json' } },
             )
           }
+
+          const data: any = await request.json()
+          const { variants } = data
 
           // For POST, always include images (even if empty array)
           const payload = createPayload(data, true)
@@ -77,28 +80,24 @@ export const Route = createFileRoute('/api/inventory')({
       },
       PATCH: async ({ request }) => {
         try {
-          const data: any = await request.json()
-
-          const {
-            id,
-            rid,
-            token,
-            variants,
-            images,
-            selectiveFields,
-            currentStatus,
-          } = data
+          // Get token from httpOnly cookie
+          const token = getAccessTokenFromCookie(request)
 
           if (!token) {
             return new Response(
               JSON.stringify({
                 status: 401,
-                message: 'Access token is required',
+                message: 'Not authenticated',
                 error: true,
               }),
               { status: 401, headers: { 'Content-Type': 'application/json' } },
             )
           }
+
+          const data: any = await request.json()
+
+          const { id, rid, variants, images, selectiveFields, currentStatus } =
+            data
 
           if (!id || !rid) {
             return new Response(
@@ -202,20 +201,22 @@ export const Route = createFileRoute('/api/inventory')({
       },
       DELETE: async ({ request }) => {
         try {
-          const data: any = await request.json()
-
-          const { id, token, img, rid } = data
+          // Get token from httpOnly cookie
+          const token = getAccessTokenFromCookie(request)
 
           if (!token) {
             return new Response(
               JSON.stringify({
                 status: 401,
-                message: 'Access token is required',
+                message: 'Not authenticated',
                 error: true,
               }),
               { status: 401, headers: { 'Content-Type': 'application/json' } },
             )
           }
+
+          const data: any = await request.json()
+          const { id, img, rid } = data
 
           if (!id || !rid) {
             return new Response(

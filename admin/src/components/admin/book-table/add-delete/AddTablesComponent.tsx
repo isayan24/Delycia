@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import React, { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+} from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
 import {
   Trash2,
   Plus,
@@ -20,141 +20,141 @@ import {
   X,
   RefreshCw,
   ArrowLeft,
-} from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import axiosInstance from "@/lib/axios";
-import { useAuth } from "@/hooks/useAuth";
-import axios from "axios";
-import useToast from "@/hooks/UseToast";
-import { useFetchTable } from "../hooks/useFetchTable";
+} from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import axiosInstance from '@/lib/axios'
+import { useAuth } from '@/hooks/useAuth'
+import axios from 'axios'
+import useToast from '@/hooks/UseToast'
+import { useFetchTable } from '../hooks/useFetchTable'
 
 interface PendingTable {
-  id: string;
-  table_number: string;
-  capacity: number;
-  zone: string;
+  id: string
+  table_number: string
+  capacity: number
+  zone: string
 }
 
 interface AddTablesComponentProps {
-  onTablesAdded?: () => void;
-  clickedBackToTables?: () => void;
+  onTablesAdded?: () => void
+  clickedBackToTables?: () => void
 }
 
 const AddTablesComponent = ({
   onTablesAdded,
   clickedBackToTables,
 }: AddTablesComponentProps) => {
-  const { user, getValidAccessToken } = useAuth();
+  const { user } = useAuth()
   const {
     zones,
     tables,
     loading: dataLoading,
     error: dataError,
-  } = useFetchTable(user?.selected_rid);
+  } = useFetchTable(user?.selected_rid)
 
-  const [pendingTables, setPendingTables] = useState<PendingTable[]>([]);
-  const [existingTables, setExistingTables] = useState<string[]>([]);
+  const [pendingTables, setPendingTables] = useState<PendingTable[]>([])
+  const [existingTables, setExistingTables] = useState<string[]>([])
 
   // Form states
-  const [selectedZone, setSelectedZone] = useState<string>("");
-  const [newZoneName, setNewZoneName] = useState<string>("");
-  const [isCreatingNewZone, setIsCreatingNewZone] = useState<boolean>(false);
-  const [tableNumber, setTableNumber] = useState<string>("");
-  const [capacity, setCapacity] = useState<number>(4);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [localZones, setLocalZones] = useState<string[]>([]);
+  const [selectedZone, setSelectedZone] = useState<string>('')
+  const [newZoneName, setNewZoneName] = useState<string>('')
+  const [isCreatingNewZone, setIsCreatingNewZone] = useState<boolean>(false)
+  const [tableNumber, setTableNumber] = useState<string>('')
+  const [capacity, setCapacity] = useState<number>(4)
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [localZones, setLocalZones] = useState<string[]>([])
 
-  const { showError, showSuccess } = useToast();
+  const { showError, showSuccess } = useToast()
 
   // Update existing tables and zones from API data
   useEffect(() => {
     if (tables && tables.length > 0) {
-      const tableNumbers = tables.map((table) => table.table_number);
-      setExistingTables(tableNumbers);
+      const tableNumbers = tables.map((table) => table.table_number)
+      setExistingTables(tableNumbers)
     }
-  }, [tables]);
+  }, [tables])
 
   useEffect(() => {
     if (zones && zones.length > 0) {
-      const uniqueZones = [...new Set(zones.map((zone) => zone.zone))];
-      setLocalZones(uniqueZones);
+      const uniqueZones = [...new Set(zones.map((zone) => zone.zone))]
+      setLocalZones(uniqueZones)
       // Set first zone as default if none selected
       if (!selectedZone && !isCreatingNewZone && uniqueZones.length > 0) {
-        setSelectedZone(uniqueZones[0]);
+        setSelectedZone(uniqueZones[0])
       }
     }
-  }, [zones]);
+  }, [zones])
 
   // Get next available table number
   const getNextTableNumber = () => {
     const allTableNumbers = [
       ...existingTables,
       ...pendingTables.map((t) => t.table_number),
-    ];
+    ]
     const numericTables = allTableNumbers
       .map((num) => parseInt(num))
       .filter((num) => !isNaN(num))
-      .sort((a, b) => a - b);
+      .sort((a, b) => a - b)
 
-    if (numericTables.length === 0) return "1";
+    if (numericTables.length === 0) return '1'
 
     // Find first gap in sequence
     for (let i = 1; i <= numericTables[numericTables.length - 1]; i++) {
       if (!numericTables.includes(i)) {
-        return i.toString();
+        return i.toString()
       }
     }
 
     // If no gaps, return next number
-    return (numericTables[numericTables.length - 1] + 1).toString();
-  };
+    return (numericTables[numericTables.length - 1] + 1).toString()
+  }
 
   // Auto-suggest next table number when form is empty
   useEffect(() => {
     if (!tableNumber) {
-      setTableNumber(getNextTableNumber());
+      setTableNumber(getNextTableNumber())
     }
-  }, [pendingTables, existingTables]);
+  }, [pendingTables, existingTables])
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {};
+    const newErrors: Record<string, string> = {}
 
     if (!tableNumber.trim()) {
-      newErrors.tableNumber = "Table number is required";
+      newErrors.tableNumber = 'Table number is required'
     } else if (
       existingTables.includes(tableNumber.trim()) ||
       pendingTables.some((t) => t.table_number === tableNumber.trim())
     ) {
-      newErrors.tableNumber = "Table number already exists";
+      newErrors.tableNumber = 'Table number already exists'
     }
 
     if (capacity < 1 || capacity > 50) {
-      newErrors.capacity = "Capacity must be between 1 and 50";
+      newErrors.capacity = 'Capacity must be between 1 and 50'
     }
 
     if (!isCreatingNewZone && !selectedZone) {
-      newErrors.zone = "Please select a zone";
+      newErrors.zone = 'Please select a zone'
     }
 
     if (isCreatingNewZone && !newZoneName.trim()) {
-      newErrors.newZone = "Zone name is required";
+      newErrors.newZone = 'Zone name is required'
     } else if (isCreatingNewZone && localZones.includes(newZoneName.trim())) {
-      newErrors.newZone = "Zone already exists";
+      newErrors.newZone = 'Zone already exists'
     }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const addTableToPending = () => {
-    if (!validateForm()) return;
+    if (!validateForm()) return
 
-    const finalZone = isCreatingNewZone ? newZoneName.trim() : selectedZone;
+    const finalZone = isCreatingNewZone ? newZoneName.trim() : selectedZone
 
     // Add new zone to local zones if it doesn't exist
     if (isCreatingNewZone && !localZones.includes(finalZone)) {
-      setLocalZones((prev) => [...prev, finalZone]);
+      setLocalZones((prev) => [...prev, finalZone])
     }
 
     const newTable: PendingTable = {
@@ -162,65 +162,63 @@ const AddTablesComponent = ({
       table_number: tableNumber.trim(),
       capacity,
       zone: finalZone,
-    };
+    }
 
-    setPendingTables((prev) => [...prev, newTable]);
+    setPendingTables((prev) => [...prev, newTable])
 
     // Reset form for next table
-    setTableNumber("");
-    setCapacity(4);
+    setTableNumber('')
+    setCapacity(4)
     if (isCreatingNewZone) {
-      setSelectedZone(finalZone);
-      setNewZoneName("");
-      setIsCreatingNewZone(false);
+      setSelectedZone(finalZone)
+      setNewZoneName('')
+      setIsCreatingNewZone(false)
     }
-    setErrors({});
-  };
+    setErrors({})
+  }
 
   const removeTableFromPending = (id: string) => {
-    setPendingTables((prev) => prev.filter((table) => table.id !== id));
-  };
+    setPendingTables((prev) => prev.filter((table) => table.id !== id))
+  }
   // todo create table
   const createTable = async (tableData: PendingTable) => {
     if (!user?.selected_rid) {
-      throw new Error("Restaurant ID not found");
+      throw new Error('Restaurant ID not found')
     }
-    const accessToken = await getValidAccessToken();
     const payload = {
       rid: user.selected_rid,
       table_number: tableData.table_number,
       capacity: tableData.capacity,
       zone: tableData.zone,
-      accessToken,
-    };
+    }
 
-    const response = await axios.post("/api/table", payload);
+    const response = await axios.post('/api/table', payload)
     if (response.status === 201) {
-      setPendingTables([]);
+      setPendingTables([])
     }
     if (response.status !== 201 && response.status !== 200) {
-      showError("Error", "Failed to create table, please try again");
-      throw new Error("Failed to create table");
+      showError('Error', 'Failed to create table, please try again')
+      throw new Error('Failed to create table')
     }
-    return response.data;
-  };
+    return response.data
+  }
 
   const submitAllTables = async () => {
-    if (pendingTables.length === 0) return;
+    if (pendingTables.length === 0) return
 
-    setIsSubmitting(true);
-    const errors: string[] = [];
-    let successCount = 0;
+    setIsSubmitting(true)
+    const errors: string[] = []
+    let successCount = 0
 
     try {
       for (const table of pendingTables) {
         try {
-          await createTable(table);
-          successCount++;
+          await createTable(table)
+          successCount++
         } catch (err: any) {
           const errorMsg =
-            err.response?.data?.message || err.message || "Unknown error";
-          errors.push(`Table ${table.table_number}: ${errorMsg}`);
+            err.response?.data?.message || err.message || 'Unknown error'
+          errors.push(`Table ${table.table_number}: ${errorMsg}`)
         }
       }
 
@@ -228,49 +226,50 @@ const AddTablesComponent = ({
         setExistingTables((prev) => [
           ...prev,
           ...pendingTables.map((t) => t.table_number),
-        ]);
-        setPendingTables([]);
-        onTablesAdded?.();
+        ])
+        setPendingTables([])
+        onTablesAdded?.()
       } else {
-        const message = `${successCount}/${pendingTables.length} tables created successfully.\n\nErrors:\n${errors.join("\n")}`;
-        showError("Error", message);
+        const message = `${successCount}/${pendingTables.length} tables created successfully.\n\nErrors:\n${errors.join('\n')}`
+        showError('Error', message)
 
         if (successCount > 0) {
           const successfulTableNumbers = pendingTables
             .filter(
-              (table) => !errors.some((err) => err.includes(table.table_number))
+              (table) =>
+                !errors.some((err) => err.includes(table.table_number)),
             )
-            .map((table) => table.table_number);
+            .map((table) => table.table_number)
 
-          setExistingTables((prev) => [...prev, ...successfulTableNumbers]);
+          setExistingTables((prev) => [...prev, ...successfulTableNumbers])
           setPendingTables((prev) =>
             prev.filter((table) =>
-              errors.some((err) => err.includes(table.table_number))
-            )
-          );
+              errors.some((err) => err.includes(table.table_number)),
+            ),
+          )
         }
       }
     } catch (error) {
-      console.error("Error creating tables:", error);
+      console.error('Error creating tables:', error)
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   const clearAllPending = () => {
-    setPendingTables([]);
-  };
+    setPendingTables([])
+  }
 
   const groupedPendingTables = pendingTables.reduce(
     (acc, table) => {
       if (!acc[table.zone]) {
-        acc[table.zone] = [];
+        acc[table.zone] = []
       }
-      acc[table.zone].push(table);
-      return acc;
+      acc[table.zone].push(table)
+      return acc
     },
-    {} as Record<string, PendingTable[]>
-  );
+    {} as Record<string, PendingTable[]>,
+  )
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6 h-full overflow-auto">
@@ -281,7 +280,7 @@ const AddTablesComponent = ({
           disabled={dataLoading}
         >
           <RefreshCw
-            className={`h-4 w-4 mr-2 ${dataLoading ? "animate-spin" : ""}`}
+            className={`h-4 w-4 mr-2 ${dataLoading ? 'animate-spin' : ''}`}
           />
           Refresh Data
         </Button>
@@ -333,7 +332,7 @@ const AddTablesComponent = ({
                 value={tableNumber}
                 onChange={(e) => setTableNumber(e.target.value)}
                 placeholder={getNextTableNumber()}
-                className={errors.tableNumber ? "border-red-500" : ""}
+                className={errors.tableNumber ? 'border-red-500' : ''}
               />
               {errors.tableNumber && (
                 <p className="text-sm text-red-500">{errors.tableNumber}</p>
@@ -355,7 +354,7 @@ const AddTablesComponent = ({
                   max="50"
                   value={capacity}
                   onChange={(e) => setCapacity(parseInt(e.target.value) || 1)}
-                  className={`w-24 ${errors.capacity ? "border-red-500" : ""}`}
+                  className={`w-24 ${errors.capacity ? 'border-red-500' : ''}`}
                 />
                 <span className="text-sm text-gray-500">people</span>
               </div>
@@ -375,7 +374,7 @@ const AddTablesComponent = ({
                       onValueChange={setSelectedZone}
                     >
                       <SelectTrigger
-                        className={errors.zone ? "border-red-500" : ""}
+                        className={errors.zone ? 'border-red-500' : ''}
                       >
                         <SelectValue placeholder="Select a zone" />
                       </SelectTrigger>
@@ -401,14 +400,14 @@ const AddTablesComponent = ({
                       value={newZoneName}
                       onChange={(e) => setNewZoneName(e.target.value)}
                       placeholder="Enter new zone name"
-                      className={errors.newZone ? "border-red-500" : ""}
+                      className={errors.newZone ? 'border-red-500' : ''}
                     />
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        setIsCreatingNewZone(false);
-                        setNewZoneName("");
+                        setIsCreatingNewZone(false)
+                        setNewZoneName('')
                       }}
                     >
                       <X className="h-4 w-4" />
@@ -510,12 +509,12 @@ const AddTablesComponent = ({
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   {pendingTables.length} table
-                  {pendingTables.length !== 1 ? "s" : ""} will be created across{" "}
+                  {pendingTables.length !== 1 ? 's' : ''} will be created across{' '}
                   {Object.keys(groupedPendingTables).length} zone
-                  {Object.keys(groupedPendingTables).length !== 1 ? "s" : ""}
+                  {Object.keys(groupedPendingTables).length !== 1 ? 's' : ''}
                 </p>
                 <div className="mt-2 text-xs text-gray-500">
-                  Zones: {Object.keys(groupedPendingTables).join(", ")}
+                  Zones: {Object.keys(groupedPendingTables).join(', ')}
                 </div>
               </div>
               <Button
@@ -545,22 +544,22 @@ const AddTablesComponent = ({
       <div className="grid grid-cols-3 gap-2 sm:gap-4">
         {[
           {
-            label: "Tables",
+            label: 'Tables',
             count: existingTables.length,
             icon: CheckCircle2,
-            color: "green",
+            color: 'green',
           },
           {
-            label: "Pending",
+            label: 'Pending',
             count: pendingTables.length,
             icon: AlertCircle,
-            color: "orange",
+            color: 'orange',
           },
           {
-            label: "Zones",
+            label: 'Zones',
             count: localZones.length,
             icon: Users,
-            color: "blue",
+            color: 'blue',
           },
         ].map(({ label, count, icon: Icon, color }) => (
           <Card key={label} className="p-2 sm:p-4">
@@ -593,9 +592,9 @@ const AddTablesComponent = ({
             <Button
               variant="outline"
               onClick={() => {
-                const startNum = parseInt(getNextTableNumber());
+                const startNum = parseInt(getNextTableNumber())
                 for (let i = 0; i < 5; i++) {
-                  const tableNum = (startNum + i).toString();
+                  const tableNum = (startNum + i).toString()
                   if (
                     !existingTables.includes(tableNum) &&
                     !pendingTables.some((t) => t.table_number === tableNum)
@@ -604,9 +603,9 @@ const AddTablesComponent = ({
                       id: `quick-${Date.now()}-${i}`,
                       table_number: tableNum,
                       capacity: 4,
-                      zone: selectedZone || localZones[0] || "Main Hall",
-                    };
-                    setPendingTables((prev) => [...prev, newTable]);
+                      zone: selectedZone || localZones[0] || 'Main Hall',
+                    }
+                    setPendingTables((prev) => [...prev, newTable])
                   }
                 }
               }}
@@ -622,9 +621,9 @@ const AddTablesComponent = ({
             <Button
               variant="outline"
               onClick={() => {
-                const startNum = parseInt(getNextTableNumber());
+                const startNum = parseInt(getNextTableNumber())
                 for (let i = 0; i < 10; i++) {
-                  const tableNum = (startNum + i).toString();
+                  const tableNum = (startNum + i).toString()
                   if (
                     !existingTables.includes(tableNum) &&
                     !pendingTables.some((t) => t.table_number === tableNum)
@@ -633,9 +632,9 @@ const AddTablesComponent = ({
                       id: `quick-${Date.now()}-${i}`,
                       table_number: tableNum,
                       capacity: 4,
-                      zone: selectedZone || localZones[0] || "Main Hall",
-                    };
-                    setPendingTables((prev) => [...prev, newTable]);
+                      zone: selectedZone || localZones[0] || 'Main Hall',
+                    }
+                    setPendingTables((prev) => [...prev, newTable])
                   }
                 }
               }}
@@ -652,9 +651,9 @@ const AddTablesComponent = ({
               variant="outline"
               onClick={() => {
                 // Add VIP tables (capacity 6-8)
-                const startNum = parseInt(getNextTableNumber());
+                const startNum = parseInt(getNextTableNumber())
                 for (let i = 0; i < 3; i++) {
-                  const tableNum = `VIP${startNum + i}`;
+                  const tableNum = `VIP${startNum + i}`
                   if (
                     !existingTables.includes(tableNum) &&
                     !pendingTables.some((t) => t.table_number === tableNum)
@@ -663,14 +662,14 @@ const AddTablesComponent = ({
                       id: `vip-${Date.now()}-${i}`,
                       table_number: tableNum,
                       capacity: 6 + (i % 3),
-                      zone: "VIP Section",
-                    };
-                    setPendingTables((prev) => [...prev, newTable]);
+                      zone: 'VIP Section',
+                    }
+                    setPendingTables((prev) => [...prev, newTable])
                   }
                 }
                 // Add VIP Section to zones if not exists
-                if (!localZones.includes("VIP Section")) {
-                  setLocalZones((prev) => [...prev, "VIP Section"]);
+                if (!localZones.includes('VIP Section')) {
+                  setLocalZones((prev) => [...prev, 'VIP Section'])
                 }
               }}
               disabled={dataLoading}
@@ -684,9 +683,9 @@ const AddTablesComponent = ({
               variant="outline"
               onClick={() => {
                 // Add outdoor tables
-                const startNum = parseInt(getNextTableNumber());
+                const startNum = parseInt(getNextTableNumber())
                 for (let i = 0; i < 4; i++) {
-                  const tableNum = `OUT${startNum + i}`;
+                  const tableNum = `OUT${startNum + i}`
                   if (
                     !existingTables.includes(tableNum) &&
                     !pendingTables.some((t) => t.table_number === tableNum)
@@ -695,14 +694,14 @@ const AddTablesComponent = ({
                       id: `outdoor-${Date.now()}-${i}`,
                       table_number: tableNum,
                       capacity: 4,
-                      zone: "Outdoor",
-                    };
-                    setPendingTables((prev) => [...prev, newTable]);
+                      zone: 'Outdoor',
+                    }
+                    setPendingTables((prev) => [...prev, newTable])
                   }
                 }
                 // Add Outdoor to zones if not exists
-                if (!localZones.includes("Outdoor")) {
-                  setLocalZones((prev) => [...prev, "Outdoor"]);
+                if (!localZones.includes('Outdoor')) {
+                  setLocalZones((prev) => [...prev, 'Outdoor'])
                 }
               }}
               disabled={dataLoading}
@@ -735,17 +734,17 @@ const AddTablesComponent = ({
           </ul>
           {existingTables.length > 0 && (
             <div className="mt-3 p-2 bg-gray-50 dark:bg-gray-800 rounded text-xs">
-              <strong>Existing tables:</strong>{" "}
-              {existingTables.slice(0, 20).join(", ")}
+              <strong>Existing tables:</strong>{' '}
+              {existingTables.slice(0, 20).join(', ')}
               {existingTables.length > 20
                 ? `... and ${existingTables.length - 20} more`
-                : ""}
+                : ''}
             </div>
           )}
         </AlertDescription>
       </Alert>
     </div>
-  );
-};
+  )
+}
 
-export default AddTablesComponent;
+export default AddTablesComponent

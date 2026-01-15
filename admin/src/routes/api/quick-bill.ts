@@ -3,15 +3,29 @@ import axiosInstance from '@/lib/axios'
 import cryptoConfig from '@/lib/crypto/config'
 import signatureService from '@/lib/crypto/signatureService'
 import logger from '@/lib/logger-dynamic'
+import { getAccessTokenFromCookie } from '@/lib/server-cookies'
 
 export const Route = createFileRoute('/api/quick-bill')({
   server: {
     handlers: {
       POST: async ({ request }) => {
         try {
+          // Get token from httpOnly cookie
+          const accessToken = getAccessTokenFromCookie(request)
+
+          if (!accessToken) {
+            return new Response(
+              JSON.stringify({
+                status: 401,
+                message: 'Not authenticated',
+                error: true,
+              }),
+              { status: 401, headers: { 'Content-Type': 'application/json' } },
+            )
+          }
+
           const data = await request.json()
-          console.log(data, '*****  data from quick bill *****')
-          const { customerDetails, orderItems, token } = data
+          const { customerDetails, orderItems } = data // Removed token from destructuring
 
           let customer_id: string | undefined
 
@@ -82,14 +96,14 @@ export const Route = createFileRoute('/api/quick-bill')({
               transformedOrderItems,
             )
 
-            // Make signed API call to orders endpoint with raw JSON
+            // Make signed API call to orders endpoint using token from cookie
             const ordersResponse = await axiosInstance.post(
               cryptoConfig.getOrdersEndpoint(),
               transformedOrderItems,
               {
                 headers: {
                   [cryptoConfig.getSignatureHeader()]: signature,
-                  Authorization: `Bearer ${token}`,
+                  Authorization: `Bearer ${accessToken}`, // Use token from cookie
                   'Content-Type': 'application/json',
                 },
               },

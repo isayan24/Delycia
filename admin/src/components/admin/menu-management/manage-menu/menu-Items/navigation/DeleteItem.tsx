@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button";
-import { Loader2, Trash2, TriangleAlert } from "lucide-react";
-import React, { useTransition } from "react";
+import { Button } from '@/components/ui/button'
+import { Loader2, Trash2, TriangleAlert } from 'lucide-react'
+import React, { useTransition } from 'react'
 import {
   Dialog,
   DialogClose,
@@ -9,10 +9,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import axios from "axios";
-import useToast from "@/hooks/UseToast";
-import { useAuth } from "@/hooks/useAuth";
+} from '@/components/ui/dialog'
+import axios from 'axios'
+import useToast from '@/hooks/UseToast'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function DeleteItem({
   onOpenChange,
@@ -20,34 +20,31 @@ export default function DeleteItem({
   refetch,
   currentFoodItem,
 }: any) {
-  const [isPending, startTransition] = useTransition();
-  const { showError, showSuccess } = useToast();
-  const { getValidAccessToken } = useAuth();
+  const [isPending, startTransition] = useTransition()
+  const { showError, showSuccess } = useToast()
 
   const handleDelete = async () => {
     try {
       startTransition(async () => {
-        const accessToken = await getValidAccessToken();
         await axios
           .delete(`/api/inventory`, {
             data: {
               id: currentFoodItem?.id,
               img: currentFoodItem?.images,
-              token: accessToken,
               rid: currentFoodItem?.rid,
             },
           })
           .then(() => {
-            refetch();
-            showSuccess("Success", "Item deleted successfully");
-            onOpenChange(false);
-          });
-      });
+            refetch()
+            showSuccess('Success', 'Item deleted successfully')
+            onOpenChange(false)
+          })
+      })
     } catch (error) {
-      console.error("Error deleting category", error);
-      showError("Error", "Error deleting category item");
+      console.error('Error deleting category', error)
+      showError('Error', 'Error deleting category item')
     }
-  };
+  }
 
   return (
     <>
@@ -86,5 +83,5 @@ export default function DeleteItem({
         </DialogContent>
       </Dialog>
     </>
-  );
+  )
 }

@@ -2,9 +2,9 @@ import AdminMobileNav from '../admin/navigation/AdminMobileNav'
 import { useAuth } from '@/hooks/useAuth'
 
 export default function AdminMobileNavWrapper() {
-  const { user, accessToken } = useAuth()
+  const { user, isAuthenticated } = useAuth()
 
-  if (!accessToken || user) {
+  if (!isAuthenticated || user) {
     return null
   }
   return <AdminMobileNav />

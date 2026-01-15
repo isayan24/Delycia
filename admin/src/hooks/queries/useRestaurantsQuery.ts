@@ -36,10 +36,10 @@ export const restaurantKeys = {
 /**
  * Fetch multiple restaurants by their IDs
  * This is optimal for fetching all accessible restaurants for a user
+ * Uses httpOnly cookies for authentication
  */
 export function useRestaurantsQuery(
   restaurantRids: number[] | undefined,
-  token: string | null,
   enabled = true,
 ) {
   return useQuery({
@@ -47,10 +47,6 @@ export function useRestaurantsQuery(
     queryFn: async () => {
       if (!restaurantRids || restaurantRids.length === 0) {
         return {}
-      }
-
-      if (!token) {
-        throw new Error('No valid access token available')
       }
 
       const restaurantMap: RestaurantMap = {}
@@ -61,9 +57,7 @@ export function useRestaurantsQuery(
           const ridString = rid.toString()
           const response = await axios.get(`/api/restaurant`, {
             params: { rid: ridString },
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            withCredentials: true, // Send httpOnly cookies
           })
 
           if (response.data?.restaurant_info) {
@@ -121,8 +115,7 @@ export function useRestaurantsQuery(
       await Promise.allSettled(fetchPromises)
       return restaurantMap
     },
-    enabled:
-      enabled && !!restaurantRids && restaurantRids.length > 0 && !!token,
+    enabled: enabled && !!restaurantRids && restaurantRids.length > 0,
     staleTime: 10 * 60 * 1000, // 10 minutes (restaurant data rarely changes)
     gcTime: 30 * 60 * 1000, // 30 minutes
     retry: 2,

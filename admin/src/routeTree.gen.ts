@@ -19,7 +19,9 @@ import { Route as BookTableRouteImport } from './routes/book-table'
 import { Route as AffiliateRouteImport } from './routes/affiliate'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UsersIndexRouteImport } from './routes/users/index'
+import { Route as ApiWsTokenRouteImport } from './routes/api/ws-token'
 import { Route as ApiWaiterOrdersRouteImport } from './routes/api/waiter-orders'
+import { Route as ApiUsersRouteImport } from './routes/api/users'
 import { Route as ApiTableRouteImport } from './routes/api/table'
 import { Route as ApiRestaurantRouteImport } from './routes/api/restaurant'
 import { Route as ApiQuickBillRouteImport } from './routes/api/quick-bill'
@@ -28,6 +30,7 @@ import { Route as ApiInventoryRouteImport } from './routes/api/inventory'
 import { Route as ApiImagekitRouteImport } from './routes/api/imagekit'
 import { Route as ApiDashboardRouteImport } from './routes/api/dashboard'
 import { Route as ApiCategoryRouteImport } from './routes/api/category'
+import { Route as ApiAddonsRouteImport } from './routes/api/addons'
 import { Route as UsersPIndexRouteImport } from './routes/users/p/index'
 import { Route as DemoStartServerFuncsRouteImport } from './routes/demo/start.server-funcs'
 import { Route as DemoStartApiRequestRouteImport } from './routes/demo/start.api-request'
@@ -97,9 +100,19 @@ const UsersIndexRoute = UsersIndexRouteImport.update({
   path: '/users/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWsTokenRoute = ApiWsTokenRouteImport.update({
+  id: '/api/ws-token',
+  path: '/api/ws-token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiWaiterOrdersRoute = ApiWaiterOrdersRouteImport.update({
   id: '/api/waiter-orders',
   path: '/api/waiter-orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiUsersRoute = ApiUsersRouteImport.update({
+  id: '/api/users',
+  path: '/api/users',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiTableRoute = ApiTableRouteImport.update({
@@ -140,6 +153,11 @@ const ApiDashboardRoute = ApiDashboardRouteImport.update({
 const ApiCategoryRoute = ApiCategoryRouteImport.update({
   id: '/api/category',
   path: '/api/category',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAddonsRoute = ApiAddonsRouteImport.update({
+  id: '/api/addons',
+  path: '/api/addons',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UsersPIndexRoute = UsersPIndexRouteImport.update({
@@ -245,6 +263,7 @@ export interface FileRoutesByFullPath {
   '/order-history': typeof OrderHistoryRoute
   '/orders': typeof OrdersRoute
   '/quick-bill': typeof QuickBillRoute
+  '/api/addons': typeof ApiAddonsRoute
   '/api/category': typeof ApiCategoryRouteWithChildren
   '/api/dashboard': typeof ApiDashboardRoute
   '/api/imagekit': typeof ApiImagekitRoute
@@ -253,7 +272,9 @@ export interface FileRoutesByFullPath {
   '/api/quick-bill': typeof ApiQuickBillRoute
   '/api/restaurant': typeof ApiRestaurantRoute
   '/api/table': typeof ApiTableRoute
+  '/api/users': typeof ApiUsersRoute
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
+  '/api/ws-token': typeof ApiWsTokenRoute
   '/users': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -284,6 +305,7 @@ export interface FileRoutesByTo {
   '/order-history': typeof OrderHistoryRoute
   '/orders': typeof OrdersRoute
   '/quick-bill': typeof QuickBillRoute
+  '/api/addons': typeof ApiAddonsRoute
   '/api/category': typeof ApiCategoryRouteWithChildren
   '/api/dashboard': typeof ApiDashboardRoute
   '/api/imagekit': typeof ApiImagekitRoute
@@ -292,7 +314,9 @@ export interface FileRoutesByTo {
   '/api/quick-bill': typeof ApiQuickBillRoute
   '/api/restaurant': typeof ApiRestaurantRoute
   '/api/table': typeof ApiTableRoute
+  '/api/users': typeof ApiUsersRoute
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
+  '/api/ws-token': typeof ApiWsTokenRoute
   '/users': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -324,6 +348,7 @@ export interface FileRoutesById {
   '/order-history': typeof OrderHistoryRoute
   '/orders': typeof OrdersRoute
   '/quick-bill': typeof QuickBillRoute
+  '/api/addons': typeof ApiAddonsRoute
   '/api/category': typeof ApiCategoryRouteWithChildren
   '/api/dashboard': typeof ApiDashboardRoute
   '/api/imagekit': typeof ApiImagekitRoute
@@ -332,7 +357,9 @@ export interface FileRoutesById {
   '/api/quick-bill': typeof ApiQuickBillRoute
   '/api/restaurant': typeof ApiRestaurantRoute
   '/api/table': typeof ApiTableRoute
+  '/api/users': typeof ApiUsersRoute
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
+  '/api/ws-token': typeof ApiWsTokenRoute
   '/users/': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -365,6 +392,7 @@ export interface FileRouteTypes {
     | '/order-history'
     | '/orders'
     | '/quick-bill'
+    | '/api/addons'
     | '/api/category'
     | '/api/dashboard'
     | '/api/imagekit'
@@ -373,7 +401,9 @@ export interface FileRouteTypes {
     | '/api/quick-bill'
     | '/api/restaurant'
     | '/api/table'
+    | '/api/users'
     | '/api/waiter-orders'
+    | '/api/ws-token'
     | '/users'
     | '/api/admin/update'
     | '/api/auth/login'
@@ -404,6 +434,7 @@ export interface FileRouteTypes {
     | '/order-history'
     | '/orders'
     | '/quick-bill'
+    | '/api/addons'
     | '/api/category'
     | '/api/dashboard'
     | '/api/imagekit'
@@ -412,7 +443,9 @@ export interface FileRouteTypes {
     | '/api/quick-bill'
     | '/api/restaurant'
     | '/api/table'
+    | '/api/users'
     | '/api/waiter-orders'
+    | '/api/ws-token'
     | '/users'
     | '/api/admin/update'
     | '/api/auth/login'
@@ -443,6 +476,7 @@ export interface FileRouteTypes {
     | '/order-history'
     | '/orders'
     | '/quick-bill'
+    | '/api/addons'
     | '/api/category'
     | '/api/dashboard'
     | '/api/imagekit'
@@ -451,7 +485,9 @@ export interface FileRouteTypes {
     | '/api/quick-bill'
     | '/api/restaurant'
     | '/api/table'
+    | '/api/users'
     | '/api/waiter-orders'
+    | '/api/ws-token'
     | '/users/'
     | '/api/admin/update'
     | '/api/auth/login'
@@ -483,6 +519,7 @@ export interface RootRouteChildren {
   OrderHistoryRoute: typeof OrderHistoryRoute
   OrdersRoute: typeof OrdersRoute
   QuickBillRoute: typeof QuickBillRoute
+  ApiAddonsRoute: typeof ApiAddonsRoute
   ApiCategoryRoute: typeof ApiCategoryRouteWithChildren
   ApiDashboardRoute: typeof ApiDashboardRoute
   ApiImagekitRoute: typeof ApiImagekitRoute
@@ -491,7 +528,9 @@ export interface RootRouteChildren {
   ApiQuickBillRoute: typeof ApiQuickBillRoute
   ApiRestaurantRoute: typeof ApiRestaurantRoute
   ApiTableRoute: typeof ApiTableRoute
+  ApiUsersRoute: typeof ApiUsersRoute
   ApiWaiterOrdersRoute: typeof ApiWaiterOrdersRoute
+  ApiWsTokenRoute: typeof ApiWsTokenRoute
   UsersIndexRoute: typeof UsersIndexRoute
   ApiAdminUpdateRoute: typeof ApiAdminUpdateRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
@@ -580,11 +619,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UsersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/ws-token': {
+      id: '/api/ws-token'
+      path: '/api/ws-token'
+      fullPath: '/api/ws-token'
+      preLoaderRoute: typeof ApiWsTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/waiter-orders': {
       id: '/api/waiter-orders'
       path: '/api/waiter-orders'
       fullPath: '/api/waiter-orders'
       preLoaderRoute: typeof ApiWaiterOrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/users': {
+      id: '/api/users'
+      path: '/api/users'
+      fullPath: '/api/users'
+      preLoaderRoute: typeof ApiUsersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/table': {
@@ -641,6 +694,13 @@ declare module '@tanstack/react-router' {
       path: '/api/category'
       fullPath: '/api/category'
       preLoaderRoute: typeof ApiCategoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/addons': {
+      id: '/api/addons'
+      path: '/api/addons'
+      fullPath: '/api/addons'
+      preLoaderRoute: typeof ApiAddonsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/users/p/': {
@@ -812,6 +872,7 @@ const rootRouteChildren: RootRouteChildren = {
   OrderHistoryRoute: OrderHistoryRoute,
   OrdersRoute: OrdersRoute,
   QuickBillRoute: QuickBillRoute,
+  ApiAddonsRoute: ApiAddonsRoute,
   ApiCategoryRoute: ApiCategoryRouteWithChildren,
   ApiDashboardRoute: ApiDashboardRoute,
   ApiImagekitRoute: ApiImagekitRoute,
@@ -820,7 +881,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiQuickBillRoute: ApiQuickBillRoute,
   ApiRestaurantRoute: ApiRestaurantRoute,
   ApiTableRoute: ApiTableRoute,
+  ApiUsersRoute: ApiUsersRoute,
   ApiWaiterOrdersRoute: ApiWaiterOrdersRoute,
+  ApiWsTokenRoute: ApiWsTokenRoute,
   UsersIndexRoute: UsersIndexRoute,
   ApiAdminUpdateRoute: ApiAdminUpdateRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,

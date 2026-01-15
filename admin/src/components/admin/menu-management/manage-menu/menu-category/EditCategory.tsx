@@ -35,8 +35,6 @@ export default function EditCategory({
   const [imageError, setImageError] = useState<string | null>(null)
   const { showError, showSuccess } = useToast()
 
-  const { getValidAccessToken } = useAuth()
-
   // ✅ Call mutation hook at component level
   const updateMutation = useUpdateCategoryMutation()
 
@@ -111,8 +109,6 @@ export default function EditCategory({
         'token',
       )
 
-      const accessToken = await getValidAccessToken()
-
       // ✅ Use the mutation hook (already declared at component level)
       await updateMutation.mutateAsync({
         id: category.id,
@@ -120,7 +116,6 @@ export default function EditCategory({
         name: data.name,
         description: data.description,
         img: imageUrl || undefined, // Handle null/undefined properly
-        token: accessToken!,
       })
 
       showSuccess('Successfully!', 'Category updated successfully')

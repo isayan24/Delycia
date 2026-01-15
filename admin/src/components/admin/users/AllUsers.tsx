@@ -1,65 +1,53 @@
-import React, { useState, useEffect } from "react";
-import {
-  Mail,
-  User,
-  Phone,
-  Calendar,
-  CheckCircle,
-  XCircle,
-} from "lucide-react";
-import axiosInstance from "@/lib/axios";
-import UseOptimizeImage from "@/hooks/UseOptimizeImage";
-import { useAuth } from "@/hooks/useAuth";
+import React, { useState, useEffect } from 'react'
+import { Mail, User, Phone, Calendar, CheckCircle, XCircle } from 'lucide-react'
+import axiosInstance from '@/lib/axios'
+import UseOptimizeImage from '@/hooks/UseOptimizeImage'
+import { useAuth } from '@/hooks/useAuth'
 
 interface User {
-  uid: string;
-  name: string;
+  uid: string
+  name: string
   // email: string;
-  username: string;
-  phone_number: string;
-  profile_pic: string;
-  verified: number;
-  register_at: string;
+  username: string
+  phone_number: string
+  profile_pic: string
+  verified: number
+  register_at: string
 }
 
 export default function AllUsers() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const {  accessToken, getValidAccessToken } = useAuth();
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const { isAuthenticated } = useAuth()
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const accessToken = await getValidAccessToken();
-        if (!accessToken) {
-          setLoading(false);
-          return;
+        if (!isAuthenticated) {
+          setLoading(false)
+          return
         }
 
-        const response = await axiosInstance.get("/admin/users", {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
+        const response = await axiosInstance.get('/admin/users')
 
         if (response.data.status && response.data.users) {
-          setUsers(response.data.users);
+          setUsers(response.data.users)
         } else {
-          throw new Error("Failed to fetch users");
+          throw new Error('Failed to fetch users')
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
+        setError(err instanceof Error ? err.message : 'An error occurred')
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchUsers();
-  }, [getValidAccessToken]);
+    fetchUsers()
+  }, [isAuthenticated])
 
-  if (!accessToken) {
-    return null;
+  if (!isAuthenticated) {
+    return null
   }
 
   if (loading) {
@@ -67,7 +55,7 @@ export default function AllUsers() {
       <div className="flex justify-center items-center h-screen">
         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-green-500"></div>
       </div>
-    );
+    )
   }
 
   if (error) {
@@ -79,7 +67,7 @@ export default function AllUsers() {
         <strong className="font-bold">Error: </strong>
         <span className="block sm:inline">{error}</span>
       </div>
-    );
+    )
   }
 
   return (
@@ -135,11 +123,11 @@ export default function AllUsers() {
                 <div className="flex items-center text-gray-600 text-sm">
                   <Calendar className="mr-1 text-gray-400 w-4 h-4" />
                   <span>
-                    Joined{" "}
-                    {new Date(user.register_at).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
+                    Joined{' '}
+                    {new Date(user.register_at).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
                     })}
                   </span>
                 </div>
@@ -157,7 +145,7 @@ export default function AllUsers() {
                   <div className="flex items-center text-gray-700">
                     <Phone className="mr-3 text-indigo-400 w-5 h-5" />
                     <span className="text-sm">
-                      {user.phone_number || "Not provided"}
+                      {user.phone_number || 'Not provided'}
                     </span>
                   </div>
                 )}
@@ -174,5 +162,5 @@ export default function AllUsers() {
         </div>
       )}
     </div>
-  );
+  )
 }

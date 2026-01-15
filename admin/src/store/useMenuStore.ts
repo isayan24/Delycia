@@ -4,9 +4,6 @@ import { Category, Item } from '@/types/menu.types'
 import logger from '@/lib/logger-dynamic'
 
 interface MenuState {
-  // Auth
-  session: string | null
-
   // Categories (UI State Only - data comes from TanStack Query)
   selectedCategoryId: string | null
   selectedCategory: Category | null
@@ -32,9 +29,6 @@ interface MenuState {
 }
 
 interface MenuActions {
-  // Session actions
-  setSession: (session: string | null) => void
-
   // Category actions (UI State Only)
   selectCategory: (category: Category) => void
   setCurrentCategory: (category: Category | null) => void
@@ -74,7 +68,6 @@ interface MenuActions {
 type MenuStore = MenuState & MenuActions
 
 const initialState: MenuState = {
-  session: null,
   selectedCategoryId: null,
   selectedCategory: null,
   currentCategory: null,
@@ -94,9 +87,6 @@ export const useMenuStore = create<MenuStore>()(
   devtools(
     (set, get) => ({
       ...initialState,
-
-      // Session actions
-      setSession: (session) => set({ session }),
 
       // Category actions (UI State Only - data managed by TanStack Query)
 
@@ -251,9 +241,8 @@ export const useMenuStore = create<MenuStore>()(
         // This function is rarely called, so fetching is fine
         try {
           const axiosInstance = (await import('@/lib/axios')).default
-          const categoriesResponse = await axiosInstance.get('/api/category', {
-            params: { rid: get().session }, // Assuming session stores rid
-          })
+          // No need to pass rid - axios automatically includes httpOnly cookies
+          const categoriesResponse = await axiosInstance.get('/api/category')
 
           const categories: Category[] =
             categoriesResponse.data?.categories || []

@@ -1,59 +1,61 @@
-import axiosInstance from "@/lib/axios";
-import { useEffect, useState } from "react";
+import axiosInstance from '@/lib/axios'
+import { useEffect, useState } from 'react'
 import {
   ApiTableResponse,
   ApiZoneResponse,
   UseFetchTableReturn,
-} from "./types/table.types";
+} from './types/table.types'
 
-export const useFetchTable = (rid: string | undefined): UseFetchTableReturn => {
-  const [tables, setTables] = useState<ApiTableResponse[]>([]);
-  const [zones, setZones] = useState<ApiZoneResponse[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<any>(null);
+export const useFetchTable = (
+  rid: number | undefined | null,
+): UseFetchTableReturn => {
+  const [tables, setTables] = useState<ApiTableResponse[]>([])
+  const [zones, setZones] = useState<ApiZoneResponse[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<any>(null)
 
-  const fetchTables = async (rid: string) => {
-    setLoading(true);
-    
+  const fetchTables = async (rid: number) => {
+    setLoading(true)
+
     try {
-      const response = await axiosInstance.get(`/tables?rid=${rid}`);
+      const response = await axiosInstance.get(`/tables?rid=${rid}`)
 
       if (response.data && response.data.tables) {
-        setTables(response.data.tables);
+        setTables(response.data.tables)
       } else {
-        setTables([]);
+        setTables([])
       }
     } catch (error: any) {
-      console.error("Error fetching tables:", error);
-      setError(error);
+      console.error('Error fetching tables:', error)
+      setError(error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const fetZones = async (rid: string) => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const response = await axiosInstance.get(`/tables/zones?rid=${rid}`);
+      const response = await axiosInstance.get(`/tables/zones?rid=${rid}`)
 
       if (response.data && response.data.zones) {
-        setZones(response.data.zones);
+        setZones(response.data.zones)
       } else {
-        setZones([]);
+        setZones([])
       }
     } catch (error: any) {
-      console.error("Error fetching zones:", error);
-      setError(error);
+      console.error('Error fetching zones:', error)
+      setError(error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
-    if (!rid) return;
-    fetZones(rid);
-    fetchTables(rid);
-  }, [rid]);
+    if (!rid) return
+    fetZones(rid)
+    fetchTables(rid)
+  }, [rid])
 
-  return { tables, zones, loading, error, fetchTables };
-};
+  return { tables, zones, loading, error, fetchTables }
+}

@@ -31,7 +31,6 @@ export default function ReviewConfirm({
   onComplete,
 }: ReviewConfirmProps) {
   const { selectedRid } = useRestaurantSelector()
-  const { getValidAccessToken } = useAuth()
   const { showSuccess, showError } = useToast()
 
   // NEW - Use TanStack Query for fetching templates 🚀
@@ -69,12 +68,10 @@ export default function ReviewConfirm({
       if (wizardState.source === 'templates') {
         // NEW - Use mutation instead of direct API call 🚀
         const templateIds = Array.from(wizardState.selectedTemplates)
-        const token = await getValidAccessToken()
 
         const result = await createFromTemplatesMutation.mutateAsync({
           rid: selectedRid,
           template_ids: templateIds as any[],
-          token: token!,
         })
 
         const created = result.details?.created || []
@@ -96,7 +93,6 @@ export default function ReviewConfirm({
           )
         }
       } else if (wizardState.source === 'custom') {
-        const accessToken = await getValidAccessToken()
         const { customCategories } = wizardState
 
         let successCount = 0
@@ -124,7 +120,6 @@ export default function ReviewConfirm({
                   rid: selectedRid,
                   cuisine_type: customCategory.cuisine_type,
                   saveAsTemplate: customCategory.saveAsTemplate,
-                  token: accessToken!,
                 })
               } else {
                 await createCategoryMutation.mutateAsync({
@@ -132,7 +127,6 @@ export default function ReviewConfirm({
                   description: customCategory.description,
                   img: imageUrl,
                   rid: selectedRid,
-                  token: accessToken!,
                 })
               }
 

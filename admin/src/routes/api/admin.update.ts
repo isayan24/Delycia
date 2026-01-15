@@ -1,28 +1,37 @@
 import { createFileRoute } from '@tanstack/react-router'
 import axiosInstance from '@/lib/axios'
+import { getAccessTokenFromCookie } from '@/lib/server-cookies'
 
 export const Route = createFileRoute('/api/admin/update')({
   server: {
     handlers: {
       POST: async ({ request }) => {
         try {
+          // Get token from httpOnly cookie
+          const accessToken = getAccessTokenFromCookie(request)
+
+          if (!accessToken) {
+            return new Response(
+              JSON.stringify({
+                status: 401,
+                message: 'Not authenticated',
+                error: true,
+              }),
+              { status: 401, headers: { 'Content-Type': 'application/json' } },
+            )
+          }
+
           const body = await request.json()
-          const {
-            uid,
-            username,
-            name,
-            accessToken,
-            password,
-            profile_pic,
-            phone_number,
-          } = body
+          const { uid, username, name, password, profile_pic, phone_number } =
+            body
+
+          // Pass Authorization header with token from cookie
+          const headers = {
+            Authorization: `Bearer ${accessToken}`,
+          }
 
           if (password) {
-            await axiosInstance.patch(
-              `/users`,
-              { uid, password },
-              { headers: { Authorization: `Bearer ${accessToken}` } },
-            )
+            await axiosInstance.patch(`/users`, { uid, password }, { headers })
           }
 
           if (username || name) {
@@ -34,12 +43,7 @@ export const Route = createFileRoute('/api/admin/update')({
                 name,
                 phone_number,
               },
-              {
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${accessToken}`,
-                },
-              },
+              { headers },
             )
           }
 
@@ -47,7 +51,7 @@ export const Route = createFileRoute('/api/admin/update')({
             await axiosInstance.patch(
               `/users`,
               { uid, profile_pic },
-              { headers: { Authorization: `Bearer ${accessToken}` } },
+              { headers },
             )
           }
 

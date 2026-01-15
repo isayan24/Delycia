@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { Card } from '@/components/ui/card'
-import { useMenuStore } from '@/store/useMenuStore'
 import MenuSection from './MenuSection'
 import BillSummary from './BillSummary'
 import CustomerSearch from './CustomerSearch'

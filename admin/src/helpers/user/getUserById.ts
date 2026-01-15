@@ -1,16 +1,17 @@
-import axiosInstance from "@/lib/axios";
+import axios from 'axios'
 
-export const getUserById = async (id: string, accessToken: string) => {
+export const getUserById = async (id: string) => {
   try {
-    const response = await axiosInstance.get(`/admin/users?id=${id}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    // Use axios directly (not axiosInstance) to call local TanStack Start server route
+    // This will automatically send httpOnly cookies
+    const response = await axios.get(`/api/users`, {
+      params: { id },
+      withCredentials: true,
+    })
 
-    return response.data;
+    return response.data
   } catch (error) {
     // Silently handle error and return null instead of throwing
-    return null;
+    return null
   }
-};
+}

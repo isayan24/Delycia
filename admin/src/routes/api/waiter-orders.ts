@@ -3,6 +3,7 @@ import axiosInstance from '@/lib/axios'
 import signatureService from '@/lib/crypto/signatureService'
 import cryptoConfig from '@/lib/crypto/config'
 import logger from '@/lib/logger'
+import { getAccessTokenFromCookie } from '@/lib/server-cookies'
 import {
   WaiterOrderRequest,
   OrderItem,
@@ -14,14 +15,23 @@ export const Route = createFileRoute('/api/waiter-orders')({
     handlers: {
       POST: async ({ request }) => {
         try {
+          // Get token from httpOnly cookie
+          const accessToken = getAccessTokenFromCookie(request)
+
+          if (!accessToken) {
+            return new Response(
+              JSON.stringify({
+                status: 401,
+                message: 'Not authenticated',
+                error: true,
+              }),
+              { status: 401, headers: { 'Content-Type': 'application/json' } },
+            )
+          }
+
           const data: WaiterOrderRequest = await request.json()
-          const {
-            customerDetails,
-            specialInstructions,
-            orderItems,
-            token,
-            table,
-          } = data
+          const { customerDetails, specialInstructions, orderItems, table } =
+            data // Removed token from destructuring
 
           let customer_id: string | undefined
 
@@ -93,14 +103,14 @@ export const Route = createFileRoute('/api/waiter-orders')({
               transformedOrderItems,
             )
 
-            // Make signed API call to orders endpoint with raw JSON
+            // Make signed API call to orders endpoint using token from cookie
             const ordersResponse = await axiosInstance.post(
               cryptoConfig.getOrdersEndpoint(),
               transformedOrderItems,
               {
                 headers: {
                   [cryptoConfig.getSignatureHeader()]: signature,
-                  Authorization: `Bearer ${token}`,
+                  Authorization: `Bearer ${accessToken}`, // Use token from cookie
                   'Content-Type': 'application/json',
                 },
               },
@@ -117,7 +127,7 @@ export const Route = createFileRoute('/api/waiter-orders')({
               try {
                 await axiosInstance.patch(`/admin/tables/`, tableData, {
                   headers: {
-                    Authorization: `Bearer ${token}`,
+                    Authorization: `Bearer ${accessToken}`, // Use token from cookie
                   },
                 })
               } catch (error) {

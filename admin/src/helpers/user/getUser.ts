@@ -1,5 +1,6 @@
 // getUser.ts - Fetch current user data from backend
 import axiosInstance from '@/lib/axios'
+import axios from 'axios'
 
 // User data structure returned from backend
 export interface UserResponse {
@@ -25,12 +26,11 @@ export interface UserResponse {
  */
 export const getUser = async (): Promise<UserResponse | null> => {
   try {
-    // No need for Authorization header - axios automatically includes httpOnly cookies
-    const response = await axiosInstance.get<UserResponse>('/users', {
+    // Call TanStack Start server route (not backend directly!)
+    const response = await axios.get<UserResponse>('/api/users', {
       // Ensure credentials are sent (httpOnly cookies)
       withCredentials: true,
     })
-
     return response.data
   } catch (error: any) {
     console.error(

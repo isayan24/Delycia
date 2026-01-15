@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback } from 'react'
 import { useAuth } from './useAuth'
 import sessionService from '@/services/sessionService'
 import {
@@ -11,15 +11,10 @@ export const useRestaurantSelector = () => {
   const { user, refreshSession } = useAuth()
   const [isUpdating, setIsUpdating] = useState(false)
 
-  // Get valid access token
-  const token = useMemo(() => {
-    // This will be called synchronously, so we need to handle async properly
-    return user ? sessionService.getAccessToken() : null
-  }, [user])
-
   // Fetch restaurant details using TanStack Query
+  // No token needed - axios automatically includes httpOnly cookies
   const { data: restaurants = {}, isLoading: isLoadingRestaurants } =
-    useRestaurantsQuery(user?.restaurant_rids, token, !!user)
+    useRestaurantsQuery(user?.restaurant_rids, !!user)
 
   // Update selected restaurant in session - Enhanced version
   const updateSelectedRestaurant = useCallback(

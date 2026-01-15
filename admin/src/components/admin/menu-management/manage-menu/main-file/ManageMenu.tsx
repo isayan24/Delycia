@@ -1,18 +1,10 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { TopButtons } from '../navigation/TopButtons'
 import { MenuContent } from './MenuContent'
-import { useAuth } from '@/hooks/useAuth'
 import { useMenuStore } from '@/store/useMenuStore'
-import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 
 export default function ManageMenu() {
-  const { accessToken } = useAuth()
-  const { setSession, highlightItem, navigateToItem } = useMenuStore()
-
-  // Initialize session
-  useEffect(() => {
-    setSession(accessToken)
-  }, [accessToken, setSession])
+  const { highlightItem, navigateToItem } = useMenuStore()
 
   const handleSearch = (query: string) => {
     // Add search logic here if needed

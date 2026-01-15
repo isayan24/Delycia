@@ -37,46 +37,17 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config
+    // Handle 401 errors (Unauthorized) - redirect to login
+    if (error.response?.status === 401) {
+      console.error('Unauthorized - redirecting to login')
 
-    // Handle 401 errors (Unauthorized)
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true
-
-      try {
-        // Try to refresh tokens via server route
-        const refreshResponse = await fetch('/api/auth/refresh', {
-          method: 'POST',
-          credentials: 'include', // Send httpOnly cookies
-        })
-
-        if (refreshResponse.ok) {
-          // Token refreshed successfully, retry original request
-          // New tokens are already set in httpOnly cookies
-          return axiosInstance(originalRequest)
-        } else {
-          // Refresh failed, user needs to re-login
-          console.error('Token refresh failed, redirecting to login')
-
-          // Clear any client-side session data
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('user_data')
-            window.location.href = '/login'
-          }
-
-          return Promise.reject(error)
-        }
-      } catch (refreshError) {
-        console.error('Error during token refresh:', refreshError)
-
-        // Clear session and redirect
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('user_data')
-          window.location.href = '/login'
-        }
-
-        return Promise.reject(refreshError)
+      // Clear any client-side session data
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('user_data')
+        window.location.href = '/login'
       }
+
+      return Promise.reject(error)
     }
 
     // Log other errors

@@ -4,6 +4,7 @@ import sessionService, {
   UserUpdateData,
 } from '@/services/sessionService'
 import sessionCleanupService from '@/services/sessionCleanupService'
+import axios from 'axios'
 
 export interface LoginCredentials {
   phone_number: string
@@ -30,17 +31,16 @@ export function useAuth(): UseAuthReturn {
     isAuthenticated: false,
   })
 
-  // Initialize auth state from server
+  // fix Initialize auth state from server
   const initializeAuth = useCallback(async () => {
     try {
       // Check if session is valid via server route
-      const response = await fetch('/api/auth/session', {
-        method: 'GET',
-        credentials: 'include', // Send httpOnly cookies
+      const response = await axios.get('/api/auth/session', {
+        withCredentials: true, // Send httpOnly cookies
       })
 
-      if (response.ok) {
-        const data = await response.json()
+      if (response.status === 200) {
+        const data = response.data
 
         if (
           data.statusCode === 200 &&
@@ -49,33 +49,24 @@ export function useAuth(): UseAuthReturn {
         ) {
           const userData = data.data.user
 
-          // IMPORTANT: Only update user data if it has valid values
-          // Don't let null values from session validation overwrite good data
+          // IMPORTANT: Merge with localStorage for client-side fields
+          // Backend doesn't store selected_rid and restaurant_rids
           const existingUser = sessionService.getUserData()
 
-          // If userData has nulls but existing data is good, keep existing
-          if (
-            existingUser &&
-            userData.phone_number === null &&
-            existingUser.phone_number !== null
-          ) {
-            console.log(
-              '⚠️ Session validation returned nulls, keeping existing user data',
-            )
-            setAuthState({
-              user: existingUser,
-              isLoading: false,
-              isAuthenticated: true,
-            })
-            return
+          // Always merge selected_rid and restaurant_rids from localStorage
+          // since they don't exist in the backend user table
+          const mergedUserData = {
+            ...userData,
+            selected_rid: existingUser?.selected_rid || null,
+            restaurant_rids: existingUser?.restaurant_rids || [],
           }
 
-          // Otherwise update with new data
-          sessionService.setUserData(userData)
+          // Store merged data
+          sessionService.setUserData(mergedUserData)
 
           // Update auth state
           setAuthState({
-            user: userData,
+            user: mergedUserData,
             isLoading: false,
             isAuthenticated: true,
           })
@@ -116,17 +107,12 @@ export function useAuth(): UseAuthReturn {
         setAuthState((prev) => ({ ...prev, isLoading: true }))
 
         // Call server route instead of backend directly
-        const response = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include', // Important: enables httpOnly cookies
-          body: JSON.stringify(credentials),
+        const response = await axios.post('/api/auth/login', credentials, {
+          withCredentials: true, // Important: enables httpOnly cookies
         })
 
-        if (response.ok) {
-          const data = await response.json()
+        if (response.status === 200) {
+          const data = response.data
 
           if (data.statusCode === 200 && data.data?.user) {
             const userData = data.data.user
@@ -163,10 +149,13 @@ export function useAuth(): UseAuthReturn {
   const logout = useCallback(async () => {
     try {
       // Call server route to clear httpOnly cookies
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      })
+      await axios.post(
+        '/api/auth/logout',
+        {},
+        {
+          withCredentials: true,
+        },
+      )
 
       // Clear client-side session data
       sessionService.clearSession()
@@ -189,12 +178,12 @@ export function useAuth(): UseAuthReturn {
   // Refresh session function
   const refreshSession = useCallback(async () => {
     try {
-      const response = await fetch('/api/auth/session', {
-        credentials: 'include',
+      const response = await axios.get('/api/auth/session', {
+        withCredentials: true,
       })
 
-      if (response.ok) {
-        const data = await response.json()
+      if (response.status === 200) {
+        const data = response.data
 
         if (data.isAuthenticated && data.data?.user) {
           const userData = data.data.user

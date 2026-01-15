@@ -75,7 +75,7 @@ export const Route = createFileRoute('/api/auth/session')({
           // Fetch user data from backend using the access token
           try {
             const userResponse = await axios.get(
-              `${SERVER_URL}/users/${decoded.id}`,
+              `${SERVER_URL}/admin/users?id=${decoded.id}`,
               {
                 headers: {
                   Authorization: `Bearer ${accessToken}`,
@@ -84,12 +84,16 @@ export const Route = createFileRoute('/api/auth/session')({
               },
             )
 
+            // Check if response is successful and has user data
             if (
               userResponse.data?.statusCode === 200 &&
-              userResponse.data?.data
+              userResponse.data?.message?.users &&
+              userResponse.data.message.users.length > 0
             ) {
-              const userData = userResponse.data.data
+              const userData = userResponse.data.message.users[0]
 
+              // Return backend user data with all available fields
+              // Client-side will merge with localStorage data for selected_rid and restaurant_rids
               return new Response(
                 JSON.stringify({
                   statusCode: 200,
@@ -97,12 +101,16 @@ export const Route = createFileRoute('/api/auth/session')({
                   isAuthenticated: true,
                   data: {
                     user: {
-                      _id: userData.uid || decoded.uid,
-                      id: userData.id || decoded.id,
+                      _id: userData.uid,
+                      id: userData.id,
+                      username: userData.username,
+                      name: userData.name,
+                      email: userData.email,
                       phone_number: userData.phone_number,
+                      profile_pic: userData.profile_pic,
                       role: userData.role,
-                      restaurant_rids: userData.restaurant_rids || [],
-                      selected_rid: userData.selected_rid,
+                      // Don't return selected_rid and restaurant_rids here
+                      // They will be merged from localStorage in useAuth
                     },
                   },
                 }),

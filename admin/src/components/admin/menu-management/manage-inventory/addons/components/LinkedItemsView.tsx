@@ -1,32 +1,31 @@
-
-import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Link2, Unlink, Plus } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useState, useEffect } from 'react'
+import { Card } from '@/components/ui/card'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Link2, Unlink, Plus } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
 import {
   fetchAddons,
   fetchAddonsByInventoryId,
-} from "@/api/endpoints/addons.api";
-import type { Addon } from "@/api/types/addons.types";
-import Image from "next/image";
-import { OptimizeImageLoader } from "@/components/smallComponents/OptimizeImageLoader";
+} from '@/api/endpoints/addons.api'
+import type { Addon } from '@/api/types/addons.types'
+import Image from 'next/image'
+import { OptimizeImageLoader } from '@/components/smallComponents/OptimizeImageLoader'
 
 interface LinkedItem {
-  id: string;
-  name: string;
-  category?: string;
-  price?: number;
-  image?: string;
+  id: string
+  name: string
+  category?: string
+  price?: number
+  image?: string
 }
 
 interface LinkedItemsViewProps {
-  selectedAddon: Addon | null;
-  onUnlinkItem?: (itemId: string) => void;
-  onOpenLinkDialog?: () => void;
+  selectedAddon: Addon | null
+  onUnlinkItem?: (itemId: string) => void
+  onOpenLinkDialog?: () => void
 }
 
 export function LinkedItemsView({
@@ -34,69 +33,63 @@ export function LinkedItemsView({
   onUnlinkItem,
   onOpenLinkDialog,
 }: LinkedItemsViewProps) {
-  const { getValidAccessToken } = useAuth();
-  const [linkedItems, setLinkedItems] = useState<LinkedItem[]>([]);
-  const [itemsCache, setItemsCache] = useState<Record<string, LinkedItem[]>>(
-    {}
-  );
-  const [loading, setLoading] = useState(false);
+  const { isAuthenticated } = useAuth()
+  const [linkedItems, setLinkedItems] = useState<LinkedItem[]>([])
+  const [itemsCache, setItemsCache] = useState<Record<string, LinkedItem[]>>({})
+  const [loading, setLoading] = useState(false)
 
   // Fetch linked items when addon is selected
   useEffect(() => {
     const fetchLinkedItems = async () => {
       if (!selectedAddon) {
-        setLinkedItems([]);
-        return;
+        setLinkedItems([])
+        return
       }
 
       // Check cache first
       if (itemsCache[selectedAddon.id]) {
-        setLinkedItems(itemsCache[selectedAddon.id]);
-        return;
+        setLinkedItems(itemsCache[selectedAddon.id])
+        return
       }
 
-      setLoading(true);
+      setLoading(true)
       try {
-        const accessToken = await getValidAccessToken();
-        if (!accessToken) {
-          setLoading(false);
-          return;
+        if (!isAuthenticated) {
+          setLoading(false)
+          return
         }
 
         // Fetch items linked to this addon by passing addon_id
-        const items = await fetchAddons(
-          {
-            addon_id: selectedAddon.id,
-          },
-          accessToken
-        );
+        const items = await fetchAddons({
+          addon_id: selectedAddon.id,
+        })
 
         // Map to LinkedItem format
         const formattedItems = items.map((item: any) => ({
           id: item.inventory_id,
           name: item.inventory_item_name,
-          category: item.inventory_item_category_name || "Unknown",
+          category: item.inventory_item_category_name || 'Unknown',
           price: item.inventory_item_price || 0,
-          image: item.inventory_item_images[0] || "",
-        }));
+          image: item.inventory_item_images[0] || '',
+        }))
 
-        setLinkedItems(formattedItems);
+        setLinkedItems(formattedItems)
 
         // Update cache
         setItemsCache((prev) => ({
           ...prev,
           [selectedAddon.id]: formattedItems,
-        }));
+        }))
       } catch (error) {
-        console.error("Error fetching linked items:", error);
-        setLinkedItems([]);
+        console.error('Error fetching linked items:', error)
+        setLinkedItems([])
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchLinkedItems();
-  }, [selectedAddon, getValidAccessToken, itemsCache]);
+    fetchLinkedItems()
+  }, [selectedAddon, itemsCache])
 
   if (!selectedAddon) {
     return (
@@ -104,7 +97,7 @@ export function LinkedItemsView({
         <Link2 className="h-12 w-12 mb-4 opacity-20" />
         <p className="text-sm">Select an addon to view linked items</p>
       </div>
-    );
+    )
   }
 
   return (
@@ -168,7 +161,7 @@ export function LinkedItemsView({
                 <div className="flex items-center justify-between">
                   <div className="flex gap-2 items-center">
                     <OptimizeImageLoader
-                      src={item.image || ""}
+                      src={item.image || ''}
                       alt={item.name}
                       width={50}
                       height={50}
@@ -209,5 +202,5 @@ export function LinkedItemsView({
         </div>
       </ScrollArea>
     </div>
-  );
+  )
 }

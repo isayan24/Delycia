@@ -25,15 +25,14 @@ import { getUser } from '@/helpers/user/getUser'
 import { Link } from '@tanstack/react-router'
 
 export default function WaiterHeader() {
-  const { logout, user, getValidAccessToken } = useAuth()
+  const { logout, user } = useAuth()
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [userData, setUserData] = useState<any>(null)
 
   useEffect(() => {
     async function fetchUser() {
-      const accessToken: any = await getValidAccessToken()
-      if (user && accessToken) {
-        getUser(accessToken)
+      if (user) {
+        getUser()
           .then((data) => {
             setUserData(data?.user)
           })
@@ -41,7 +40,7 @@ export default function WaiterHeader() {
       }
     }
     fetchUser()
-  }, [user, getValidAccessToken])
+  }, [user])
 
   const handleLogoutClick = () => {
     setShowLogoutDialog(true)

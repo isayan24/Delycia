@@ -1,17 +1,17 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import React, { useState, useEffect, useMemo } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
+} from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Trash2,
   Search,
@@ -23,11 +23,11 @@ import {
   ArrowLeft,
   Filter,
   AlertCircle,
-} from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useAuth } from "@/hooks/useAuth";
-import axios from "axios";
-import useToast from "@/hooks/UseToast";
+} from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { useAuth } from '@/hooks/useAuth'
+import axios from 'axios'
+import useToast from '@/hooks/UseToast'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,50 +37,50 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog'
 
-import { SelectAll } from "@mui/icons-material";
+import { SelectAll } from '@mui/icons-material'
 import {
   DeleteTableRequest,
   DeleteTableResponse,
   DeleteTablesComponentProps,
   TableToDelete,
-} from "../types/table.types";
-import { useFetchTable } from "../hooks/useFetchTable";
+} from '../types/table.types'
+import { useFetchTable } from '../hooks/useFetchTable'
 
 const DeleteTablesComponent = ({
   onTablesDeleted,
   clickedBackToTables,
 }: DeleteTablesComponentProps) => {
-  const { user, getValidAccessToken } = useAuth();
+  const { user } = useAuth()
   const {
     zones,
     tables,
     loading: dataLoading,
     error: dataError,
-  } = useFetchTable(user?.selected_rid);
+  } = useFetchTable(user?.selected_rid)
 
-  const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
-  const [selectedZone, setSelectedZone] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [isDeleting, setIsDeleting] = useState<boolean>(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
-  const [localZones, setLocalZones] = useState<any[]>([]);
-  const [filteredTables, setFilteredTables] = useState<TableToDelete[]>([]);
+  const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set())
+  const [selectedZone, setSelectedZone] = useState<string>('all')
+  const [searchQuery, setSearchQuery] = useState<string>('')
+  const [isDeleting, setIsDeleting] = useState<boolean>(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false)
+  const [localZones, setLocalZones] = useState<any[]>([])
+  const [filteredTables, setFilteredTables] = useState<TableToDelete[]>([])
 
-  const { showError, showSuccess } = useToast();
+  const { showError, showSuccess } = useToast()
 
   // Update zones from API data
   useEffect(() => {
     if (zones && zones.length > 0) {
-      const uniqueZones = [...new Set(zones.map((zone: any) => zone.zone))];
-      setLocalZones(uniqueZones);
+      const uniqueZones = [...new Set(zones.map((zone: any) => zone.zone))]
+      setLocalZones(uniqueZones)
     }
-  }, [zones]);
+  }, [zones])
 
   // Convert API tables to local format and apply filters
   const processedTables = useMemo(() => {
-    if (!tables || !Array.isArray(tables)) return [];
+    if (!tables || !Array.isArray(tables)) return []
 
     return tables
       .filter((table) => table && table.id && table.table_number)
@@ -88,241 +88,238 @@ const DeleteTablesComponent = ({
         id: table.id.toString(), // Convert to string for consistency
         table_number: table.table_number,
         capacity: table.capacity || 4,
-        zone: table.zone || "Unknown",
-        status: table.status || "available",
-      }));
-  }, [tables]);
+        zone: table.zone || 'Unknown',
+        status: table.status || 'available',
+      }))
+  }, [tables])
 
   // Apply zone and search filters
   useEffect(() => {
-    let filtered = processedTables;
+    let filtered = processedTables
 
     // Zone filter
-    if (selectedZone !== "all") {
-      filtered = filtered.filter((table) => table.zone === selectedZone);
+    if (selectedZone !== 'all') {
+      filtered = filtered.filter((table) => table.zone === selectedZone)
     }
 
     // Search filter
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
+      const query = searchQuery.toLowerCase().trim()
       filtered = filtered.filter(
         (table) =>
           table.table_number.toLowerCase().includes(query) ||
           table.zone.toLowerCase().includes(query) ||
-          table.status.toLowerCase().includes(query)
-      );
+          table.status.toLowerCase().includes(query),
+      )
     }
 
-    setFilteredTables(filtered);
-  }, [processedTables, selectedZone, searchQuery]);
+    setFilteredTables(filtered)
+  }, [processedTables, selectedZone, searchQuery])
 
   // Group tables by zone for display
   const groupedTables = useMemo(() => {
     return filteredTables.reduce(
       (acc, table) => {
         if (!acc[table.zone]) {
-          acc[table.zone] = [];
+          acc[table.zone] = []
         }
-        acc[table.zone].push(table);
-        return acc;
+        acc[table.zone].push(table)
+        return acc
       },
-      {} as Record<string, TableToDelete[]>
-    );
-  }, [filteredTables]);
+      {} as Record<string, TableToDelete[]>,
+    )
+  }, [filteredTables])
 
   // Handle individual table selection
   const toggleTableSelection = (tableId: string) => {
-    const newSelection = new Set(selectedTables);
+    const newSelection = new Set(selectedTables)
     if (newSelection.has(tableId)) {
-      newSelection.delete(tableId);
+      newSelection.delete(tableId)
     } else {
-      newSelection.add(tableId);
+      newSelection.add(tableId)
     }
-    setSelectedTables(newSelection);
-  };
+    setSelectedTables(newSelection)
+  }
 
   // Handle select all in current view
   const toggleSelectAll = () => {
-    const currentTableIds = filteredTables.map((table) => table.id);
-    const allSelected = currentTableIds.every((id) => selectedTables.has(id));
+    const currentTableIds = filteredTables.map((table) => table.id)
+    const allSelected = currentTableIds.every((id) => selectedTables.has(id))
 
     if (allSelected) {
       // Deselect all current tables
-      const newSelection = new Set(selectedTables);
-      currentTableIds.forEach((id) => newSelection.delete(id));
-      setSelectedTables(newSelection);
+      const newSelection = new Set(selectedTables)
+      currentTableIds.forEach((id) => newSelection.delete(id))
+      setSelectedTables(newSelection)
     } else {
       // Select all current tables
-      const newSelection = new Set(selectedTables);
-      currentTableIds.forEach((id) => newSelection.add(id));
-      setSelectedTables(newSelection);
+      const newSelection = new Set(selectedTables)
+      currentTableIds.forEach((id) => newSelection.add(id))
+      setSelectedTables(newSelection)
     }
-  };
+  }
 
   // Handle zone-based selection
   const selectAllInZone = (zone: string) => {
-    const zoneTableIds = groupedTables[zone]?.map((table) => table.id) || [];
-    const newSelection = new Set(selectedTables);
-    zoneTableIds.forEach((id) => newSelection.add(id));
-    setSelectedTables(newSelection);
-  };
+    const zoneTableIds = groupedTables[zone]?.map((table) => table.id) || []
+    const newSelection = new Set(selectedTables)
+    zoneTableIds.forEach((id) => newSelection.add(id))
+    setSelectedTables(newSelection)
+  }
 
   const deselectAllInZone = (zone: string) => {
-    const zoneTableIds = groupedTables[zone]?.map((table) => table.id) || [];
-    const newSelection = new Set(selectedTables);
-    zoneTableIds.forEach((id) => newSelection.delete(id));
-    setSelectedTables(newSelection);
-  };
+    const zoneTableIds = groupedTables[zone]?.map((table) => table.id) || []
+    const newSelection = new Set(selectedTables)
+    zoneTableIds.forEach((id) => newSelection.delete(id))
+    setSelectedTables(newSelection)
+  }
 
   // Quick selection functions
   const selectOccupiedTables = () => {
     const occupiedTableIds = filteredTables
-      .filter((table) => table.status !== "available")
-      .map((table) => table.id);
-    const newSelection = new Set(selectedTables);
-    occupiedTableIds.forEach((id) => newSelection.add(id));
-    setSelectedTables(newSelection);
-  };
+      .filter((table) => table.status !== 'available')
+      .map((table) => table.id)
+    const newSelection = new Set(selectedTables)
+    occupiedTableIds.forEach((id) => newSelection.add(id))
+    setSelectedTables(newSelection)
+  }
 
   const selectAvailableTables = () => {
     const availableTableIds = filteredTables
-      .filter((table) => table.status === "available")
-      .map((table) => table.id);
-    const newSelection = new Set(selectedTables);
-    availableTableIds.forEach((id) => newSelection.add(id));
-    setSelectedTables(newSelection);
-  };
+      .filter((table) => table.status === 'available')
+      .map((table) => table.id)
+    const newSelection = new Set(selectedTables)
+    availableTableIds.forEach((id) => newSelection.add(id))
+    setSelectedTables(newSelection)
+  }
 
   const clearAllSelections = () => {
-    setSelectedTables(new Set());
-  };
+    setSelectedTables(new Set())
+  }
 
   // Get selected table details
   const selectedTableDetails = useMemo(() => {
-    return processedTables.filter((table) => selectedTables.has(table.id));
-  }, [processedTables, selectedTables]);
+    return processedTables.filter((table) => selectedTables.has(table.id))
+  }, [processedTables, selectedTables])
 
-  // Delete single table - Fixed to use /api/table with id and accessToken in body
+  // Delete single table - Fixed to use /api/table with id and in body
   const deleteTable = async (tableId: string): Promise<DeleteTableResponse> => {
-    const accessToken = await getValidAccessToken();
-
     const payload: DeleteTableRequest = {
       id: tableId,
-      accessToken,
-    };
+    }
 
     const response = await axios.delete(`/api/table`, {
       data: payload,
-    });
+    })
 
     if (response.status !== 200 && response.status !== 204) {
-      throw new Error("Failed to delete table");
+      throw new Error('Failed to delete table')
     }
 
-    return response.data;
-  };
+    return response.data
+  }
 
   // Delete multiple tables
   const deleteSelectedTables = async () => {
-    if (selectedTables.size === 0) return;
+    if (selectedTables.size === 0) return
 
-    setIsDeleting(true);
-    const errors: string[] = [];
-    let successCount = 0;
-    const totalTables = selectedTables.size;
+    setIsDeleting(true)
+    const errors: string[] = []
+    let successCount = 0
+    const totalTables = selectedTables.size
 
     try {
       for (const tableId of Array.from(selectedTables)) {
         try {
-          await deleteTable(tableId);
-          successCount++;
+          await deleteTable(tableId)
+          successCount++
         } catch (err: any) {
-          const table = processedTables.find((t) => t.id === tableId);
+          const table = processedTables.find((t) => t.id === tableId)
           const errorMsg =
-            err.response?.data?.error || err.message || "Unknown error";
-          errors.push(`Table ${table?.table_number || tableId}: ${errorMsg}`);
+            err.response?.data?.error || err.message || 'Unknown error'
+          errors.push(`Table ${table?.table_number || tableId}: ${errorMsg}`)
         }
       }
 
       if (errors.length === 0) {
         showSuccess(
-          "Success",
-          `Successfully deleted ${successCount} table${successCount !== 1 ? "s" : ""}`
-        );
-        setSelectedTables(new Set());
-        onTablesDeleted?.();
+          'Success',
+          `Successfully deleted ${successCount} table${successCount !== 1 ? 's' : ''}`,
+        )
+        setSelectedTables(new Set())
+        onTablesDeleted?.()
       } else {
         const message = `${successCount}/${totalTables} tables deleted successfully.${
-          errors.length > 0 ? `\n\nErrors:\n${errors.join("\n")}` : ""
-        }`;
+          errors.length > 0 ? `\n\nErrors:\n${errors.join('\n')}` : ''
+        }`
 
         if (successCount > 0) {
-          showSuccess("Partial Success", message);
+          showSuccess('Partial Success', message)
           // Remove successfully deleted tables from selection
           const failedTableIds = new Set(
             errors
               .map((error) => {
-                const tableNumber = error.split(":")[0].replace("Table ", "");
+                const tableNumber = error.split(':')[0].replace('Table ', '')
                 const table = processedTables.find(
-                  (t) => t.table_number === tableNumber
-                );
-                return table?.id;
+                  (t) => t.table_number === tableNumber,
+                )
+                return table?.id
               })
-              .filter(Boolean)
-          );
-          setSelectedTables(failedTableIds as Set<string>);
-          onTablesDeleted?.(); // Refresh data even on partial success
+              .filter(Boolean),
+          )
+          setSelectedTables(failedTableIds as Set<string>)
+          onTablesDeleted?.() // Refresh data even on partial success
         } else {
-          showError("Error", message);
+          showError('Error', message)
         }
       }
     } catch (error) {
-      console.error("Error deleting tables:", error);
-      showError("Error", "Failed to delete tables. Please try again.");
+      console.error('Error deleting tables:', error)
+      showError('Error', 'Failed to delete tables. Please try again.')
     } finally {
-      setIsDeleting(false);
-      setShowDeleteDialog(false);
+      setIsDeleting(false)
+      setShowDeleteDialog(false)
     }
-  };
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "occupied":
-        return "border-orange-400 bg-orange-50 dark:bg-orange-950/20";
-      case "reserved":
-        return "border-blue-400 bg-blue-50 dark:bg-blue-950/20";
-      case "pending":
-        return "border-yellow-400 bg-yellow-50 dark:bg-yellow-950/20";
+      case 'occupied':
+        return 'border-orange-400 bg-orange-50 dark:bg-orange-950/20'
+      case 'reserved':
+        return 'border-blue-400 bg-blue-50 dark:bg-blue-950/20'
+      case 'pending':
+        return 'border-yellow-400 bg-yellow-50 dark:bg-yellow-950/20'
       default:
-        return "border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700";
+        return 'border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700'
     }
-  };
+  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "occupied":
-        return "🍽️";
-      case "reserved":
-        return "📅";
-      case "pending":
-        return "⏳";
+      case 'occupied':
+        return '🍽️'
+      case 'reserved':
+        return '📅'
+      case 'pending':
+        return '⏳'
       default:
-        return "✅";
+        return '✅'
     }
-  };
+  }
 
   const currentViewStats = useMemo(() => {
-    const total = filteredTables.length;
+    const total = filteredTables.length
     const selected = filteredTables.filter((table) =>
-      selectedTables.has(table.id)
-    ).length;
+      selectedTables.has(table.id),
+    ).length
     const occupied = filteredTables.filter(
-      (table) => table.status !== "available"
-    ).length;
-    const available = total - occupied;
+      (table) => table.status !== 'available',
+    ).length
+    const available = total - occupied
 
-    return { total, selected, occupied, available };
-  }, [filteredTables, selectedTables]);
+    return { total, selected, occupied, available }
+  }, [filteredTables, selectedTables])
   return (
     <div className="p-3 max-w-7xl mx-auto h-full space-y-6 overflow-auto">
       {/* Header */}
@@ -343,7 +340,7 @@ const DeleteTablesComponent = ({
             size="sm"
           >
             <RefreshCw
-              className={`h-4 w-4 mr-2 ${dataLoading ? "animate-spin" : ""}`}
+              className={`h-4 w-4 mr-2 ${dataLoading ? 'animate-spin' : ''}`}
             />
             Refresh
           </Button>
@@ -427,8 +424,8 @@ const DeleteTablesComponent = ({
                 >
                   <SelectAll className="h-4 w-4" />
                   {currentViewStats.selected === currentViewStats.total
-                    ? "Deselect All"
-                    : "Select All"}
+                    ? 'Deselect All'
+                    : 'Select All'}
                 </Button>
                 <Button
                   variant="outline"
@@ -508,18 +505,18 @@ const DeleteTablesComponent = ({
             <Card>
               <CardContent className="p-8 text-center">
                 <div className="text-gray-500 dark:text-gray-400">
-                  {searchQuery || selectedZone !== "all"
-                    ? "No tables match your current filters."
-                    : "No tables found."}
+                  {searchQuery || selectedZone !== 'all'
+                    ? 'No tables match your current filters.'
+                    : 'No tables found.'}
                 </div>
-                {(searchQuery || selectedZone !== "all") && (
+                {(searchQuery || selectedZone !== 'all') && (
                   <Button
                     variant="outline"
                     size="sm"
                     className="mt-2"
                     onClick={() => {
-                      setSearchQuery("");
-                      setSelectedZone("all");
+                      setSearchQuery('')
+                      setSelectedZone('all')
                     }}
                   >
                     Clear Filters
@@ -537,7 +534,7 @@ const DeleteTablesComponent = ({
                         <CardTitle className="text-lg">{zone}</CardTitle>
                         <Badge variant="secondary">
                           {zoneTables.length} table
-                          {zoneTables.length !== 1 ? "s" : ""}
+                          {zoneTables.length !== 1 ? 's' : ''}
                         </Badge>
                       </div>
                       <div className="flex gap-2">
@@ -546,7 +543,7 @@ const DeleteTablesComponent = ({
                           size="sm"
                           onClick={() => selectAllInZone(zone)}
                           disabled={zoneTables.every((table) =>
-                            selectedTables.has(table.id)
+                            selectedTables.has(table.id),
                           )}
                         >
                           Select All
@@ -557,7 +554,7 @@ const DeleteTablesComponent = ({
                           onClick={() => deselectAllInZone(zone)}
                           disabled={
                             !zoneTables.some((table) =>
-                              selectedTables.has(table.id)
+                              selectedTables.has(table.id),
                             )
                           }
                         >
@@ -573,7 +570,7 @@ const DeleteTablesComponent = ({
                           key={table.id}
                           className={`relative p-3 border-2 rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md ${
                             selectedTables.has(table.id)
-                              ? "border-red-500 bg-red-50 dark:bg-red-950/20"
+                              ? 'border-red-500 bg-red-50 dark:bg-red-950/20'
                               : getStatusColor(table.status)
                           }`}
                           onClick={() => toggleTableSelection(table.id)}
@@ -585,8 +582,8 @@ const DeleteTablesComponent = ({
                               onChange={() => toggleTableSelection(table.id)}
                               className={
                                 selectedTables.has(table.id)
-                                  ? "border-red-500 bg-red-500"
-                                  : ""
+                                  ? 'border-red-500 bg-red-500'
+                                  : ''
                               }
                             />
                           </div>
@@ -634,14 +631,14 @@ const DeleteTablesComponent = ({
                     </h3>
                     <p className="text-sm text-red-700 dark:text-red-300">
                       {selectedTables.size} table
-                      {selectedTables.size !== 1 ? "s" : ""} selected for
+                      {selectedTables.size !== 1 ? 's' : ''} selected for
                       deletion
                     </p>
                     <div className="text-xs text-red-600 dark:text-red-400">
-                      Zones:{" "}
+                      Zones:{' '}
                       {[
                         ...new Set(selectedTableDetails.map((t) => t.zone)),
-                      ].join(", ")}
+                      ].join(', ')}
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -716,12 +713,12 @@ const DeleteTablesComponent = ({
               Confirm Table Deletion
             </AlertDialogTitle>
             <AlertDialogDescription>
-              You are about to permanently delete{" "}
+              You are about to permanently delete{' '}
               <strong>{selectedTables.size}</strong> table
-              {selectedTables.size !== 1 ? "s" : ""}. This action cannot be
+              {selectedTables.size !== 1 ? 's' : ''}. This action cannot be
               undone.
               {selectedTableDetails.some(
-                (table) => table.status !== "available"
+                (table) => table.status !== 'available',
               ) && (
                 <span className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-950/20 rounded border border-yellow-200 dark:border-yellow-900">
                   <span className="text-yellow-800 dark:text-yellow-200 text-sm font-medium">
@@ -736,7 +733,7 @@ const DeleteTablesComponent = ({
                   {selectedTableDetails.map((table) => (
                     <Badge
                       key={table.id}
-                      variant={"destructive"}
+                      variant={'destructive'}
                       className="text-xs text-white"
                     >
                       {table.table_number} ({table.status})
@@ -762,7 +759,7 @@ const DeleteTablesComponent = ({
                 <>
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete {selectedTables.size} Table
-                  {selectedTables.size !== 1 ? "s" : ""}
+                  {selectedTables.size !== 1 ? 's' : ''}
                 </>
               )}
             </AlertDialogAction>
@@ -770,7 +767,7 @@ const DeleteTablesComponent = ({
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  );
-};
+  )
+}
 
-export default DeleteTablesComponent;
+export default DeleteTablesComponent

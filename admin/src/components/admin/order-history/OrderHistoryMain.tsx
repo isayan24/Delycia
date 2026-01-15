@@ -1,56 +1,56 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
-import OrderHistoryInfoList from "./order-info/OrderInfoList";
-import OrderHistoryDetailsList from "./order-details/OrderDetailsList";
-import MobileOrderHistory from "./mobile/MobileOrderHistory";
-import ErrorBoundary from "./ErrorBoundary";
-import { UseAdminOrderHistory } from "./hooks/UseAdminOrderHistory";
-import OrderHistoryHeader from "./OrderHistoryHeader";
-import { useAuth } from "@/hooks/useAuth";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import OrderHistoryTable from "./OrderHistoryTable";
+import { useEffect, useMemo, useState, useCallback } from 'react'
+import OrderHistoryInfoList from './order-info/OrderInfoList'
+import OrderHistoryDetailsList from './order-details/OrderDetailsList'
+import MobileOrderHistory from './mobile/MobileOrderHistory'
+import ErrorBoundary from './ErrorBoundary'
+import { UseAdminOrderHistory } from './hooks/UseAdminOrderHistory'
+import OrderHistoryHeader from './OrderHistoryHeader'
+import { useAuth } from '@/hooks/useAuth'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import OrderHistoryTable from './OrderHistoryTable'
 
 export default function OrderHistoryMain() {
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const { user, accessToken, getValidAccessToken } = useAuth();
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null)
+  const { user } = useAuth()
 
-  const rid = user?.selected_rid || "";
+  const rid = user?.selected_rid || ''
 
   const { orderHistory, refreshHistory, loading, error } = UseAdminOrderHistory(
-    { rid, accessToken }
-  );
+    { rid },
+  )
 
   // Get the selected order object
   const selectedOrder = useMemo(() => {
-    if (!selectedOrderId || !orderHistory.length) return null;
-    return orderHistory.find((order) => order.id === selectedOrderId) || null;
-  }, [selectedOrderId, orderHistory]);
+    if (!selectedOrderId || !orderHistory.length) return null
+    return orderHistory.find((order) => order.id === selectedOrderId) || null
+  }, [selectedOrderId, orderHistory])
 
   // Memoize the order selection handler to prevent child re-renders
   const handleOrderSelect = useCallback((orderId: string) => {
-    setSelectedOrderId(orderId);
-  }, []);
+    setSelectedOrderId(orderId)
+  }, [])
 
   // Auto-select first order when orders load (only when no order is selected)
   useEffect(() => {
     if (orderHistory.length > 0 && !selectedOrderId) {
-      setSelectedOrderId(orderHistory[0].id);
+      setSelectedOrderId(orderHistory[0].id)
     }
-  }, [orderHistory, orderHistory.length, selectedOrderId]); // Only depend on length to avoid unnecessary triggers
+  }, [orderHistory, orderHistory.length, selectedOrderId]) // Only depend on length to avoid unnecessary triggers
 
   // Reset selection when orders change significantly
   useEffect(() => {
     if (selectedOrderId && orderHistory.length > 0) {
       const orderExists = orderHistory.some(
-        (order) => order.id === selectedOrderId
-      );
+        (order) => order.id === selectedOrderId,
+      )
       if (!orderExists) {
-        setSelectedOrderId(orderHistory[0]?.id || null);
+        setSelectedOrderId(orderHistory[0]?.id || null)
       }
     }
-  }, [orderHistory, selectedOrderId]);
+  }, [orderHistory, selectedOrderId])
 
   // Handle session-related errors
-  const sessionError = !user?.restaurant_rids?.[0] || !accessToken;
+  const sessionError = !user?.restaurant_rids?.[0]
 
   if (sessionError) {
     return (
@@ -69,7 +69,7 @@ export default function OrderHistoryMain() {
           </div>
         </section>
       </div>
-    );
+    )
   }
 
   return (
@@ -189,5 +189,5 @@ export default function OrderHistoryMain() {
         </TabsContent>
       </Tabs>
     </ErrorBoundary>
-  );
+  )
 }

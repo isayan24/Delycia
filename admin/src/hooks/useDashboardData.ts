@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import axiosInstance from '@/lib/axios'
 import { useDateFilterStore } from '@/store/useDateFilterStore'
-import tokenService from '@/services/tokenService'
 import { DashboardErrorHandler, RetryHandler } from '@/utils/errorHandler'
 import {
   DashboardData,
@@ -14,7 +12,8 @@ import {
   CategoryRevenueData,
   PaymentMethodData,
   DeliveryTypeData,
-} from '@/types/dashboard.types'
+} from '@/types/dashboard.types.ts'
+import axios from 'axios'
 
 interface UseDashboardDataProps {
   rid: string
@@ -287,107 +286,42 @@ export const useDashboardData = ({
     setError(null)
 
     try {
-      // let validAccessToken = accessToken;
-      // try {
-      //   // Ensure we have a valid token (refreshed if necessary)
-      //   const refreshedToken = await tokenService.getValidAccessToken();
-      //   if (refreshedToken) {
-      //     validAccessToken = refreshedToken;
-      //   }
-      // } catch (tokenError) {
-      //   console.warn(
-      //     "Failed to refresh token before dashboard fetch, falling back to prop token",
-      //     tokenError
-      //   );
-      // }
-
-      // const headers = {
-      //   "Content-Type": "application/json",
-      //   Authorization: `Bearer ${validAccessToken}`,
-      // };
-
       // Use retry handler for resilient API calls
       const dashboardData = await RetryHandler.withRetry(
         async () => {
-          // Fetch all dashboard data in parallel with request queue management
-          // const requests = [
-          //   () =>
-          //     axiosInstance.get('/admin/dashboard/stats', {
-          //       params,
-          //       headers,
-          //       signal,
-          //     }),
-          //   () =>
-          //     axiosInstance.get('/admin/dashboard/sales-trend', {
-          //       params,
-          //       headers,
-          //       signal,
-          //     }),
-          //   () =>
-          //     axiosInstance.get('/admin/dashboard/order-status', {
-          //       params,
-          //       headers,
-          //       signal,
-          //     }),
-          //   () =>
-          //     axiosInstance.get('/admin/dashboard/top-items', {
-          //       params,
-          //       headers,
-          //       signal,
-          //     }),
-          //   () =>
-          //     axiosInstance.get('/admin/dashboard/revenue-by-category', {
-          //       params,
-          //       headers,
-          //       signal,
-          //     }),
-          //   () =>
-          //     axiosInstance.get('/admin/dashboard/payment-methods', {
-          //       params,
-          //       headers,
-          //       signal,
-          //     }),
-          //   () =>
-          //     axiosInstance.get('/admin/dashboard/delivery-types', {
-          //       params,
-          //       headers,
-          //       signal,
-          //     }),
-          // ]
-
           const requests = [
             () =>
-              axiosInstance.get('/api/dashboard', {
+              axios.get('/api/dashboard', {
                 params: { ...params, endpoint: 'stats' },
                 signal,
               }),
             () =>
-              axiosInstance.get('/api/dashboard', {
+              axios.get('/api/dashboard', {
                 params: { ...params, endpoint: 'sales-trend' },
                 signal,
               }),
             () =>
-              axiosInstance.get('/api/dashboard', {
+              axios.get('/api/dashboard', {
                 params: { ...params, endpoint: 'order-status' },
                 signal,
               }),
             () =>
-              axiosInstance.get('/api/dashboard', {
+              axios.get('/api/dashboard', {
                 params: { ...params, endpoint: 'top-items' },
                 signal,
               }),
             () =>
-              axiosInstance.get('/api/dashboard', {
+              axios.get('/api/dashboard', {
                 params: { ...params, endpoint: 'revenue-by-category' },
                 signal,
               }),
             () =>
-              axiosInstance.get('/api/dashboard', {
+              axios.get('/api/dashboard', {
                 params: { ...params, endpoint: 'payment-methods' },
                 signal,
               }),
             () =>
-              axiosInstance.get('/api/dashboard', {
+              axios.get('/api/dashboard', {
                 params: { ...params, endpoint: 'delivery-types' },
                 signal,
               }),

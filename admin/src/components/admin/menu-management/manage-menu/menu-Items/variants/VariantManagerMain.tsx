@@ -1,121 +1,118 @@
 // components/VariantManagerMain.tsx
-import React, { useState, useEffect, useTransition } from "react";
-import { Settings, ChevronRight } from "lucide-react";
-import { Variant, VariantManagerProps } from "./types/variant.types";
-import VariantManagerContent from "./VariantManagerContent";
+import React, { useState, useEffect, useTransition } from 'react'
+import { Settings, ChevronRight } from 'lucide-react'
+import { Variant, VariantManagerProps } from './types/variant.types'
+import VariantManagerContent from './VariantManagerContent'
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import axiosInstance from "@/lib/axios";
-import useToast from "@/hooks/UseToast";
-import { useAuth } from "@/hooks/useAuth";
+} from '@/components/ui/accordion'
+import axiosInstance from '@/lib/axios'
+import useToast from '@/hooks/UseToast'
+import { useAuth } from '@/hooks/useAuth'
 
 interface ExtendedVariantManagerProps extends VariantManagerProps {
-  initialVariants?: Variant[];
+  initialVariants?: Variant[]
 }
 
 const VariantManagerMain: React.FC<ExtendedVariantManagerProps> = ({
   onSave,
   initialVariants = [],
 }) => {
-  const [savedVariants, setSavedVariants] = useState<Variant[]>([]);
-  const [isVariantDeleting, startTransition] = useTransition();
-  const { showError, showSuccess } = useToast();
-  const { getValidAccessToken } = useAuth();
+  const [savedVariants, setSavedVariants] = useState<Variant[]>([])
+  const [isVariantDeleting, startTransition] = useTransition()
+  const { showError, showSuccess } = useToast()
 
   // Set initial variants when provided
   useEffect(() => {
     if (initialVariants && initialVariants.length > 0) {
-      setSavedVariants(initialVariants);
+      setSavedVariants(initialVariants)
     }
-  }, [initialVariants]);
+  }, [initialVariants])
 
   const handleSaveVariants = (variants: Variant[]) => {
-    setSavedVariants(variants);
+    setSavedVariants(variants)
     if (onSave) {
-      onSave(variants);
+      onSave(variants)
     }
-  };
+  }
 
   const onVariantDeleting = (
     variantId: string | number,
-    onSuccess?: () => void
+    onSuccess?: () => void,
   ) => {
     startTransition(async () => {
       try {
-        const variantIdStr = variantId.toString();
+        const variantIdStr = variantId.toString()
 
         // Find the variant to check if it's an existing one
         const variantToDelete = savedVariants.find(
-          (v) => v.id.toString() === variantIdStr
-        );
+          (v) => v.id.toString() === variantIdStr,
+        )
 
         if (!variantToDelete) {
-          console.error("Variant not found");
-          return;
+          console.error('Variant not found')
+          return
         }
 
         // Check if this is an existing variant from database (numeric ID)
-        const isExistingVariant = !isNaN(Number(variantToDelete.id));
-        const accessToken = await getValidAccessToken();
-        if (isExistingVariant && accessToken) {
+        const isExistingVariant = !isNaN(Number(variantToDelete.id))
+        if (isExistingVariant) {
           // This is an existing variant in the database, delete it via API
 
           const response = await axiosInstance.delete(`/admin/variants`, {
             data: { id: Number(variantIdStr) },
-            headers: { Authorization: `Bearer ${accessToken}` },
-          });
+          })
 
           if (response.status === 200) {
-            console.log("Variant deleted successfully from database");
+            console.log('Variant deleted successfully from database')
 
             // Update savedVariants state
             const updatedVariants = savedVariants.filter(
-              (variant) => variant.id.toString() !== variantIdStr
-            );
-            setSavedVariants(updatedVariants);
+              (variant) => variant.id.toString() !== variantIdStr,
+            )
+            setSavedVariants(updatedVariants)
 
             // Call the success callback to update the local state in VariantManagerContent
             if (onSuccess) {
-              onSuccess();
+              onSuccess()
             }
 
-            showSuccess("Success", "Variant deleted successfully");
+            showSuccess('Success', 'Variant deleted successfully')
 
             // Update the parent with the new list
             if (onSave) {
-              onSave(updatedVariants);
+              onSave(updatedVariants)
             }
           } else {
-            throw new Error("Failed to delete variant");
+            throw new Error('Failed to delete variant')
           }
         } else {
           // This is a newly added variant (not yet saved to database)
           // Update savedVariants
           const updatedVariants = savedVariants.filter(
-            (variant) => variant.id.toString() !== variantIdStr
-          );
-          setSavedVariants(updatedVariants);
+            (variant) => variant.id.toString() !== variantIdStr,
+          )
+          setSavedVariants(updatedVariants)
 
           // Call the success callback to update local state
           if (onSuccess) {
-            onSuccess();
+            onSuccess()
           }
 
           // Update parent with the new list
           if (onSave) {
-            onSave(updatedVariants);
+            onSave(updatedVariants)
           }
         }
       } catch (error) {
-        console.error("Error deleting variant:", error);
-        showError("Error", "Failed to delete variant. Please try again.");
+        console.error('Error deleting variant:', error)
+        showError('Error', 'Failed to delete variant. Please try again.')
       }
-    });
-  };
+    })
+  }
 
   return (
     <div className="">
@@ -133,11 +130,11 @@ const VariantManagerMain: React.FC<ExtendedVariantManagerProps> = ({
                     Edit Variants
                     <span className="text-sm font-normal text-gray-500">
                       ({savedVariants.length} variant
-                      {savedVariants.length !== 1 ? "s" : ""})
+                      {savedVariants.length !== 1 ? 's' : ''})
                     </span>
                   </>
                 ) : (
-                  "Add Variants"
+                  'Add Variants'
                 )}
               </div>
             </AccordionTrigger>
@@ -153,7 +150,7 @@ const VariantManagerMain: React.FC<ExtendedVariantManagerProps> = ({
         </Accordion>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default VariantManagerMain;
+export default VariantManagerMain

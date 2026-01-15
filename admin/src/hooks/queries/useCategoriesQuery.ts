@@ -6,19 +6,16 @@ interface CreateCategoryParams {
   name: string
   description: string
   img?: string
-  token: string
 }
 interface DeleteCategoryParams {
   id: string
   rid: string
   img?: string
   template_id?: string
-  token: string
 }
 interface CreateCategoryFromTemplatesParams {
   rid: string
   template_ids: string[]
-  token: string
 }
 
 interface CreateCategoryAsTemplateParams {
@@ -28,7 +25,6 @@ interface CreateCategoryAsTemplateParams {
   rid: string
   cuisine_type: string
   saveAsTemplate: boolean
-  token: string
 }
 
 interface UpdateCategoryParams {
@@ -38,7 +34,6 @@ interface UpdateCategoryParams {
   description?: string
   img?: string
   is_active?: boolean
-  token: string
 }
 
 // ============================================
@@ -80,17 +75,16 @@ export function useCategoriesQuery(rid: string | undefined, enabled = true) {
 }
 
 const categoryCall = async (data: CreateCategoryParams) => {
-  const { token, img, name, description, rid } = data
+  const { img, name, description, rid } = data
 
-  if (!rid || !token) {
-    throw new Error('Restaurant ID and token are required')
+  if (!rid) {
+    throw new Error('Restaurant ID is required')
   }
   const response = await axios.post('/api/category', {
     img,
     name,
     description,
     rid,
-    token,
   })
   return response.data
 }
@@ -123,7 +117,6 @@ export function useUpdateCategoryMutation() {
       description,
       img,
       is_active,
-      token,
     }: UpdateCategoryParams) => {
       const response = await axios.patch('/api/category', {
         id,
@@ -132,7 +125,6 @@ export function useUpdateCategoryMutation() {
         description,
         img,
         is_active,
-        token,
       })
       return response.data
     },
@@ -152,15 +144,9 @@ export function useDeleteCategoryMutation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({
-      id,
-      rid,
-      img,
-      template_id,
-      token,
-    }: DeleteCategoryParams) => {
+    mutationFn: async ({ id, rid, img, template_id }: DeleteCategoryParams) => {
       const response = await axios.delete('/api/category', {
-        data: { id, rid, img, template_id, token },
+        data: { id, rid, img, template_id },
       })
       return response.data
     },
@@ -222,12 +208,7 @@ export function useCreateCategoriesFromTemplatesMutation() {
 
   return useMutation({
     mutationFn: async (params: CreateCategoryFromTemplatesParams) => {
-      const { token, ...data } = params
-
-      const response = await axios.post('/api/category/from-templates', {
-        data,
-        token,
-      })
+      const response = await axios.post('/api/category/from-templates', params)
       return response.data
     },
     onSuccess: (_data, variables) => {

@@ -54,14 +54,6 @@ export default function MenuSection({ addToCart }: MenuSectionProps) {
   // We want all items here because we filter by category client-side
   // but also filter by category when a category is selected (visual filter).
   const { allItems, loading: loadingItems } = useInventoryItems(null)
-
-  // Set default category - this is now handled by initial state "all"
-  // useEffect(() => {
-  //   if (categories.length > 0 && !selectedCategoryId) {
-  //     setSelectedCategoryId(categories[0].id);
-  //   }
-  // }, [categories, selectedCategoryId]);
-
   // Derived filtered items based on search OR category
   const filteredItems = useMemo(() => {
     let result = allItems

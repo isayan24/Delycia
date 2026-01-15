@@ -25,19 +25,20 @@ export default function AdminMobileNav() {
   const setNavVisible = useNavVisibility((state) => state.setNavVisible)
   const [userData, setUserData] = useState<UserData | null>(null)
 
-  const { user, accessToken, getValidAccessToken } = useAuth()
+  const { user } = useAuth()
 
   // const { openLoginDialog } = useLoginDialogStore();
 
+  // Fetch user data on mount - uses httpOnly cookies automatically
   useEffect(() => {
-    if (accessToken) {
-      getUser(accessToken)
-        .then((data) => {
-          setUserData(data?.user)
-        })
-        .catch((err) => console.error(err))
-    }
-  }, [accessToken])
+    getUser()
+      .then((data) => {
+        setUserData(data?.user)
+      })
+      .catch((err) =>
+        console.error('Failed to fetch user for mobile nav:', err),
+      )
+  }, [])
 
   // Client-side mounting
   useEffect(() => {

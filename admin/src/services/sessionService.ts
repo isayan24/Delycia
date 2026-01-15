@@ -2,7 +2,11 @@
 export interface UserData {
   _id: string
   id: number // Changed from string to number to match backend
+  username?: string
+  name?: string
+  email?: string
   phone_number: string
+  profile_pic?: string
   role: number
   restaurant_rids: number[]
   selected_rid: number | null

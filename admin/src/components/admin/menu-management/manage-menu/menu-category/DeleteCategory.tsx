@@ -30,7 +30,6 @@ export default function DeleteCategory({
   onSuccess,
 }: DeleteCategoryProps) {
   const { showError, showSuccess } = useToast()
-  const { getValidAccessToken } = useAuth()
   const { selectedRid } = useRestaurantSelector()
   const { isDeleteCategoryDialogOpen, closeDeleteCategoryDialog } =
     useMenuStore()
@@ -39,9 +38,8 @@ export default function DeleteCategory({
   const deleteMutation = useDeleteCategoryMutation()
 
   const handleDelete = async () => {
-    const accessToken = await getValidAccessToken()
-    if (!accessToken || !selectedRid) {
-      showError('Error', 'Access token or restaurant ID is missing')
+    if (!selectedRid) {
+      showError('Error', 'Restaurant ID is missing')
       return
     }
     try {
@@ -51,7 +49,6 @@ export default function DeleteCategory({
         rid: selectedRid,
         img,
         template_id: template_id?.toString(),
-        token: accessToken,
       })
 
       showSuccess('Success', 'Category deleted successfully')

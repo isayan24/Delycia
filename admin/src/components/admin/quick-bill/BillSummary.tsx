@@ -1,20 +1,17 @@
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { CartItem, Customer } from "./QuickBillMain";
-import { Trash2, Plus, Minus, Printer, CreditCard } from "lucide-react";
-import { useMenuStore } from "@/store/useMenuStore";
-import axiosInstance from "@/lib/axios";
-import { toast } from "sonner";
-import ThermalBill from "@/components/admin/order-history/ThermalBill";
-import { useAuth } from "@/hooks/useAuth";
-import useToast from "@/hooks/UseToast";
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { CartItem, Customer } from './QuickBillMain'
+import { Plus, Minus } from 'lucide-react'
+import ThermalBill from '@/components/admin/order-history/ThermalBill'
+import { useAuth } from '@/hooks/useAuth'
+import useToast from '@/hooks/UseToast'
 
 interface BillSummaryProps {
-  cart: CartItem[];
-  updateQuantity: (itemId: string, delta: number) => void;
-  selectedCustomer: Customer | null;
-  onOrderComplete: () => void;
+  cart: CartItem[]
+  updateQuantity: (itemId: string, delta: number) => void
+  selectedCustomer: Customer | null
+  onOrderComplete: () => void
 }
 
 export default function BillSummary({
@@ -23,43 +20,41 @@ export default function BillSummary({
   selectedCustomer,
   onOrderComplete,
 }: BillSummaryProps) {
-  const { categories } = useMenuStore();
   //   const { toast } = useToast();
-  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  const [showBillDialog, setShowBillDialog] = useState(false);
-  const [completedOrderData, setCompletedOrderData] = useState<any>(null);
-  const { getValidAccessToken } = useAuth();
-  const { showSuccess, showError } = useToast();
+  const { isAuthenticated } = useAuth()
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false)
+  const [showBillDialog, setShowBillDialog] = useState(false)
+  const [completedOrderData, setCompletedOrderData] = useState<any>(null)
+  const { showSuccess, showError } = useToast()
 
   // review
   const totalAmount = cart.reduce(
     (sum, item) => sum + (item.price ?? item.price) * item.quantity,
-    0
-  );
+    0,
+  )
 
   const handlePlaceOrder = async () => {
-    const accessToken = await getValidAccessToken();
-    if (!accessToken) {
-      showError("Error", "Please login to place an order");
-      return;
+    if (!isAuthenticated) {
+      showError('Error', 'Please login to place an order')
+      return
     }
     if (cart.length === 0) {
-      showError("Error", "Cart is empty");
-      return;
+      showError('Error', 'Cart is empty')
+      return
     }
     if (!selectedCustomer) {
-      showError("Error", "Please select a customer");
-      return;
+      showError('Error', 'Please select a customer')
+      return
     }
 
     // Try to get RID from categories (assuming they are loaded and belong to the same restaurant)
-    const rid = cart[0]?.rid;
+    const rid = cart[0]?.rid
     if (!rid) {
-      showError("Error", "System Error: Restaurant ID not found");
-      return;
+      showError('Error', 'System Error: Restaurant ID not found')
+      return
     }
 
-    setIsPlacingOrder(true);
+    setIsPlacingOrder(true)
     try {
       // Unified payload for /api/quick-bill
       const payload = {
@@ -72,26 +67,24 @@ export default function BillSummary({
         orderItems: cart.map((item) => ({
           ...item,
           rid: rid,
-          order_status: "completed",
+          order_status: 'completed',
 
           totalItemAmount: item.price * item.quantity,
         })),
-        token: accessToken,
-      };
-      console.log(payload, "payload");
+      }
 
       // Use axios directly for internal Next.js API route to avoid base URL issues
       // Importing locally if not available or assuming axios is available
-      const { default: axios } = await import("axios");
-      const res = await axios.post("/api/quick-bill", payload);
+      const { default: axios } = await import('axios')
+      const res = await axios.post('/api/quick-bill', payload)
 
       if (res.data && (res.data.success || res.data.status === 201)) {
-        showSuccess("Success", "Order placed successfully");
+        showSuccess('Success', 'Order placed successfully')
 
-        // todo Prepare bill data for printing
+        // Prepare bill data for printing
         const billData = {
-          orderId: res.data.order_id || "New",
-          tableNo: "N/A",
+          orderId: res.data.order_id || 'New',
+          tableNo: 'N/A',
           customerName: selectedCustomer.name,
           customerId: selectedCustomer.phone_number,
           items: cart.map((i) => ({
@@ -101,29 +94,26 @@ export default function BillSummary({
           })),
           totalAmount: totalAmount,
           orderDate: new Date().toLocaleString(),
-          paymentMethod: "Cash",
-          paymentStatus: "Paid",
-        };
+          paymentMethod: 'Cash',
+          paymentStatus: 'Paid',
+        }
 
-        setCompletedOrderData(billData);
-        onOrderComplete();
-        setShowBillDialog(true);
+        setCompletedOrderData(billData)
+        onOrderComplete()
+        setShowBillDialog(true)
       } else {
         showError(
-          "Error",
-          res.data.message || res.data.error || "Failed to place order"
-        );
+          'Error',
+          res.data.message || res.data.error || 'Failed to place order',
+        )
       }
     } catch (error: any) {
-      console.error("Order error", error);
-      showError(
-        "Error",
-        error.response?.data?.message || "Error placing order"
-      );
+      console.error('Order error', error)
+      showError('Error', error.response?.data?.message || 'Error placing order')
     } finally {
-      setIsPlacingOrder(false);
+      setIsPlacingOrder(false)
     }
-  };
+  }
 
   return (
     <div className="flex flex-col h-full bg-slate-50 rounded-md border">
@@ -131,8 +121,8 @@ export default function BillSummary({
         <ThermalBill
           isOpen={showBillDialog}
           onClose={() => {
-            setShowBillDialog(false);
-            setCompletedOrderData(null);
+            setShowBillDialog(false)
+            setCompletedOrderData(null)
           }}
           billData={completedOrderData}
         />
@@ -192,9 +182,9 @@ export default function BillSummary({
           onClick={handlePlaceOrder}
           disabled={isPlacingOrder || cart.length === 0 || !selectedCustomer}
         >
-          {isPlacingOrder ? "Placing Order..." : "Place Order & Print"}
+          {isPlacingOrder ? 'Placing Order...' : 'Place Order & Print'}
         </Button>
       </div>
     </div>
-  );
+  )
 }

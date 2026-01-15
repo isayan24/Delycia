@@ -41,7 +41,6 @@ interface CreateTableParams {
   table_number: string
   capacity: number
   zone: string
-  accessToken: string
 }
 
 /**
@@ -52,10 +51,8 @@ export function useCreateTableMutation() {
 
   return useMutation({
     mutationFn: async (params: CreateTableParams) => {
-      const { accessToken, ...data } = params
-      const response = await axios.post('/api/table', data, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
+      const { ...data } = params
+      const response = await axios.post('/api/table', data)
       return response.data
     },
     onSuccess: (_data, variables) => {
@@ -68,7 +65,6 @@ export function useCreateTableMutation() {
 
 interface DeleteTableParams {
   id: string
-  accessToken: string
 }
 
 /**
@@ -81,7 +77,6 @@ export function useDeleteTableMutation() {
     mutationFn: async (params: DeleteTableParams) => {
       const response = await axios.delete('/api/table', {
         data: { id: params.id },
-        headers: { Authorization: `Bearer ${params.accessToken}` },
       })
       return response.data
     },

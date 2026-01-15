@@ -40,7 +40,7 @@ export const useItemSubmission = (
 ) => {
   const [isPending, startTransition] = useTransition()
   const { showError, showSuccess } = useToast()
-  const { user, getValidAccessToken } = useAuth()
+  const { user } = useAuth()
 
   /**
    * Submit a single item
@@ -50,7 +50,6 @@ export const useItemSubmission = (
 
     startTransition(async () => {
       try {
-        const accessToken = await getValidAccessToken()
         const data = {
           rid: rid || user?.selected_rid,
           name: formData.name,
@@ -59,7 +58,6 @@ export const useItemSubmission = (
           images: imageLinks,
           isVeg: formData.is_veg,
           stock: formData.stock,
-          token: accessToken,
           price: formData.price,
           cost: formData.cost,
           status: 'available',
@@ -111,13 +109,11 @@ export const useItemSubmission = (
           }),
         )
 
-        const accessToken = await getValidAccessToken()
         const data = {
           rid: rid || user?.selected_rid,
           category_id: formData.category_id,
           is_veg: formData.is_veg,
           items: itemsWithImages,
-          token: accessToken,
         }
 
         const response = await axios.post(`/api/inventory/bulk`, data)

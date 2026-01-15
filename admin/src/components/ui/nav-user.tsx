@@ -1,7 +1,6 @@
+import { BadgeCheck, Bell, ChevronsUpDown, LogOut, LogIn } from 'lucide-react'
 
-import { BadgeCheck, Bell, ChevronsUpDown, LogOut, LogIn } from "lucide-react";
-
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,30 +9,28 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu'
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar";
-import Link from "next/link"; 
-import { User } from "next-auth";
-import { useAuth } from "@/hooks/useAuth";
+} from '@/components/ui/sidebar'
+import { useAuth } from '@/hooks/useAuth'
+import { Link } from '@tanstack/react-router'
 
 export function NavUser({
   user,
 }: {
   user: {
-    name: string;
+    name: string
     // email: string;
-    avatar: string;
-  };
-}) {  
-  const { accessToken, logout } = useAuth();
+    avatar: string
+  }
+}) {
+  const { isAuthenticated, logout } = useAuth()
 
-
-  const { isMobile } = useSidebar();
+  const { isMobile } = useSidebar()
 
   return (
     <SidebarMenu>
@@ -48,9 +45,9 @@ export function NavUser({
                 <AvatarImage src={user.avatar} alt={user.name} />
                 <AvatarFallback className="rounded-lg">
                   {user.name
-                    .split(" ")
+                    .split(' ')
                     .map((word) => word[0])
-                    .join("")
+                    .join('')
                     .slice(0, 2)
                     .toUpperCase()}
                 </AvatarFallback>
@@ -64,7 +61,7 @@ export function NavUser({
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-            side={isMobile ? "bottom" : "right"}
+            side={isMobile ? 'bottom' : 'right'}
             align="end"
             sideOffset={4}
           >
@@ -74,9 +71,9 @@ export function NavUser({
                   <AvatarImage src={user.avatar} alt={user.name} />
                   <AvatarFallback className="rounded-lg">
                     {user.name
-                      .split(" ")
+                      .split(' ')
                       .map((word) => word[0])
-                      .join("")
+                      .join('')
                       .slice(0, 2)
                       .toUpperCase()}
                   </AvatarFallback>
@@ -90,7 +87,7 @@ export function NavUser({
 
             {/* Get the user id and pass to the route */}
             <DropdownMenuGroup>
-              <Link href={`/user/p`}>
+              <Link to={`/user/p`}>
                 <div className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground">
                   <BadgeCheck className="w-4 h-4" />
                   Account
@@ -104,19 +101,19 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
 
-            {accessToken ? (
+            {isAuthenticated ? (
               <div
                 className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer"
                 onClick={async () => {
-                  await logout();
-                  window.location.href = `${window.location.origin}/user/sign-in`;
+                  await logout()
+                  window.location.href = `${window.location.origin}/user/sign-in`
                 }}
               >
                 <LogOut className="w-4 h-4" />
                 Log out
               </div>
             ) : (
-              <Link href="/user/sign-in">
+              <Link to="/user/sign-in">
                 <div className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer">
                   <LogIn className="w-4 h-4" />
                   Sign in
@@ -127,5 +124,5 @@ export function NavUser({
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  );
+  )
 }

@@ -5,7 +5,7 @@ import { VariantPayload } from './types'
 export const createVariants = async (
   inventoryId: number,
   variants: Array<{ name: string; price: number }>,
-  accessToken: string,
+  token: string,
 ): Promise<void> => {
   if (!variants || variants.length === 0) return
 
@@ -17,7 +17,9 @@ export const createVariants = async (
     }
 
     return axiosInstance.post('/admin/variants', variantPayload, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     })
   })
 
@@ -28,7 +30,7 @@ export const createVariants = async (
 export const updateVariants = async (
   inventoryId: number,
   variants: Array<{ id?: number; name: string; price: number }>,
-  accessToken: string,
+  token: string,
 ): Promise<void> => {
   if (!variants || variants.length === 0) return
 
@@ -36,6 +38,11 @@ export const updateVariants = async (
   try {
     const existingVariantsResponse = await axiosInstance.get(
       `/variants?inventory_id=${inventoryId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
     )
 
     const existingVariants = existingVariantsResponse.data?.data || []
@@ -50,7 +57,9 @@ export const updateVariants = async (
       const deletePromises = variantsToDelete.map((variant: any) =>
         axiosInstance.delete('/admin/variants', {
           data: { id: variant.id },
-          headers: { Authorization: `Bearer ${accessToken}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }),
       )
       await Promise.all(deletePromises)
@@ -72,7 +81,9 @@ export const updateVariants = async (
       }
 
       return axiosInstance.patch('/admin/variants', variantPayload, {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       })
     } else {
       // Create new variant
@@ -83,7 +94,9 @@ export const updateVariants = async (
       }
 
       return axiosInstance.post('/admin/variants', variantPayload, {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       })
     }
   })
@@ -93,14 +106,16 @@ export const updateVariants = async (
 
 export const deleteAllVariants = async (
   inventoryId: number,
-  accessToken: string,
+  token: string,
 ): Promise<void> => {
   try {
     // First fetch all variants for this inventory item
     const existingVariantsResponse = await axiosInstance.get(
       `/admin/variants?inventory_id=${inventoryId}`,
       {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       },
     )
 
@@ -110,7 +125,9 @@ export const deleteAllVariants = async (
       const deletePromises = existingVariants.map((variant: any) =>
         axiosInstance.delete('/admin/variants', {
           data: { id: variant.id },
-          headers: { Authorization: `Bearer ${accessToken}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }),
       )
 

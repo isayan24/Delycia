@@ -57,7 +57,6 @@ export default function UpdateItemDetailsModal({
   const [removedImageUrls, setRemovedImageUrls] = useState<string[]>([])
 
   const { showError, showSuccess } = useToast()
-  const { getValidAccessToken } = useAuth()
 
   // Use custom hooks
   const {
@@ -208,8 +207,6 @@ export default function UpdateItemDetailsModal({
     setIsPending(true)
 
     try {
-      const accessToken = await getValidAccessToken()
-
       // Detect what has changed
       const changes = detectChanges()
 
@@ -237,7 +234,6 @@ export default function UpdateItemDetailsModal({
           images: imageLinks,
           isVeg: formData.is_veg,
           stock: formData.stock,
-          token: accessToken,
           price: formData.price,
           cost: formData.cost,
           status: 'available',
@@ -285,7 +281,6 @@ export default function UpdateItemDetailsModal({
         selectivePayload = buildSelectivePayload(
           changes,
           imageLinks,
-          accessToken,
           currentFoodItem?.status,
         )
       } catch (error) {
@@ -306,7 +301,6 @@ export default function UpdateItemDetailsModal({
           images: fullImageLinks,
           isVeg: formData.is_veg,
           stock: formData.stock,
-          token: accessToken,
           price: formData.price,
           cost: formData.cost,
           status: 'available',

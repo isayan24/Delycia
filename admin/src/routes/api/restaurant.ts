@@ -1,33 +1,29 @@
 import { createFileRoute } from '@tanstack/react-router'
 import axiosInstance from '@/lib/axios'
+import { getAccessTokenFromCookie } from '@/lib/server-cookies'
 
 export const Route = createFileRoute('/api/restaurant')({
   server: {
     handlers: {
       GET: async ({ request }) => {
         try {
-          // Get from Authorization header
-          const authHeader = request.headers.get('authorization')
-          let accessToken: string | null = null
-
-          if (authHeader && authHeader.startsWith('Bearer ')) {
-            accessToken = authHeader.substring(7)
-          }
+          // Get token from httpOnly cookie
+          const accessToken = getAccessTokenFromCookie(request)
 
           if (!accessToken) {
-            return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-              status: 401,
-              headers: { 'Content-Type': 'application/json' },
-            })
+            return new Response(
+              JSON.stringify({
+                status: 401,
+                message: 'Not authenticated',
+                error: true,
+              }),
+              { status: 401, headers: { 'Content-Type': 'application/json' } },
+            )
           }
 
           // Get rid from query parameters
           const url = new URL(request.url)
           const rid = url.searchParams.get('rid')
-
-          // Set up axios headers
-          axiosInstance.defaults.headers.common['Authorization'] =
-            `Bearer ${accessToken}`
 
           if (!rid) {
             // If no rid provided, return empty array
@@ -43,8 +39,12 @@ export const Route = createFileRoute('/api/restaurant')({
             )
           }
 
-          // Fetch specific restaurant
-          const response = await axiosInstance.get(`/restaurant?rid=${rid}`)
+          // Fetch specific restaurant with token from cookie
+          const response = await axiosInstance.get(`/restaurant?rid=${rid}`, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          })
 
           return new Response(
             JSON.stringify({

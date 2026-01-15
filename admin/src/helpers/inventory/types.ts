@@ -10,7 +10,6 @@ export interface InventoryItem {
   price: number
   stock: number
   status: string
-  accessToken: string
   variants?: Array<{
     id?: number
     name: string

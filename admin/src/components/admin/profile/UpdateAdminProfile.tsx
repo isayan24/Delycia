@@ -1,24 +1,23 @@
-import React, { useEffect, useState } from "react";
-import { z } from "zod";
+import React from 'react'
+import { z } from 'zod'
 import {
   updateNameSchema,
   updatePasswordSchema,
-} from "@/schemas/updateProfileSchema";
-import { getUser } from "@/helpers/user/getUser";
-import Signout from "@/components/smallComponents/Signout";
-import ProfileImage from "./ProfileImage";
-import UpdateName from "./UpdateName";
-import UpdatePassword from "./UpdatePassword";
-import { useAuth } from "@/hooks/useAuth";
+} from '@/schemas/updateProfileSchema'
+import Signout from '@/components/smallComponents/Signout'
+import ProfileImage from './ProfileImage'
+import UpdateName from './UpdateName'
+import UpdatePassword from './UpdatePassword'
+import { useAuth } from '@/hooks/useAuth'
 
 interface UpdateDetailsProps {
   onPasswordSubmit: (
-    values: z.infer<typeof updatePasswordSchema>
-  ) => Promise<{ status: number }>;
-  onNameSubmit: (value: z.infer<typeof updateNameSchema>) => void;
-  isNameSubmit: any;
-  isPasswordSubmit: any;
-  onProfilePictureUpload: any;
+    values: z.infer<typeof updatePasswordSchema>,
+  ) => Promise<{ status: number }>
+  onNameSubmit: (value: z.infer<typeof updateNameSchema>) => void
+  isNameSubmit: any
+  isPasswordSubmit: any
+  onProfilePictureUpload: any
 }
 
 export default function UpdateAdminProfile({
@@ -28,18 +27,7 @@ export default function UpdateAdminProfile({
   isNameSubmit,
   isPasswordSubmit,
 }: UpdateDetailsProps) {
-  const [userData, setUserData] = useState(null);
-  const { accessToken } = useAuth();
-
-  useEffect(() => {
-    if (accessToken) {
-      getUser(accessToken)
-        .then((data) => {
-          setUserData(data.user);
-        })
-        .catch((err) => console.error(err));
-    }
-  }, [accessToken]);
+  const { user, isAuthenticated } = useAuth()
 
   return (
     <main>
@@ -51,7 +39,7 @@ export default function UpdateAdminProfile({
             <div className="lg:col-span-1">
               {/* Profile img */}
               <ProfileImage
-                userData={userData}
+                userData={user}
                 onProfilePictureUpload={onProfilePictureUpload}
               />
             </div>
@@ -61,7 +49,7 @@ export default function UpdateAdminProfile({
               <div className="mb-6">
                 <UpdateName
                   onNameSubmit={onNameSubmit}
-                  userData={userData}
+                  userData={user}
                   isNameSubmit={isNameSubmit}
                 />
                 {/* <UpdatePassword
@@ -79,5 +67,5 @@ export default function UpdateAdminProfile({
         </div>
       </div>
     </main>
-  );
+  )
 }
