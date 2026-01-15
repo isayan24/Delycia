@@ -1,21 +1,20 @@
-
-import React, { useEffect, useCallback, useState } from 'react';
-import { ChefHat, AlertCircle, RefreshCw, CheckCircle } from 'lucide-react';
-import { useDateFilterStore } from '@/store/useDateFilterStore';
-import { useDashboardData } from '@/hooks/useDashboardData';
-import DateFilterComponent from './DateFilterComponent';
-import DateRangeDisplay from './DateRangeDisplay';
-import DashboardStatsComponent from './DashboardStats';
-import SalesTrendChart from './SalesTrendChart';
-import OrderStatusChart from './OrderStatusChart';
-import TopSellingItems from './TopSellingItems';
-import RevenueByCategoryChart from './RevenueByCategoryChart';
-import PaymentMethodChart from './PaymentMethodChart';
-import DeliveryTypeChart from './DeliveryTypeChart';
+import React, { useEffect, useCallback, useState } from 'react'
+import { ChefHat, AlertCircle, RefreshCw, CheckCircle } from 'lucide-react'
+import { useDateFilterStore } from '@/store/useDateFilterStore'
+import { useDashboardData } from '@/hooks/useDashboardData'
+import DateFilterComponent from './DateFilterComponent'
+import DateRangeDisplay from './DateRangeDisplay'
+import DashboardStatsComponent from './DashboardStats'
+import SalesTrendChart from './SalesTrendChart'
+import OrderStatusChart from './OrderStatusChart'
+import TopSellingItems from './TopSellingItems'
+import RevenueByCategoryChart from './RevenueByCategoryChart'
+import PaymentMethodChart from './PaymentMethodChart'
+import DeliveryTypeChart from './DeliveryTypeChart'
 
 interface EnhancedAdminDashboardProps {
-  rid: string;
-  accessToken: string;
+  rid: string
+  // accessToken removed - using httpOnly cookies
 }
 
 const ErrorDisplay: React.FC<{ onRetry?: () => void }> = ({ onRetry }) => {
@@ -38,21 +37,29 @@ const ErrorDisplay: React.FC<{ onRetry?: () => void }> = ({ onRetry }) => {
       </div>
       <div className="text-center py-8">
         <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-3" />
-        <p className="text-red-600 font-medium">Something went wrong loading the dashboard</p>
-        <p className="text-red-500 text-sm mt-1">Please try refreshing the page</p>
+        <p className="text-red-600 font-medium">
+          Something went wrong loading the dashboard
+        </p>
+        <p className="text-red-500 text-sm mt-1">
+          Please try refreshing the page
+        </p>
       </div>
     </div>
-  );
-};
+  )
+}
 
-const LoadingDashboard: React.FC<{ onRefresh?: () => void }> = ({ onRefresh }) => (
+const LoadingDashboard: React.FC<{ onRefresh?: () => void }> = ({
+  onRefresh,
+}) => (
   <div className="min-h-screen bg-gray-50">
     <div className="bg-white shadow-sm border-b border-gray-200">
       <div className="px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <ChefHat className="w-8 h-8 text-orange-600" />
-            <h1 className="text-2xl font-semibold text-gray-900">Delycia Dashboard</h1>
+            <h1 className="text-2xl font-semibold text-gray-900">
+              Delycia Dashboard
+            </h1>
           </div>
           <div className="flex items-center space-x-4">
             {onRefresh && (
@@ -74,8 +81,11 @@ const LoadingDashboard: React.FC<{ onRefresh?: () => void }> = ({ onRefresh }) =
     <div className="p-6 space-y-6">
       <div className="animate-pulse">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="bg-white rounded-xl p-6 shadow-sm border border-gray-100"
+            >
               <div className="h-20 bg-gray-200 rounded"></div>
             </div>
           ))}
@@ -101,43 +111,41 @@ const LoadingDashboard: React.FC<{ onRefresh?: () => void }> = ({ onRefresh }) =
       </div>
     </div>
   </div>
-);
+)
 
 export const EnhancedAdminDashboard: React.FC<EnhancedAdminDashboardProps> = ({
   rid,
-  accessToken
 }) => {
-  const { loadFromStorage } = useDateFilterStore();
-  const { data, loading, error, refetch } = useDashboardData({ rid, accessToken });
-  const [showRefreshSuccess, setShowRefreshSuccess] = useState(false);
-  const [lastRefreshTime, setLastRefreshTime] = useState<Date | null>(null);
+  const { loadFromStorage } = useDateFilterStore()
+  const { data, loading, error, refetch } = useDashboardData({ rid })
+  const [showRefreshSuccess, setShowRefreshSuccess] = useState(false)
+  const [lastRefreshTime, setLastRefreshTime] = useState<Date | null>(null)
 
   // Load saved filter state on mount
   useEffect(() => {
-    loadFromStorage();
-  }, [loadFromStorage]);
+    loadFromStorage()
+  }, [loadFromStorage])
 
   const handleHardRefresh = () => {
-    window.location.reload();
+    window.location.reload()
   }
 
   // Enhanced refresh function with success notification
   const handleRefresh = useCallback(async () => {
     try {
-      await refetch();
-      setLastRefreshTime(new Date());
-      setShowRefreshSuccess(true);
-      setTimeout(() => setShowRefreshSuccess(false), 3000);
+      await refetch()
+      setLastRefreshTime(new Date())
+      setShowRefreshSuccess(true)
+      setTimeout(() => setShowRefreshSuccess(false), 3000)
     } catch (error) {
       // Error is already handled by the hook
-      console.error('Refresh failed:', error);
+      console.error('Refresh failed:', error)
     }
-  }, [refetch]);
- 
+  }, [refetch])
 
   // Show loading state on initial load
   if (loading && !data) {
-    return <LoadingDashboard onRefresh={handleRefresh} />;
+    return <LoadingDashboard onRefresh={handleRefresh} />
   }
 
   // Props are guaranteed to be valid by parent component and TypeScript
@@ -158,7 +166,9 @@ export const EnhancedAdminDashboard: React.FC<EnhancedAdminDashboardProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <ChefHat className="w-8 h-8 text-orange-600" />
-              <h1 className="text-2xl font-semibold text-gray-900">Delycia Dashboard</h1>
+              <h1 className="text-2xl font-semibold text-gray-900">
+                Delycia Dashboard
+              </h1>
             </div>
             <div className="flex items-center space-x-4">
               <button
@@ -167,7 +177,9 @@ export const EnhancedAdminDashboard: React.FC<EnhancedAdminDashboardProps> = ({
                 className="flex items-center space-x-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-orange-400 disabled:cursor-not-allowed transition-colors"
                 title="Refresh dashboard data (Ctrl+R or F5)"
               >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}
+                />
                 <span className="hidden sm:inline">Refresh</span>
               </button>
               <DateFilterComponent />
@@ -280,7 +292,7 @@ export const EnhancedAdminDashboard: React.FC<EnhancedAdminDashboardProps> = ({
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default EnhancedAdminDashboard;
+export default EnhancedAdminDashboard

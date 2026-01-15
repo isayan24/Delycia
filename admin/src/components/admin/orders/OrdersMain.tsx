@@ -1,45 +1,38 @@
-
 import React, {
   useMemo,
   useState,
   useEffect,
   useTransition,
   useCallback,
-} from "react";
-import { useOrdersWebSocket } from "./hooks/useOrdersWebSocket";
+} from 'react'
+import { useOrdersWebSocket } from './hooks/useOrdersWebSocket'
 import {
   processWebSocketOrders,
   isOrderFromPast24Hours,
-} from "./utils/orderProcessing";
-import { WebSocketOrder, ProcessedOrder } from "@/types/WebSocketOrder";
+} from './utils/orderProcessing'
+import { WebSocketOrder, ProcessedOrder } from '@/types/WebSocketOrder'
 
-import { OrdersLoadingState } from "./order-ui-card/OrdersLoadingState";
-import { OrdersHeader } from "./order-ui-card/OrdersHeader";
+import { OrdersLoadingState } from './order-ui-card/OrdersLoadingState'
+import { OrdersHeader } from './order-ui-card/OrdersHeader'
 
-import OrderTabs from "./OrderTabs";
-import UseAdminSoundWrapper from "./hooks/useAdminSoundWrapper";
-import logger from "@/lib/logger-dynamic";
-import axios from "axios";
-import useToast from "@/hooks/UseToast";
-import { useGlobalOrderPopupStore } from "@/store/useGlobalOrderPopupStore";
-import { useAuth } from "@/hooks/useAuth";
+import OrderTabs from './OrderTabs'
+import UseAdminSoundWrapper from './hooks/useAdminSoundWrapper'
+import logger from '@/lib/logger-dynamic'
+import axios from 'axios'
+import useToast from '@/hooks/UseToast'
+import { useGlobalOrderPopupStore } from '@/store/useGlobalOrderPopupStore'
 
 // Order states - matching API
-type OrderState =
-  | "pending"
-  | "processing"
-  | "ready"
-  | "completed"
-  | "cancelled";
+type OrderState = 'pending' | 'processing' | 'ready' | 'completed' | 'cancelled'
 
 interface OrderWithState extends ProcessedOrder {
-  state: OrderState;
+  state: OrderState
 }
 
 export default function OrdersMain() {
-  const [ordersWithState, setOrdersWithState] = useState<OrderWithState[]>([]);
-  const [activeTab, setActiveTab] = useState("pending");
-  const { showError, showSuccess, showInfo } = useToast();
+  const [ordersWithState, setOrdersWithState] = useState<OrderWithState[]>([])
+  const [activeTab, setActiveTab] = useState('pending')
+  const { showError, showSuccess, showInfo } = useToast()
   const {
     popupsEnabled,
     togglePopups,
@@ -47,13 +40,13 @@ export default function OrdersMain() {
     acceptOrder,
     rejectOrder,
     markOrderAsProcessed,
-  } = useGlobalOrderPopupStore();
+  } = useGlobalOrderPopupStore()
 
-  const { getValidAccessToken } = useAuth();
-  const [isAcceptingOrder, startAcceptingOrder] = useTransition();
-  const [isRejectingOrder, startRejectTransition] = useTransition();
-  const [isMarkingReady, startMarkingReady] = useTransition();
-  const [isMarkDelivered, startMarkDelivered] = useTransition();
+  // Token no longer needed - server routes read from httpOnly cookies
+  const [isAcceptingOrder, startAcceptingOrder] = useTransition()
+  const [isRejectingOrder, startRejectTransition] = useTransition()
+  const [isMarkingReady, startMarkingReady] = useTransition()
+  const [isMarkDelivered, startMarkDelivered] = useTransition()
 
   const {
     orders: rawOrders,
@@ -65,40 +58,40 @@ export default function OrdersMain() {
   } = useOrdersWebSocket({
     autoConnect: true,
     onOrdersUpdate: (newOrders) => {},
-  });
+  })
 
   // Process raw WebSocket orders into grouped, component-ready format
   const { processedOrders } = useMemo(() => {
     try {
-      const webSocketOrders = rawOrders as unknown as WebSocketOrder[];
-      return processWebSocketOrders(webSocketOrders);
+      const webSocketOrders = rawOrders as unknown as WebSocketOrder[]
+      return processWebSocketOrders(webSocketOrders)
     } catch (error) {
-      console.error("Error processing orders:", error);
+      console.error('Error processing orders:', error)
       return {
         processedOrders: [],
         totalOrders: 0,
         totalCustomers: 0,
-        errors: ["Failed to process orders"],
-      };
+        errors: ['Failed to process orders'],
+      }
     }
-  }, [rawOrders]);
+  }, [rawOrders])
 
   // Update orders with state when new orders arrive - use actual data status
   useEffect(() => {
     setOrdersWithState((prevOrdersWithState) => {
       const newOrdersWithState = processedOrders.map((order) => {
         // Use actual order status from data, not dummy state
-        const actualState = order.order_status as OrderState;
+        const actualState = order.order_status as OrderState
 
         return {
           ...order,
           state: actualState,
-        };
-      });
+        }
+      })
 
-      return newOrdersWithState;
-    });
-  }, [processedOrders]);
+      return newOrdersWithState
+    })
+  }, [processedOrders])
 
   // fix Wrapper functions that use the Zustand store functions
   const handleAcceptOrder = useCallback(
@@ -106,36 +99,36 @@ export default function OrdersMain() {
       startAcceptingOrder(async () => {
         try {
           // Add 2-second delay while transition is active
-          await new Promise((resolve) => setTimeout(resolve, 500));
+          await new Promise((resolve) => setTimeout(resolve, 500))
 
-          const token = await getValidAccessToken();
-          await acceptOrder(order, prepTime, token);
-          markOrderAsProcessed(order);
+          // No token needed - server route reads from httpOnly cookie
+          await acceptOrder(order, prepTime)
+          markOrderAsProcessed(order)
         } catch (error) {
-          console.error("Failed to accept order:", error);
+          console.error('Failed to accept order:', error)
         }
-      });
+      })
     },
-    [acceptOrder, markOrderAsProcessed, getValidAccessToken]
-  );
+    [acceptOrder, markOrderAsProcessed],
+  )
 
   const handleRejectOrder = useCallback(
     (order: ProcessedOrder) => {
       startRejectTransition(async () => {
         try {
           // Add 2-second delay while transition is active
-          await new Promise((resolve) => setTimeout(resolve, 500));
+          await new Promise((resolve) => setTimeout(resolve, 500))
 
-          const token = await getValidAccessToken();
-          await rejectOrder(order, token);
-          markOrderAsProcessed(order);
+          // No token needed - server route reads from httpOnly cookie
+          await rejectOrder(order)
+          markOrderAsProcessed(order)
         } catch (error) {
-          console.error("Failed to reject order:", error);
+          console.error('Failed to reject order:', error)
         }
-      });
+      })
     },
-    [rejectOrder, markOrderAsProcessed, getValidAccessToken]
-  );
+    [rejectOrder, markOrderAsProcessed],
+  )
 
   /// mark handle ready
   const handleMarkReady = useCallback(
@@ -143,29 +136,27 @@ export default function OrdersMain() {
       startMarkingReady(async () => {
         try {
           // Get all order item IDs from the order
-          const orderItemIds = order?.items?.map((item) => item.id);
-          await new Promise((resolve) => setTimeout(resolve, 500));
+          const orderItemIds = order?.items?.map((item) => item.id)
+          await new Promise((resolve) => setTimeout(resolve, 500))
 
-          const token = await getValidAccessToken();
           const apiData = {
             order_item_ids: orderItemIds,
-            order_status: "ready",
-            token: token || {},
-          };
+            order_status: 'ready',
+          }
 
-          await axios.patch("/api/orders", apiData);
-          showInfo("Ready", "Order marked as ready");
+          await axios.patch('/api/orders', apiData)
+          showInfo('Ready', 'Order marked as ready')
         } catch (error) {
-          showError("Error", "Failed to mark order as ready");
-          logger.error("Fetching data", {
+          showError('Error', 'Failed to mark order as ready')
+          logger.error('Fetching data', {
             error: error,
-            component: "OrdersMain",
-          });
+            component: 'OrdersMain',
+          })
         }
-      });
+      })
     },
-    [startMarkingReady, getValidAccessToken]
-  );
+    [startMarkingReady],
+  )
 
   // mark handle delivered
 
@@ -174,67 +165,63 @@ export default function OrdersMain() {
       startMarkDelivered(async () => {
         try {
           // Get all order item IDs from the order
-          const orderItemIds = order?.items?.map((item) => item.id);
-          await new Promise((resolve) => setTimeout(resolve, 500));
+          const orderItemIds = order?.items?.map((item) => item.id)
+          await new Promise((resolve) => setTimeout(resolve, 500))
 
-          const token = await getValidAccessToken();
           const apiData = {
             order_item_ids: orderItemIds,
-            order_status: "completed",
-            token: token || {},
-          };
+            order_status: 'completed',
+          }
 
-          await axios.patch("/api/orders", apiData);
-          showSuccess("Delivered", "Order marked as delivered");
+          await axios.patch('/api/orders', apiData)
+          showSuccess('Delivered', 'Order marked as delivered')
         } catch (error) {
-          showError("Error", "Failed to mark as delivered");
-          logger.error("Fetching data", {
+          showError('Error', 'Failed to mark as delivered')
+          logger.error('Fetching data', {
             error: error,
-            component: "OrdersMain",
-          });
+            component: 'OrdersMain',
+          })
         }
-      });
+      })
     },
-    [startMarkDelivered, getValidAccessToken]
-  );
+    [startMarkDelivered],
+  )
 
   const handleCall = (order: ProcessedOrder) => {
-    console.log("📞 CALL CUSTOMER - Full Details:", {
+    console.log('📞 CALL CUSTOMER - Full Details:', {
       order: order,
       customer: {
         id: order.customer_id,
         name: order.customer_name,
         phone: order.customer_phone,
       },
-    });
-  };
+    })
+  }
 
   const handleViewTimeline = (order: ProcessedOrder) => {
-    console.log("📋 VIEW TIMELINE - Full Details:", {
+    console.log('📋 VIEW TIMELINE - Full Details:', {
       order: order,
       customer: {
         id: order.customer_id,
         name: order.customer_name,
       },
       orderTime: order.created_at,
-    });
-  };
+    })
+  }
   // mark handle extra time
   const handleExtendTime = async (
     order: ProcessedOrder,
-    additionalMinutes: number
+    additionalMinutes: number,
   ) => {
-    const orderItemIds = order?.items?.map((item) => item.id);
-    const token = await getValidAccessToken();
+    const orderItemIds = order?.items?.map((item) => item.id)
     const apiData = {
       order_item_ids: orderItemIds,
-      token: token || {},
       preparation_time: additionalMinutes,
-    };
+    }
 
     try {
-      await axios.patch("/api/orders", apiData);
-      showSuccess("Success", "Time extended successfully");
+      await axios.patch('/api/orders', apiData)
+      showSuccess('Success', 'Time extended successfully')
 
       // fix Update local state immediately for better UX
       setOrdersWithState((prevOrders) =>
@@ -247,19 +234,19 @@ export default function OrdersMain() {
               ...prevOrder,
               preparation_time: additionalMinutes,
               time_extended: (prevOrder.time_extended || 0) + additionalMinutes,
-            };
+            }
           }
-          return prevOrder;
-        })
-      );
+          return prevOrder
+        }),
+      )
     } catch (error) {
-      showError("Error", "Failed to extend time");
-      logger.error("Fetching data", {
+      showError('Error', 'Failed to extend time')
+      logger.error('Fetching data', {
         error: error,
-        component: "OrdersMain",
-      });
+        component: 'OrdersMain',
+      })
     }
-  };
+  }
 
   // Countdown logic moved to CountdownDisplay component for better performance
 
@@ -268,44 +255,42 @@ export default function OrdersMain() {
 
   // Filter orders by state
   const pendingOrders = ordersWithState.filter(
-    (order) => order.state === "pending"
-  );
+    (order) => order.state === 'pending',
+  )
   const processingOrders = ordersWithState.filter(
-    (order) => order.state === "processing"
-  );
-  const readyOrders = ordersWithState.filter(
-    (order) => order.state === "ready"
-  );
+    (order) => order.state === 'processing',
+  )
+  const readyOrders = ordersWithState.filter((order) => order.state === 'ready')
 
   // Custom toggle function that can show popup for existing pending orders
   const handleTogglePopups = useCallback(() => {
-    const wasEnabled = popupsEnabled;
-    togglePopups(); // Toggle the state first
+    const wasEnabled = popupsEnabled
+    togglePopups() // Toggle the state first
 
     // If we're enabling popups and there are pending orders, show the first one
     if (!wasEnabled && pendingOrders.length > 0) {
       // Small delay to ensure the toggle state is updated
       setTimeout(() => {
-        showPopup(pendingOrders[0]);
-      }, 100);
+        showPopup(pendingOrders[0])
+      }, 100)
     }
-  }, [popupsEnabled, togglePopups, pendingOrders, showPopup]);
+  }, [popupsEnabled, togglePopups, pendingOrders, showPopup])
 
   // Filter completed and cancelled orders to only show past 24 hours
   const completedOrders = ordersWithState.filter(
     (order) =>
-      order.state === "completed" && isOrderFromPast24Hours(order.created_at)
-  );
+      order.state === 'completed' && isOrderFromPast24Hours(order.created_at),
+  )
   const cancelledOrders = ordersWithState.filter(
     (order) =>
-      order.state === "cancelled" && isOrderFromPast24Hours(order.created_at)
-  );
+      order.state === 'cancelled' && isOrderFromPast24Hours(order.created_at),
+  )
 
   // For delivered orders, we'll use filtered completed orders (past 24 hours only)
-  const deliveredOrders = completedOrders;
+  const deliveredOrders = completedOrders
 
   if (isLoading) {
-    return <OrdersLoadingState />;
+    return <OrdersLoadingState />
   }
 
   if (error && !isConnected) {
@@ -322,7 +307,7 @@ export default function OrdersMain() {
           <p className="text-sm text-muted-foreground mt-1">{error}</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -364,5 +349,5 @@ export default function OrdersMain() {
         />
       </div>
     </>
-  );
+  )
 }

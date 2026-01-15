@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react'
 import DashboardErrorBoundary from './DashboardErrorBoundary'
 import EnhancedAdminDashboard from './EnhancedAdminDashboard'
@@ -11,7 +10,7 @@ import { AlertCircle, Loader2 } from 'lucide-react'
 
 interface DashboardWrapperProps {
   rid: string
-  accessToken: string
+  // accessToken removed - using httpOnly cookies
   onError?: (error: Error) => void
 }
 
@@ -63,7 +62,6 @@ const MissingCredentialsError: React.FC<{ onRetry?: () => void }> = ({
 
 export const DashboardWrapper: React.FC<DashboardWrapperProps> = ({
   rid,
-  accessToken,
   onError,
 }) => {
   const [isInitializing, setIsInitializing] = useState(true)
@@ -112,7 +110,7 @@ export const DashboardWrapper: React.FC<DashboardWrapperProps> = ({
 
     // Initialize dashboard immediately since props are guaranteed to be valid
     initializeDashboard()
-  }, [rid, accessToken, loadFromStorage, onError])
+  }, [rid, loadFromStorage, onError])
 
   // Authentication is handled by the parent component
 
@@ -179,7 +177,7 @@ export const DashboardWrapper: React.FC<DashboardWrapperProps> = ({
         performanceMonitor.start('error-recovery')
       }}
     >
-      <EnhancedAdminDashboard rid={rid} accessToken={accessToken} />
+      <EnhancedAdminDashboard rid={rid} />
     </DashboardErrorBoundary>
   )
 }

@@ -141,31 +141,31 @@ function RootComponent() {
   return (
     <RootDocument>
       <QueryClientProvider client={queryClient}>
-        <SoundProvider>
-          <NetworkOfflineNotification />
-          <HeaderWrapper />
-          <div>
-            <SidebarProvider className="darks">
-              <SidebarWrapper />
-              <SidebarSwitch />
-              <SidebarInset className="relative">
-                {/* body content */}
-                <div className="">
-                  <Toaster
-                    position="top-center"
-                    richColors
-                    closeButton
-                    duration={4000}
-                  />
-                  <Outlet />
-                </div>
-              </SidebarInset>
-            </SidebarProvider>
-          </div>
-          <AdminMobileNavWrapper />
-          {/* Global Order Popup Manager */}
-          <GlobalOrderPopupManager />
-        </SoundProvider>
+        {/* <SoundProvider> */}
+        <NetworkOfflineNotification />
+        <HeaderWrapper />
+        <div>
+          <SidebarProvider className="darks">
+            <SidebarWrapper />
+            <SidebarSwitch />
+            <SidebarInset className="relative">
+              {/* body content */}
+              <div className="">
+                <Toaster
+                  position="top-center"
+                  richColors
+                  closeButton
+                  duration={4000}
+                />
+                <Outlet />
+              </div>
+            </SidebarInset>
+          </SidebarProvider>
+        </div>
+        <AdminMobileNavWrapper />
+        {/* Global Order Popup Manager */}
+        {/* <GlobalOrderPopupManager /> */}
+        {/* </SoundProvider> */}
       </QueryClientProvider>
     </RootDocument>
   )

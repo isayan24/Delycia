@@ -19,8 +19,7 @@ import {
 import { getUser } from '@/helpers/user/getUser'
 import { AdminNavMain } from './AdminNavMain'
 import { AdminSidebarProfile } from './AdminSidebarProfile'
-import { useAuth } from '@/hooks/useAuth'
-import tokenService from '@/services/tokenService'
+// tokenService no longer needed - using httpOnly cookies
 
 // this is for hydration issue client side only component
 function ClientOnlySidebar({ children }: { children: React.ReactNode }) {
@@ -42,7 +41,7 @@ function ClientOnlySidebar({ children }: { children: React.ReactNode }) {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // const currUser: User = session?.user as User;
 
-  const { accessToken } = useAuth()
+  // No longer need accessToken - user data is in sessionService
 
   const [userData, setUserData] = React.useState<{
     username?: string
@@ -53,32 +52,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   React.useEffect(() => {
     const fetchUser = async () => {
       try {
-        let validToken = accessToken
-        // Attempt to get a fresh valid token
-        const freshToken = await tokenService.getValidAccessToken()
-        if (freshToken) {
-          validToken = freshToken
-        }
-
-        if (validToken) {
-          const data = await getUser(validToken)
-          if (data?.user) {
-            setUserData(data.user)
-          }
+        // Call getUser - it will use httpOnly cookies automatically
+        const data = await getUser()
+        if (data?.user) {
+          setUserData(data.user)
         }
       } catch (err) {
         console.error('Failed to fetch user data for sidebar:', err)
       }
     }
 
-    if (accessToken) {
-      fetchUser()
-    }
-  }, [accessToken])
+    fetchUser()
+  }, [])
 
-  if (!accessToken) {
-    return null
-  }
+  // Sidebar always shown - auth is handled at route level
 
   const data = {
     user: {

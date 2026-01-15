@@ -59,19 +59,18 @@ const AuthErrorScreen = () => {
 }
 
 function DashboardPage() {
-  const { user, accessToken, isLoading, isAuthenticated } = useAuth()
+  const { user, isLoading, isAuthenticated } = useAuth()
 
   useEffect(() => {
     if (import.meta.env.DEV) {
       console.log('Dashboard Page Auth State:', {
         isLoading,
         isAuthenticated,
-        hasAccessToken: !!accessToken,
         hasUser: !!user,
         userSelectedRid: user?.selected_rid,
       })
     }
-  }, [isLoading, isAuthenticated, accessToken, user])
+  }, [isLoading, isAuthenticated, user])
 
   if (isLoading) {
     return <LoadingScreen />
@@ -81,9 +80,8 @@ function DashboardPage() {
     return <AuthErrorScreen />
   }
 
-  if (!accessToken) {
-    return <LoadingScreen message="Loading authentication token..." />
-  }
+  // No need to check for accessToken - it's in httpOnly cookies
+  // Server routes will handle authentication automatically
 
   if (!user) {
     return <LoadingScreen message="Loading user information..." />
@@ -95,7 +93,6 @@ function DashboardPage() {
 
   return (
     <DashboardWrapper
-      accessToken={accessToken}
       rid={user.selected_rid?.toString() || ''}
       onError={(error) => {
         console.error('Dashboard error:', error)

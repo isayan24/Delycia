@@ -1,25 +1,28 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { handleApiError } from '@/helpers/handleApiError'
 import axiosInstance from '@/lib/axios'
+import { getAccessTokenFromCookie } from '@/lib/server-cookies'
 
 export const Route = createFileRoute('/api/orders')({
   server: {
     handlers: {
       PATCH: async ({ request }) => {
         try {
-          const data: any = await request.json()
-          const { token } = data
+          // Get token from httpOnly cookie instead of request body
+          const accessToken = getAccessTokenFromCookie(request)
 
-          if (!token) {
+          if (!accessToken) {
             return new Response(
               JSON.stringify({
                 status: 401,
-                message: 'Access token is required',
+                message: 'Not authenticated',
                 error: true,
               }),
               { status: 401, headers: { 'Content-Type': 'application/json' } },
             )
           }
+
+          const data: any = await request.json()
 
           if (!data.order_item_ids) {
             return new Response(
@@ -41,7 +44,7 @@ export const Route = createFileRoute('/api/orders')({
 
             await axiosInstance.patch(`/admin/orders`, submitDate, {
               headers: {
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${accessToken}`,
               },
             })
           }

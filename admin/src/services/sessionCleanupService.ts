@@ -1,112 +1,93 @@
-import sessionService from "./sessionService";
+import sessionService from './sessionService'
 
 class SessionCleanupService {
-  private static instance: SessionCleanupService;
-  private cleanupInterval: NodeJS.Timeout | null = null;
-  private beforeUnloadListener: (() => void) | null = null;
+  private static instance: SessionCleanupService
+  private cleanupInterval: NodeJS.Timeout | null = null
+  private beforeUnloadListener: (() => void) | null = null
 
   private constructor() {}
 
   static getInstance(): SessionCleanupService {
     if (!SessionCleanupService.instance) {
-      SessionCleanupService.instance = new SessionCleanupService();
+      SessionCleanupService.instance = new SessionCleanupService()
     }
-    return SessionCleanupService.instance;
+    return SessionCleanupService.instance
   }
 
   /**
    * Initialize session cleanup mechanisms
    */
   initialize(): void {
-    this.startPeriodicCleanup();
-    this.setupBeforeUnloadHandler();
-    this.setupVisibilityChangeHandler();
+    this.startPeriodicCleanup()
+    this.setupBeforeUnloadHandler()
+    this.setupVisibilityChangeHandler()
   }
 
   /**
-   * Start periodic session validation and cleanup
+   * Start periodic session validation via server
    */
   private startPeriodicCleanup(): void {
-    // Check session validity every 5 minutes
-    this.cleanupInterval = setInterval(() => {
-      if (!sessionService.isSessionValid()) {
-        console.log('Session expired, clearing...');
-        sessionService.clearSession();
-        
-        // Redirect to admin login page if session expired
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+    // Check session validity every 5 minutes by calling server
+    this.cleanupInterval = setInterval(
+      async () => {
+        const isValid = await sessionService.isSessionValid()
+        if (!isValid) {
+          console.log('Session expired, clearing...')
+          sessionService.clearSession()
+
+          // Redirect to login page if session expired
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login'
+          }
         }
-      }
-    }, 5 * 60 * 1000); // 5 minutes
+      },
+      5 * 60 * 1000,
+    ) // 5 minutes
   }
 
   /**
    * Setup handler for browser close/refresh
    */
   private setupBeforeUnloadHandler(): void {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined') return
 
     this.beforeUnloadListener = () => {
       // Optional: Clear session on browser close
       // Uncomment if you want to clear session when browser closes
       // sessionService.clearSession();
-    };
+    }
 
-    window.addEventListener('beforeunload', this.beforeUnloadListener);
+    window.addEventListener('beforeunload', this.beforeUnloadListener)
   }
 
   /**
    * Setup handler for tab visibility changes
    */
   private setupVisibilityChangeHandler(): void {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined') return
 
-    document.addEventListener('visibilitychange', () => {
+    document.addEventListener('visibilitychange', async () => {
       if (document.visibilityState === 'visible') {
-        // Tab became visible, check session validity
-        if (!sessionService.isSessionValid()) {
-          console.log('Session expired while tab was hidden');
-          sessionService.clearSession();
-          window.location.href = '/admin/login';
+        // Tab became visible, check session validity via server
+        const isValid = await sessionService.isSessionValid()
+        if (!isValid) {
+          console.log('Session expired while tab was hidden')
+          sessionService.clearSession()
+          window.location.href = '/login'
         }
       }
-    });
+    })
   }
 
   /**
    * Schedule session renewal for active users
+   * Note: With httpOnly cookies, renewal happens automatically on the server
+   * This is now a no-op but kept for compatibility
    */
   scheduleSessionRenewal(): void {
-    const expirationTime = sessionService.getExpirationTime();
-    if (!expirationTime) return;
-
-    // Schedule renewal 1 hour before expiration
-    const renewalTime = expirationTime - Date.now() - (60 * 60 * 1000);
-    
-    if (renewalTime > 0) {
-      setTimeout(() => {
-        if (sessionService.isSessionValid()) {
-          // Extend session by updating expiration time
-          const session = sessionService.getSession();
-          if (session) {
-            sessionService.setSession({
-              _id: session._id,
-              id: session.id,
-              phone_number: session.phone_number,
-              role: session.role,
-              restaurant_rids: session.restaurant_rids,
-              selected_rid: session.selected_rid,
-              accessToken: session.accessToken,
-              refreshToken: session.refreshToken,
-            });
-            
-            console.log('Session renewed for active user');
-            this.scheduleSessionRenewal(); // Schedule next renewal
-          }
-        }
-      }, renewalTime);
-    }
+    // Session renewal is handled automatically by server routes
+    // Token refresh happens via axios interceptor on 401 responses
+    // No client-side action needed
   }
 
   /**
@@ -114,34 +95,41 @@ class SessionCleanupService {
    */
   private isUserActive(): boolean {
     // Simple activity detection - can be enhanced
-    const lastActivity = localStorage.getItem('lastActivity');
-    if (!lastActivity) return false;
+    const lastActivity = localStorage.getItem('lastActivity')
+    if (!lastActivity) return false
 
-    const lastActivityTime = parseInt(lastActivity);
-    const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
-    
-    return lastActivityTime > fiveMinutesAgo;
+    const lastActivityTime = parseInt(lastActivity)
+    const fiveMinutesAgo = Date.now() - 5 * 60 * 1000
+
+    return lastActivityTime > fiveMinutesAgo
   }
 
   /**
    * Track user activity
    */
   trackActivity(): void {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined') return
 
     const updateActivity = () => {
-      localStorage.setItem('lastActivity', Date.now().toString());
-    };
+      localStorage.setItem('lastActivity', Date.now().toString())
+    }
 
     // Track various user interactions
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-    
-    events.forEach(event => {
-      document.addEventListener(event, updateActivity, { passive: true });
-    });
+    const events = [
+      'mousedown',
+      'mousemove',
+      'keypress',
+      'scroll',
+      'touchstart',
+      'click',
+    ]
+
+    events.forEach((event) => {
+      document.addEventListener(event, updateActivity, { passive: true })
+    })
 
     // Initial activity timestamp
-    updateActivity();
+    updateActivity()
   }
 
   /**
@@ -149,13 +137,13 @@ class SessionCleanupService {
    */
   cleanup(): void {
     if (this.cleanupInterval) {
-      clearInterval(this.cleanupInterval);
-      this.cleanupInterval = null;
+      clearInterval(this.cleanupInterval)
+      this.cleanupInterval = null
     }
 
     if (this.beforeUnloadListener && typeof window !== 'undefined') {
-      window.removeEventListener('beforeunload', this.beforeUnloadListener);
-      this.beforeUnloadListener = null;
+      window.removeEventListener('beforeunload', this.beforeUnloadListener)
+      this.beforeUnloadListener = null
     }
   }
 
@@ -163,32 +151,11 @@ class SessionCleanupService {
    * Force session expiration (for testing or manual logout)
    */
   expireSession(): void {
-    sessionService.clearSession();
+    sessionService.clearSession()
     if (typeof window !== 'undefined') {
-      window.location.href = '/login';
+      window.location.href = '/login'
     }
-  }
-
-  /**
-   * Get time until session expires
-   */
-  getTimeUntilExpiration(): number | null {
-    const expirationTime = sessionService.getExpirationTime();
-    if (!expirationTime) return null;
-
-    const timeLeft = expirationTime - Date.now();
-    return timeLeft > 0 ? timeLeft : 0;
-  }
-
-  /**
-   * Check if session will expire soon (within specified minutes)
-   */
-  isSessionExpiringSoon(minutes: number = 5): boolean {
-    const timeLeft = this.getTimeUntilExpiration();
-    if (!timeLeft) return false;
-
-    return timeLeft <= (minutes * 60 * 1000);
   }
 }
 
-export default SessionCleanupService.getInstance();
+export default SessionCleanupService.getInstance()

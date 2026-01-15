@@ -26,6 +26,7 @@ import { Route as ApiQuickBillRouteImport } from './routes/api/quick-bill'
 import { Route as ApiOrdersRouteImport } from './routes/api/orders'
 import { Route as ApiInventoryRouteImport } from './routes/api/inventory'
 import { Route as ApiImagekitRouteImport } from './routes/api/imagekit'
+import { Route as ApiDashboardRouteImport } from './routes/api/dashboard'
 import { Route as ApiCategoryRouteImport } from './routes/api/category'
 import { Route as UsersPIndexRouteImport } from './routes/users/p/index'
 import { Route as DemoStartServerFuncsRouteImport } from './routes/demo/start.server-funcs'
@@ -35,6 +36,10 @@ import { Route as ApiInventoryBulkRouteImport } from './routes/api/inventory.bul
 import { Route as ApiCategoryFromTemplatesRouteImport } from './routes/api/category/from-templates'
 import { Route as ApiCategoryCuisineTypesRouteImport } from './routes/api/category/cuisine-types'
 import { Route as ApiCategoryAsTemplateRouteImport } from './routes/api/category/as-template'
+import { Route as ApiAuthSessionRouteImport } from './routes/api/auth/session'
+import { Route as ApiAuthRefreshRouteImport } from './routes/api/auth/refresh'
+import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
+import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
 import { Route as ApiAdminUpdateRouteImport } from './routes/api/admin.update'
 import { Route as DemoStartSsrIndexRouteImport } from './routes/demo/start.ssr.index'
 import { Route as DemoStartSsrSpaModeRouteImport } from './routes/demo/start.ssr.spa-mode'
@@ -127,6 +132,11 @@ const ApiImagekitRoute = ApiImagekitRouteImport.update({
   path: '/api/imagekit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDashboardRoute = ApiDashboardRouteImport.update({
+  id: '/api/dashboard',
+  path: '/api/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCategoryRoute = ApiCategoryRouteImport.update({
   id: '/api/category',
   path: '/api/category',
@@ -173,6 +183,26 @@ const ApiCategoryAsTemplateRoute = ApiCategoryAsTemplateRouteImport.update({
   path: '/as-template',
   getParentRoute: () => ApiCategoryRoute,
 } as any)
+const ApiAuthSessionRoute = ApiAuthSessionRouteImport.update({
+  id: '/api/auth/session',
+  path: '/api/auth/session',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthRefreshRoute = ApiAuthRefreshRouteImport.update({
+  id: '/api/auth/refresh',
+  path: '/api/auth/refresh',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthLogoutRoute = ApiAuthLogoutRouteImport.update({
+  id: '/api/auth/logout',
+  path: '/api/auth/logout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
+  id: '/api/auth/login',
+  path: '/api/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminUpdateRoute = ApiAdminUpdateRouteImport.update({
   id: '/api/admin/update',
   path: '/api/admin/update',
@@ -216,6 +246,7 @@ export interface FileRoutesByFullPath {
   '/orders': typeof OrdersRoute
   '/quick-bill': typeof QuickBillRoute
   '/api/category': typeof ApiCategoryRouteWithChildren
+  '/api/dashboard': typeof ApiDashboardRoute
   '/api/imagekit': typeof ApiImagekitRoute
   '/api/inventory': typeof ApiInventoryRouteWithChildren
   '/api/orders': typeof ApiOrdersRoute
@@ -225,6 +256,10 @@ export interface FileRoutesByFullPath {
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
   '/users': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/refresh': typeof ApiAuthRefreshRoute
+  '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/category/as-template': typeof ApiCategoryAsTemplateRoute
   '/api/category/cuisine-types': typeof ApiCategoryCuisineTypesRoute
   '/api/category/from-templates': typeof ApiCategoryFromTemplatesRoute
@@ -250,6 +285,7 @@ export interface FileRoutesByTo {
   '/orders': typeof OrdersRoute
   '/quick-bill': typeof QuickBillRoute
   '/api/category': typeof ApiCategoryRouteWithChildren
+  '/api/dashboard': typeof ApiDashboardRoute
   '/api/imagekit': typeof ApiImagekitRoute
   '/api/inventory': typeof ApiInventoryRouteWithChildren
   '/api/orders': typeof ApiOrdersRoute
@@ -259,6 +295,10 @@ export interface FileRoutesByTo {
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
   '/users': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/refresh': typeof ApiAuthRefreshRoute
+  '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/category/as-template': typeof ApiCategoryAsTemplateRoute
   '/api/category/cuisine-types': typeof ApiCategoryCuisineTypesRoute
   '/api/category/from-templates': typeof ApiCategoryFromTemplatesRoute
@@ -285,6 +325,7 @@ export interface FileRoutesById {
   '/orders': typeof OrdersRoute
   '/quick-bill': typeof QuickBillRoute
   '/api/category': typeof ApiCategoryRouteWithChildren
+  '/api/dashboard': typeof ApiDashboardRoute
   '/api/imagekit': typeof ApiImagekitRoute
   '/api/inventory': typeof ApiInventoryRouteWithChildren
   '/api/orders': typeof ApiOrdersRoute
@@ -294,6 +335,10 @@ export interface FileRoutesById {
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
   '/users/': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/refresh': typeof ApiAuthRefreshRoute
+  '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/category/as-template': typeof ApiCategoryAsTemplateRoute
   '/api/category/cuisine-types': typeof ApiCategoryCuisineTypesRoute
   '/api/category/from-templates': typeof ApiCategoryFromTemplatesRoute
@@ -321,6 +366,7 @@ export interface FileRouteTypes {
     | '/orders'
     | '/quick-bill'
     | '/api/category'
+    | '/api/dashboard'
     | '/api/imagekit'
     | '/api/inventory'
     | '/api/orders'
@@ -330,6 +376,10 @@ export interface FileRouteTypes {
     | '/api/waiter-orders'
     | '/users'
     | '/api/admin/update'
+    | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/auth/refresh'
+    | '/api/auth/session'
     | '/api/category/as-template'
     | '/api/category/cuisine-types'
     | '/api/category/from-templates'
@@ -355,6 +405,7 @@ export interface FileRouteTypes {
     | '/orders'
     | '/quick-bill'
     | '/api/category'
+    | '/api/dashboard'
     | '/api/imagekit'
     | '/api/inventory'
     | '/api/orders'
@@ -364,6 +415,10 @@ export interface FileRouteTypes {
     | '/api/waiter-orders'
     | '/users'
     | '/api/admin/update'
+    | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/auth/refresh'
+    | '/api/auth/session'
     | '/api/category/as-template'
     | '/api/category/cuisine-types'
     | '/api/category/from-templates'
@@ -389,6 +444,7 @@ export interface FileRouteTypes {
     | '/orders'
     | '/quick-bill'
     | '/api/category'
+    | '/api/dashboard'
     | '/api/imagekit'
     | '/api/inventory'
     | '/api/orders'
@@ -398,6 +454,10 @@ export interface FileRouteTypes {
     | '/api/waiter-orders'
     | '/users/'
     | '/api/admin/update'
+    | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/auth/refresh'
+    | '/api/auth/session'
     | '/api/category/as-template'
     | '/api/category/cuisine-types'
     | '/api/category/from-templates'
@@ -424,6 +484,7 @@ export interface RootRouteChildren {
   OrdersRoute: typeof OrdersRoute
   QuickBillRoute: typeof QuickBillRoute
   ApiCategoryRoute: typeof ApiCategoryRouteWithChildren
+  ApiDashboardRoute: typeof ApiDashboardRoute
   ApiImagekitRoute: typeof ApiImagekitRoute
   ApiInventoryRoute: typeof ApiInventoryRouteWithChildren
   ApiOrdersRoute: typeof ApiOrdersRoute
@@ -433,6 +494,10 @@ export interface RootRouteChildren {
   ApiWaiterOrdersRoute: typeof ApiWaiterOrdersRoute
   UsersIndexRoute: typeof UsersIndexRoute
   ApiAdminUpdateRoute: typeof ApiAdminUpdateRoute
+  ApiAuthLoginRoute: typeof ApiAuthLoginRoute
+  ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
+  ApiAuthRefreshRoute: typeof ApiAuthRefreshRoute
+  ApiAuthSessionRoute: typeof ApiAuthSessionRoute
   DemoApiNamesRoute: typeof DemoApiNamesRoute
   DemoStartApiRequestRoute: typeof DemoStartApiRequestRoute
   DemoStartServerFuncsRoute: typeof DemoStartServerFuncsRoute
@@ -564,6 +629,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiImagekitRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/dashboard': {
+      id: '/api/dashboard'
+      path: '/api/dashboard'
+      fullPath: '/api/dashboard'
+      preLoaderRoute: typeof ApiDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/category': {
       id: '/api/category'
       path: '/api/category'
@@ -626,6 +698,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/category/as-template'
       preLoaderRoute: typeof ApiCategoryAsTemplateRouteImport
       parentRoute: typeof ApiCategoryRoute
+    }
+    '/api/auth/session': {
+      id: '/api/auth/session'
+      path: '/api/auth/session'
+      fullPath: '/api/auth/session'
+      preLoaderRoute: typeof ApiAuthSessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/refresh': {
+      id: '/api/auth/refresh'
+      path: '/api/auth/refresh'
+      fullPath: '/api/auth/refresh'
+      preLoaderRoute: typeof ApiAuthRefreshRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/logout': {
+      id: '/api/auth/logout'
+      path: '/api/auth/logout'
+      fullPath: '/api/auth/logout'
+      preLoaderRoute: typeof ApiAuthLogoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/login': {
+      id: '/api/auth/login'
+      path: '/api/auth/login'
+      fullPath: '/api/auth/login'
+      preLoaderRoute: typeof ApiAuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/admin/update': {
       id: '/api/admin/update'
@@ -713,6 +813,7 @@ const rootRouteChildren: RootRouteChildren = {
   OrdersRoute: OrdersRoute,
   QuickBillRoute: QuickBillRoute,
   ApiCategoryRoute: ApiCategoryRouteWithChildren,
+  ApiDashboardRoute: ApiDashboardRoute,
   ApiImagekitRoute: ApiImagekitRoute,
   ApiInventoryRoute: ApiInventoryRouteWithChildren,
   ApiOrdersRoute: ApiOrdersRoute,
@@ -722,6 +823,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiWaiterOrdersRoute: ApiWaiterOrdersRoute,
   UsersIndexRoute: UsersIndexRoute,
   ApiAdminUpdateRoute: ApiAdminUpdateRoute,
+  ApiAuthLoginRoute: ApiAuthLoginRoute,
+  ApiAuthLogoutRoute: ApiAuthLogoutRoute,
+  ApiAuthRefreshRoute: ApiAuthRefreshRoute,
+  ApiAuthSessionRoute: ApiAuthSessionRoute,
   DemoApiNamesRoute: DemoApiNamesRoute,
   DemoStartApiRequestRoute: DemoStartApiRequestRoute,
   DemoStartServerFuncsRoute: DemoStartServerFuncsRoute,
