@@ -1,0 +1,29 @@
+
+Todo:
+   Priority Fix:
+    ☐ Fix whats wrong with the adming dashboard, cause sometimes it's giving error
+    ☐ Fix when site is in sleep, add a btn to refresh the site for latest token flow and user detection
+    ☐ 1. When switching between tabs in the inventory, the components are being re renders again and again, use UseMemo to prevent this
+  Inventory:
+    ☐ Fix variants are not there when adding new bulk item
+    ☐ Fix the tab switch in bulk inventory adding: that working reverse
+    ☐  
+  Cart:
+    ☐ Create rid column in the cart table
+    ☐ Sync cart when user has logged in: sync with the redux
+
+Features: 
+  Quick Order:
+    ☐ This feature is all about quickly make a bill
+    ☐ Only for those who does'nt order food from neither scanning QR nor from waiter app
+    ☐ This feature include 1. Open menu 2. Search food -> select 3. Add customer name and m no. 4.Order it
+    ☐ This feature solves the problem of small orders and if the customer is in hurry
+  Delycia Wallet:
+    ☐ Add wallet to the user profile
+    ☐ This will be user specific wallet so no need to in the admin
+    ☐ 
+  Explore Delycias:
+    ☐ This feature is for user site that shows a map and show delycia restaurants
+    ☐ This will increase the user engagement 
+    ☐ Include search functionality for searching delycia restaurant or specific location name
+    ☐ 

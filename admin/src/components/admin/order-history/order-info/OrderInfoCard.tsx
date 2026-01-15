@@ -1,0 +1,152 @@
+import React, { memo, useMemo, useCallback } from "react";
+import { TransformedOrderItem, CustomerInfo } from "../utils/orderHistoryUtils";
+import CustomerAvatar from "../CustomerAvatar";
+
+interface OrderInfoCardProps {
+  status: "DELIVERED" | "CANCELLED";
+  rating?: number;
+  time: string;
+  date: string;
+  orderId: string;
+  customerName: string;
+  customer?: CustomerInfo;
+  items: TransformedOrderItem[];
+  totalAmount: number;
+  isSelected?: boolean;
+  onClick?: () => void;
+}
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case "DELIVERED":
+      return "bg-green-600 text-white";
+    case "CANCELLED":
+      return "bg-red-500 text-white";
+    default:
+      return "bg-gray-500 text-white";
+  }
+};
+
+const OrderInfoCard = memo(function OrderInfoCard({
+  status,
+  rating,
+  time,
+  date,
+  orderId,
+  customerName,
+  customer,
+  items,
+  totalAmount,
+  isSelected = false,
+  onClick,
+}: OrderInfoCardProps) {
+  // Memoize the formatted items to prevent recalculation on every render
+  const formattedItems = useMemo(() => {
+    if (!items || items.length === 0) {
+      return "No items available";
+    }
+
+    // Show first 2 items, then "and X more" if there are more
+    const displayItems = items.slice(0, 2);
+    const remainingCount = items.length - 2;
+
+    let itemsText = displayItems
+      .map((item) => `${item.quantity} x ${item.name}`)
+      .join(", ");
+
+    if (remainingCount > 0) {
+      itemsText += ` and ${remainingCount} more`;
+    }
+
+    return itemsText;
+  }, [items]);
+
+  // Memoize the click handler to prevent unnecessary re-renders
+  const handleClick = useCallback(() => {
+    if (onClick) {
+      onClick();
+    }
+  }, [onClick]);
+
+  // Memoize the status color to prevent recalculation
+  const statusColorClass = useMemo(() => getStatusColor(status), [status]);
+
+  return (
+    <div
+      className={`rounded-lg p-4 mb-2 border transition-all duration-200 cursor-pointer hover:shadow-md ${
+        isSelected
+          ? "bg-green-50 border-green-300 shadow-sm"
+          : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+      }`}
+      onClick={handleClick}
+    >
+      {/* Header with status and rating */}
+      <div className="flex justify-between items-start mb-2">
+        <div className="flex items-center gap-2">
+          <span
+            className={`px-3 py-1 rounded-md text-sm font-medium ${statusColorClass}`}
+          >
+            {status}
+          </span>
+          {rating && (
+            <div className="flex items-center bg-green-600 text-white px-2 py-1 rounded-md">
+              <span className="text-sm font-medium">{rating}</span>
+              <span className="ml-1">★</span>
+            </div>
+          )}
+        </div>
+        <div className="text-right text-gray-500">
+          <div className="text-sm">
+            {time} | {date}
+          </div>
+        </div>
+      </div>
+
+      {/* Order ID and Customer */}
+      <div className="flex justify-between items-center mb-2">
+        <div>
+          <span className="text-gray-700 font-medium">ID: </span>
+          <span className="text-gray-900 font-semibold">{orderId}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          {customer && (
+            <CustomerAvatar
+              initials={customer.initials}
+              name={customer.name}
+              size="sm"
+            />
+          )}
+          <div className="text-gray-500 text-sm">
+            By {customer?.name || customerName}
+          </div>
+        </div>
+      </div>
+
+      {/* Items and Total */}
+      <div className="flex justify-between items-start">
+        <div className="flex-1 pr-4">
+          <p className="text-gray-700 text-sm leading-relaxed">
+            {formattedItems}
+          </p>
+        </div>
+        <div className="flex-shrink-0">
+          <span className="text-lg font-semibold text-gray-900">
+            ₹{totalAmount.toFixed(2)}
+          </span>
+        </div>
+      </div>
+
+      {/* Selection indicator */}
+      {isSelected && (
+        <div className="mt-1 pt-1 border-t border-green-200">
+          <div className="flex items-center text-green-600 text-sm">
+            <div className="w-2 h-2 bg-green-600 rounded-full mr-2"></div>
+            Selected
+          </div>
+        </div>
+      )}
+    </div>
+  );
+});
+
+export default OrderInfoCard;

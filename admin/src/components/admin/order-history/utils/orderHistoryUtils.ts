@@ -1,0 +1,270 @@
+import { format } from 'date-fns';
+import { User } from '@/types/User';
+
+// API Order interface based on the console data structure
+export interface ApiOrder {
+  id: number;
+  cart_id: string;
+  created_at: string;
+  updated_at: string;
+  customer_id: number;
+  delivery_type: string;
+  discount_amount: number;
+  display_name: string;
+  item_id: number;
+  order_status: 'completed' | 'cancelled';
+  payment_method: string;
+  payment_status: string;
+  preparation_time: number;
+  quantity: number;
+  rid: number;
+  special_instructions: string | null;
+  table_no: number;
+  total_amount: number;
+  variant_id: number;
+}
+
+// Transformed order interface for UI
+export interface TransformedOrderItem {
+  name: string;
+  quantity: number;
+  price: number;
+}
+
+export interface CustomerInfo {
+  id: number;
+  name: string;
+  phone: string;
+  initials: string;
+}
+
+export interface TransformedOrder {
+  id: string;
+  orderId: string;
+  status: 'DELIVERED' | 'CANCELLED';
+  time: string;
+  date: string;
+  customerId: number;
+  customerName: string;
+  customer?: CustomerInfo;
+  items: TransformedOrderItem[];
+  totalAmount: number;
+  createdAt: Date;
+  updatedAt: Date;
+  paymentMethod: string;
+  deliveryType: string;
+  specialInstructions?: string;
+  preparationTime: number;
+  tableNo: number;
+  paymentStatus: string;
+}
+
+/**
+ * Maps API order status to UI display status
+ */
+export const mapOrderStatus = (apiStatus: string): 'DELIVERED' | 'CANCELLED' => {
+  switch (apiStatus.toLowerCase()) {
+    case 'completed':
+      return 'DELIVERED';
+    case 'cancelled':
+      return 'CANCELLED';
+    default:
+      return 'DELIVERED'; // Default fallback
+  }
+};
+
+/**
+ * Converts UTC timestamp to local time string
+ */
+export const formatTimeFromUTC = (utcTimestamp: string): string => {
+  try {
+    const date = new Date(utcTimestamp);
+    return format(date, 'h:mm a'); // e.g., "9:22 PM"
+  } catch (error) {
+    console.error('Error formatting time:', error);
+    return 'Invalid time';
+  }
+};
+
+/**
+ * Converts UTC timestamp to local date string
+ */
+export const formatDateFromUTC = (utcTimestamp: string): string => {
+  try {
+    const date = new Date(utcTimestamp);
+    return format(date, 'd MMMM'); // e.g., "2 November"
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Invalid date';
+  }
+};
+
+/**
+ * Groups array of items by a specific key
+ */
+const groupBy = <T>(array: T[], key: keyof T): Record<string, T[]> => {
+  return array.reduce((groups, item) => {
+    const groupKey = String(item[key]);
+    if (!groups[groupKey]) {
+      groups[groupKey] = [];
+    }
+    groups[groupKey].push(item);
+    return groups;
+  }, {} as Record<string, T[]>);
+};
+
+/**
+ * Aggregates order items by display name and sums quantities
+ */
+export const aggregateOrderItems = (orderItems: ApiOrder[]): TransformedOrderItem[] => {
+  const itemMap = new Map<string, TransformedOrderItem>();
+
+  orderItems.forEach(item => {
+    const itemName = item.display_name || `Item #${item.item_id}`;
+    
+    if (itemMap.has(itemName)) {
+      const existingItem = itemMap.get(itemName)!;
+      existingItem.quantity += item.quantity;
+      existingItem.price += item.total_amount;
+    } else {
+      itemMap.set(itemName, {
+        name: itemName,
+        quantity: item.quantity,
+        price: item.total_amount
+      });
+    }
+  });
+
+  return Array.from(itemMap.values());
+};
+
+/**
+ * Calculates total amount for grouped order items
+ */
+export const calculateOrderTotal = (orderItems: ApiOrder[]): number => {
+  return orderItems.reduce((total, item) => total + item.total_amount, 0);
+};
+
+/**
+ * Generates customer name with fallback
+ */
+export const generateCustomerName = (customerId: number): string => {
+  return `Customer #${customerId}`;
+};
+
+/**
+ * Generates customer initials from name
+ */
+export const generateCustomerInitials = (name: string): string => {
+  if (!name) return 'U';
+  
+  const nameParts = name.trim().split(' ');
+  if (nameParts.length === 1) {
+    return nameParts[0].charAt(0).toUpperCase();
+  }
+  
+  return (nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)).toUpperCase();
+};
+
+/**
+ * Transforms user data to customer info
+ */
+export const transformUserToCustomer = (user: User): CustomerInfo => {
+  const fullPhone = user.country_code && user.phone_number 
+    ? `${user.country_code} ${user.phone_number}`
+    : user.phone_number || '';
+    
+  return {
+    id: user.id,
+    name: user.name || user.username || `User #${user.id}`,
+    phone: fullPhone,
+    initials: generateCustomerInitials(user.name || user.username || '')
+  };
+};
+
+/**
+ * Transforms API order data to UI format
+ */
+export const transformOrderData = (apiOrders: ApiOrder[]): TransformedOrder[] => {
+  if (!apiOrders || apiOrders.length === 0) {
+    return [];
+  }
+
+  // Group orders by cart_id to handle multiple items per order
+  const groupedOrders = groupBy(apiOrders, 'cart_id');
+
+  return Object.entries(groupedOrders).map(([cartId, orderItems]) => {
+    // Use the first item for order-level information
+    const firstItem = orderItems[0];
+    
+    return {
+      id: cartId,
+      orderId: cartId.toUpperCase(),
+      status: mapOrderStatus(firstItem.order_status),
+      time: formatTimeFromUTC(firstItem.created_at),
+      date: formatDateFromUTC(firstItem.created_at),
+      customerId: firstItem.customer_id,
+      customerName: generateCustomerName(firstItem.customer_id),
+      items: aggregateOrderItems(orderItems),
+      totalAmount: calculateOrderTotal(orderItems),
+      createdAt: new Date(firstItem.created_at),
+      updatedAt: new Date(firstItem.updated_at),
+      paymentMethod: firstItem.payment_method,
+      deliveryType: firstItem.delivery_type,
+      specialInstructions: firstItem.special_instructions || undefined,
+      preparationTime: firstItem.preparation_time,
+      tableNo: firstItem.table_no,
+      paymentStatus: firstItem.payment_status
+    };
+  }).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()); // Sort by newest first
+};
+
+/**
+ * Generates timeline steps based on order status and timestamps
+ */
+export const generateOrderTimeline = (order: TransformedOrder) => {
+  const timeline = [
+    {
+      label: 'Placed',
+      time: order.time,
+      completed: true
+    }
+  ];
+
+  if (order.status === 'DELIVERED') {
+    timeline.push({
+      label: 'Delivered',
+      time: formatTimeFromUTC(order.updatedAt.toISOString()),
+      completed: true
+    });
+  } else if (order.status === 'CANCELLED') {
+    timeline.push({
+      label: 'Cancelled',
+      time: formatTimeFromUTC(order.updatedAt.toISOString()),
+      completed: true
+    });
+  }
+
+  return timeline;
+};
+
+/**
+ * Calculates delivery time duration
+ */
+export const calculateDeliveryTime = (order: TransformedOrder): string => {
+  if (order.status !== 'DELIVERED') {
+    return order.status === 'CANCELLED' ? 'Order was cancelled' : 'Order in progress';
+  }
+
+  const createdTime = order.createdAt.getTime();
+  const updatedTime = order.updatedAt.getTime();
+  const diffMinutes = Math.round((updatedTime - createdTime) / (1000 * 60));
+
+  if (diffMinutes < 60) {
+    return `Delivered in ${diffMinutes} minutes`;
+  } else {
+    const hours = Math.floor(diffMinutes / 60);
+    const minutes = diffMinutes % 60;
+    return `Delivered in ${hours}h ${minutes}m`;
+  }
+};

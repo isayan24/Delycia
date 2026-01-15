@@ -1,0 +1,45 @@
+{
+  "name": "restaurant",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "start": "node src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@google/genai": "^1.5.1",
+    "@google/generative-ai": "^0.24.1",
+    "@qdrant/js-client-rest": "^1.14.1",
+    "axios": "^1.9.0",
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "cros": "^1.0.1",
+    "crypto": "^1.0.1",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "express-validator": "^7.2.1",
+    "fs": "^0.0.1-security",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.12.0",
+    "openai": "^5.2.0",
+    "path": "^0.12.7",
+    "punycode": "^2.3.1",
+    "qrcode": "^1.5.4",
+    "redis": "^5.6.0",
+    "socket.io": "^4.8.1",
+    "twilio": "^5.7.1",
+    "uuid": "^11.1.0",
+    "validator": "^13.12.0",
+    "ws": "^8.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
