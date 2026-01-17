@@ -1,12 +1,11 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 
-import React, { useEffect } from 'react'
-import { useOrdersWebSocket } from './hooks/useOrdersWebSocket'
+import { useEffect } from 'react'
+import { useWebSocketManager } from '@/hooks/useWebSocketManager'
 import { OrderPopup } from './order-states/OrderPopup'
 import { WebSocketOrder } from '@/types/WebSocketOrder'
 import { useGlobalOrderPopupStore } from '@/store/useGlobalOrderPopupStore'
 import UseGlobalPopupSound from './hooks/useGlobalPopupSound'
-import { useAuth } from '@/hooks/useAuth'
 import { useRoleBasedUI } from '@/components/user-roles/useRoleBasedUI'
 
 export function GlobalOrderPopupManager() {
@@ -24,18 +23,22 @@ export function GlobalOrderPopupManager() {
     togglePopups,
   } = useGlobalOrderPopupStore()
 
-  // WebSocket connection for real-time orders
-  const { isConnected } = useOrdersWebSocket({
-    autoConnect: true,
-    onOrdersUpdate: (newOrders) => {
-      // Process orders through Zustand store
-      const webSocketOrders = newOrders as unknown as WebSocketOrder[]
+  // Use singleton WebSocket manager (shares connection with OrdersMain)
+  const { subscribe, unsubscribe } = useWebSocketManager()
+
+  // Subscribe to order updates and process through Zustand store
+  useEffect(() => {
+    const handleOrdersUpdate = (data: any) => {
+      const webSocketOrders = (data.orders || []) as unknown as WebSocketOrder[]
       handleWebSocketOrders(webSocketOrders)
-    },
-    onError: (error) => {
-      console.error('❌ GlobalOrderPopup - WebSocket error:', error)
-    },
-  })
+    }
+
+    subscribe('all_orders', handleOrdersUpdate)
+
+    return () => {
+      unsubscribe('all_orders', handleOrdersUpdate)
+    }
+  }, [subscribe, unsubscribe, handleWebSocketOrders])
 
   // Handle order acceptance
   const handleAcceptOrder = async (order: any, prepTime: number) => {

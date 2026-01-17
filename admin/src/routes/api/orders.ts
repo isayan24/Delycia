@@ -8,7 +8,6 @@ export const Route = createFileRoute('/api/orders')({
     handlers: {
       GET: async ({ request }) => {
         try {
-          console.log('\n\n\n Fetching orders history \n\n\n')
           // Get token from httpOnly cookie
           const accessToken = getAccessTokenFromCookie(request)
 

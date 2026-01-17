@@ -1,11 +1,5 @@
-import React, {
-  useMemo,
-  useState,
-  useEffect,
-  useTransition,
-  useCallback,
-} from 'react'
-import { useOrdersWebSocket } from './hooks/useOrdersWebSocket'
+import { useMemo, useState, useEffect, useTransition, useCallback } from 'react'
+import { useWebSocketManager } from '@/hooks/useWebSocketManager'
 import {
   processWebSocketOrders,
   isOrderFromPast24Hours,
@@ -48,6 +42,7 @@ export default function OrdersMain() {
   const [isMarkingReady, startMarkingReady] = useTransition()
   const [isMarkDelivered, startMarkDelivered] = useTransition()
 
+  // Use singleton WebSocket manager that persists across route changes
   const {
     orders: rawOrders,
     status,
@@ -55,10 +50,7 @@ export default function OrdersMain() {
     error,
     isLoading,
     refreshOrders,
-  } = useOrdersWebSocket({
-    autoConnect: true,
-    onOrdersUpdate: (newOrders) => {},
-  })
+  } = useWebSocketManager()
 
   // Process raw WebSocket orders into grouped, component-ready format
   const { processedOrders } = useMemo(() => {
@@ -78,7 +70,7 @@ export default function OrdersMain() {
 
   // Update orders with state when new orders arrive - use actual data status
   useEffect(() => {
-    setOrdersWithState((prevOrdersWithState) => {
+    setOrdersWithState(() => {
       const newOrdersWithState = processedOrders.map((order) => {
         // Use actual order status from data, not dummy state
         const actualState = order.order_status as OrderState
