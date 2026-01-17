@@ -35,8 +35,9 @@ const createCategory = async (req) => {
       "INSERT INTO categories (rid, name, description, img, display_order) VALUES (?, ?, ?, ?, 0)",
       [rid, name, description, img]
     );
-
-    await embeddingModel.category(result.insertId);
+    setImmediate(async () => {
+      if (result && result.insertId) await embeddingModel.category(result.insertId);
+    })
 
     return result.warningStatus
       ? apiResponse.error(400, "Unable to create new category.")
@@ -199,7 +200,9 @@ const createFromTemplate = async (req) => {
       [template_id]
     );
 
-    await embeddingModel.category(result.insertId);
+    setImmediate(async () => {
+      if (result && result.insertId) await embeddingModel.category(result.insertId);
+    })
 
     return apiResponse.success(201, "Category created from template!", {
       category_id: result.insertId
@@ -226,17 +229,6 @@ const deleteCategory = async (req) => {
     const hasAccess = await others.hasRestaurantAccess(req, rid);
     if (!hasAccess) return apiResponse.error(403, "Access denied to this restaurant");
 
-    // NEW: Check if category has inventory items
-    // const [inventoryCheck] = await pool.query(
-    //   "SELECT COUNT(*) as count FROM inventories WHERE category_id = ? AND rid = ?",
-    //   [id, rid]
-    // );
-
-    // if (inventoryCheck[0].count > 0) {
-    //   return apiResponse.error(400,
-    //     `Cannot delete category with ${inventoryCheck[0].count} inventory items. Please move or delete items first.`
-    //   );
-    // }
 
     // CHANGED: Delete only if category belongs to this restaurant
     const [{ affectedRows }] = await pool.query(
@@ -245,7 +237,9 @@ const deleteCategory = async (req) => {
     );
 
     if (affectedRows > 0) {
-      await embeddingModel.qd_delete("categories", id);
+      setImmediate(async () => {
+        await embeddingModel.qd_delete("categories", id);
+      })
       return apiResponse.success(200, "Category deleted successfully");
     } else {
       return apiResponse.error(404, "Category not found or access denied");
@@ -375,7 +369,9 @@ const updateCategory = async (req) => {
 
     // Update embeddings if name or description changed
     if (name || description) {
-      await embeddingModel.category(id);
+      setImmediate(async () => {
+        await embeddingModel.category(id);
+      })
     }
 
     return apiResponse.success(200, "Category updated successfully!");
@@ -441,7 +437,11 @@ const bulkCreateFromTemplates = async (req) => {
           [template_id]
         );
 
-        await embeddingModel.category(result.insertId);
+        setImmediate(async () => {
+          if (result && result.insertId) {
+            await embeddingModel.category(result.insertId);
+          }
+        })
 
         created.push({
           category_id: result.insertId,
@@ -518,7 +518,11 @@ const createCategoryAsTemplate = async (req) => {
       return apiResponse.error(400, "Unable to create category");
     }
 
-    await embeddingModel.category(categoryResult.insertId);
+    setImmediate(async () => {
+      if (categoryResult && categoryResult.insertId) {
+        await embeddingModel.category(categoryResult.insertId);
+      }
+    })
 
     return apiResponse.success(201, "Category created successfully!", {
       category_id: categoryResult.insertId,

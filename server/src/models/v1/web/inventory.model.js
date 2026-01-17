@@ -48,7 +48,10 @@ const getItems = async (req) => {
   }
 };
 const addItem = async (req) => {
+  const connection = await pool.getConnection();
   try {
+
+
     const {
       rid,
       category_id,
@@ -107,15 +110,30 @@ const addItem = async (req) => {
       status || "available",
     ]);
 
-    // Generate embeddings
-    await embeddingModel.inventory(result.insertId);
+    await connection.commit();
+
+    // Generate embeddings asynchronously
+    setImmediate(async () => {
+      if (result && result.insertId) {
+        await embeddingModel.inventory(result.insertId);
+      }
+    });
 
     return apiResponse.success(201, "Item added successfully!", {
       id: result.insertId,
     });
   } catch (error) {
+    await connection.rollback();
     console.error("addItem error:", error);
+
+    // Check for duplicate entry error
+    if (error.code === 'ER_DUP_ENTRY' || error.errno === 1062) {
+      return apiResponse.error(409, "Item with this name already exists in this restaurant");
+    }
+
     return apiResponse.error(500, error.message);
+  } finally {
+    connection.release();
   }
 };
 
@@ -255,6 +273,7 @@ const bulkAddItemsOptimized = async (req) => {
 };
 
 const deleteItem = async (req) => {
+
   try {
     const { id, rid } = req.body;
 
@@ -281,7 +300,9 @@ const deleteItem = async (req) => {
       return apiResponse.error(404, "Item not found or access denied");
     }
 
-    await embeddingModel.qd_delete("inventories", id);
+    setImmediate(async () => {
+      await embeddingModel.qd_delete("inventories", id);
+    })
 
     return apiResponse.success(200, "Item deleted successfully!");
   } catch (error) {
@@ -292,8 +313,6 @@ const deleteItem = async (req) => {
 const updateItem = async (req) => {
   try {
     const { id, rid, ...params } = req.body;
-
-    console.log(req.body);
 
     if (!id || !rid) {
       return apiResponse.error(400, "id and rid are required");
@@ -337,12 +356,21 @@ const updateItem = async (req) => {
       return apiResponse.error(404, "Item not found or access denied");
     }
 
-    if (params.name || params.description) {
-      await embeddingModel.inventory(id);
-    }
+    setImmediate(async () => {
+      if (params.name || params.description) {
+        await embeddingModel.inventory(id);
+      }
+    })
 
     return apiResponse.success(200, "Item updated successfully");
   } catch (error) {
+    console.error(error.message);
+
+    // Check for duplicate entry error
+    if (error.code === 'ER_DUP_ENTRY' || error.errno === 1062) {
+      return apiResponse.error(409, "Item with this name already exists in this restaurant");
+    }
+
     return apiResponse.error(500, error.message);
   }
 };
