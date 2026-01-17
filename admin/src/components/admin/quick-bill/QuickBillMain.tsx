@@ -17,19 +17,10 @@ export interface Customer {
 }
 
 export default function QuickBillMain() {
-  // ✅ Removed refreshCategories - not needed for quick bill
   const [cart, setCart] = useState<CartItem[]>([])
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null,
   )
-
-  // useEffect(() => {
-  //   // Fetch categories on mount if empty
-  //   // Assuming '1' is the restaurant ID or similar, need to verify where 'rid' comes from.
-  //   // For now, I'll pass a placeholder or check how other components do it.
-  //   // Actually useMenuStore might already have them if loaded via layout.
-  //   // ✅ Categories loaded automatically via TanStack Query
-  // }, [categories])
 
   const addToCart = useCallback((item: Item) => {
     setCart((prev) => {

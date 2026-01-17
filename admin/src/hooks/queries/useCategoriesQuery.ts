@@ -1,40 +1,12 @@
+import {
+  CreateCategoryAsTemplateParams,
+  CreateCategoryFromTemplatesParams,
+  CreateCategoryParams,
+  DeleteCategoryParams,
+  UpdateCategoryParams,
+} from '@/types/categoryQuery.types'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios' // Call local server routes, NOT backend directly!
-
-interface CreateCategoryParams {
-  rid: string
-  name: string
-  description: string
-  img?: string
-}
-interface DeleteCategoryParams {
-  id: string
-  rid: string
-  img?: string
-  template_id?: string
-}
-interface CreateCategoryFromTemplatesParams {
-  rid: string
-  template_ids: string[]
-}
-
-interface CreateCategoryAsTemplateParams {
-  name: string
-  description?: string
-  img: string
-  rid: string
-  cuisine_type: string
-  saveAsTemplate: boolean
-}
-
-interface UpdateCategoryParams {
-  id: string
-  rid: string
-  name?: string
-  description?: string
-  img?: string
-  is_active?: boolean
-}
 
 // ============================================
 // Query Key Factory for Categories

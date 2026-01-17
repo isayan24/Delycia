@@ -141,8 +141,6 @@ export const Route = createFileRoute('/api/inventory')({
             shouldIncludeImages ||
             wasStatusAutoUpdated
 
-          console.log(payload, 'payload')
-
           if (hasInventoryChanges) {
             await axiosInstance.patch('/admin/inventory', payload, {
               headers: { Authorization: `Bearer ${token}` },

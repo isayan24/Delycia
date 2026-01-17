@@ -15,7 +15,6 @@ import {
 } from '@/hooks/queries' // NEW - TanStack Query
 import axios from 'axios'
 import useToast from '@/hooks/UseToast'
-import { useAuth } from '@/hooks/useAuth'
 
 interface ReviewConfirmProps {
   wizardState: WizardState

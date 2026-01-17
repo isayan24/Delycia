@@ -10,8 +10,11 @@ export const handleApiError = (
   // Type guard for Axios errors
   if (error instanceof AxiosError) {
     const statusCode = error.response?.status || 500
+    // Prioritize the 'error' field which contains actual database errors
     const message =
-      error.response?.data?.message || `Error ${operation} food item`
+      error.response?.data?.error ||
+      error.response?.data?.message ||
+      `Error ${operation} food item`
 
     return {
       status: statusCode,

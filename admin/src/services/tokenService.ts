@@ -1,3 +1,5 @@
+import axios from 'axios'
+
 class TokenService {
   private static instance: TokenService
   private refreshPromise: Promise<boolean> | null = null
@@ -29,16 +31,16 @@ class TokenService {
 
   private async performTokenRefresh(): Promise<boolean> {
     try {
-      const response = await fetch('/api/auth/refresh', {
-        method: 'POST',
-        credentials: 'include', // Send httpOnly cookies
-      })
+      const response = await axios.post(
+        '/api/auth/refresh',
+        {},
+        {
+          withCredentials: true, // Send httpOnly cookies
+        },
+      )
 
-      if (response.ok) {
-        const data = await response.json()
-        if (data.statusCode === 200) {
-          return true
-        }
+      if (response.status === 200 && response.data?.statusCode === 200) {
+        return true
       }
 
       return false

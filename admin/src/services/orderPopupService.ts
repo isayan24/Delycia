@@ -1,4 +1,4 @@
-import axiosInstance from '@/lib/axios'
+import axios from 'axios'
 
 export interface AcceptOrderRequest {
   orderId: string | number
@@ -15,15 +15,21 @@ export interface RejectOrderRequest {
 export const orderPopupService = {
   /**
    * Accept an order with preparation time
-   * Uses httpOnly cookies for authentication
+   * Uses httpOnly cookies for authentication via server route
    */
   acceptOrder: async (request: AcceptOrderRequest) => {
     try {
-      const response = await axiosInstance.post('/admin/orders/accept', {
-        order_id: request.orderId,
-        preparation_time: request.preparationTime,
-        rid: request.restaurantId,
-      })
+      const response = await axios.post(
+        '/api/orders/actions?action=accept',
+        {
+          orderId: request.orderId,
+          preparationTime: request.preparationTime,
+          restaurantId: request.restaurantId,
+        },
+        {
+          withCredentials: true,
+        },
+      )
 
       return response.data
     } catch (error) {
@@ -34,15 +40,21 @@ export const orderPopupService = {
 
   /**
    * Reject an order
-   * Uses httpOnly cookies for authentication
+   * Uses httpOnly cookies for authentication via server route
    */
   rejectOrder: async (request: RejectOrderRequest) => {
     try {
-      const response = await axiosInstance.post('/admin/orders/reject', {
-        order_id: request.orderId,
-        reason: request.reason || 'Order rejected by admin',
-        rid: request.restaurantId,
-      })
+      const response = await axios.post(
+        '/api/orders/actions?action=reject',
+        {
+          orderId: request.orderId,
+          reason: request.reason || 'Order rejected by admin',
+          restaurantId: request.restaurantId,
+        },
+        {
+          withCredentials: true,
+        },
+      )
 
       return response.data
     } catch (error) {
@@ -53,17 +65,21 @@ export const orderPopupService = {
 
   /**
    * Update order preparation time
-   * Uses httpOnly cookies for authentication
+   * Uses httpOnly cookies for authentication via server route
    */
   updatePreparationTime: async (
     orderId: string | number,
     preparationTime: number,
   ) => {
     try {
-      const response = await axiosInstance.put(
-        `/admin/orders/${orderId}/preparation-time`,
+      const response = await axios.post(
+        '/api/orders/actions?action=update-time',
         {
-          preparation_time: preparationTime,
+          orderId,
+          preparationTime,
+        },
+        {
+          withCredentials: true,
         },
       )
 

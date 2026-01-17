@@ -3,12 +3,26 @@ import { handleApiError } from '@/helpers/handleApiError'
 import axiosInstance from '@/lib/axios'
 import { imagekit } from '@/lib/imagekit'
 import { extractFileIdFromUrl } from '@/helpers/image/imagekitHelpers'
+import { getAccessTokenFromCookie } from '@/lib/server-cookies'
 
 export const Route = createFileRoute('/api/category')({
   server: {
     handlers: {
       // GET - Fetch categories by restaurant ID
       GET: async ({ request }) => {
+        const accessToken = getAccessTokenFromCookie(request)
+
+        if (!accessToken) {
+          return new Response(
+            JSON.stringify({
+              status: 401,
+              message: 'Not authenticated',
+              error: true,
+            }),
+            { status: 401, headers: { 'Content-Type': 'application/json' } },
+          )
+        }
+
         const url = new URL(request.url)
         const rid = url.searchParams.get('rid')
 
@@ -27,6 +41,9 @@ export const Route = createFileRoute('/api/category')({
           // Call backend API to get categories
           const response = await axiosInstance.get('/categories', {
             params: { rid },
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
           })
 
           // ❌ REMOVED Cache-Control - was causing 5 minute delay!
@@ -51,20 +68,21 @@ export const Route = createFileRoute('/api/category')({
       },
       // POST - Create new category
       POST: async ({ request }) => {
-        const body = await request.json()
-        const { name, description, img, token, rid } = body
+        const accessToken = getAccessTokenFromCookie(request)
 
-        if (!token) {
+        if (!accessToken) {
           return new Response(
             JSON.stringify({
               status: 401,
-              message: 'Access token is required',
+              message: 'Not authenticated',
               error: true,
             }),
             { status: 401, headers: { 'Content-Type': 'application/json' } },
           )
         }
 
+        const body = await request.json()
+        const { name, description, img, rid } = body
         try {
           const response = await axiosInstance.post(
             '/category',
@@ -74,7 +92,7 @@ export const Route = createFileRoute('/api/category')({
               description,
               img,
             },
-            { headers: { Authorization: `Bearer ${token}` } },
+            { headers: { Authorization: `Bearer ${accessToken}` } },
           )
 
           // Return the created category data for optimistic updates
@@ -96,18 +114,21 @@ export const Route = createFileRoute('/api/category')({
         }
       },
       PATCH: async ({ request }) => {
-        const body = await request.json()
-        const { rid, id, name, description, img, token, is_active } = body
-        if (!token) {
+        const accessToken = getAccessTokenFromCookie(request)
+
+        if (!accessToken) {
           return new Response(
             JSON.stringify({
               status: 401,
-              message: 'Access token is required',
+              message: 'Not authenticated',
               error: true,
             }),
             { status: 401, headers: { 'Content-Type': 'application/json' } },
           )
         }
+
+        const body = await request.json()
+        const { rid, id, name, description, img, is_active } = body
 
         try {
           const data = {
@@ -120,7 +141,7 @@ export const Route = createFileRoute('/api/category')({
           }
 
           await axiosInstance.patch('/category', data, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: { Authorization: `Bearer ${accessToken}` },
           })
 
           return new Response(
@@ -143,19 +164,21 @@ export const Route = createFileRoute('/api/category')({
         }
       },
       DELETE: async ({ request }) => {
-        const body = await request.json()
-        const { img, token, id, rid, template_id } = body
+        const accessToken = getAccessTokenFromCookie(request)
 
-        if (!token) {
+        if (!accessToken) {
           return new Response(
             JSON.stringify({
               status: 401,
-              message: 'Access token is required',
+              message: 'Not authenticated',
               error: true,
             }),
             { status: 401, headers: { 'Content-Type': 'application/json' } },
           )
         }
+
+        const body = await request.json()
+        const { img, id, rid, template_id } = body
 
         try {
           // Only delete image from ImageKit if this is a custom category (no template_id)
@@ -179,7 +202,7 @@ export const Route = createFileRoute('/api/category')({
           // Delete category from database
           await axiosInstance.delete(`/category`, {
             data: { id, rid },
-            headers: { Authorization: `Bearer ${token}` },
+            headers: { Authorization: `Bearer ${accessToken}` },
           })
 
           return new Response(

@@ -98,6 +98,7 @@ export const useItemSubmission = (
         const itemsWithImages = await Promise.all(
           bulkItems.map(async (item) => {
             const imageLinks = await uploadBulkItemImages(item.images)
+
             return {
               name: item.name,
               description: item.description,

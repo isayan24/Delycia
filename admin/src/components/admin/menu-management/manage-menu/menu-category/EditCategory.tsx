@@ -100,14 +100,6 @@ export default function EditCategory({
           }
         }
       }
-      console.log(
-        category.id,
-        category.rid,
-        data.name,
-        data.description,
-        imageUrl,
-        'token',
-      )
 
       // ✅ Use the mutation hook (already declared at component level)
       await updateMutation.mutateAsync({

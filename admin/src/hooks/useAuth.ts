@@ -31,7 +31,7 @@ export function useAuth(): UseAuthReturn {
     isAuthenticated: false,
   })
 
-  // fix Initialize auth state from server
+  // Initialize auth state from server
   const initializeAuth = useCallback(async () => {
     try {
       // Check if session is valid via server route

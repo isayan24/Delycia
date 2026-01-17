@@ -329,7 +329,8 @@ export default function UpdateItemDetailsModal({
         rid: currentFoodItem?.rid,
         selectiveFields: changes.changedFormFields,
       }
-      await axios.patch(`/api/inventory`, apiPayload)
+      const response = await axios.patch(`/api/inventory`, apiPayload)
+      console.log(response, 'response in client \n\n\n\n\n\n')
 
       // Success message based on what was updated
       let successMessage = 'Item updated successfully!'
@@ -350,12 +351,18 @@ export default function UpdateItemDetailsModal({
       }
 
       showSuccess('Successfully!', successMessage)
-      // fix Use mutation instead of direct axios!
       refetch()
       onOpenChange(false)
     } catch (err) {
       console.error('Error submitting form:', err)
-      showError('Error', 'Error updating item or variants')
+
+      let errorMessage = 'Error updating item or variants'
+
+      if (axios.isAxiosError(err) && err.response?.data?.message) {
+        errorMessage = err.response.data.message
+      }
+
+      showError('Error', errorMessage)
     } finally {
       setIsPending(false)
       setShowWarning(false)

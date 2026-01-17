@@ -1,33 +1,29 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { handleApiError } from '@/helpers/handleApiError'
 import axiosInstance from '@/lib/axios'
+import { getAccessTokenFromCookie } from '@/lib/server-cookies'
 
 export const Route = createFileRoute('/api/category/as-template')({
   server: {
     handlers: {
       // POST - Create category as template
       POST: async ({ request }) => {
-        const body = await request.json()
-        const {
-          name,
-          description,
-          img,
-          token,
-          rid,
-          cuisine_type,
-          saveAsTemplate,
-        } = body
+        const accessToken = getAccessTokenFromCookie(request)
 
-        if (!token) {
+        if (!accessToken) {
           return new Response(
             JSON.stringify({
               status: 401,
-              message: 'Access token is required',
+              message: 'Not authenticated',
               error: true,
             }),
             { status: 401, headers: { 'Content-Type': 'application/json' } },
           )
         }
+
+        const body = await request.json()
+        const { name, description, img, rid, cuisine_type, saveAsTemplate } =
+          body
 
         try {
           const response = await axiosInstance.post(
@@ -40,7 +36,7 @@ export const Route = createFileRoute('/api/category/as-template')({
               cuisine_type,
               saveAsTemplate,
             },
-            { headers: { Authorization: `Bearer ${token}` } },
+            { headers: { Authorization: `Bearer ${accessToken}` } },
           )
 
           // Return the created category data

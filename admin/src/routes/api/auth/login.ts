@@ -35,8 +35,6 @@ export const Route = createFileRoute('/api/auth/login')({
 
           const backendData = response.data
 
-          console.log(backendData, 'backendData')
-
           if (backendData?.statusCode === 200 && backendData?.data) {
             const backendUser = backendData.data
 
@@ -59,8 +57,6 @@ export const Route = createFileRoute('/api/auth/login')({
                   ? backendUser.restaurant_rids[0]
                   : null),
             }
-
-            console.log('Extracted user data:', userData)
 
             // Set httpOnly cookies for tokens
             const isProduction = process.env.NODE_ENV === 'production'

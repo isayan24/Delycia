@@ -85,7 +85,7 @@ export const UseAdminOrderHistory = ({
     }
   }, [transformedOrders, fetchCustomerData])
 
-  // fix Use useCallback to memoize the fetch function and prevent infinite re-renders
+  // Use useCallback to memoize the fetch function and prevent infinite re-renders
   const fetchOrdersHistory = useCallback(async () => {
     if (!rid) {
       setRawOrders([])

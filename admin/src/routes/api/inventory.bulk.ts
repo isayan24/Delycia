@@ -3,17 +3,16 @@ import axiosInstance from '@/lib/axios'
 import { handleApiError } from '@/helpers/handleApiError'
 import { formatImageToArrayString } from '@/helpers/image/formatImage'
 import { BulkInventoryRequest } from '@/helpers/inventory/types'
+import { getAccessTokenFromCookie } from '@/lib/server-cookies'
 
 export const Route = createFileRoute('/api/inventory/bulk')({
   server: {
     handlers: {
       POST: async ({ request }) => {
         try {
-          const data: BulkInventoryRequest = await request.json()
+          const accessToken = getAccessTokenFromCookie(request)
 
-          const { token, rid, category_id, is_veg, items } = data
-
-          if (!token) {
+          if (!accessToken) {
             return new Response(
               JSON.stringify({
                 status: 401,
@@ -23,6 +22,9 @@ export const Route = createFileRoute('/api/inventory/bulk')({
               { status: 401, headers: { 'Content-Type': 'application/json' } },
             )
           }
+
+          const data: BulkInventoryRequest = await request.json()
+          const { rid, category_id, is_veg, items } = data
 
           if (!rid || !category_id) {
             return new Response(
@@ -80,7 +82,7 @@ export const Route = createFileRoute('/api/inventory/bulk')({
             '/admin/inventory/bulk',
             bulkPayload,
             {
-              headers: { Authorization: `Bearer ${token}` },
+              headers: { Authorization: `Bearer ${accessToken}` },
             },
           )
 

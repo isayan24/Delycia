@@ -35,6 +35,7 @@ import { Route as UsersPIndexRouteImport } from './routes/users/p/index'
 import { Route as DemoStartServerFuncsRouteImport } from './routes/demo/start.server-funcs'
 import { Route as DemoStartApiRequestRouteImport } from './routes/demo/start.api-request'
 import { Route as DemoApiNamesRouteImport } from './routes/demo/api.names'
+import { Route as ApiOrdersActionsRouteImport } from './routes/api/orders/actions'
 import { Route as ApiInventoryBulkRouteImport } from './routes/api/inventory.bulk'
 import { Route as ApiCategoryFromTemplatesRouteImport } from './routes/api/category/from-templates'
 import { Route as ApiCategoryCuisineTypesRouteImport } from './routes/api/category/cuisine-types'
@@ -180,6 +181,11 @@ const DemoApiNamesRoute = DemoApiNamesRouteImport.update({
   path: '/demo/api/names',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiOrdersActionsRoute = ApiOrdersActionsRouteImport.update({
+  id: '/actions',
+  path: '/actions',
+  getParentRoute: () => ApiOrdersRoute,
+} as any)
 const ApiInventoryBulkRoute = ApiInventoryBulkRouteImport.update({
   id: '/bulk',
   path: '/bulk',
@@ -268,7 +274,7 @@ export interface FileRoutesByFullPath {
   '/api/dashboard': typeof ApiDashboardRoute
   '/api/imagekit': typeof ApiImagekitRoute
   '/api/inventory': typeof ApiInventoryRouteWithChildren
-  '/api/orders': typeof ApiOrdersRoute
+  '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/quick-bill': typeof ApiQuickBillRoute
   '/api/restaurant': typeof ApiRestaurantRoute
   '/api/table': typeof ApiTableRoute
@@ -285,6 +291,7 @@ export interface FileRoutesByFullPath {
   '/api/category/cuisine-types': typeof ApiCategoryCuisineTypesRoute
   '/api/category/from-templates': typeof ApiCategoryFromTemplatesRoute
   '/api/inventory/bulk': typeof ApiInventoryBulkRoute
+  '/api/orders/actions': typeof ApiOrdersActionsRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
@@ -310,7 +317,7 @@ export interface FileRoutesByTo {
   '/api/dashboard': typeof ApiDashboardRoute
   '/api/imagekit': typeof ApiImagekitRoute
   '/api/inventory': typeof ApiInventoryRouteWithChildren
-  '/api/orders': typeof ApiOrdersRoute
+  '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/quick-bill': typeof ApiQuickBillRoute
   '/api/restaurant': typeof ApiRestaurantRoute
   '/api/table': typeof ApiTableRoute
@@ -327,6 +334,7 @@ export interface FileRoutesByTo {
   '/api/category/cuisine-types': typeof ApiCategoryCuisineTypesRoute
   '/api/category/from-templates': typeof ApiCategoryFromTemplatesRoute
   '/api/inventory/bulk': typeof ApiInventoryBulkRoute
+  '/api/orders/actions': typeof ApiOrdersActionsRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
@@ -353,7 +361,7 @@ export interface FileRoutesById {
   '/api/dashboard': typeof ApiDashboardRoute
   '/api/imagekit': typeof ApiImagekitRoute
   '/api/inventory': typeof ApiInventoryRouteWithChildren
-  '/api/orders': typeof ApiOrdersRoute
+  '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/quick-bill': typeof ApiQuickBillRoute
   '/api/restaurant': typeof ApiRestaurantRoute
   '/api/table': typeof ApiTableRoute
@@ -370,6 +378,7 @@ export interface FileRoutesById {
   '/api/category/cuisine-types': typeof ApiCategoryCuisineTypesRoute
   '/api/category/from-templates': typeof ApiCategoryFromTemplatesRoute
   '/api/inventory/bulk': typeof ApiInventoryBulkRoute
+  '/api/orders/actions': typeof ApiOrdersActionsRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
@@ -414,6 +423,7 @@ export interface FileRouteTypes {
     | '/api/category/cuisine-types'
     | '/api/category/from-templates'
     | '/api/inventory/bulk'
+    | '/api/orders/actions'
     | '/demo/api/names'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
@@ -456,6 +466,7 @@ export interface FileRouteTypes {
     | '/api/category/cuisine-types'
     | '/api/category/from-templates'
     | '/api/inventory/bulk'
+    | '/api/orders/actions'
     | '/demo/api/names'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
@@ -498,6 +509,7 @@ export interface FileRouteTypes {
     | '/api/category/cuisine-types'
     | '/api/category/from-templates'
     | '/api/inventory/bulk'
+    | '/api/orders/actions'
     | '/demo/api/names'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
@@ -524,7 +536,7 @@ export interface RootRouteChildren {
   ApiDashboardRoute: typeof ApiDashboardRoute
   ApiImagekitRoute: typeof ApiImagekitRoute
   ApiInventoryRoute: typeof ApiInventoryRouteWithChildren
-  ApiOrdersRoute: typeof ApiOrdersRoute
+  ApiOrdersRoute: typeof ApiOrdersRouteWithChildren
   ApiQuickBillRoute: typeof ApiQuickBillRoute
   ApiRestaurantRoute: typeof ApiRestaurantRoute
   ApiTableRoute: typeof ApiTableRoute
@@ -731,6 +743,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoApiNamesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/orders/actions': {
+      id: '/api/orders/actions'
+      path: '/actions'
+      fullPath: '/api/orders/actions'
+      preLoaderRoute: typeof ApiOrdersActionsRouteImport
+      parentRoute: typeof ApiOrdersRoute
+    }
     '/api/inventory/bulk': {
       id: '/api/inventory/bulk'
       path: '/bulk'
@@ -862,6 +881,18 @@ const ApiInventoryRouteWithChildren = ApiInventoryRoute._addFileChildren(
   ApiInventoryRouteChildren,
 )
 
+interface ApiOrdersRouteChildren {
+  ApiOrdersActionsRoute: typeof ApiOrdersActionsRoute
+}
+
+const ApiOrdersRouteChildren: ApiOrdersRouteChildren = {
+  ApiOrdersActionsRoute: ApiOrdersActionsRoute,
+}
+
+const ApiOrdersRouteWithChildren = ApiOrdersRoute._addFileChildren(
+  ApiOrdersRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AffiliateRoute: AffiliateRoute,
@@ -877,7 +908,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDashboardRoute: ApiDashboardRoute,
   ApiImagekitRoute: ApiImagekitRoute,
   ApiInventoryRoute: ApiInventoryRouteWithChildren,
-  ApiOrdersRoute: ApiOrdersRoute,
+  ApiOrdersRoute: ApiOrdersRouteWithChildren,
   ApiQuickBillRoute: ApiQuickBillRoute,
   ApiRestaurantRoute: ApiRestaurantRoute,
   ApiTableRoute: ApiTableRoute,
