@@ -12,14 +12,16 @@ import { Input } from '@/components/ui/input'
 import { signInSchema } from '@/schemas/signInSchema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2, Lock, Shield, LogIn } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import useToast from '@/hooks/UseToast'
 import { useAuth } from '@/hooks/useAuth'
 import { DEFAULT_ROUTES } from '@/components/user-roles/roleBasedAccess'
+import { requireGuest } from '@/middleware/auth'
 
 export const Route = createFileRoute('/login')({
+  beforeLoad: requireGuest,
   component: LoginPage,
 })
 
@@ -28,7 +30,15 @@ function LoginPage() {
   const { showError, showSuccess } = useToast()
   const navigate = useNavigate()
 
-  const { login, isAuthenticated, user } = useAuth()
+  const { login, isAuthenticated, user, isLoading } = useAuth()
+
+  // Redirect authenticated users to their default route
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && user) {
+      const redirect = DEFAULT_ROUTES[user?.role as number] || '/'
+      navigate({ to: redirect })
+    }
+  }, [isAuthenticated, user, isLoading, navigate])
 
   const form = useForm({
     resolver: zodResolver(signInSchema),

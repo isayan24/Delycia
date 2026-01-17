@@ -233,9 +233,22 @@ export function useAuth(): UseAuthReturn {
     [refreshSession],
   )
 
-  // Initialize auth on mount
+  // Initialize auth on mount (skip on public routes)
   useEffect(() => {
-    initializeAuth()
+    // Don't initialize auth on public routes like login page
+    const publicRoutes = ['/login']
+    const currentPath = window.location.pathname
+
+    if (!publicRoutes.includes(currentPath)) {
+      initializeAuth()
+    } else {
+      // On public routes, just set loading to false without checking auth
+      setAuthState({
+        user: null,
+        isLoading: false,
+        isAuthenticated: false,
+      })
+    }
   }, [initializeAuth])
 
   // Listen for session changes from localStorage (e.g., from other tabs)

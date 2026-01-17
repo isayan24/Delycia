@@ -70,14 +70,14 @@ const AddTablesComponent = ({
   // Update existing tables and zones from API data
   useEffect(() => {
     if (tables && tables.length > 0) {
-      const tableNumbers = tables.map((table) => table.table_number)
+      const tableNumbers = tables.map((table: any) => table.table_number)
       setExistingTables(tableNumbers)
     }
   }, [tables])
 
   useEffect(() => {
     if (zones && zones.length > 0) {
-      const uniqueZones = [...new Set(zones.map((zone) => zone.zone))]
+      const uniqueZones = [...new Set(zones.map((zone: any) => zone.zone))]
       setLocalZones(uniqueZones)
       // Set first zone as default if none selected
       if (!selectedZone && !isCreatingNewZone && uniqueZones.length > 0) {

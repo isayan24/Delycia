@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useDebounce } from '@/hooks/useDebounce'
-import { useAuth } from '@/hooks/useAuth'
 import axiosInstance from '@/lib/axios'
 
 export interface UserSearchResult {

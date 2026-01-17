@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useAuth } from '@/hooks/useAuth'
 import { useChangeTracking } from '@/hooks/useChangeTracking'
 import axiosInstance from '@/lib/axios'
 import type { FormData, ItemImage, Errors } from '../../types/addItemModal'

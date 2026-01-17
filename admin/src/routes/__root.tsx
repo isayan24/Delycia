@@ -1,4 +1,9 @@
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
+import {
+  HeadContent,
+  Scripts,
+  createRootRouteWithContext,
+  useRouterState,
+} from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -14,8 +19,13 @@ import SidebarSwitch from '@/components/admin/header/SidebarSwitch'
 import NetworkOfflineNotification from '@/components/common/NetworkOfflineNotification'
 import appCss from '../styles.css?url'
 import { useState } from 'react'
+import type { RouterContext } from '@/middleware/auth'
+import { shouldShowUIComponents } from '@/middleware/auth'
 
-export const Route = createRootRoute({
+// Note: We don't define beforeLoad here because we get auth from component
+// and pass it via router instantiation in the app setup
+
+export const Route = createRootRouteWithContext<RouterContext>()({
   head: () => ({
     meta: [
       {
@@ -90,6 +100,10 @@ export const Route = createRootRoute({
 })
 
 function RootComponent() {
+  // Get current route path to determine UI visibility
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const { showHeader, showSidebar } = shouldShowUIComponents(pathname)
+
   // Create QueryClient with production-ready configuration
   const [queryClient] = useState(
     () =>
@@ -143,18 +157,27 @@ function RootComponent() {
       <QueryClientProvider client={queryClient}>
         <SoundProvider>
           <NetworkOfflineNotification />
-          <HeaderWrapper />
+
+          {/* Conditionally render header based on route */}
+          {showHeader && <HeaderWrapper />}
+
           <div>
             <SidebarProvider className="darks">
-              <SidebarWrapper />
-              <SidebarSwitch />
+              {/* Conditionally render sidebar based on route */}
+              {showSidebar && (
+                <>
+                  <SidebarWrapper />
+                  <SidebarSwitch />
+                </>
+              )}
+
               <SidebarInset className="relative">
                 {/* body content */}
                 <div className="">
                   <Toaster
                     position="top-center"
                     richColors
-                    closeButton
+                    // closeButton
                     duration={4000}
                   />
                   <Outlet />
@@ -162,7 +185,10 @@ function RootComponent() {
               </SidebarInset>
             </SidebarProvider>
           </div>
-          <AdminMobileNavWrapper />
+
+          {/* Conditionally render mobile nav based on route */}
+          {showSidebar && <AdminMobileNavWrapper />}
+
           {/* Global Order Popup Manager */}
           <GlobalOrderPopupManager />
         </SoundProvider>

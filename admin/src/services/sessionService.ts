@@ -44,6 +44,11 @@ class SessionService {
       if (typeof window !== 'undefined') {
         const stringified = JSON.stringify(userData)
         localStorage.setItem('user_data', stringified)
+
+        // Dispatch custom event to notify listeners in the same tab
+        window.dispatchEvent(
+          new CustomEvent('userDataChanged', { detail: userData }),
+        )
       }
     } catch (error) {
       console.error('Failed to set user data:', error)
