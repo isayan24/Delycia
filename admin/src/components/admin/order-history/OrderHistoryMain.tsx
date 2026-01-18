@@ -8,6 +8,7 @@ import OrderHistoryHeader from './OrderHistoryHeader'
 import { useAuth } from '@/hooks/useAuth'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import OrderHistoryTable from './OrderHistoryTable'
+import LoadingScreen from '@/components/common/LoadingScreen'
 
 export default function OrderHistoryMain() {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null)
@@ -53,23 +54,7 @@ export default function OrderHistoryMain() {
   const sessionError = !user?.restaurant_rids?.[0]
 
   if (sessionError) {
-    return (
-      <div className="w-full h-[calc(100vh-9rem)] rounded-2xl">
-        <section className="border p-5 h-[calc(100vh-7.8rem)]">
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <div className="text-6xl mb-4">🔐</div>
-              <h3 className="text-lg font-medium mb-2">
-                Authentication Required
-              </h3>
-              <p className="text-sm text-gray-600">
-                Please log in to view order history.
-              </p>
-            </div>
-          </div>
-        </section>
-      </div>
-    )
+    return <LoadingScreen message="Authenticating..." />
   }
 
   return (

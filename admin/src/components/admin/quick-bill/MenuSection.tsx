@@ -8,6 +8,7 @@ import { useInventoryItems } from '@/hooks/useInventoryItems'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import { useCategoriesQuery } from '@/hooks/queries/useCategoriesQuery'
 import { Item } from '@/types/menu.types'
+import LoadingScreen from '@/components/common/LoadingScreen'
 
 interface MenuSectionProps {
   addToCart: (item: Item) => void
@@ -73,10 +74,6 @@ export default function MenuSection({ addToCart }: MenuSectionProps) {
     return result
   }, [allItems, selectedCategoryId, searchQuery])
 
-  if (loadingCategories) {
-    return <div className="p-4 text-center">Loading Categories...</div>
-  }
-
   if (categoriesError) {
     return (
       <div className="p-4 text-center">
@@ -92,7 +89,13 @@ export default function MenuSection({ addToCart }: MenuSectionProps) {
   }
 
   // If no categories and not loading, show message
-  if (!categories || categories.length === 0) {
+  // Only show after data has been fetched (categoriesData is defined)
+  if (
+    !loadingCategories &&
+    !loadingItems &&
+    categoriesData !== undefined &&
+    categories.length === 0
+  ) {
     return (
       <div className="p-4 text-center">
         No categories found. Please select a restaurant.
@@ -142,10 +145,10 @@ export default function MenuSection({ addToCart }: MenuSectionProps) {
       </div>
 
       <ScrollArea className="flex-1 border rounded-md p-4">
-        {loadingItems && allItems.length === 0 ? (
-          <div className="flex items-center justify-center h-40">
-            Loading items...
-          </div>
+        {loadingCategories || (loadingItems && allItems.length === 0) ? (
+          <>
+            <LoadingScreen message="Loading Inventory" />
+          </>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {filteredItems.map((item) => (
@@ -178,11 +181,14 @@ export default function MenuSection({ addToCart }: MenuSectionProps) {
                 </CardContent>
               </Card>
             ))}
-            {filteredItems.length === 0 && !loadingItems && (
-              <div className="col-span-full text-center text-gray-500 py-10">
-                No items found.
-              </div>
-            )}
+            {filteredItems.length === 0 &&
+              !loadingItems &&
+              !loadingCategories &&
+              filteredItems !== undefined && (
+                <div className="col-span-full text-center text-gray-500 py-10">
+                  No items found.
+                </div>
+              )}
           </div>
         )}
       </ScrollArea>

@@ -5,6 +5,7 @@ import { ItemList } from '../menu-Items/ItemList'
 import EditCategory from '../menu-category/EditCategory'
 import DeleteCategory from '../menu-category/DeleteCategory'
 import { useMenuStore } from '@/store/useMenuStore'
+import LoadingScreen from '@/components/common/LoadingScreen'
 
 export const MenuContent = React.memo(() => {
   const {
@@ -14,6 +15,7 @@ export const MenuContent = React.memo(() => {
     isDeleteCategoryDialogOpen,
     // Actions
     closeEditCategoryDialog,
+    isLoading,
   } = useMenuStore()
 
   // ✅ No need to manually refresh! Mutations handle cache invalidation automatically
@@ -25,6 +27,10 @@ export const MenuContent = React.memo(() => {
 
   const handleDeleteCategorySuccess = async () => {
     // ✅ TanStack Query mutation already invalidated cache - UI auto-updates!
+  }
+
+  if (isLoading) {
+    return <LoadingScreen message="Loading menu" />
   }
 
   return (

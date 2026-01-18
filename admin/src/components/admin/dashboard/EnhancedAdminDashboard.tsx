@@ -11,6 +11,7 @@ import TopSellingItems from './TopSellingItems'
 import RevenueByCategoryChart from './RevenueByCategoryChart'
 import PaymentMethodChart from './PaymentMethodChart'
 import DeliveryTypeChart from './DeliveryTypeChart'
+import LoadingScreen from '@/components/common/LoadingScreen'
 
 interface EnhancedAdminDashboardProps {
   rid: string
@@ -48,71 +49,6 @@ const ErrorDisplay: React.FC<{ onRetry?: () => void }> = ({ onRetry }) => {
   )
 }
 
-const LoadingDashboard: React.FC<{ onRefresh?: () => void }> = ({
-  onRefresh,
-}) => (
-  <div className="min-h-screen bg-gray-50">
-    <div className="bg-white shadow-sm border-b border-gray-200">
-      <div className="px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <ChefHat className="w-8 h-8 text-orange-600" />
-            <h1 className="text-2xl font-semibold text-gray-900">
-              Delycia Dashboard
-            </h1>
-          </div>
-          <div className="flex items-center space-x-4">
-            {onRefresh && (
-              <button
-                onClick={onRefresh}
-                className="flex items-center space-x-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-                title="Refresh dashboard data (Ctrl+R or F5)"
-              >
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                <span className="hidden sm:inline">Refresh</span>
-              </button>
-            )}
-            <div className="animate-pulse bg-gray-300 h-10 w-40 rounded-lg"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div className="p-6 space-y-6">
-      <div className="animate-pulse">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="bg-white rounded-xl p-6 shadow-sm border border-gray-100"
-            >
-              <div className="h-20 bg-gray-200 rounded"></div>
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          <div className="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="h-80 bg-gray-200 rounded"></div>
-          </div>
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="h-80 bg-gray-200 rounded"></div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="h-80 bg-gray-200 rounded"></div>
-          </div>
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="h-80 bg-gray-200 rounded"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-)
-
 export const EnhancedAdminDashboard: React.FC<EnhancedAdminDashboardProps> = ({
   rid,
 }) => {
@@ -145,7 +81,7 @@ export const EnhancedAdminDashboard: React.FC<EnhancedAdminDashboardProps> = ({
 
   // Show loading state on initial load
   if (loading && !data) {
-    return <LoadingDashboard onRefresh={handleRefresh} />
+    return <LoadingScreen message="Loading dashboard data..." />
   }
 
   // Props are guaranteed to be valid by parent component and TypeScript

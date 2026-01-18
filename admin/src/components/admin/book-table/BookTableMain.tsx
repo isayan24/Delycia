@@ -1,51 +1,59 @@
-import React, { useState } from "react";
-import ShowTables from "./ShowTables";
-import { Button } from "@/components/ui/stateful-button";
-import SelectOrder from "./SelectOrder";
-import PreviewOrder from "./PreviewOrder";
-import { useTableStore } from "@/store/useTableStore";
-import AddCustomerDetails from "./AddCustomerDetails";
-import AddTablesComponent from "./add-delete/AddTablesComponent";
-import DeleteTablesComponent from "./add-delete/DeleteTablesComponent";
+import { useState } from 'react'
+import ShowTables from './ShowTables'
+import SelectOrder from './SelectOrder'
+import PreviewOrder from './PreviewOrder'
+import { useTableStore } from '@/store/useTableStore'
+import AddCustomerDetails from './AddCustomerDetails'
+import AddTablesComponent from './add-delete/AddTablesComponent'
+import DeleteTablesComponent from './add-delete/DeleteTablesComponent'
+import { useFetchTable } from './hooks/useFetchTable'
+import { useAuth } from '@/hooks/useAuth'
+import LoadingScreen from '@/components/common/LoadingScreen'
 
 export default function BookTableMain() {
-  const { changeState, currentState, setTable } =
-    useTableStore();
-  const [showAddTables, setShowAddTables] = useState(false);
-  const [showDeleteTables, setShowDeleteTables] = useState(false);
+  const { changeState, currentState, setTable } = useTableStore()
+  const [showAddTables, setShowAddTables] = useState(false)
+  const [showDeleteTables, setShowDeleteTables] = useState(false)
+
+  const { user } = useAuth()
+  const { loading } = useFetchTable(user?.selected_rid)
 
   const selectTable = (table: any) => {
-    setTable(table);
-    changeState(1);
-  };
+    setTable(table)
+    changeState(1)
+  }
 
   const handleBackToTables = () => {
-    changeState(0);
-    setShowAddTables(false);
-    setShowDeleteTables(false);
-  };
+    changeState(0)
+    setShowAddTables(false)
+    setShowDeleteTables(false)
+  }
 
   const handleShowAddTables = () => {
-    setShowAddTables(true);
-    setShowDeleteTables(false);
-  };
+    setShowAddTables(true)
+    setShowDeleteTables(false)
+  }
 
   const handleShowDeleteTables = () => {
-    setShowDeleteTables(true);
-    setShowAddTables(false);
-  };
+    setShowDeleteTables(true)
+    setShowAddTables(false)
+  }
 
   const handleTablesUpdated = async () => {
-    window.location.reload();
+    window.location.reload()
+  }
 
-  };
+  if (loading) {
+    return <LoadingScreen message="Loading tables" />
+  }
 
   return (
     <div className="relative h-[calc(100vh-5rem)] overflow-hidden border">
       {/* Add Tables View */}
       <div
-        className={`absolute inset-0 transition-transform duration-500 ease-in-out ${showAddTables ? "translate-x-0" : "translate-x-full"
-          }`}
+        className={`absolute inset-0 transition-transform duration-500 ease-in-out ${
+          showAddTables ? 'translate-x-0' : 'translate-x-full'
+        }`}
       >
         <AddTablesComponent
           clickedBackToTables={handleBackToTables}
@@ -55,8 +63,9 @@ export default function BookTableMain() {
 
       {/* Delete Tables View */}
       <div
-        className={`absolute inset-0 transition-transform duration-500 ease-in-out ${showDeleteTables ? "translate-x-0" : "translate-x-full"
-          }`}
+        className={`absolute inset-0 transition-transform duration-500 ease-in-out ${
+          showDeleteTables ? 'translate-x-0' : 'translate-x-full'
+        }`}
       >
         <DeleteTablesComponent
           clickedBackToTables={handleBackToTables}
@@ -66,10 +75,11 @@ export default function BookTableMain() {
 
       {/* Main Tables View */}
       <div
-        className={`absolute inset-0 transition-transform duration-500 ease-in-out ${currentState === 0 && !showAddTables && !showDeleteTables
-          ? "translate-x-0"
-          : "-translate-x-full"
-          }`}
+        className={`absolute inset-0 transition-transform duration-500 ease-in-out ${
+          currentState === 0 && !showAddTables && !showDeleteTables
+            ? 'translate-x-0'
+            : '-translate-x-full'
+        }`}
       >
         <ShowTables
           selectTable={selectTable}
@@ -81,7 +91,7 @@ export default function BookTableMain() {
       {/* Select Order View */}
       <div
         className={`absolute inset-0 transition-transform duration-500 ease-in-out
-          ${currentState === 1 ? "translate-x-0" : currentState === 0 ? "translate-x-full" : "-translate-x-full"}`}
+          ${currentState === 1 ? 'translate-x-0' : currentState === 0 ? 'translate-x-full' : '-translate-x-full'}`}
       >
         <SelectOrder />
       </div>
@@ -89,7 +99,7 @@ export default function BookTableMain() {
       {/* Preview Order View */}
       <div
         className={`absolute inset-0 transition-transform duration-500 ease-in-out 
-          ${currentState === 2 ? "translate-x-0" : currentState === 3 ? "-translate-x-full" : "translate-x-full"}
+          ${currentState === 2 ? 'translate-x-0' : currentState === 3 ? '-translate-x-full' : 'translate-x-full'}
           `}
       >
         <PreviewOrder />
@@ -97,11 +107,12 @@ export default function BookTableMain() {
 
       {/* Add Customer Details View */}
       <div
-        className={`absolute inset-0 transition-transform duration-500 ease-in-out ${currentState === 3 ? "translate-x-0" : "translate-x-full"
-          }`}
+        className={`absolute inset-0 transition-transform duration-500 ease-in-out ${
+          currentState === 3 ? 'translate-x-0' : 'translate-x-full'
+        }`}
       >
         <AddCustomerDetails />
       </div>
     </div>
-  );
+  )
 }

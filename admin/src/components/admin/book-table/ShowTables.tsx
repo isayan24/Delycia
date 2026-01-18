@@ -1,10 +1,10 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Menu, User, Users, Trash2, Plus } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useFetchTable } from "./hooks/useFetchTable";
-import { useAuth } from "@/hooks/useAuth";
+import React, { useState, useMemo, useEffect } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Menu, User, Users, Trash2, Plus } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useFetchTable } from './hooks/useFetchTable'
+import { useAuth } from '@/hooks/useAuth'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,129 +12,130 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
-import { ShowTablesProps } from "./types/table.types";
-import { useTableStore } from "@/store/useTableStore";
+} from '@/components/ui/dropdown-menu'
+import { ShowTablesProps } from './types/table.types'
+import { useTableStore } from '@/store/useTableStore'
+import LoadingScreen from '@/components/common/LoadingScreen'
 
 export default function ShowTables({
   selectTable,
   handleShowAddTables,
   handleShowDeleteTables,
 }: ShowTablesProps) {
-  const { user } = useAuth();
-  const [activeZone, setActiveZone] = useState<string>("");
+  const { user } = useAuth()
+  const [activeZone, setActiveZone] = useState<string>('')
 
-  const { setRefetchTablesFunction } = useTableStore();
+  const { setRefetchTablesFunction } = useTableStore()
   const { zones, tables, loading, error, fetchTables } = useFetchTable(
-    user?.selected_rid
-  );
+    user?.selected_rid,
+  )
 
   // pass the refetch function to the store
   useEffect(() => {
     if (user?.selected_rid) {
       const refetchTables = async () => {
-        await fetchTables(user.selected_rid);
-      };
-      setRefetchTablesFunction(refetchTables);
+        await fetchTables(user.selected_rid)
+      }
+      setRefetchTablesFunction(refetchTables)
     }
     // Cleanup function to remove the refetch function when component unmounts
     return () => {
-      setRefetchTablesFunction(null);
-    };
-  }, [user?.selected_rid, setRefetchTablesFunction]);
+      setRefetchTablesFunction(null)
+    }
+  }, [user?.selected_rid, setRefetchTablesFunction])
 
   // Extract unique zones for tabs with error handling
   const uniqueZones = useMemo(() => {
     try {
       if (!zones || !Array.isArray(zones)) {
-        return [];
+        return []
       }
       return zones
-        .filter((zone) => zone && typeof zone.zone === "string")
+        .filter((zone) => zone && typeof zone.zone === 'string')
         .map((zone) => zone.zone)
-        .filter(Boolean);
+        .filter(Boolean)
     } catch (error) {
-      console.error("Error processing zones:", error);
-      return [];
+      console.error('Error processing zones:', error)
+      return []
     }
-  }, [zones]);
+  }, [zones])
 
   // Update activeZone when uniqueZones changes
   useEffect(() => {
     if (uniqueZones.length > 0 && !activeZone) {
-      setActiveZone(uniqueZones[0]);
+      setActiveZone(uniqueZones[0])
     }
-  }, [uniqueZones, activeZone]);
+  }, [uniqueZones, activeZone])
 
   // Memoized filtered tables based on selected zone
   const filteredTables = useMemo(() => {
-    return tables.filter((table) => table.zone === activeZone);
-  }, [tables, activeZone]);
+    return tables.filter((table: any) => table.zone === activeZone)
+  }, [tables, activeZone])
 
   // Handle zone tab change with validation
   const handleZoneChange = (zone: string) => {
     if (uniqueZones.includes(zone)) {
-      setActiveZone(zone);
+      setActiveZone(zone)
     }
-  };
+  }
 
   // Safe table data with fallback values
   const safeFilteredTables = useMemo(() => {
     try {
       if (!filteredTables || !Array.isArray(filteredTables)) {
-        return [];
+        return []
       }
       return filteredTables.filter(
         (table) =>
           table &&
-          typeof table.id !== "undefined" &&
-          typeof table.table_number === "string" &&
-          typeof table.status === "string"
-      );
+          typeof table.id !== 'undefined' &&
+          typeof table.table_number === 'string' &&
+          typeof table.status === 'string',
+      )
     } catch (error) {
-      console.error("Error processing filtered tables:", error);
-      return [];
+      console.error('Error processing filtered tables:', error)
+      return []
     }
-  }, [filteredTables]);
+  }, [filteredTables])
 
   const getTableIcon = (status: string) => {
     switch (status) {
-      case "occupied":
-        return "🍽️";
-      case "reserved":
-        return "🍽️";
-      case "available":
-        return "🍽️";
+      case 'occupied':
+        return '🍽️'
+      case 'reserved':
+        return '🍽️'
+      case 'available':
+        return '🍽️'
       default:
-        return "";
+        return ''
     }
-  };
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "occupied":
-        return "border-orange-400 bg-orange-50 dark:bg-orange-950/20";
-      case "reserved":
-        return "border-orange-400 bg-orange-50 dark:bg-orange-950/20";
-      case "available":
-        return "border-green-400/50 bg-green-50/20 dark:bg-green-950/20";
+      case 'occupied':
+        return 'border-orange-400 bg-orange-50 dark:bg-orange-950/20'
+      case 'reserved':
+        return 'border-orange-400 bg-orange-50 dark:bg-orange-950/20'
+      case 'available':
+        return 'border-green-400/50 bg-green-50/20 dark:bg-green-950/20'
       default:
-        return "border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700";
+        return 'border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700'
     }
-  };
+  }
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case "occupied":
-        return "Occupied";
-      case "reserved":
-        return "Reserved";
-      case "available":
-        return "Available";
+      case 'occupied':
+        return 'Occupied'
+      case 'reserved':
+        return 'Reserved'
+      case 'available':
+        return 'Available'
       default:
-        return "Empty";
+        return 'Empty'
     }
-  };
+  }
 
   return (
     <div className="dark:bg-gray-900 p-4 md:p-6 h-full overflow-auto">
@@ -172,28 +173,12 @@ export default function ShowTables({
       </div>
 
       {/* Loading State */}
-      {loading && (
-        <div className="flex justify-center items-center py-12">
-          <div className="text-gray-500 dark:text-gray-400">
-            Loading tables...
-          </div>
-        </div>
-      )}
 
       {/* Error State */}
       {error && !loading && (
         <div className="flex justify-center items-center py-12">
           <div className="text-red-500 dark:text-red-400">
             Error loading tables. Please try again.
-          </div>
-        </div>
-      )}
-
-      {/* Missing Restaurant ID */}
-      {!user?.restaurant_rids?.[0] && !loading && (
-        <div className="flex justify-center items-center py-12">
-          <div className="text-gray-500 dark:text-gray-400">
-            Restaurant information not available.
           </div>
         </div>
       )}
@@ -219,7 +204,7 @@ export default function ShowTables({
             {uniqueZones.map((zone) => (
               <TabsContent key={zone} value={zone}>
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                  {zone === "all" ? "All Tables" : `${zone} Tables`}
+                  {zone === 'all' ? 'All Tables' : `${zone} Tables`}
                 </div>
               </TabsContent>
             ))}
@@ -229,8 +214,8 @@ export default function ShowTables({
           {safeFilteredTables.length === 0 && (
             <div className="flex justify-center items-center py-12">
               <div className="text-gray-500 dark:text-gray-400">
-                {activeZone === "all"
-                  ? "No tables available."
+                {activeZone === 'all'
+                  ? 'No tables available.'
                   : `No tables in ${activeZone} zone.`}
               </div>
             </div>
@@ -243,7 +228,7 @@ export default function ShowTables({
                 <Card
                   key={table.id}
                   className={`relative cursor-pointer transition-all duration-200 hover:shadow-md ${getStatusColor(table.status)} ${
-                    table.status !== "available" ? "border-dashed border-2" : ""
+                    table.status !== 'available' ? 'border-dashed border-2' : ''
                   }`}
                   onClick={() => selectTable(table)}
                 >
@@ -269,7 +254,7 @@ export default function ShowTables({
                     )}
 
                     {/* Status Indicator for pending tables */}
-                    {table.status === "pending" && (
+                    {table.status === 'pending' && (
                       <div className="absolute -top-2 -right-2">
                         <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse"></div>
                       </div>
@@ -282,5 +267,5 @@ export default function ShowTables({
         </>
       )}
     </div>
-  );
+  )
 }
