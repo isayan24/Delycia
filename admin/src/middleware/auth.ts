@@ -29,12 +29,42 @@ export function requireAuth({
   context?: RouterContext
   location: { href: string }
 }) {
-  // Get auth state directly from sessionService (synchronous)
+  // IMPORTANT: On SSR or initial page load, localStorage might not be populated yet
+  // We need to allow the page to load and let the component handle auth
+
+  // Check if we're on the server (SSR)
+  if (typeof window === 'undefined') {
+    // On server, allow through - client will handle auth
+    return {
+      showHeader: true,
+      showSidebar: true,
+    }
+  }
+
+  // On client, check localStorage
   const user = sessionService.getUserData()
   const isAuthenticated = !!user
 
-  // If not authenticated, redirect to login with return URL
+  // Only redirect if DEFINITELY not authenticated
+  // Don't redirect on initial load when data might still be loading
   if (!isAuthenticated) {
+    // Check if this might be an initial page load
+    // by seeing if the sessionService has been initialized
+    const hasLocalStorage = typeof localStorage !== 'undefined'
+    const userDataString = hasLocalStorage
+      ? localStorage.getItem('user_data')
+      : null
+
+    // If localStorage has data, trust it and let the page load
+    // useAuth will validate with server after
+    if (userDataString) {
+      return {
+        showHeader: true,
+        showSidebar: true,
+      }
+    }
+
+    // Only redirect if localStorage is also empty
     throw redirect({
       to: '/login',
       search: {

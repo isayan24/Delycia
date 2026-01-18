@@ -5,18 +5,21 @@ import {
   useRestaurantsQuery,
   type Restaurant,
 } from './queries/useRestaurantsQuery'
+import useToast from './UseToast'
 
 // Custom hook to handle restaurant selection with names
 export const useRestaurantSelector = () => {
   const { user, refreshSession } = useAuth()
   const [isUpdating, setIsUpdating] = useState(false)
 
+  const { showError } = useToast()
+
   // Fetch restaurant details using TanStack Query
   // No token needed - axios automatically includes httpOnly cookies
   const { data: restaurants = {}, isLoading: isLoadingRestaurants } =
     useRestaurantsQuery(user?.restaurant_rids, !!user)
 
-  // Update selected restaurant in session - Enhanced version
+  // Update selected restaurant in session - Enhanced version with TanStack Query
   const updateSelectedRestaurant = useCallback(
     async (selectedRid: string) => {
       setIsUpdating(true)
@@ -38,12 +41,13 @@ export const useRestaurantSelector = () => {
           throw new Error('Failed to update selected restaurant in session')
         }
 
-        // todo Trigger auth state refresh to reflect the changes
-        refreshSession()
+        // Refresh auth state to update the user object
+        await refreshSession()
+
         window.location.reload()
       } catch (error) {
         console.error('Failed to update selected restaurant:', error)
-        // You could add a toast notification here if needed
+        showError('Error', 'Failed to update selected restaurant')
       } finally {
         setIsUpdating(false)
       }

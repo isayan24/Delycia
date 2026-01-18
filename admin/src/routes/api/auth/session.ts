@@ -93,7 +93,8 @@ export const Route = createFileRoute('/api/auth/session')({
               const userData = userResponse.data.message.users[0]
 
               // Return backend user data with all available fields
-              // Client-side will merge with localStorage data for selected_rid and restaurant_rids
+              // Including restaurant_rids from backend (if available)
+              // Client-side will merge with localStorage for selected_rid
               return new Response(
                 JSON.stringify({
                   statusCode: 200,
@@ -109,8 +110,9 @@ export const Route = createFileRoute('/api/auth/session')({
                       phone_number: userData.phone_number,
                       profile_pic: userData.profile_pic,
                       role: userData.role,
-                      // Don't return selected_rid and restaurant_rids here
-                      // They will be merged from localStorage in useAuth
+                      // Include restaurant_rids from backend if available
+                      restaurant_rids: userData.restaurant_rids || [],
+                      // Note: selected_rid will be merged from localStorage in useAuth
                     },
                   },
                 }),

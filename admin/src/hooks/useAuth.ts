@@ -34,6 +34,10 @@ export function useAuth(): UseAuthReturn {
   // Initialize auth state from server
   const initializeAuth = useCallback(async () => {
     try {
+      // IMPORTANT: Get existing localStorage data FIRST
+      // This contains selected_rid and restaurant_rids which don't exist in backend
+      const existingUser = sessionService.getUserData()
+
       // Check if session is valid via server route
       const response = await axios.get('/api/auth/session', {
         withCredentials: true, // Send httpOnly cookies
@@ -49,16 +53,16 @@ export function useAuth(): UseAuthReturn {
         ) {
           const userData = data.data.user
 
-          // IMPORTANT: Merge with localStorage for client-side fields
-          // Backend doesn't store selected_rid and restaurant_rids
-          const existingUser = sessionService.getUserData()
-
-          // Always merge selected_rid and restaurant_rids from localStorage
-          // since they don't exist in the backend user table
+          // CRITICAL: Smart merge strategy for client/server data
+          // - restaurant_rids: Prefer backend (source of truth), fallback to localStorage
+          // - selected_rid: Prefer localStorage (user's last selection), fallback to backend/null
           const mergedUserData = {
             ...userData,
-            selected_rid: existingUser?.selected_rid || null,
-            restaurant_rids: existingUser?.restaurant_rids || [],
+            restaurant_rids:
+              userData.restaurant_rids?.length > 0
+                ? userData.restaurant_rids
+                : (existingUser?.restaurant_rids ?? []),
+            selected_rid: existingUser?.selected_rid ?? null,
           }
 
           // Store merged data
@@ -76,6 +80,8 @@ export function useAuth(): UseAuthReturn {
           sessionCleanupService.trackActivity()
           sessionCleanupService.scheduleSessionRenewal()
         } else {
+          // Server says not authenticated but DON'T clear localStorage yet
+          // Let the middleware use it, and explicit logout will clear it
           setAuthState({
             user: null,
             isLoading: false,
@@ -83,7 +89,7 @@ export function useAuth(): UseAuthReturn {
           })
         }
       } else {
-        // Session not valid
+        // Session not valid but DON'T clear localStorage
         setAuthState({
           user: null,
           isLoading: false,
@@ -92,6 +98,7 @@ export function useAuth(): UseAuthReturn {
       }
     } catch (error) {
       console.error('Failed to initialize auth:', error)
+      // On error, DON'T clear localStorage to prevent middleware race condition
       setAuthState({
         user: null,
         isLoading: false,
@@ -178,6 +185,9 @@ export function useAuth(): UseAuthReturn {
   // Refresh session function
   const refreshSession = useCallback(async () => {
     try {
+      // Get existing localStorage data to preserve restaurant info
+      const existingUser = sessionService.getUserData()
+
       const response = await axios.get('/api/auth/session', {
         withCredentials: true,
       })
@@ -188,12 +198,22 @@ export function useAuth(): UseAuthReturn {
         if (data.isAuthenticated && data.data?.user) {
           const userData = data.data.user
 
+          // Smart merge: backend restaurant_rids, localStorage selected_rid
+          const mergedUserData = {
+            ...userData,
+            restaurant_rids:
+              userData.restaurant_rids?.length > 0
+                ? userData.restaurant_rids
+                : (existingUser?.restaurant_rids ?? []),
+            selected_rid: existingUser?.selected_rid ?? null,
+          }
+
           // Update session service
-          sessionService.setUserData(userData)
+          sessionService.setUserData(mergedUserData)
 
           // Update auth state
           setAuthState({
-            user: userData,
+            user: mergedUserData,
             isLoading: false,
             isAuthenticated: true,
           })

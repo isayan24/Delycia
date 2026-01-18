@@ -62,21 +62,11 @@ class SessionCleanupService {
 
   /**
    * Setup handler for tab visibility changes
+   * Disabled: Too aggressive - was causing logout on every page refresh
+   * Periodic validation (every 5 minutes) is sufficient
    */
   private setupVisibilityChangeHandler(): void {
-    if (typeof window === 'undefined') return
-
-    document.addEventListener('visibilitychange', async () => {
-      if (document.visibilityState === 'visible') {
-        // Tab became visible, check session validity via server
-        const isValid = await sessionService.isSessionValid()
-        if (!isValid) {
-          console.log('Session expired while tab was hidden')
-          sessionService.clearSession()
-          window.location.href = '/login'
-        }
-      }
-    })
+    // Intentionally empty - periodic checks are sufficient
   }
 
   /**
