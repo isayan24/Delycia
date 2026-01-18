@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { Outlet } from '@tanstack/react-router'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Toaster } from 'sonner'
@@ -17,6 +17,11 @@ import SidebarWrapper from '@/components/admin/navigation/SidebarWrapper'
 import HeaderWrapper from '@/components/admin/header/HeaderWrapper'
 import SidebarSwitch from '@/components/admin/header/SidebarSwitch'
 import NetworkOfflineNotification from '@/components/common/NetworkOfflineNotification'
+import SessionExpiredNotification from '@/components/common/SessionExpiredNotification'
+// Import axios interceptor to set up global 401 error detection
+import '@/lib/axiosInterceptor'
+// Import QueryClient factory for cleaner code organization
+import { createQueryClient } from '@/lib/queryClient'
 import appCss from '../styles.css?url'
 import { useState } from 'react'
 import type { RouterContext } from '@/middleware/auth'
@@ -105,58 +110,15 @@ function RootComponent() {
   const { showHeader, showSidebar } = shouldShowUIComponents(pathname)
 
   // Create QueryClient with production-ready configuration
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            // ❌ Removed staleTime - let mutations control freshness via invalidation
-
-            // Cache time: how long inactive data stays in cache
-            gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
-
-            // Retry failed requests
-            retry: (failureCount, error) => {
-              // Don't retry on 4xx errors (client errors)
-              if (error instanceof Error && 'status' in error) {
-                const status = (error as any).status
-                if (status >= 400 && status < 500) return false
-              }
-              // Retry up to 2 times for other errors
-              return failureCount < 2
-            },
-            // Retry delay with exponential backoff
-            retryDelay: (attemptIndex) =>
-              Math.min(1000 * 2 ** attemptIndex, 30000),
-
-            // Refetch on window focus in production for fresh data
-            refetchOnWindowFocus: true,
-
-            // Don't refetch on mount if data is fresh
-            refetchOnMount: false,
-
-            // Refetch on reconnect
-            refetchOnReconnect: true,
-          },
-          mutations: {
-            // Retry failed mutations once
-            retry: 1,
-
-            // Global error handling for mutations
-            onError: (error) => {
-              console.error('Mutation error:', error)
-              // You can add toast notification here
-            },
-          },
-        },
-      }),
-  )
+  // Configuration is defined in src/lib/queryClient.ts for better maintainability
+  const [queryClient] = useState(() => createQueryClient())
 
   return (
     <RootDocument>
       <QueryClientProvider client={queryClient}>
         <SoundProvider>
           <NetworkOfflineNotification />
+          <SessionExpiredNotification />
 
           {/* Conditionally render header based on route */}
           {showHeader && <HeaderWrapper />}
