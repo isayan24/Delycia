@@ -114,7 +114,6 @@ export default function OrderHistoryMain() {
                   </div>
                 }
               >
-                {/* fix */}
                 <OrderHistoryInfoList
                   orders={orderHistory}
                   selectedOrderId={selectedOrderId}
@@ -159,7 +158,7 @@ export default function OrderHistoryMain() {
           </div>
 
           {/* Mobile Layout (below md) */}
-          {/* <div className="block md:hidden h-full overflow-y-auto">
+          <div className="block md:hidden h-full overflow-y-auto">
             <ErrorBoundary
               fallback={
                 <div className="flex items-center justify-center h-64">
@@ -185,7 +184,7 @@ export default function OrderHistoryMain() {
                 onRetry={refreshHistory}
               />
             </ErrorBoundary>
-          </div> */}
+          </div>
         </TabsContent>
         {/* New table view with server-side pagination */}
         <TabsContent value="table">

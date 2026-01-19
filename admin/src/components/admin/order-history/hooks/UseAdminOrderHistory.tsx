@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useOrderHistoryQuery } from '@/hooks/queries/useOrderHistoryQuery'
 import {
   TransformedOrder,
@@ -74,25 +74,31 @@ export const UseAdminOrderHistory = ({ rid }: UseAdminOrdersProps) => {
   // Use a ref to avoid infinite re-renders, but include page number to detect page changes
   const ordersRef = useRef<string>('')
 
+  // Memoize orders to prevent unnecessary re-renders
+  const stableOrders = useMemo(
+    () => orders,
+    [JSON.stringify(orders.map((o: any) => o.cart_id || o.id))],
+  )
+
   useEffect(() => {
     // Include page number in the key to detect page navigation
     const ordersKey = JSON.stringify({
       page: pagination.page,
-      orderIds: orders.map((o: any) => o.cart_id || o.id),
+      orderIds: stableOrders.map((o: any) => o.cart_id || o.id),
     })
 
     // Only skip if both page AND order IDs are identical
-    if (ordersKey === ordersRef.current && orders.length > 0) return
+    if (ordersKey === ordersRef.current && stableOrders.length > 0) return
     ordersRef.current = ordersKey
 
-    if (orders.length > 0) {
+    if (stableOrders.length > 0) {
       // Transform raw API data to UI format
-      const transformed = transformOrderData(orders)
+      const transformed = transformOrderData(stableOrders)
       setTransformedOrders(transformed)
     } else {
       setTransformedOrders([])
     }
-  }, [orders, pagination.page])
+  }, [stableOrders, pagination.page])
 
   // Pagination controls
   const goToPage = useCallback((page: number) => {

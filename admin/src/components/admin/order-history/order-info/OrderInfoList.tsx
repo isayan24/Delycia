@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react'
+import React, { memo, useState, useCallback } from 'react'
 import OrderInfoCard from './OrderInfoCard'
 import { TransformedOrder } from '../utils/orderHistoryUtils'
 import { OrderInfoSkeleton } from '../LoadingSkeleton'
@@ -19,6 +19,8 @@ import {
   X,
 } from 'lucide-react'
 import { format } from 'date-fns'
+import { PrintBillDialog } from '../shared/PrintBillDialog'
+import { getISTDateKey } from '../utils/historyDateUtils'
 
 interface OrderInfoListProps {
   orders: any[]
@@ -112,12 +114,36 @@ const OrderInfoList = memo(function OrderInfoList({
   const [endDate, setEndDate] = useState<Date | undefined>(undefined)
   const [isStartDateOpen, setIsStartDateOpen] = useState(false)
   const [isEndDateOpen, setIsEndDateOpen] = useState(false)
+  const [showBillDialog, setShowBillDialog] = useState(false)
+  const [selectedOrderForBill, setSelectedOrderForBill] = useState<any>(null)
 
   const totalPages = pagination?.total_pages || 1
   const totalOrders = pagination?.total_orders || 0
   const hasNextPage = pagination?.has_next_page || false
   const hasPrevPage = pagination?.has_prev_page || false
-  console.log(orders, 'orders')
+
+  // Print bill handler
+  const handlePrintBill = useCallback((order: any) => {
+    const billItems = order.items.map((item: any) => ({
+      name: item.name,
+      quantity: item.quantity,
+      price: item.price,
+    }))
+
+    const billData = {
+      orderId: order.orderId || order.id,
+      tableNo: order.tableNo || 'N/A',
+      customerName: order.customerName || order.customer?.name || 'Guest',
+      customerId: order.customerId || order.customer?.phone || 'N/A',
+      items: billItems,
+      totalAmount: order.totalAmount,
+      orderDate: getISTDateKey(order.createdAt),
+    }
+
+    setSelectedOrderForBill(billData)
+    setShowBillDialog(true)
+  }, [])
+
   // Apply date range
   const handleApplyDateRange = () => {
     const start = startDate ? format(startDate, 'yyyy-MM-dd') : undefined
@@ -272,9 +298,9 @@ const OrderInfoList = memo(function OrderInfoList({
       {/* Order List */}
       <div className="flex-1 overflow-y-auto p-3">
         <div className="space-y-2">
-          {orders.map((order) => (
+          {orders.map((order, index) => (
             <OrderInfoCard
-              key={order.id}
+              key={`${order.cartId}-${index}`}
               status={order.status}
               time={order.time}
               date={order.date}
@@ -285,6 +311,7 @@ const OrderInfoList = memo(function OrderInfoList({
               totalAmount={order.totalAmount}
               isSelected={selectedOrderId === order.id}
               onClick={() => onOrderSelect(order.id)}
+              onPrint={() => handlePrintBill(order)}
             />
           ))}
         </div>
@@ -349,6 +376,13 @@ const OrderInfoList = memo(function OrderInfoList({
           </div>
         </div>
       )}
+
+      {/* Print Bill Dialog */}
+      <PrintBillDialog
+        open={showBillDialog}
+        onOpenChange={setShowBillDialog}
+        billData={selectedOrderForBill}
+      />
     </div>
   )
 })

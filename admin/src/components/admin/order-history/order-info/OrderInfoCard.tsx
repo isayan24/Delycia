@@ -1,31 +1,33 @@
-import React, { memo, useMemo, useCallback } from "react";
-import { TransformedOrderItem, CustomerInfo } from "../utils/orderHistoryUtils";
-import CustomerAvatar from "../CustomerAvatar";
+import React, { memo, useMemo, useCallback } from 'react'
+import { TransformedOrderItem, CustomerInfo } from '../utils/orderHistoryUtils'
+import CustomerAvatar from '../CustomerAvatar'
+import { Printer } from 'lucide-react'
 
 interface OrderInfoCardProps {
-  status: "DELIVERED" | "CANCELLED";
-  rating?: number;
-  time: string;
-  date: string;
-  orderId: string;
-  customerName: string;
-  customer?: CustomerInfo;
-  items: TransformedOrderItem[];
-  totalAmount: number;
-  isSelected?: boolean;
-  onClick?: () => void;
+  status: 'DELIVERED' | 'CANCELLED'
+  rating?: number
+  time: string
+  date: string
+  orderId: string
+  customerName: string
+  customer?: CustomerInfo
+  items: TransformedOrderItem[]
+  totalAmount: number
+  isSelected?: boolean
+  onClick?: () => void
+  onPrint?: () => void
 }
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case "DELIVERED":
-      return "bg-green-600 text-white";
-    case "CANCELLED":
-      return "bg-red-500 text-white";
+    case 'DELIVERED':
+      return 'bg-green-600 text-white'
+    case 'CANCELLED':
+      return 'bg-red-500 text-white'
     default:
-      return "bg-gray-500 text-white";
+      return 'bg-gray-500 text-white'
   }
-};
+}
 
 const OrderInfoCard = memo(function OrderInfoCard({
   status,
@@ -39,44 +41,56 @@ const OrderInfoCard = memo(function OrderInfoCard({
   totalAmount,
   isSelected = false,
   onClick,
+  onPrint,
 }: OrderInfoCardProps) {
   // Memoize the formatted items to prevent recalculation on every render
   const formattedItems = useMemo(() => {
     if (!items || items.length === 0) {
-      return "No items available";
+      return 'No items available'
     }
 
     // Show first 2 items, then "and X more" if there are more
-    const displayItems = items.slice(0, 2);
-    const remainingCount = items.length - 2;
+    const displayItems = items.slice(0, 2)
+    const remainingCount = items.length - 2
 
     let itemsText = displayItems
       .map((item) => `${item.quantity} x ${item.name}`)
-      .join(", ");
+      .join(', ')
 
     if (remainingCount > 0) {
-      itemsText += ` and ${remainingCount} more`;
+      itemsText += ` and ${remainingCount} more`
     }
 
-    return itemsText;
-  }, [items]);
+    return itemsText
+  }, [items])
 
   // Memoize the click handler to prevent unnecessary re-renders
   const handleClick = useCallback(() => {
     if (onClick) {
-      onClick();
+      onClick()
     }
-  }, [onClick]);
+  }, [onClick])
+
+  // Handle print with stopPropagation to prevent card selection
+  const handlePrint = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      if (onPrint) {
+        onPrint()
+      }
+    },
+    [onPrint],
+  )
 
   // Memoize the status color to prevent recalculation
-  const statusColorClass = useMemo(() => getStatusColor(status), [status]);
+  const statusColorClass = useMemo(() => getStatusColor(status), [status])
 
   return (
     <div
       className={`rounded-lg p-4 mb-2 border transition-all duration-200 cursor-pointer hover:shadow-md ${
         isSelected
-          ? "bg-green-50 border-green-300 shadow-sm"
-          : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+          ? 'bg-green-50 border-green-300 shadow-sm'
+          : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
       }`}
       onClick={handleClick}
     >
@@ -123,7 +137,7 @@ const OrderInfoCard = memo(function OrderInfoCard({
       </div>
 
       {/* Items and Total */}
-      <div className="flex justify-between items-start">
+      <div className="flex justify-between items-start mb-2">
         <div className="flex-1 pr-4">
           <p className="text-gray-700 text-sm leading-relaxed">
             {formattedItems}
@@ -136,6 +150,19 @@ const OrderInfoCard = memo(function OrderInfoCard({
         </div>
       </div>
 
+      {/* Print Button */}
+      {onPrint && (
+        <div className="pt-2 border-t border-gray-200">
+          <button
+            onClick={handlePrint}
+            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 transition-colors"
+          >
+            <Printer className="w-4 h-4" />
+            Print Bill
+          </button>
+        </div>
+      )}
+
       {/* Selection indicator */}
       {isSelected && (
         <div className="mt-1 pt-1 border-t border-green-200">
@@ -146,7 +173,7 @@ const OrderInfoCard = memo(function OrderInfoCard({
         </div>
       )}
     </div>
-  );
-});
+  )
+})
 
-export default OrderInfoCard;
+export default OrderInfoCard
