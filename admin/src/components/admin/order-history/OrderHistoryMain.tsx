@@ -7,7 +7,7 @@ import { UseAdminOrderHistory } from './hooks/UseAdminOrderHistory'
 import OrderHistoryHeader from './OrderHistoryHeader'
 import { useAuth } from '@/hooks/useAuth'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import OrderHistoryTable from './OrderHistoryTable'
+import OrderHistoryTablePaginated from './OrderHistoryTablePaginated'
 import LoadingScreen from '@/components/common/LoadingScreen'
 
 export default function OrderHistoryMain() {
@@ -16,9 +16,24 @@ export default function OrderHistoryMain() {
 
   const rid = user?.selected_rid || ''
 
-  const { orderHistory, refreshHistory, loading, error } = UseAdminOrderHistory(
-    { rid },
-  )
+  // Use the refactored hook with pagination and search
+  const orderHistoryHook = UseAdminOrderHistory({ rid })
+
+  const {
+    orderHistory,
+    refreshHistory,
+    loading,
+    error,
+    pagination,
+    goToPage,
+    nextPage,
+    prevPage,
+    currentPage,
+    search,
+    setSearch,
+    setDateRange,
+    clearFilters,
+  } = orderHistoryHook
 
   // Get the selected order object
   const selectedOrder = useMemo(() => {
@@ -65,13 +80,10 @@ export default function OrderHistoryMain() {
       >
         <div className="flex px-4 py-2 bg-white z-[50] sticky top-0 border">
           <section className="flex items-center gap-3">
-            {/* <Tabs defaultValue="grid"> */}
             <TabsList>
               <TabsTrigger value="table">Table View</TabsTrigger>
               <TabsTrigger value="grid">Grid View</TabsTrigger>
             </TabsList>
-
-            {/* </Tabs> */}
           </section>
 
           <OrderHistoryHeader
@@ -79,7 +91,7 @@ export default function OrderHistoryMain() {
             loading={loading}
           />
         </div>
-        {/* mark grid view */}
+        {/* Grid view - keep existing implementation */}
         <TabsContent value="grid" className="p-5s h-[calc(100vh-9.3rem)]">
           {/* Desktop Layout (md and above) */}
           <div className="hidden md:block rounded-md h-full w-full !border-none">
@@ -102,6 +114,7 @@ export default function OrderHistoryMain() {
                   </div>
                 }
               >
+                {/* fix */}
                 <OrderHistoryInfoList
                   orders={orderHistory}
                   selectedOrderId={selectedOrderId}
@@ -109,6 +122,18 @@ export default function OrderHistoryMain() {
                   loading={loading}
                   error={error}
                   onRetry={refreshHistory}
+                  // Pagination props
+                  pagination={pagination}
+                  currentPage={currentPage}
+                  onPageChange={goToPage}
+                  onNextPage={nextPage}
+                  onPrevPage={prevPage}
+                  // Search props
+                  search={search}
+                  onSearchChange={setSearch}
+                  // Filter props
+                  onDateRangeChange={setDateRange}
+                  onClearFilters={clearFilters}
                 />
               </ErrorBoundary>
               <div className="h-full border-l border-gray-300" />
@@ -134,7 +159,7 @@ export default function OrderHistoryMain() {
           </div>
 
           {/* Mobile Layout (below md) */}
-          <div className="block md:hidden h-full overflow-y-auto">
+          {/* <div className="block md:hidden h-full overflow-y-auto">
             <ErrorBoundary
               fallback={
                 <div className="flex items-center justify-center h-64">
@@ -160,15 +185,28 @@ export default function OrderHistoryMain() {
                 onRetry={refreshHistory}
               />
             </ErrorBoundary>
-          </div>
+          </div> */}
         </TabsContent>
+        {/* New table view with server-side pagination */}
         <TabsContent value="table">
           <section className="borderd p-5 h-[calc(100vh-9.3rem)]">
-            <OrderHistoryTable
+            <OrderHistoryTablePaginated
               items={orderHistory}
               loading={loading}
               error={error}
               refreshHistory={refreshHistory}
+              // Pagination props
+              pagination={pagination}
+              currentPage={currentPage}
+              onPageChange={goToPage}
+              onNextPage={nextPage}
+              onPrevPage={prevPage}
+              // Search props
+              search={search}
+              onSearchChange={setSearch}
+              // Filter props
+              onDateRangeChange={setDateRange}
+              onClearFilters={clearFilters}
             />
           </section>
         </TabsContent>

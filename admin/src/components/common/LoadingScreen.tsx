@@ -16,7 +16,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
   message = 'Loading...',
 }) => {
   return (
-    <div className="fixed inset-0 z-[9999999999999999] flex items-center justify-center bg-black/20">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
       {/* Animated background pattern */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,107,0,0.1),transparent_50%)] animate-pulse" />

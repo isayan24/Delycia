@@ -35,6 +35,7 @@ import { Route as UsersPIndexRouteImport } from './routes/users/p/index'
 import { Route as DemoStartServerFuncsRouteImport } from './routes/demo/start.server-funcs'
 import { Route as DemoStartApiRequestRouteImport } from './routes/demo/start.api-request'
 import { Route as DemoApiNamesRouteImport } from './routes/demo/api.names'
+import { Route as ApiOrdersOrderHistoryRouteImport } from './routes/api/orders/order-history'
 import { Route as ApiOrdersActionsRouteImport } from './routes/api/orders/actions'
 import { Route as ApiInventoryBulkRouteImport } from './routes/api/inventory.bulk'
 import { Route as ApiCategoryFromTemplatesRouteImport } from './routes/api/category/from-templates'
@@ -181,6 +182,11 @@ const DemoApiNamesRoute = DemoApiNamesRouteImport.update({
   path: '/demo/api/names',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiOrdersOrderHistoryRoute = ApiOrdersOrderHistoryRouteImport.update({
+  id: '/order-history',
+  path: '/order-history',
+  getParentRoute: () => ApiOrdersRoute,
+} as any)
 const ApiOrdersActionsRoute = ApiOrdersActionsRouteImport.update({
   id: '/actions',
   path: '/actions',
@@ -292,6 +298,7 @@ export interface FileRoutesByFullPath {
   '/api/category/from-templates': typeof ApiCategoryFromTemplatesRoute
   '/api/inventory/bulk': typeof ApiInventoryBulkRoute
   '/api/orders/actions': typeof ApiOrdersActionsRoute
+  '/api/orders/order-history': typeof ApiOrdersOrderHistoryRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
@@ -335,6 +342,7 @@ export interface FileRoutesByTo {
   '/api/category/from-templates': typeof ApiCategoryFromTemplatesRoute
   '/api/inventory/bulk': typeof ApiInventoryBulkRoute
   '/api/orders/actions': typeof ApiOrdersActionsRoute
+  '/api/orders/order-history': typeof ApiOrdersOrderHistoryRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
@@ -379,6 +387,7 @@ export interface FileRoutesById {
   '/api/category/from-templates': typeof ApiCategoryFromTemplatesRoute
   '/api/inventory/bulk': typeof ApiInventoryBulkRoute
   '/api/orders/actions': typeof ApiOrdersActionsRoute
+  '/api/orders/order-history': typeof ApiOrdersOrderHistoryRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
@@ -424,6 +433,7 @@ export interface FileRouteTypes {
     | '/api/category/from-templates'
     | '/api/inventory/bulk'
     | '/api/orders/actions'
+    | '/api/orders/order-history'
     | '/demo/api/names'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
@@ -467,6 +477,7 @@ export interface FileRouteTypes {
     | '/api/category/from-templates'
     | '/api/inventory/bulk'
     | '/api/orders/actions'
+    | '/api/orders/order-history'
     | '/demo/api/names'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
@@ -510,6 +521,7 @@ export interface FileRouteTypes {
     | '/api/category/from-templates'
     | '/api/inventory/bulk'
     | '/api/orders/actions'
+    | '/api/orders/order-history'
     | '/demo/api/names'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
@@ -743,6 +755,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoApiNamesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/orders/order-history': {
+      id: '/api/orders/order-history'
+      path: '/order-history'
+      fullPath: '/api/orders/order-history'
+      preLoaderRoute: typeof ApiOrdersOrderHistoryRouteImport
+      parentRoute: typeof ApiOrdersRoute
+    }
     '/api/orders/actions': {
       id: '/api/orders/actions'
       path: '/actions'
@@ -883,10 +902,12 @@ const ApiInventoryRouteWithChildren = ApiInventoryRoute._addFileChildren(
 
 interface ApiOrdersRouteChildren {
   ApiOrdersActionsRoute: typeof ApiOrdersActionsRoute
+  ApiOrdersOrderHistoryRoute: typeof ApiOrdersOrderHistoryRoute
 }
 
 const ApiOrdersRouteChildren: ApiOrdersRouteChildren = {
   ApiOrdersActionsRoute: ApiOrdersActionsRoute,
+  ApiOrdersOrderHistoryRoute: ApiOrdersOrderHistoryRoute,
 }
 
 const ApiOrdersRouteWithChildren = ApiOrdersRoute._addFileChildren(

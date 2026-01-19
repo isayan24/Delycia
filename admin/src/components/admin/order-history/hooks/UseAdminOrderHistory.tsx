@@ -1,158 +1,168 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
-import axios from 'axios'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { useOrderHistoryQuery } from '@/hooks/queries/useOrderHistoryQuery'
 import {
-  ApiOrder,
   TransformedOrder,
   transformOrderData,
-  transformUserToCustomer,
 } from '../utils/orderHistoryUtils'
-import { getUserById } from '@/helpers/user/getUserById'
+import { useDebounce } from '@/hooks/useDebounce'
 
 interface UseAdminOrdersProps {
   rid: string | number
-  limit?: number
 }
 
-export const UseAdminOrderHistory = ({
-  rid,
-  limit = 50,
-}: UseAdminOrdersProps) => {
-  const [rawOrders, setRawOrders] = useState<ApiOrder[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+interface PaginationState {
+  page: number
+  limit: number
+}
 
-  // Transform raw orders data with memoization to avoid re-processing
-  const transformedOrders = useMemo(() => {
-    try {
-      return transformOrderData(rawOrders)
-    } catch (transformError) {
-      console.error('Error transforming order data:', transformError)
-      setError('Failed to process order data')
-      return []
-    }
-  }, [rawOrders])
+interface FilterState {
+  search: string
+  start_date?: string
+  end_date?: string
+}
 
-  // Fetch customer data for orders
-  const fetchCustomerData = useCallback(async (orders: TransformedOrder[]) => {
-    if (!orders.length) return orders
+export const UseAdminOrderHistory = ({ rid }: UseAdminOrdersProps) => {
+  // Pagination state
+  const [pagination, setPagination] = useState<PaginationState>({
+    page: 1,
+    limit: 10,
+  })
 
-    const ordersWithCustomers = await Promise.all(
-      orders.map(async (order) => {
-        try {
-          const response = await getUserById(order.customerId.toString())
-          if (response && response?.message?.users) {
-            const customer = transformUserToCustomer(
-              response?.message?.users[0],
-            )
-            return {
-              ...order,
-              customer,
-              customerName: customer.name,
-            }
-          } else {
-            console.log(
-              `❌ No user data in response for ID ${order.customerId}`,
-            )
-          }
-        } catch (error) {
-          console.error(
-            `❌ Failed to fetch customer ${order.customerId}:`,
-            error,
-          )
-        }
-        return order
-      }),
-    )
+  // Filter state
+  const [filters, setFilters] = useState<FilterState>({
+    search: '',
+    start_date: undefined,
+    end_date: undefined,
+  })
 
-    return ordersWithCustomers
-  }, [])
+  // Debounce search to avoid excessive API calls
+  const debouncedSearch = useDebounce(filters.search, 500)
 
-  // Enhanced orders with customer data
-  const [ordersWithCustomers, setOrdersWithCustomers] = useState<
+  // State for transformed orders
+  const [transformedOrders, setTransformedOrders] = useState<
     TransformedOrder[]
   >([])
-  const [customerLoading, setCustomerLoading] = useState(false)
 
-  // Fetch customer data when transformed orders change
+  // Fetch paginated order history using TanStack Query
+  const {
+    data: orderHistoryData,
+    isLoading,
+    error: queryError,
+    refetch,
+  } = useOrderHistoryQuery({
+    rid,
+    page: pagination.page,
+    limit: pagination.limit,
+    search: debouncedSearch,
+    start_date: filters.start_date,
+    end_date: filters.end_date,
+  })
+
+  const orders = orderHistoryData?.orders || []
+  const paginationMeta = orderHistoryData
+    ? {
+        total_orders: orderHistoryData.total_orders,
+        total_pages: orderHistoryData.total_pages,
+        current_page: orderHistoryData.current_page,
+        per_page: orderHistoryData.per_page,
+        has_next_page: orderHistoryData.has_next_page,
+        has_prev_page: orderHistoryData.has_prev_page,
+      }
+    : null
+
+  // Transform orders when raw data changes
+  // Use a ref to avoid infinite re-renders, but include page number to detect page changes
+  const ordersRef = useRef<string>('')
+
   useEffect(() => {
-    if (transformedOrders.length > 0) {
-      setCustomerLoading(true)
-      fetchCustomerData(transformedOrders)
-        .then(setOrdersWithCustomers)
-        .finally(() => setCustomerLoading(false))
+    // Include page number in the key to detect page navigation
+    const ordersKey = JSON.stringify({
+      page: pagination.page,
+      orderIds: orders.map((o: any) => o.cart_id || o.id),
+    })
+
+    // Only skip if both page AND order IDs are identical
+    if (ordersKey === ordersRef.current && orders.length > 0) return
+    ordersRef.current = ordersKey
+
+    if (orders.length > 0) {
+      // Transform raw API data to UI format
+      const transformed = transformOrderData(orders)
+      setTransformedOrders(transformed)
     } else {
-      setOrdersWithCustomers([])
+      setTransformedOrders([])
     }
-  }, [transformedOrders, fetchCustomerData])
+  }, [orders, pagination.page])
 
-  // Use useCallback to memoize the fetch function and prevent infinite re-renders
-  const fetchOrdersHistory = useCallback(async () => {
-    if (!rid) {
-      setRawOrders([])
-      setLoading(false)
-      return
-    }
+  // Pagination controls
+  const goToPage = useCallback((page: number) => {
+    setPagination((prev) => ({ ...prev, page }))
+  }, [])
 
-    setLoading(true)
-    setError(null)
+  const nextPage = useCallback(() => {
+    setPagination((prev) => ({ ...prev, page: prev.page + 1 }))
+  }, [])
 
-    try {
-      // Use axios directly (not axiosInstance) to call local TanStack Start server routes
-      // No baseURL needed - will call the same origin automatically
-      const response = await axios.get(`/api/orders`, {
-        params: {
-          rid,
-          limit,
-        },
-        withCredentials: true, // Important: sends httpOnly cookies
-      })
+  const prevPage = useCallback(() => {
+    setPagination((prev) => ({ ...prev, page: Math.max(1, prev.page - 1) }))
+  }, [])
 
-      if (response.data && response.data.orders) {
-        setRawOrders(response.data.orders)
-      } else if (response.data && Array.isArray(response.data)) {
-        // Handle case where data is directly an array
-        setRawOrders(response.data)
-      } else {
-        setRawOrders([])
-      }
-      setError(null)
-    } catch (err: any) {
-      console.error('Error fetching admin orders:', err)
+  const setLimit = useCallback((limit: number) => {
+    setPagination({ page: 1, limit })
+  }, [])
 
-      // More specific error handling
-      if (err.response?.status === 401) {
-        setError('Authentication failed. Please login again.')
-      } else if (err.response?.status === 403) {
-        setError('Access denied. Insufficient permissions.')
-      } else if (err.response?.status >= 500) {
-        setError('Server error. Please try again later.')
-      } else if (err.code === 'NETWORK_ERROR') {
-        setError('Network error. Please check your connection.')
-      } else {
-        setError('Failed to load order history')
-      }
+  // Search and filter controls
+  const setSearch = useCallback((search: string) => {
+    setFilters((prev) => ({ ...prev, search }))
+    setPagination((prev) => ({ ...prev, page: 1 })) // Reset to page 1 on search
+  }, [])
 
-      setRawOrders([])
-    } finally {
-      setLoading(false)
-    }
-  }, [rid, limit]) // Only depend on the actual parameters
+  const setDateRange = useCallback((start_date?: string, end_date?: string) => {
+    setFilters((prev) => ({ ...prev, start_date, end_date }))
+    setPagination((prev) => ({ ...prev, page: 1 })) // Reset to page 1 on filter change
+  }, [])
 
-  // Memoize the refresh function to prevent unnecessary re-renders
+  const clearFilters = useCallback(() => {
+    setFilters({
+      search: '',
+      start_date: undefined,
+      end_date: undefined,
+    })
+    setPagination({ page: 1, limit: 10 })
+  }, [])
+
+  // Refresh function
   const refreshHistory = useCallback(async () => {
-    await fetchOrdersHistory()
-  }, [fetchOrdersHistory])
-
-  useEffect(() => {
-    fetchOrdersHistory()
-  }, [fetchOrdersHistory]) // Now this won't cause infinite re-renders
+    await refetch()
+  }, [refetch])
 
   return {
-    orderHistory:
-      ordersWithCustomers.length > 0 ? ordersWithCustomers : transformedOrders,
-    rawOrders,
-    loading: loading || customerLoading,
-    error,
+    // Order data (transformed)
+    orderHistory: transformedOrders,
+    rawOrders: orders,
+
+    // Loading and error states
+    loading: isLoading,
+    error: queryError ? String(queryError) : null,
+
+    // Pagination metadata
+    pagination: paginationMeta,
+
+    // Pagination controls
+    goToPage,
+    nextPage,
+    prevPage,
+    setLimit,
+    currentPage: pagination.page,
+    perPage: pagination.limit,
+
+    // Search and filter controls
+    search: filters.search,
+    setSearch,
+    setDateRange,
+    clearFilters,
+
+    // Refresh
     refreshHistory,
   }
 }

@@ -288,6 +288,127 @@ const getOrderByTable = async (data) => {
   }
 };
 
+const get_paginated_orders = async (req) => {
+  const {
+    rid,
+    page = 1,
+    limit = 10,
+    search = "",
+    start_date = null,
+    end_date = null,
+  } = req.query;
+
+  if (!rid) return apiResponse.error(400, "rid is missing!");
+
+  try {
+    // Parse pagination parameters
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const offset = (pageNum - 1) * limitNum;
+
+    // Build WHERE clause conditions for filtering
+    const conditions = [
+      "o.rid = ?",
+      "(o.order_status = 'completed' OR o.order_status = 'cancelled')",
+    ];
+    const params = [rid];
+
+    // Add search conditions (customer name, mobile, or item name)
+    if (search && search.trim() !== "") {
+      conditions.push(
+        "(u.name LIKE ? OR u.phone_number LIKE ? OR i.name LIKE ? OR o.display_name LIKE ?)"
+      );
+      const searchPattern = `%${search.trim()}%`;
+      params.push(searchPattern, searchPattern, searchPattern, searchPattern);
+    }
+
+    // Add date range filtering
+    if (start_date) {
+      conditions.push("o.created_at >= ?");
+      params.push(start_date);
+    }
+
+    if (end_date) {
+      conditions.push("o.created_at <= ?");
+      params.push(end_date);
+    }
+
+    const whereClause = conditions.join(" AND ");
+
+    // Count total DISTINCT cart_ids (unique orders) matching the criteria
+    const countQuery = `
+      SELECT COUNT(DISTINCT o.cart_id) AS total_orders
+      FROM orders o
+      LEFT JOIN users u ON o.customer_id = u.id
+      LEFT JOIN inventories i ON o.item_id = i.id
+      WHERE ${whereClause}
+    `;
+
+    const [countResult] = await pool.query(countQuery, params);
+    const total_orders = countResult[0].total_orders;
+    const total_pages = Math.ceil(total_orders / limitNum);
+
+    // Fetch paginated orders grouped by cart_id with aggregated items
+    const ordersQuery = `
+      SELECT 
+        o.cart_id,
+        o.customer_id,
+        o.table_no,
+        o.payment_method,
+        o.payment_status,
+        o.order_status,
+        o.delivery_type,
+        o.created_at,
+        o.updated_at,
+        u.name AS customer_name,
+        u.phone_number AS customer_phone,
+        u.email AS customer_email,
+        u.username AS customer_username,
+        u.profile_pic AS customer_profile_pic,
+        SUM(o.total_amount) AS total_amount,
+        SUM(o.discount_amount) AS discount_amount,
+        JSON_ARRAYAGG(
+          JSON_OBJECT(
+            'id', o.id,
+            'item_id', o.item_id,
+            'item_name', COALESCE(i.name, o.display_name),
+            'quantity', o.quantity,
+            'price', o.total_amount,
+            'variant_id', o.variant_id,
+            'special_instructions', o.special_instructions
+          )
+        ) AS items
+      FROM orders o
+      LEFT JOIN users u ON o.customer_id = u.id
+      LEFT JOIN inventories i ON o.item_id = i.id
+      WHERE ${whereClause}
+      GROUP BY o.cart_id, o.customer_id, o.table_no, o.payment_method, 
+               o.payment_status, o.order_status, o.delivery_type, 
+               o.created_at, o.updated_at,
+               u.name, u.phone_number, u.email, u.username, u.profile_pic
+      ORDER BY o.created_at DESC
+      LIMIT ? OFFSET ?
+    `;
+
+    const [orders] = await pool.query(ordersQuery, [...params, limitNum, offset]);
+
+    console.log(orders[0]?.cart_id, "orders")
+
+    return apiResponse.success(200, "success", {
+      total_orders,
+      total_pages,
+      current_page: pageNum,
+      per_page: limitNum,
+      has_next_page: pageNum < total_pages,
+      has_prev_page: pageNum > 1,
+      orders,
+    });
+  } catch (error) {
+    console.error("Error in get_paginated_orders:", error);
+    return apiResponse.error(500, error.message);
+  }
+};
+
 export default {
   create_orders,
   get_orders,
@@ -296,4 +417,5 @@ export default {
   delete_order,
   getOrderByTable,
   get_all_orders,
+  get_paginated_orders,
 };
