@@ -12,8 +12,8 @@ const getDashboardStats = async (req) => {
     const dateFilter =
       startDate && endDate
         ? `AND DATE(created_at) >= ${pool.escape(
-            startDate
-          )} AND DATE(created_at) <= ${pool.escape(endDate)}`
+          startDate
+        )} AND DATE(created_at) <= ${pool.escape(endDate)}`
         : "";
 
     // Total Sales
@@ -34,13 +34,23 @@ const getDashboardStats = async (req) => {
         ${dateFilter}
     `;
 
-    // New Customers (unique customers in the date range)
-    const newCustomersQuery = `
-      SELECT COUNT(DISTINCT customer_id) as new_customers 
-      FROM orders 
-      WHERE rid = ${pool.escape(rid)} 
-        ${dateFilter}
-    `;
+    // New Customers (first-time visitors based on user_restaurant_visits table)
+    // Count customers where visit_count = 1 and first_visit_at is within date range
+    const newCustomersQuery = startDate && endDate
+      ? `
+        SELECT COUNT(*) as new_customers 
+        FROM user_restaurant_visits 
+        WHERE restaurant_id = ${pool.escape(rid)} 
+          AND visit_count = 1
+          AND DATE(first_visit_at) >= ${pool.escape(startDate)}
+          AND DATE(first_visit_at) <= ${pool.escape(endDate)}
+      `
+      : `
+        SELECT COUNT(*) as new_customers 
+        FROM user_restaurant_visits 
+        WHERE restaurant_id = ${pool.escape(rid)} 
+          AND visit_count = 1
+      `;
 
     // Average Order Value
     const avgOrderValueQuery = `
@@ -92,8 +102,8 @@ const getSalesTrend = async (req) => {
     const dateFilter =
       startDate && endDate
         ? `AND DATE(created_at) >= ${pool.escape(
-            startDate
-          )} AND DATE(created_at) <= ${pool.escape(endDate)}`
+          startDate
+        )} AND DATE(created_at) <= ${pool.escape(endDate)}`
         : "";
 
     const salesTrendQuery = `
@@ -140,8 +150,8 @@ const getOrderStatusDistribution = async (req) => {
     const dateFilter =
       startDate && endDate
         ? `AND DATE(created_at) >= ${pool.escape(
-            startDate
-          )} AND DATE(created_at) <= ${pool.escape(endDate)}`
+          startDate
+        )} AND DATE(created_at) <= ${pool.escape(endDate)}`
         : "";
 
     const orderStatusQuery = `
@@ -189,8 +199,8 @@ const getTopSellingItems = async (req) => {
     const dateFilter =
       startDate && endDate
         ? `AND DATE(o.created_at) >= ${pool.escape(
-            startDate
-          )} AND DATE(o.created_at) <= ${pool.escape(endDate)}`
+          startDate
+        )} AND DATE(o.created_at) <= ${pool.escape(endDate)}`
         : "";
 
     const itemLimit = limit ? parseInt(limit) : 5;
@@ -306,8 +316,8 @@ const getRevenueByCategory = async (req) => {
     const dateFilter =
       startDate && endDate
         ? `AND DATE(o.created_at) >= ${pool.escape(
-            startDate
-          )} AND DATE(o.created_at) <= ${pool.escape(endDate)}`
+          startDate
+        )} AND DATE(o.created_at) <= ${pool.escape(endDate)}`
         : "";
 
     const categoryRevenueQuery = `
@@ -416,8 +426,8 @@ const getPaymentMethodDistribution = async (req) => {
     const dateFilter =
       startDate && endDate
         ? `AND DATE(created_at) >= ${pool.escape(
-            startDate
-          )} AND DATE(created_at) <= ${pool.escape(endDate)}`
+          startDate
+        )} AND DATE(created_at) <= ${pool.escape(endDate)}`
         : "";
 
     const paymentMethodQuery = `
@@ -468,8 +478,8 @@ const getDeliveryTypeDistribution = async (req) => {
     const dateFilter =
       startDate && endDate
         ? `AND DATE(created_at) >= ${pool.escape(
-            startDate
-          )} AND DATE(created_at) <= ${pool.escape(endDate)}`
+          startDate
+        )} AND DATE(created_at) <= ${pool.escape(endDate)}`
         : "";
 
     const deliveryTypeQuery = `

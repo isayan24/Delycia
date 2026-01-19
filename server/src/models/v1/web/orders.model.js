@@ -392,8 +392,6 @@ const get_paginated_orders = async (req) => {
 
     const [orders] = await pool.query(ordersQuery, [...params, limitNum, offset]);
 
-    console.log(orders[0]?.cart_id, "orders")
-
     return apiResponse.success(200, "success", {
       total_orders,
       total_pages,
