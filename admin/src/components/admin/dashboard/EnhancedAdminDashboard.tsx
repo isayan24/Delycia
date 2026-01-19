@@ -1,7 +1,17 @@
-import React, { useEffect, useCallback, useState } from 'react'
-import { ChefHat, AlertCircle, RefreshCw, CheckCircle } from 'lucide-react'
+import React, { useEffect, useMemo } from 'react'
+import { ChefHat, AlertCircle } from 'lucide-react'
+import { Button as StatefulButton } from '@/components/ui/stateful-button'
 import { useDateFilterStore } from '@/store/useDateFilterStore'
-import { useDashboardData } from '@/hooks/useDashboardData'
+import {
+  useDashboardStatsQuery,
+  useSalesTrendQuery,
+  useOrderStatusQuery,
+  useTopItemsQuery,
+  useCategoryRevenueQuery,
+  usePaymentMethodsQuery,
+  useDeliveryTypesQuery,
+  useRefreshDashboard,
+} from '@/hooks/queries/useDashboardQueries'
 import DateFilterComponent from './DateFilterComponent'
 import DateRangeDisplay from './DateRangeDisplay'
 import DashboardStatsComponent from './DashboardStats'
@@ -15,7 +25,6 @@ import LoadingScreen from '@/components/common/LoadingScreen'
 
 interface EnhancedAdminDashboardProps {
   rid: string
-  // accessToken removed - using httpOnly cookies
 }
 
 const ErrorDisplay: React.FC<{ onRetry?: () => void }> = ({ onRetry }) => {
@@ -31,7 +40,6 @@ const ErrorDisplay: React.FC<{ onRetry?: () => void }> = ({ onRetry }) => {
             onClick={onRetry}
             className="flex items-center space-x-2 px-3 py-1.5 text-sm text-red-600 hover:text-red-800 border border-red-300 rounded-md hover:bg-red-50 transition-colors"
           >
-            <RefreshCw className="w-4 h-4" />
             <span>Retry</span>
           </button>
         )}
@@ -52,50 +60,57 @@ const ErrorDisplay: React.FC<{ onRetry?: () => void }> = ({ onRetry }) => {
 export const EnhancedAdminDashboard: React.FC<EnhancedAdminDashboardProps> = ({
   rid,
 }) => {
-  const { loadFromStorage } = useDateFilterStore()
-  const { data, loading, error, refetch } = useDashboardData({ rid })
-  const [showRefreshSuccess, setShowRefreshSuccess] = useState(false)
-  const [lastRefreshTime, setLastRefreshTime] = useState<Date | null>(null)
+  const { loadFromStorage, currentDateRange } = useDateFilterStore()
+  const refreshDashboard = useRefreshDashboard()
 
   // Load saved filter state on mount
   useEffect(() => {
     loadFromStorage()
   }, [loadFromStorage])
 
-  const handleHardRefresh = () => {
-    window.location.reload()
+  // Query params from date filter
+  const queryParams = useMemo(
+    () => ({
+      rid,
+      startDate: currentDateRange.startDate,
+      endDate: currentDateRange.endDate,
+    }),
+    [rid, currentDateRange.startDate, currentDateRange.endDate],
+  )
+
+  // Individual queries for each dashboard section
+  const statsQuery = useDashboardStatsQuery(queryParams)
+  const salesTrendQuery = useSalesTrendQuery(queryParams)
+  const orderStatusQuery = useOrderStatusQuery(queryParams)
+  const topItemsQuery = useTopItemsQuery(queryParams)
+  const categoryRevenueQuery = useCategoryRevenueQuery(queryParams)
+  const paymentMethodsQuery = usePaymentMethodsQuery(queryParams)
+  const deliveryTypesQuery = useDeliveryTypesQuery(queryParams)
+
+  // Aggregate loading and error states
+  const isLoading =
+    statsQuery.isLoading ||
+    salesTrendQuery.isLoading ||
+    orderStatusQuery.isLoading ||
+    topItemsQuery.isLoading ||
+    categoryRevenueQuery.isLoading ||
+    paymentMethodsQuery.isLoading ||
+    deliveryTypesQuery.isLoading
+
+  const hasError = !!(statsQuery.error || salesTrendQuery.error)
+
+  // Refresh handler - invalidates all dashboard queries
+  const handleRefresh = () => {
+    refreshDashboard()
   }
 
-  // Enhanced refresh function with success notification
-  const handleRefresh = useCallback(async () => {
-    try {
-      await refetch()
-      setLastRefreshTime(new Date())
-      setShowRefreshSuccess(true)
-      setTimeout(() => setShowRefreshSuccess(false), 3000)
-    } catch (error) {
-      // Error is already handled by the hook
-      console.error('Refresh failed:', error)
-    }
-  }, [refetch])
-
   // Show loading state on initial load
-  if (loading && !data) {
+  if (isLoading && !statsQuery.data) {
     return <LoadingScreen message="Loading dashboard data..." />
   }
 
-  // Props are guaranteed to be valid by parent component and TypeScript
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Success Toast */}
-      {showRefreshSuccess && (
-        <div className="fixed top-4 right-4 z-50 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 animate-in slide-in-from-top-2 duration-300">
-          <CheckCircle className="w-4 h-4" />
-          <span>Dashboard refreshed successfully!</span>
-        </div>
-      )}
-
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="px-6 py-4">
@@ -107,17 +122,14 @@ export const EnhancedAdminDashboard: React.FC<EnhancedAdminDashboardProps> = ({
               </h1>
             </div>
             <div className="flex items-center space-x-4">
-              <button
+              <StatefulButton
                 onClick={handleRefresh}
-                disabled={loading}
-                className="flex items-center space-x-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-orange-400 disabled:cursor-not-allowed transition-colors"
-                title="Refresh dashboard data (Ctrl+R or F5)"
+                disabled={isLoading}
+                className="bg-orange-600 hover:ring-orange-600"
+                title="Refresh dashboard data"
               >
-                <RefreshCw
-                  className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}
-                />
-                <span className="hidden sm:inline">Refresh</span>
-              </button>
+                Refresh
+              </StatefulButton>
               <DateFilterComponent />
             </div>
           </div>
@@ -126,19 +138,13 @@ export const EnhancedAdminDashboard: React.FC<EnhancedAdminDashboardProps> = ({
           <div className="mt-3 flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <DateRangeDisplay />
-              {loading && data && (
+              {isLoading && statsQuery.data && (
                 <div className="flex items-center space-x-2 text-sm text-orange-600">
-                  <RefreshCw className="w-4 h-4 animate-spin" />
                   <span>Refreshing data...</span>
                 </div>
               )}
-              {lastRefreshTime && !loading && (
-                <div className="text-xs text-gray-500">
-                  Last updated: {lastRefreshTime.toLocaleTimeString()}
-                </div>
-              )}
             </div>
-            {error && (
+            {hasError && (
               <div className="flex items-center space-x-2 text-sm text-red-600">
                 <AlertCircle className="w-4 h-4" />
                 <span>Some data failed to load</span>
@@ -157,28 +163,30 @@ export const EnhancedAdminDashboard: React.FC<EnhancedAdminDashboardProps> = ({
       <div className="p-6 space-y-6">
         {/* Key Metrics */}
         <DashboardStatsComponent
-          stats={data?.stats || null}
-          loading={loading}
-          error={error}
-          onRetry={handleHardRefresh}
+          stats={statsQuery.data || null}
+          loading={statsQuery.isLoading}
+          error={statsQuery.error ? 'Failed to load stats' : null}
+          onRetry={handleRefresh}
         />
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Sales Trend */}
           <SalesTrendChart
-            data={data?.salesTrend || null}
-            loading={loading}
-            error={error}
-            onRetry={handleHardRefresh}
+            data={salesTrendQuery.data || null}
+            loading={salesTrendQuery.isLoading}
+            error={salesTrendQuery.error ? 'Failed to load sales trend' : null}
+            onRetry={handleRefresh}
           />
 
           {/* Order Status */}
           <OrderStatusChart
-            data={data?.orderStatus || null}
-            loading={loading}
-            error={error}
-            onRetry={handleHardRefresh}
+            data={orderStatusQuery.data || null}
+            loading={orderStatusQuery.isLoading}
+            error={
+              orderStatusQuery.error ? 'Failed to load order status' : null
+            }
+            onRetry={handleRefresh}
           />
         </div>
 
@@ -186,18 +194,22 @@ export const EnhancedAdminDashboard: React.FC<EnhancedAdminDashboardProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Top Selling Items */}
           <TopSellingItems
-            data={data?.topItems || null}
-            loading={loading}
-            error={error}
-            onRetry={handleHardRefresh}
+            data={topItemsQuery.data || null}
+            loading={topItemsQuery.isLoading}
+            error={topItemsQuery.error ? 'Failed to load top items' : null}
+            onRetry={handleRefresh}
           />
 
           {/* Revenue by Category */}
           <RevenueByCategoryChart
-            data={data?.categoryRevenue || null}
-            loading={loading}
-            error={error}
-            onRetry={handleHardRefresh}
+            data={categoryRevenueQuery.data || null}
+            loading={categoryRevenueQuery.isLoading}
+            error={
+              categoryRevenueQuery.error
+                ? 'Failed to load category revenue'
+                : null
+            }
+            onRetry={handleRefresh}
           />
         </div>
 
@@ -205,25 +217,31 @@ export const EnhancedAdminDashboard: React.FC<EnhancedAdminDashboardProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Payment Methods */}
           <PaymentMethodChart
-            data={data?.paymentMethods || null}
-            loading={loading}
-            error={error}
-            onRetry={handleHardRefresh}
+            data={paymentMethodsQuery.data || null}
+            loading={paymentMethodsQuery.isLoading}
+            error={
+              paymentMethodsQuery.error
+                ? 'Failed to load payment methods'
+                : null
+            }
+            onRetry={handleRefresh}
           />
 
           {/* Delivery Types */}
           <DeliveryTypeChart
-            data={data?.deliveryTypes || null}
-            loading={loading}
-            error={error}
-            onRetry={handleHardRefresh}
+            data={deliveryTypesQuery.data || null}
+            loading={deliveryTypesQuery.isLoading}
+            error={
+              deliveryTypesQuery.error ? 'Failed to load delivery types' : null
+            }
+            onRetry={handleRefresh}
           />
         </div>
 
         {/* Global Error State */}
-        {error && !data && (
+        {hasError && !statsQuery.data && (
           <div className="col-span-full">
-            <ErrorDisplay onRetry={handleHardRefresh} />
+            <ErrorDisplay onRetry={handleRefresh} />
           </div>
         )}
       </div>

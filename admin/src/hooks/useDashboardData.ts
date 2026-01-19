@@ -391,10 +391,23 @@ export const useDashboardData = ({
   // Debounced version of fetch function
   const debouncedFetch = useDebounce(fetchDashboardData, 300)
 
-  // Refetch function for manual refresh
+  // Refetch function for manual refresh - clears cache first
   const refetch = useCallback(async () => {
+    const params: DashboardApiParams = {
+      rid,
+      startDate: currentDateRange.startDate,
+      endDate: currentDateRange.endDate,
+    }
+    const cacheKey = getCacheKey(params)
+
+    // Clear the cache for this specific key to force fresh fetch
+    const cached = cacheOperations.get(cacheKey)
+    if (cached) {
+      cacheOperations.clear() // Clear entire cache to ensure fresh data
+    }
+
     await fetchDashboardData()
-  }, [fetchDashboardData])
+  }, [fetchDashboardData, rid, currentDateRange, getCacheKey, cacheOperations])
 
   // Effect to fetch data when dependencies change
   useEffect(() => {

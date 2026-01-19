@@ -49,6 +49,43 @@ export const queryKeys = {
       [...queryKeys.restaurant.all, 'hours', rid] as const,
   },
 
+  // Dashboard
+  dashboard: {
+    all: ['dashboard'] as const,
+    stats: (filters: { rid: string; startDate?: string; endDate?: string }) =>
+      [...queryKeys.dashboard.all, 'stats', filters] as const,
+    salesTrend: (filters: {
+      rid: string
+      startDate?: string
+      endDate?: string
+    }) => [...queryKeys.dashboard.all, 'sales-trend', filters] as const,
+    orderStatus: (filters: {
+      rid: string
+      startDate?: string
+      endDate?: string
+    }) => [...queryKeys.dashboard.all, 'order-status', filters] as const,
+    topItems: (filters: {
+      rid: string
+      startDate?: string
+      endDate?: string
+    }) => [...queryKeys.dashboard.all, 'top-items', filters] as const,
+    categoryRevenue: (filters: {
+      rid: string
+      startDate?: string
+      endDate?: string
+    }) => [...queryKeys.dashboard.all, 'category-revenue', filters] as const,
+    paymentMethods: (filters: {
+      rid: string
+      startDate?: string
+      endDate?: string
+    }) => [...queryKeys.dashboard.all, 'payment-methods', filters] as const,
+    deliveryTypes: (filters: {
+      rid: string
+      startDate?: string
+      endDate?: string
+    }) => [...queryKeys.dashboard.all, 'delivery-types', filters] as const,
+  },
+
   // Users
   users: {
     all: ['users'] as const,
