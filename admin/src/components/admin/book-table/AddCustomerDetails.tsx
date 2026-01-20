@@ -102,7 +102,7 @@ export default function AddCustomerDetails() {
 
     if (!customerDetails.phone_number.trim()) {
       newErrors.phone_number = 'Mobile number is required'
-    } else if (!/^[6-9]\d{9}$/.test(customerDetails.phone_number.trim())) {
+    } else if (!/^[5-9]\d{9}$/.test(customerDetails.phone_number.trim())) {
       newErrors.phone_number = 'Please enter a valid 10-digit mobile number'
     }
 

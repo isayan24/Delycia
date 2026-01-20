@@ -15,6 +15,7 @@ import { Route as OrderHistoryRouteImport } from './routes/order-history'
 import { Route as MenuRouteImport } from './routes/menu'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CrmRouteImport } from './routes/crm'
 import { Route as BookTableRouteImport } from './routes/book-table'
 import { Route as AffiliateRouteImport } from './routes/affiliate'
 import { Route as IndexRouteImport } from './routes/index'
@@ -29,6 +30,7 @@ import { Route as ApiOrdersRouteImport } from './routes/api/orders'
 import { Route as ApiInventoryRouteImport } from './routes/api/inventory'
 import { Route as ApiImagekitRouteImport } from './routes/api/imagekit'
 import { Route as ApiDashboardRouteImport } from './routes/api/dashboard'
+import { Route as ApiCrmRouteImport } from './routes/api/crm'
 import { Route as ApiCategoryRouteImport } from './routes/api/category'
 import { Route as ApiAddonsRouteImport } from './routes/api/addons'
 import { Route as UsersPIndexRouteImport } from './routes/users/p/index'
@@ -38,6 +40,8 @@ import { Route as DemoApiNamesRouteImport } from './routes/demo/api.names'
 import { Route as ApiOrdersOrderHistoryRouteImport } from './routes/api/orders/order-history'
 import { Route as ApiOrdersActionsRouteImport } from './routes/api/orders/actions'
 import { Route as ApiInventoryBulkRouteImport } from './routes/api/inventory.bulk'
+import { Route as ApiCrmStatsRouteImport } from './routes/api/crm/stats'
+import { Route as ApiCrmDetailsRouteImport } from './routes/api/crm/details'
 import { Route as ApiCategoryFromTemplatesRouteImport } from './routes/api/category/from-templates'
 import { Route as ApiCategoryCuisineTypesRouteImport } from './routes/api/category/cuisine-types'
 import { Route as ApiCategoryAsTemplateRouteImport } from './routes/api/category/as-template'
@@ -80,6 +84,11 @@ const LoginRoute = LoginRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrmRoute = CrmRouteImport.update({
+  id: '/crm',
+  path: '/crm',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BookTableRoute = BookTableRouteImport.update({
@@ -152,6 +161,11 @@ const ApiDashboardRoute = ApiDashboardRouteImport.update({
   path: '/api/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCrmRoute = ApiCrmRouteImport.update({
+  id: '/api/crm',
+  path: '/api/crm',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCategoryRoute = ApiCategoryRouteImport.update({
   id: '/api/category',
   path: '/api/category',
@@ -196,6 +210,16 @@ const ApiInventoryBulkRoute = ApiInventoryBulkRouteImport.update({
   id: '/bulk',
   path: '/bulk',
   getParentRoute: () => ApiInventoryRoute,
+} as any)
+const ApiCrmStatsRoute = ApiCrmStatsRouteImport.update({
+  id: '/stats',
+  path: '/stats',
+  getParentRoute: () => ApiCrmRoute,
+} as any)
+const ApiCrmDetailsRoute = ApiCrmDetailsRouteImport.update({
+  id: '/details',
+  path: '/details',
+  getParentRoute: () => ApiCrmRoute,
 } as any)
 const ApiCategoryFromTemplatesRoute =
   ApiCategoryFromTemplatesRouteImport.update({
@@ -269,6 +293,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/affiliate': typeof AffiliateRoute
   '/book-table': typeof BookTableRoute
+  '/crm': typeof CrmRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/menu': typeof MenuRoute
@@ -277,6 +302,7 @@ export interface FileRoutesByFullPath {
   '/quick-bill': typeof QuickBillRoute
   '/api/addons': typeof ApiAddonsRoute
   '/api/category': typeof ApiCategoryRouteWithChildren
+  '/api/crm': typeof ApiCrmRouteWithChildren
   '/api/dashboard': typeof ApiDashboardRoute
   '/api/imagekit': typeof ApiImagekitRoute
   '/api/inventory': typeof ApiInventoryRouteWithChildren
@@ -296,6 +322,8 @@ export interface FileRoutesByFullPath {
   '/api/category/as-template': typeof ApiCategoryAsTemplateRoute
   '/api/category/cuisine-types': typeof ApiCategoryCuisineTypesRoute
   '/api/category/from-templates': typeof ApiCategoryFromTemplatesRoute
+  '/api/crm/details': typeof ApiCrmDetailsRoute
+  '/api/crm/stats': typeof ApiCrmStatsRoute
   '/api/inventory/bulk': typeof ApiInventoryBulkRoute
   '/api/orders/actions': typeof ApiOrdersActionsRoute
   '/api/orders/order-history': typeof ApiOrdersOrderHistoryRoute
@@ -313,6 +341,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/affiliate': typeof AffiliateRoute
   '/book-table': typeof BookTableRoute
+  '/crm': typeof CrmRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/menu': typeof MenuRoute
@@ -321,6 +350,7 @@ export interface FileRoutesByTo {
   '/quick-bill': typeof QuickBillRoute
   '/api/addons': typeof ApiAddonsRoute
   '/api/category': typeof ApiCategoryRouteWithChildren
+  '/api/crm': typeof ApiCrmRouteWithChildren
   '/api/dashboard': typeof ApiDashboardRoute
   '/api/imagekit': typeof ApiImagekitRoute
   '/api/inventory': typeof ApiInventoryRouteWithChildren
@@ -340,6 +370,8 @@ export interface FileRoutesByTo {
   '/api/category/as-template': typeof ApiCategoryAsTemplateRoute
   '/api/category/cuisine-types': typeof ApiCategoryCuisineTypesRoute
   '/api/category/from-templates': typeof ApiCategoryFromTemplatesRoute
+  '/api/crm/details': typeof ApiCrmDetailsRoute
+  '/api/crm/stats': typeof ApiCrmStatsRoute
   '/api/inventory/bulk': typeof ApiInventoryBulkRoute
   '/api/orders/actions': typeof ApiOrdersActionsRoute
   '/api/orders/order-history': typeof ApiOrdersOrderHistoryRoute
@@ -358,6 +390,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/affiliate': typeof AffiliateRoute
   '/book-table': typeof BookTableRoute
+  '/crm': typeof CrmRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/menu': typeof MenuRoute
@@ -366,6 +399,7 @@ export interface FileRoutesById {
   '/quick-bill': typeof QuickBillRoute
   '/api/addons': typeof ApiAddonsRoute
   '/api/category': typeof ApiCategoryRouteWithChildren
+  '/api/crm': typeof ApiCrmRouteWithChildren
   '/api/dashboard': typeof ApiDashboardRoute
   '/api/imagekit': typeof ApiImagekitRoute
   '/api/inventory': typeof ApiInventoryRouteWithChildren
@@ -385,6 +419,8 @@ export interface FileRoutesById {
   '/api/category/as-template': typeof ApiCategoryAsTemplateRoute
   '/api/category/cuisine-types': typeof ApiCategoryCuisineTypesRoute
   '/api/category/from-templates': typeof ApiCategoryFromTemplatesRoute
+  '/api/crm/details': typeof ApiCrmDetailsRoute
+  '/api/crm/stats': typeof ApiCrmStatsRoute
   '/api/inventory/bulk': typeof ApiInventoryBulkRoute
   '/api/orders/actions': typeof ApiOrdersActionsRoute
   '/api/orders/order-history': typeof ApiOrdersOrderHistoryRoute
@@ -404,6 +440,7 @@ export interface FileRouteTypes {
     | '/'
     | '/affiliate'
     | '/book-table'
+    | '/crm'
     | '/dashboard'
     | '/login'
     | '/menu'
@@ -412,6 +449,7 @@ export interface FileRouteTypes {
     | '/quick-bill'
     | '/api/addons'
     | '/api/category'
+    | '/api/crm'
     | '/api/dashboard'
     | '/api/imagekit'
     | '/api/inventory'
@@ -431,6 +469,8 @@ export interface FileRouteTypes {
     | '/api/category/as-template'
     | '/api/category/cuisine-types'
     | '/api/category/from-templates'
+    | '/api/crm/details'
+    | '/api/crm/stats'
     | '/api/inventory/bulk'
     | '/api/orders/actions'
     | '/api/orders/order-history'
@@ -448,6 +488,7 @@ export interface FileRouteTypes {
     | '/'
     | '/affiliate'
     | '/book-table'
+    | '/crm'
     | '/dashboard'
     | '/login'
     | '/menu'
@@ -456,6 +497,7 @@ export interface FileRouteTypes {
     | '/quick-bill'
     | '/api/addons'
     | '/api/category'
+    | '/api/crm'
     | '/api/dashboard'
     | '/api/imagekit'
     | '/api/inventory'
@@ -475,6 +517,8 @@ export interface FileRouteTypes {
     | '/api/category/as-template'
     | '/api/category/cuisine-types'
     | '/api/category/from-templates'
+    | '/api/crm/details'
+    | '/api/crm/stats'
     | '/api/inventory/bulk'
     | '/api/orders/actions'
     | '/api/orders/order-history'
@@ -492,6 +536,7 @@ export interface FileRouteTypes {
     | '/'
     | '/affiliate'
     | '/book-table'
+    | '/crm'
     | '/dashboard'
     | '/login'
     | '/menu'
@@ -500,6 +545,7 @@ export interface FileRouteTypes {
     | '/quick-bill'
     | '/api/addons'
     | '/api/category'
+    | '/api/crm'
     | '/api/dashboard'
     | '/api/imagekit'
     | '/api/inventory'
@@ -519,6 +565,8 @@ export interface FileRouteTypes {
     | '/api/category/as-template'
     | '/api/category/cuisine-types'
     | '/api/category/from-templates'
+    | '/api/crm/details'
+    | '/api/crm/stats'
     | '/api/inventory/bulk'
     | '/api/orders/actions'
     | '/api/orders/order-history'
@@ -537,6 +585,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AffiliateRoute: typeof AffiliateRoute
   BookTableRoute: typeof BookTableRoute
+  CrmRoute: typeof CrmRoute
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   MenuRoute: typeof MenuRoute
@@ -545,6 +594,7 @@ export interface RootRouteChildren {
   QuickBillRoute: typeof QuickBillRoute
   ApiAddonsRoute: typeof ApiAddonsRoute
   ApiCategoryRoute: typeof ApiCategoryRouteWithChildren
+  ApiCrmRoute: typeof ApiCrmRouteWithChildren
   ApiDashboardRoute: typeof ApiDashboardRoute
   ApiImagekitRoute: typeof ApiImagekitRoute
   ApiInventoryRoute: typeof ApiInventoryRouteWithChildren
@@ -613,6 +663,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crm': {
+      id: '/crm'
+      path: '/crm'
+      fullPath: '/crm'
+      preLoaderRoute: typeof CrmRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/book-table': {
@@ -713,6 +770,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/crm': {
+      id: '/api/crm'
+      path: '/api/crm'
+      fullPath: '/api/crm'
+      preLoaderRoute: typeof ApiCrmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/category': {
       id: '/api/category'
       path: '/api/category'
@@ -775,6 +839,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/inventory/bulk'
       preLoaderRoute: typeof ApiInventoryBulkRouteImport
       parentRoute: typeof ApiInventoryRoute
+    }
+    '/api/crm/stats': {
+      id: '/api/crm/stats'
+      path: '/stats'
+      fullPath: '/api/crm/stats'
+      preLoaderRoute: typeof ApiCrmStatsRouteImport
+      parentRoute: typeof ApiCrmRoute
+    }
+    '/api/crm/details': {
+      id: '/api/crm/details'
+      path: '/details'
+      fullPath: '/api/crm/details'
+      preLoaderRoute: typeof ApiCrmDetailsRouteImport
+      parentRoute: typeof ApiCrmRoute
     }
     '/api/category/from-templates': {
       id: '/api/category/from-templates'
@@ -888,6 +966,19 @@ const ApiCategoryRouteWithChildren = ApiCategoryRoute._addFileChildren(
   ApiCategoryRouteChildren,
 )
 
+interface ApiCrmRouteChildren {
+  ApiCrmDetailsRoute: typeof ApiCrmDetailsRoute
+  ApiCrmStatsRoute: typeof ApiCrmStatsRoute
+}
+
+const ApiCrmRouteChildren: ApiCrmRouteChildren = {
+  ApiCrmDetailsRoute: ApiCrmDetailsRoute,
+  ApiCrmStatsRoute: ApiCrmStatsRoute,
+}
+
+const ApiCrmRouteWithChildren =
+  ApiCrmRoute._addFileChildren(ApiCrmRouteChildren)
+
 interface ApiInventoryRouteChildren {
   ApiInventoryBulkRoute: typeof ApiInventoryBulkRoute
 }
@@ -918,6 +1009,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AffiliateRoute: AffiliateRoute,
   BookTableRoute: BookTableRoute,
+  CrmRoute: CrmRoute,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   MenuRoute: MenuRoute,
@@ -926,6 +1018,7 @@ const rootRouteChildren: RootRouteChildren = {
   QuickBillRoute: QuickBillRoute,
   ApiAddonsRoute: ApiAddonsRoute,
   ApiCategoryRoute: ApiCategoryRouteWithChildren,
+  ApiCrmRoute: ApiCrmRouteWithChildren,
   ApiDashboardRoute: ApiDashboardRoute,
   ApiImagekitRoute: ApiImagekitRoute,
   ApiInventoryRoute: ApiInventoryRouteWithChildren,

@@ -23,6 +23,7 @@ export const Route = createFileRoute('/api/crm/stats')({
 
           const url = new URL(request.url)
           const rid = url.searchParams.get('rid')
+          const timeRange = url.searchParams.get('timeRange')
 
           if (!rid) {
             return new Response(
@@ -36,7 +37,7 @@ export const Route = createFileRoute('/api/crm/stats')({
           }
 
           const response = await axiosInstance.get('/admin/crm/stats', {
-            params: { rid },
+            params: { rid, timeRange },
             headers: {
               Authorization: `Bearer ${accessToken}`,
             },

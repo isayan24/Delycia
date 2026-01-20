@@ -36,12 +36,6 @@ export interface CategoryRevenueData {
   orderCount: number
 }
 
-export interface PaymentMethodData {
-  type: string
-  count: number
-  totalAmount: number
-}
-
 export interface DeliveryTypeData {
   type: string
   count: number
@@ -54,7 +48,7 @@ export interface DashboardData {
   orderStatus: OrderStatusData[]
   topItems: TopSellingItem[]
   categoryRevenue: CategoryRevenueData[]
-  paymentMethods: PaymentMethodData[]
+
   deliveryTypes: DeliveryTypeData[]
 }
 
@@ -69,4 +63,21 @@ export interface UseDashboardDataReturn {
   loading: boolean
   error: string | null
   refetch: () => Promise<void>
+}
+
+export interface LoyaltyData {
+  customer_segment: 'New' | 'Regular' | 'Loyal' | 'VIP'
+  count: number
+}
+
+export interface ChurnRiskData {
+  user_id: number
+  visit_count: number
+  last_visit_at: string
+  days_since_last_visit: number
+}
+
+export interface RetentionData {
+  avgDaysBetweenVisits: string
+  returningCustomers: number
 }

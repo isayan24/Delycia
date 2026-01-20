@@ -57,35 +57,98 @@ const getRestaurantCustomers = async (rid) => {
   }
 };
 
-const getCRMStats = async (rid) => {
+const getCRMStats = async (rid, timeRange = 'this_month') => {
   if (!rid) return apiResponse.error(400, "Restaurant ID is required");
 
   try {
-    // 1. Total Customers
-    const totalQuery = `SELECT COUNT(DISTINCT user_id) as count FROM user_restaurant_visits WHERE restaurant_id = ?`;
+    let dateCondition = "";
+    let intervalCondition = "";
 
-    // 2. New Customers (This Month)
+    switch (timeRange) {
+      case 'today':
+        dateCondition = "AND DATE(created_at) = CURDATE()";
+        intervalCondition = "AND last_visit_at >= CURDATE()";
+        break;
+      case 'yesterday':
+        dateCondition = "AND DATE(created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)";
+        intervalCondition = "AND last_visit_at >= DATE_SUB(CURDATE(), INTERVAL 1 DAY) AND last_visit_at < CURDATE()";
+        break;
+      case 'this_week':
+        dateCondition = "AND YEARWEEK(created_at, 1) = YEARWEEK(CURDATE(), 1)";
+        intervalCondition = "AND YEARWEEK(last_visit_at, 1) = YEARWEEK(CURDATE(), 1)";
+        break;
+      case 'this_month':
+        dateCondition = "AND created_at >= DATE_FORMAT(NOW(), '%Y-%m-01')";
+        intervalCondition = "AND last_visit_at >= DATE_FORMAT(NOW(), '%Y-%m-01')";
+        break;
+      case 'last_month':
+        dateCondition = "AND created_at >= DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m-01') AND created_at < DATE_FORMAT(NOW(), '%Y-%m-01')";
+        intervalCondition = "AND last_visit_at >= DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m-01') AND last_visit_at < DATE_FORMAT(NOW(), '%Y-%m-01')";
+        break;
+      case 'this_year':
+        dateCondition = "AND YEAR(created_at) = YEAR(CURDATE())";
+        intervalCondition = "AND YEAR(last_visit_at) = YEAR(CURDATE())";
+        break;
+      case 'all_time':
+        dateCondition = "";
+        intervalCondition = "";
+        break;
+      default: // Default to this month if unknown
+        dateCondition = "AND created_at >= DATE_FORMAT(NOW(), '%Y-%m-01')";
+        intervalCondition = "AND last_visit_at >= DATE_FORMAT(NOW(), '%Y-%m-01')";
+    }
+
+    // 1. Total Customers (Always All Time for this specific metric, usually)
+    // But if we want active customers in this period, we could filter. 
+    // Usually "Total Customers" implies database size, but "Active Customers" implies period.
+    // Let's keep Total Customers as All Time for context, or filter it?
+    // The user asked for "control over data". 
+    // Let's filter "Active Customers" in this period for the first card if logical, 
+    // or keep "Total Customers" as all time and add "Active" label.
+    // Given the UI label is "Total Customers", let's keep it as All Time for the base,
+    // OR filter it to show how many customers visited in this period.
+    // Let's go with: How many unique customers visited in this period.
+    const totalQuery = `SELECT COUNT(DISTINCT user_id) as count FROM user_restaurant_visits WHERE restaurant_id = ? ${intervalCondition}`;
+
+    // 2. New Customers (First visit in this period)
     const newQuery = `
       SELECT COUNT(DISTINCT user_id) as count 
       FROM user_restaurant_visits 
       WHERE restaurant_id = ? 
-      AND first_visit_at >= DATE_FORMAT(NOW(), '%Y-%m-01')
+      AND first_visit_at IS NOT NULL
+      ${intervalCondition.replace(/last_visit_at/g, 'first_visit_at')}
     `;
 
-    // 3. Returning Customers
+    // 3. Returning Customers (Visited in this period AND visit_count > 1)
+    // This definition is tricky. A returning customer in "Today" is someone who visited today and has > 1 total visits?
+    // Yes, that makes sense.
     const returningQuery = `
       SELECT COUNT(DISTINCT user_id) as count 
       FROM user_restaurant_visits 
       WHERE restaurant_id = ? 
       AND visit_count > 1
+      ${intervalCondition}
     `;
 
-    // 4. Visit Trends (Last 30 Days)
+    // 4. Visit Trends (Graph)
+    // Adjust graph range based on selection
+    let trendLimitCondition = "";
+    if (timeRange === 'today' || timeRange === 'yesterday') {
+      // Hourly breakdown for day view? Or just one point? Area chart needs points.
+      // Let's Stick to Daily grouping for now, but maybe for Today we should do hourly?
+      // The UI says "Customer Visits Trend (30 Days)". We might need to update that title dynamically or just return what we have.
+      // For simplicity in this iteration, let's keep daily grouping but restrict range.
+      trendLimitCondition = intervalCondition;
+    } else {
+      trendLimitCondition = intervalCondition;
+    }
+
+    // Default trend query (Daily)
     const trendQuery = `
       SELECT DATE(last_visit_at) as date, COUNT(*) as visits
       FROM user_restaurant_visits
       WHERE restaurant_id = ?
-      AND last_visit_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+      ${trendLimitCondition}
       GROUP BY DATE(last_visit_at)
       ORDER BY date ASC
     `;

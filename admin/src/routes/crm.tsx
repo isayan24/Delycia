@@ -6,17 +6,33 @@ import CustomerDetailsSheet from '@/components/admin/crm/CustomerDetailsSheet'
 import { Users } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useState } from 'react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 export const Route = createFileRoute('/crm')({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { customerId?: string } => {
+    return {
+      customerId: (search.customerId as string) || undefined,
+    }
+  },
   component: CRMPage,
 })
 
 function CRMPage() {
   const { user } = useAuth()
   const rid = user?.selected_rid
+  const search = Route.useSearch()
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(
-    null,
+    search.customerId || null,
   )
+  const [timeRange, setTimeRange] = useState('this_month')
 
   const { data: customers = [], isLoading } = useCRMListQuery({
     rid: rid?.toString() || '',
@@ -49,7 +65,26 @@ function CRMPage() {
           </div>
         ) : (
           <>
-            <CRMStats />
+            <div className="mb-6 flex justify-end">
+              <Select
+                value={timeRange}
+                onValueChange={(value: any) => setTimeRange(value)}
+              >
+                <SelectTrigger className="w-[180px] bg-white">
+                  <SelectValue placeholder="Select time range" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="today">Today</SelectItem>
+                  <SelectItem value="yesterday">Yesterday</SelectItem>
+                  <SelectItem value="this_week">This Week</SelectItem>
+                  <SelectItem value="this_month">This Month</SelectItem>
+                  <SelectItem value="last_month">Last Month</SelectItem>
+                  <SelectItem value="this_year">This Year</SelectItem>
+                  <SelectItem value="all_time">All Time</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <CRMStats timeRange={timeRange} />
             <CustomerList
               data={customers}
               isLoading={isLoading}

@@ -40,10 +40,7 @@ const getRecentOrders = async (req, res) => {
   res.status(response.statusCode).json(response);
 };
 
-const getPaymentMethodDistribution = async (req, res) => {
-  const response = await dashboardModel.getPaymentMethodDistribution(req);
-  res.status(response.statusCode).json(response);
-};
+
 
 const getDeliveryTypeDistribution = async (req, res) => {
   const response = await dashboardModel.getDeliveryTypeDistribution(req);
@@ -55,18 +52,8 @@ const getCompleteDashboard = async (req, res) => {
   res.status(response.statusCode).json(response);
 };
 
-const getLoyaltyStats = async (req, res) => {
-  const response = await dashboardModel.getLoyaltyStats(req);
-  res.status(response.statusCode).json(response);
-};
-
-const getChurnRisk = async (req, res) => {
-  const response = await dashboardModel.getChurnRisk(req);
-  res.status(response.statusCode).json(response);
-};
-
-const getRetentionStats = async (req, res) => {
-  const response = await dashboardModel.getRetentionStats(req);
+const getCustomerOrders = async (req, res) => {
+  const response = await dashboardModel.getCustomerOrders(req);
   res.status(response.statusCode).json(response);
 };
 
@@ -79,10 +66,8 @@ export default {
   getInventoryLevels,
   getRevenueByCategory,
   getRecentOrders,
-  getPaymentMethodDistribution,
+  getRecentOrders,
   getDeliveryTypeDistribution,
   getCompleteDashboard,
-  getLoyaltyStats,
-  getChurnRisk,
-  getRetentionStats,
+  getCustomerOrders,
 };

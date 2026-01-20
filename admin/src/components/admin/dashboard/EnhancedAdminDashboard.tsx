@@ -8,7 +8,6 @@ import {
   useOrderStatusQuery,
   useTopItemsQuery,
   useCategoryRevenueQuery,
-  usePaymentMethodsQuery,
   useDeliveryTypesQuery,
   useRefreshDashboard,
 } from '@/hooks/queries/useDashboardQueries'
@@ -19,9 +18,9 @@ import SalesTrendChart from './SalesTrendChart'
 import OrderStatusChart from './OrderStatusChart'
 import TopSellingItems from './TopSellingItems'
 import RevenueByCategoryChart from './RevenueByCategoryChart'
-import PaymentMethodChart from './PaymentMethodChart'
 import DeliveryTypeChart from './DeliveryTypeChart'
 import LoadingScreen from '@/components/common/LoadingScreen'
+import CustomerActivityTable from './CustomerInsights'
 
 interface EnhancedAdminDashboardProps {
   rid: string
@@ -84,7 +83,6 @@ export const EnhancedAdminDashboard: React.FC<EnhancedAdminDashboardProps> = ({
   const orderStatusQuery = useOrderStatusQuery(queryParams)
   const topItemsQuery = useTopItemsQuery(queryParams)
   const categoryRevenueQuery = useCategoryRevenueQuery(queryParams)
-  const paymentMethodsQuery = usePaymentMethodsQuery(queryParams)
   const deliveryTypesQuery = useDeliveryTypesQuery(queryParams)
 
   // Aggregate loading and error states
@@ -94,7 +92,6 @@ export const EnhancedAdminDashboard: React.FC<EnhancedAdminDashboardProps> = ({
     orderStatusQuery.isLoading ||
     topItemsQuery.isLoading ||
     categoryRevenueQuery.isLoading ||
-    paymentMethodsQuery.isLoading ||
     deliveryTypesQuery.isLoading
 
   const hasError = !!(statsQuery.error || salesTrendQuery.error)
@@ -213,29 +210,26 @@ export const EnhancedAdminDashboard: React.FC<EnhancedAdminDashboardProps> = ({
           />
         </div>
 
-        {/* Bottom Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Payment Methods */}
-          <PaymentMethodChart
-            data={paymentMethodsQuery.data || null}
-            loading={paymentMethodsQuery.isLoading}
-            error={
-              paymentMethodsQuery.error
-                ? 'Failed to load payment methods'
-                : null
-            }
-            onRetry={handleRefresh}
-          />
+        {/* Bottom Row: Customer Activity & Delivery Types */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Customer Activity - Takes up 2/3 space */}
+          <div className="lg:col-span-2">
+            <CustomerActivityTable rid={rid} />
+          </div>
 
-          {/* Delivery Types */}
-          <DeliveryTypeChart
-            data={deliveryTypesQuery.data || null}
-            loading={deliveryTypesQuery.isLoading}
-            error={
-              deliveryTypesQuery.error ? 'Failed to load delivery types' : null
-            }
-            onRetry={handleRefresh}
-          />
+          {/* Delivery Types - Takes up 1/3 space */}
+          <div className="lg:col-span-1">
+            <DeliveryTypeChart
+              data={deliveryTypesQuery.data || null}
+              loading={deliveryTypesQuery.isLoading}
+              error={
+                deliveryTypesQuery.error
+                  ? 'Failed to load delivery types'
+                  : null
+              }
+              onRetry={handleRefresh}
+            />
+          </div>
         </div>
 
         {/* Global Error State */}

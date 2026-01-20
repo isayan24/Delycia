@@ -7,24 +7,8 @@ import type {
   OrderStatusData,
   TopSellingItem,
   CategoryRevenueData,
-  PaymentMethodData,
   DeliveryTypeData,
-  LoyaltyData,
-  ChurnRiskData,
-  RetentionData,
 } from '@/types/dashboard.types'
-
-interface LoyaltyResponse {
-  loyalty: LoyaltyData[]
-}
-
-interface ChurnRiskResponse {
-  churnRisk: ChurnRiskData[]
-}
-
-interface RetentionResponse {
-  retention: RetentionData
-}
 
 // ============================================
 // Type Definitions
@@ -54,10 +38,6 @@ interface TopItemsResponse {
 
 interface CategoryRevenueResponse {
   categoryRevenue: CategoryRevenueData[]
-}
-
-interface PaymentMethodsResponse {
-  paymentMethods: PaymentMethodData[]
 }
 
 interface DeliveryTypesResponse {
@@ -119,14 +99,6 @@ const transformCategoryRevenueData = (
     categoryName: item.categoryName || '',
     totalRevenue: Number(item.totalRevenue || 0),
     orderCount: Number(item.orderCount || 0),
-  }))
-}
-
-const transformPaymentMethodData = (apiData: any[]): PaymentMethodData[] => {
-  return (apiData || []).map((item) => ({
-    type: item.method || '',
-    count: Number(item.count || 0),
-    totalAmount: Number(item.totalAmount || 0),
   }))
 }
 
@@ -256,26 +228,6 @@ export function useCategoryRevenueQuery(params: DashboardQueryParams) {
 /**
  * Fetch payment method distribution
  */
-export function usePaymentMethodsQuery(params: DashboardQueryParams) {
-  return useQuery({
-    queryKey: queryKeys.dashboard.paymentMethods(params),
-    queryFn: async (): Promise<PaymentMethodData[]> => {
-      if (!params.rid) throw new Error('Restaurant ID is required')
-
-      const response = await axios.get<PaymentMethodsResponse>(
-        '/api/dashboard',
-        {
-          params: { ...params, endpoint: 'payment-methods' },
-        },
-      )
-
-      return transformPaymentMethodData(response.data.paymentMethods)
-    },
-    enabled: !!params.rid,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
-  })
-}
 
 /**
  * Fetch delivery types distribution
@@ -305,60 +257,57 @@ export function useDeliveryTypesQuery(params: DashboardQueryParams) {
 // Customer Insights Hooks
 // ============================================
 
-/**
- * Fetch customer loyalty segmentation
- */
-export function useCustomerLoyaltyQuery(params: { rid: string }) {
-  return useQuery({
-    queryKey: queryKeys.dashboard.loyalty(params),
-    queryFn: async (): Promise<LoyaltyData[]> => {
-      if (!params.rid) throw new Error('Restaurant ID is required')
-
-      const response = await axios.get<LoyaltyResponse>('/api/dashboard', {
-        params: { ...params, endpoint: 'loyalty' },
-      })
-
-      return response.data.loyalty
-    },
-    enabled: !!params.rid,
-    staleTime: 5 * 60 * 1000,
-  })
+export interface CustomerOrderData {
+  userId: number
+  customerName: string
+  phoneNumber: string
+  totalOrders: number
+  totalSpent: number
+  lastOrderDate: string
+  topItems: string
 }
 
-/**
- * Fetch at-risk customers (churn risk)
- */
-export function useChurnRiskQuery(params: { rid: string }) {
-  return useQuery({
-    queryKey: queryKeys.dashboard.churnRisk(params),
-    queryFn: async (): Promise<ChurnRiskData[]> => {
-      if (!params.rid) throw new Error('Restaurant ID is required')
-
-      const response = await axios.get<ChurnRiskResponse>('/api/dashboard', {
-        params: { ...params, endpoint: 'churn-risk' },
-      })
-
-      return response.data.churnRisk
-    },
-    enabled: !!params.rid,
-    staleTime: 5 * 60 * 1000,
-  })
+interface CustomerOrdersResponse {
+  customerOrders: CustomerOrderData[]
 }
 
+// ============================================
+// Data Transformation Helpers
+// ============================================
+
+const transformCustomerOrdersData = (apiData: any[]): CustomerOrderData[] => {
+  return (apiData || []).map((item) => ({
+    userId: Number(item.userId || 0),
+    customerName: item.customerName || '',
+    phoneNumber: item.phoneNumber || '',
+    totalOrders: Number(item.totalOrders || 0),
+    totalSpent: Number(item.totalSpent || 0),
+    lastOrderDate: item.lastOrderDate || '',
+    topItems: item.topItems || '',
+  }))
+}
+
+// ============================================
+// Query Hooks
+// ============================================
+
 /**
- * Fetch retention metrics
+ * Fetch customer orders activity
  */
-export function useRetentionQuery(params: { rid: string }) {
+export function useCustomerOrdersQuery(params: DashboardQueryParams) {
   return useQuery({
-    queryKey: queryKeys.dashboard.retention(params),
-    queryFn: async (): Promise<RetentionData> => {
+    queryKey: queryKeys.dashboard.customerOrders(params),
+    queryFn: async (): Promise<CustomerOrderData[]> => {
       if (!params.rid) throw new Error('Restaurant ID is required')
 
-      const response = await axios.get<RetentionResponse>('/api/dashboard', {
-        params: { ...params, endpoint: 'retention' },
-      })
+      const response = await axios.get<CustomerOrdersResponse>(
+        '/api/dashboard',
+        {
+          params: { ...params, endpoint: 'customer-orders' },
+        },
+      )
 
-      return response.data.retention
+      return transformCustomerOrdersData(response.data.customerOrders)
     },
     enabled: !!params.rid,
     staleTime: 5 * 60 * 1000,

@@ -67,7 +67,7 @@ export function useCRMListQuery(params: { rid: string }) {
   })
 }
 
-export function useCRMStatsQuery(params: { rid: string }) {
+export function useCRMStatsQuery(params: { rid: string; timeRange?: string }) {
   return useQuery({
     queryKey: queryKeys.crm.stats(params),
     queryFn: async (): Promise<CRMStats> => {

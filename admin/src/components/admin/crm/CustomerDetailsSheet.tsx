@@ -12,7 +12,13 @@ import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { formatISTDateTime } from '../order-history/utils/historyDateUtils'
-import { ShoppingBag, Calendar, CreditCard } from 'lucide-react'
+import {
+  ShoppingBag,
+  Calendar,
+  CheckCircle2,
+  XCircle,
+  Package,
+} from 'lucide-react'
 
 interface CustomerDetailsSheetProps {
   customerId: string | null
@@ -39,9 +45,19 @@ export default function CustomerDetailsSheet({
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
         {isLoading ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
+          <>
+            <SheetHeader>
+              <SheetTitle className="sr-only">
+                Loading Customer Details
+              </SheetTitle>
+              <SheetDescription className="sr-only">
+                Fetching customer information...
+              </SheetDescription>
+            </SheetHeader>
+            <div className="flex items-center justify-center h-full">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          </>
         ) : profile ? (
           <div className="space-y-6">
             <SheetHeader className="flex flex-row items-start gap-4 space-y-0">
@@ -75,45 +91,75 @@ export default function CustomerDetailsSheet({
 
             <Separator />
 
-            <div>
+            <div className="pl-4">
               <h3 className="text-sm font-medium mb-4 flex items-center gap-2">
                 <ShoppingBag className="w-4 h-4" />
                 Order History
               </h3>
-              <ScrollArea className="h-[60vh] pr-4">
-                <div className="space-y-6">
-                  {details?.history?.map((order) => (
-                    <div
-                      key={order.order_id}
-                      className="relative pl-6 pb-6 border-l last:border-0 border-gray-200"
-                    >
-                      <div className="absolute left-[-5px] top-0 h-2.5 w-2.5 rounded-full bg-gray-300 ring-4 ring-white" />
+              <ScrollArea className="h-[calc(100vh-13rem)] pr-4">
+                <div className="space-y-2">
+                  {details?.history?.map((order) => {
+                    const isCompleted = order.order_status === 'completed'
+                    const isCancelled = order.order_status === 'cancelled'
 
-                      <div className="flex justify-between items-start mb-1">
-                        <div className="text-sm font-medium">
-                          Order #{order.order_id}
+                    return (
+                      <div
+                        key={order.order_id}
+                        className="relative pl-8 pb-8 border-l last:border-0 border-gray-100 ml-2"
+                      >
+                        <div
+                          className={`absolute left-[-5px] top-1 h-2.5 w-2.5 rounded-full ring-4 ring-white ${
+                            isCompleted
+                              ? 'bg-green-500'
+                              : isCancelled
+                                ? 'bg-red-500'
+                                : 'bg-gray-300'
+                          }`}
+                        />
+
+                        <div className="flex flex-col gap-3">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <div className="text-base font-semibold text-gray-900">
+                                Order #{order.order_id}
+                              </div>
+                              <div className="text-xs text-gray-500 flex items-center gap-1.5 mt-1">
+                                <Calendar className="w-3.5 h-3.5" />
+                                {formatISTDateTime(order.created_at)}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-base font-bold text-gray-900">
+                                ₹{order.total_amount}
+                              </div>
+                              <div
+                                className={`flex items-center justify-end gap-1.5 mt-1 text-xs font-medium capitalize ${
+                                  isCompleted
+                                    ? 'text-green-600'
+                                    : isCancelled
+                                      ? 'text-red-600'
+                                      : 'text-gray-600'
+                                }`}
+                              >
+                                {isCompleted ? (
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                ) : isCancelled ? (
+                                  <XCircle className="w-3.5 h-3.5" />
+                                ) : (
+                                  <Package className="w-3.5 h-3.5" />
+                                )}
+                                {order.order_status}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="text-sm text-gray-700 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            {order.items}
+                          </div>
                         </div>
-                        <div className="text-sm font-bold">
-                          ₹{order.total_amount}
-                        </div>
                       </div>
-
-                      <div className="text-xs text-muted-foreground mb-2 flex gap-3">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {formatISTDateTime(order.created_at)}
-                        </span>
-                        <span className="flex items-center gap-1 capitalize">
-                          <CreditCard className="w-3 h-3" />
-                          {order.order_status}
-                        </span>
-                      </div>
-
-                      <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                        {order.items}
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </ScrollArea>
             </div>

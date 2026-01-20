@@ -12,12 +12,17 @@ import {
   CartesianGrid,
 } from 'recharts'
 
-export default function CRMStats() {
+interface CRMStatsProps {
+  timeRange: string
+}
+
+export default function CRMStats({ timeRange }: CRMStatsProps) {
   const { user } = useAuth()
   const rid = user?.selected_rid
 
   const { data: stats, isLoading } = useCRMStatsQuery({
     rid: rid?.toString() || '',
+    timeRange,
   })
 
   if (isLoading || !stats) {

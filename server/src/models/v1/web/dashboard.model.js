@@ -415,57 +415,7 @@ const getRecentOrders = async (req) => {
   }
 };
 
-const getPaymentMethodDistribution = async (req) => {
-  const { rid, startDate, endDate } = req.query || {};
 
-  if (!rid) {
-    return apiResponse.error(400, "Restaurant ID (rid) is required");
-  }
-
-  try {
-    const dateFilter =
-      startDate && endDate
-        ? `AND DATE(created_at) >= ${pool.escape(
-          startDate
-        )} AND DATE(created_at) <= ${pool.escape(endDate)}`
-        : "";
-
-    const paymentMethodQuery = `
-      SELECT 
-        payment_method,
-        COUNT(*) as count,
-        SUM(total_amount) as total_amount
-      FROM orders 
-      WHERE rid = ${pool.escape(rid)} 
-        AND order_status = 'completed'
-        ${dateFilter}
-      GROUP BY payment_method
-      ORDER BY count DESC
-    `;
-
-    const [result] = await pool.query(paymentMethodQuery);
-
-    const paymentMethods = result.map((row) => ({
-      method: row.payment_method,
-      count: parseInt(row.count || 0),
-      totalAmount: parseFloat(row.total_amount || 0),
-    }));
-
-    return apiResponse.success(
-      200,
-      "Payment method distribution fetched successfully",
-      {
-        paymentMethods,
-        dateRange: {
-          startDate: startDate || null,
-          endDate: endDate || null,
-        },
-      }
-    );
-  } catch (error) {
-    return apiResponse.error(500, error.message);
-  }
-};
 
 const getDeliveryTypeDistribution = async (req) => {
   const { rid, startDate, endDate } = req.query || {};
@@ -585,7 +535,7 @@ const getCompleteDashboard = async (req) => {
       getInventoryLevels(req),
       getRevenueByCategory(req),
       getRecentOrders(req),
-      getPaymentMethodDistribution(req),
+      getRecentOrders(req),
       getDeliveryTypeDistribution(req),
     ]);
 
@@ -598,7 +548,6 @@ const getCompleteDashboard = async (req) => {
       inventoryResponse,
       categoryRevenueResponse,
       recentOrdersResponse,
-      paymentMethodsResponse,
       deliveryTypesResponse,
     ];
 
@@ -619,7 +568,7 @@ const getCompleteDashboard = async (req) => {
         inventory: inventoryResponse.data,
         categoryRevenue: categoryRevenueResponse.data.categoryRevenue,
         recentOrders: recentOrdersResponse.data.recentOrders,
-        paymentMethods: paymentMethodsResponse.data.paymentMethods,
+        recentOrders: recentOrdersResponse.data.recentOrders,
         deliveryTypes: deliveryTypesResponse.data.deliveryTypes,
         dateRange: {
           startDate: startDate || null,
@@ -632,104 +581,58 @@ const getCompleteDashboard = async (req) => {
   }
 };
 
-const getLoyaltyStats = async (req) => {
-  const { rid } = req.query || {};
+const getCustomerOrders = async (req) => {
+  const { rid, startDate, endDate } = req.query || {};
 
   if (!rid) {
     return apiResponse.error(400, "Restaurant ID (rid) is required");
   }
 
   try {
-    const loyaltyQuery = `
+    const dateFilter =
+      startDate && endDate
+        ? `AND DATE(o.created_at) >= ${pool.escape(
+          startDate
+        )} AND DATE(o.created_at) <= ${pool.escape(endDate)}`
+        : "";
+
+    // Query to get aggregated customer order stats within the date range
+    const query = `
       SELECT 
-        CASE 
-          WHEN visit_count = 1 THEN 'New'
-          WHEN visit_count BETWEEN 2 AND 5 THEN 'Regular'
-          WHEN visit_count BETWEEN 6 AND 10 THEN 'Loyal'
-          ELSE 'VIP'
-        END as customer_segment,
-        COUNT(*) as count
-      FROM user_restaurant_visits
-      WHERE restaurant_id = ${pool.escape(rid)}
-      GROUP BY customer_segment
+        u.id as user_id,
+        u.name as customer_name,
+        u.phone_number,
+        COUNT(DISTINCT o.cart_id) as total_orders,
+        SUM(o.total_amount) as total_spent,
+        MAX(o.created_at) as last_order_date,
+        SUBSTRING_INDEX(GROUP_CONCAT(DISTINCT i.name ORDER BY o.created_at DESC SEPARATOR ', '), ', ', 5) as top_items
+      FROM orders o
+      JOIN users u ON o.customer_id = u.id
+      LEFT JOIN inventories i ON o.item_id = i.id
+      WHERE o.rid = ${pool.escape(rid)}
+        AND o.order_status = 'completed'
+        ${dateFilter}
+      GROUP BY u.id
+      ORDER BY total_spent DESC
+      LIMIT 50
     `;
 
-    const [loyaltyResult] = await pool.query(loyaltyQuery);
+    const [result] = await pool.query(query);
+
+    const customerOrders = result.map((row) => ({
+      userId: row.user_id,
+      customerName: row.customer_name,
+      phoneNumber: row.phone_number,
+      totalOrders: parseInt(row.total_orders || 0),
+      totalSpent: parseFloat(row.total_spent || 0),
+      lastOrderDate: row.last_order_date,
+      topItems: row.top_items
+    }));
 
     return apiResponse.success(
       200,
-      "Loyalty stats fetched successfully",
-      { loyalty: loyaltyResult }
-    );
-  } catch (error) {
-    return apiResponse.error(500, error.message);
-  }
-};
-
-const getChurnRisk = async (req) => {
-  const { rid } = req.query || {};
-
-  if (!rid) {
-    return apiResponse.error(400, "Restaurant ID (rid) is required");
-  }
-
-  try {
-    const churnQuery = `
-      SELECT 
-        user_id,
-        visit_count,
-        last_visit_at,
-        DATEDIFF(NOW(), last_visit_at) as days_since_last_visit
-      FROM user_restaurant_visits
-      WHERE restaurant_id = ${pool.escape(rid)}
-        AND visit_count > 3
-        AND last_visit_at < DATE_SUB(NOW(), INTERVAL 30 DAY)
-      ORDER BY visit_count DESC
-      LIMIT 10
-    `;
-
-    const [churnResult] = await pool.query(churnQuery);
-
-    return apiResponse.success(
-      200,
-      "Churn risk data fetched successfully",
-      { churnRisk: churnResult }
-    );
-  } catch (error) {
-    return apiResponse.error(500, error.message);
-  }
-};
-
-const getRetentionStats = async (req) => {
-  const { rid } = req.query || {};
-
-  if (!rid) {
-    return apiResponse.error(400, "Restaurant ID (rid) is required");
-  }
-
-  try {
-    const retentionQuery = `
-      SELECT 
-        AVG(
-          DATEDIFF(last_visit_at, first_visit_at) / NULLIF(visit_count - 1, 0)
-        ) as avg_days_between_visits,
-        COUNT(*) as returning_customers
-      FROM user_restaurant_visits
-      WHERE restaurant_id = ${pool.escape(rid)}
-        AND visit_count > 1
-    `;
-
-    const [retentionResult] = await pool.query(retentionQuery);
-
-    return apiResponse.success(
-      200,
-      "Retention stats fetched successfully",
-      {
-        retention: {
-          avgDaysBetweenVisits: parseFloat(retentionResult[0].avg_days_between_visits || 0).toFixed(1),
-          returningCustomers: retentionResult[0].returning_customers
-        }
-      }
+      "Customer orders fetched successfully",
+      { customerOrders }
     );
   } catch (error) {
     return apiResponse.error(500, error.message);
@@ -744,11 +647,9 @@ export default {
   getInventoryLevels,
   getRevenueByCategory,
   getRecentOrders,
-  getPaymentMethodDistribution,
+  getRecentOrders,
   getDeliveryTypeDistribution,
   getDashboardOverview,
   getCompleteDashboard,
-  getLoyaltyStats,
-  getChurnRisk,
-  getRetentionStats,
+  getCustomerOrders,
 };

@@ -13,13 +13,12 @@ const getRestaurantCustomers = async (req, res) => {
 
 
 const getCRMStats = async (req, res) => {
-  const { rid } = req.query;
+  const { rid, timeRange } = req.query;
 
   if (!rid) {
     return res.status(400).json({ status: false, message: "Restaurant ID is required" });
   }
-
-  const response = await crmModel.getCRMStats(rid);
+  const response = await crmModel.getCRMStats(rid, timeRange);
   res.status(response.statusCode).json(response);
 };
 

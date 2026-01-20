@@ -47,11 +47,7 @@ router.get(
   dashboardController.getRecentOrders
 );
 
-router.get(
-  "/payment-methods",
-  authMiddleware,
-  dashboardController.getPaymentMethodDistribution
-);
+
 
 router.get(
   "/delivery-types",
@@ -60,21 +56,9 @@ router.get(
 );
 
 router.get(
-  "/loyalty",
+  "/customer-orders",
   authMiddleware,
-  dashboardController.getLoyaltyStats
-);
-
-router.get(
-  "/churn-risk",
-  authMiddleware,
-  dashboardController.getChurnRisk
-);
-
-router.get(
-  "/retention",
-  authMiddleware,
-  dashboardController.getRetentionStats
+  dashboardController.getCustomerOrders
 );
 
 export default router;

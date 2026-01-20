@@ -74,16 +74,17 @@ export const queryKeys = {
       startDate?: string
       endDate?: string
     }) => [...queryKeys.dashboard.all, 'category-revenue', filters] as const,
-    paymentMethods: (filters: {
-      rid: string
-      startDate?: string
-      endDate?: string
-    }) => [...queryKeys.dashboard.all, 'payment-methods', filters] as const,
+
     deliveryTypes: (filters: {
       rid: string
       startDate?: string
       endDate?: string
     }) => [...queryKeys.dashboard.all, 'delivery-types', filters] as const,
+    customerOrders: (filters: {
+      rid: string
+      startDate?: string
+      endDate?: string
+    }) => [...queryKeys.dashboard.all, 'customer-orders', filters] as const,
   },
 
   // Users
@@ -93,5 +94,15 @@ export const queryKeys = {
     list: (rid: string) => [...queryKeys.users.lists(), rid] as const,
     detail: (id: string) => [...queryKeys.users.all, 'detail', id] as const,
     current: () => [...queryKeys.users.all, 'current'] as const,
+  },
+  // CRM
+  crm: {
+    all: ['crm'] as const,
+    list: (filters: { rid: string }) =>
+      [...queryKeys.crm.all, 'list', filters] as const,
+    stats: (params: { rid: string }) =>
+      [...queryKeys.crm.all, 'stats', params] as const,
+    details: (params: { rid: string; customerId: string | null }) =>
+      [...queryKeys.crm.all, 'details', params] as const,
   },
 }
