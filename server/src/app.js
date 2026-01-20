@@ -37,10 +37,13 @@ import adminRestaurantsRoutes from "./routes/v1/admin/restaurants.routes.js";
 import adminTablesRoutes from "./routes/v1/admin/tables.routes.js";
 import adminDashboardRoutes from "./routes/v1/admin/dashboard.routes.js";
 import adminAddonsRoutes from "./routes/v1/admin/addons.routes.js";
+import adminCrmRoutes from "./routes/v1/admin/crm.routes.js";
 // System routes
 import systemDataRoutes from "./routes/v1/system/data.routes.js";
-import systemEmbeddingRoutes from "./routes/v1/system/embedding.routes.js";
-import cronJobs from "./routes/v1/system/crons.routes.js";
+
+// ...
+
+// ...
 const app = express();
 //Creating HTTP server using express app
 const server = createServer(app);
@@ -146,9 +149,12 @@ app.use("/api/v1/admin/restaurants", adminRestaurantsRoutes);
 app.use("/api/v1/admin/tables", adminTablesRoutes);
 app.use("/api/v1/admin/dashboard", adminDashboardRoutes);
 app.use("/api/v1/admin/addons", adminAddonsRoutes);
+app.use("/api/v1/admin/crm", adminCrmRoutes);
 
 //System routes
 app.use("/api/v1/system/upsells", systemDataRoutes);
+import systemEmbeddingRoutes from "./routes/v1/system/embedding.routes.js";
+import cronJobs from "./routes/v1/system/crons.routes.js";
 app.use("/api/v1/system/embedding", systemEmbeddingRoutes);
 app.use("/api/v1/system/cronJobs", cronJobs);
 

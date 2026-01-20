@@ -59,4 +59,22 @@ router.get(
   dashboardController.getDeliveryTypeDistribution
 );
 
+router.get(
+  "/loyalty",
+  authMiddleware,
+  dashboardController.getLoyaltyStats
+);
+
+router.get(
+  "/churn-risk",
+  authMiddleware,
+  dashboardController.getChurnRisk
+);
+
+router.get(
+  "/retention",
+  authMiddleware,
+  dashboardController.getRetentionStats
+);
+
 export default router;

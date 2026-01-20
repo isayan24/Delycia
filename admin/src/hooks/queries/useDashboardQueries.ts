@@ -9,7 +9,22 @@ import type {
   CategoryRevenueData,
   PaymentMethodData,
   DeliveryTypeData,
+  LoyaltyData,
+  ChurnRiskData,
+  RetentionData,
 } from '@/types/dashboard.types'
+
+interface LoyaltyResponse {
+  loyalty: LoyaltyData[]
+}
+
+interface ChurnRiskResponse {
+  churnRisk: ChurnRiskData[]
+}
+
+interface RetentionResponse {
+  retention: RetentionData
+}
 
 // ============================================
 // Type Definitions
@@ -283,6 +298,70 @@ export function useDeliveryTypesQuery(params: DashboardQueryParams) {
     enabled: !!params.rid,
     staleTime: 5 * 60 * 1000,
     gcTime: 5 * 60 * 1000,
+  })
+}
+
+// ============================================
+// Customer Insights Hooks
+// ============================================
+
+/**
+ * Fetch customer loyalty segmentation
+ */
+export function useCustomerLoyaltyQuery(params: { rid: string }) {
+  return useQuery({
+    queryKey: queryKeys.dashboard.loyalty(params),
+    queryFn: async (): Promise<LoyaltyData[]> => {
+      if (!params.rid) throw new Error('Restaurant ID is required')
+
+      const response = await axios.get<LoyaltyResponse>('/api/dashboard', {
+        params: { ...params, endpoint: 'loyalty' },
+      })
+
+      return response.data.loyalty
+    },
+    enabled: !!params.rid,
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+/**
+ * Fetch at-risk customers (churn risk)
+ */
+export function useChurnRiskQuery(params: { rid: string }) {
+  return useQuery({
+    queryKey: queryKeys.dashboard.churnRisk(params),
+    queryFn: async (): Promise<ChurnRiskData[]> => {
+      if (!params.rid) throw new Error('Restaurant ID is required')
+
+      const response = await axios.get<ChurnRiskResponse>('/api/dashboard', {
+        params: { ...params, endpoint: 'churn-risk' },
+      })
+
+      return response.data.churnRisk
+    },
+    enabled: !!params.rid,
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+/**
+ * Fetch retention metrics
+ */
+export function useRetentionQuery(params: { rid: string }) {
+  return useQuery({
+    queryKey: queryKeys.dashboard.retention(params),
+    queryFn: async (): Promise<RetentionData> => {
+      if (!params.rid) throw new Error('Restaurant ID is required')
+
+      const response = await axios.get<RetentionResponse>('/api/dashboard', {
+        params: { ...params, endpoint: 'retention' },
+      })
+
+      return response.data.retention
+    },
+    enabled: !!params.rid,
+    staleTime: 5 * 60 * 1000,
   })
 }
 

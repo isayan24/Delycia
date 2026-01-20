@@ -111,6 +111,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       //   url: "/help-center",
       //   icon: Help,
       // },
+      {
+        title: 'CRM',
+        url: '/crm',
+        icon: User,
+      },
     ],
   }
 

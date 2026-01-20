@@ -55,6 +55,21 @@ const getCompleteDashboard = async (req, res) => {
   res.status(response.statusCode).json(response);
 };
 
+const getLoyaltyStats = async (req, res) => {
+  const response = await dashboardModel.getLoyaltyStats(req);
+  res.status(response.statusCode).json(response);
+};
+
+const getChurnRisk = async (req, res) => {
+  const response = await dashboardModel.getChurnRisk(req);
+  res.status(response.statusCode).json(response);
+};
+
+const getRetentionStats = async (req, res) => {
+  const response = await dashboardModel.getRetentionStats(req);
+  res.status(response.statusCode).json(response);
+};
+
 export default {
   getDashboardOverview,
   getDashboardStats,
@@ -67,4 +82,7 @@ export default {
   getPaymentMethodDistribution,
   getDeliveryTypeDistribution,
   getCompleteDashboard,
+  getLoyaltyStats,
+  getChurnRisk,
+  getRetentionStats,
 };
