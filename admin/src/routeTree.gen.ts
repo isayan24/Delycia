@@ -9,19 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as QuickBillRouteImport } from './routes/quick-bill'
-import { Route as OrdersRouteImport } from './routes/orders'
-import { Route as OrderHistoryRouteImport } from './routes/order-history'
 import { Route as MenuRouteImport } from './routes/menu'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CrmRouteImport } from './routes/crm'
-import { Route as BookTableRouteImport } from './routes/book-table'
 import { Route as AffiliateRouteImport } from './routes/affiliate'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UsersIndexRouteImport } from './routes/users/index'
+import { Route as ReportsIndexRouteImport } from './routes/reports/index'
+import { Route as OrdersIndexRouteImport } from './routes/orders/index'
+import { Route as BillingIndexRouteImport } from './routes/billing/index'
 import { Route as ReportsSalesRouteImport } from './routes/reports/sales'
 import { Route as ReportsInventoryRouteImport } from './routes/reports/inventory'
+import { Route as OrdersOverviewRouteImport } from './routes/orders/overview'
+import { Route as OrdersHistoryRouteImport } from './routes/orders/history'
+import { Route as BillingQuickBillRouteImport } from './routes/billing/quick-bill'
+import { Route as BillingBookTableRouteImport } from './routes/billing/book-table'
 import { Route as ApiWsTokenRouteImport } from './routes/api/ws-token'
 import { Route as ApiWaiterOrdersRouteImport } from './routes/api/waiter-orders'
 import { Route as ApiUsersRouteImport } from './routes/api/users'
@@ -58,21 +61,6 @@ import { Route as DemoStartSsrFullSsrRouteImport } from './routes/demo/start.ssr
 import { Route as DemoStartSsrDataOnlyRouteImport } from './routes/demo/start.ssr.data-only'
 import { Route as ApiCategoryTemplatesCuisineRouteImport } from './routes/api/category/templates/$cuisine'
 
-const QuickBillRoute = QuickBillRouteImport.update({
-  id: '/quick-bill',
-  path: '/quick-bill',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrdersRoute = OrdersRouteImport.update({
-  id: '/orders',
-  path: '/orders',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrderHistoryRoute = OrderHistoryRouteImport.update({
-  id: '/order-history',
-  path: '/order-history',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const MenuRoute = MenuRouteImport.update({
   id: '/menu',
   path: '/menu',
@@ -93,11 +81,6 @@ const CrmRoute = CrmRouteImport.update({
   path: '/crm',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BookTableRoute = BookTableRouteImport.update({
-  id: '/book-table',
-  path: '/book-table',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AffiliateRoute = AffiliateRouteImport.update({
   id: '/affiliate',
   path: '/affiliate',
@@ -113,6 +96,21 @@ const UsersIndexRoute = UsersIndexRouteImport.update({
   path: '/users/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReportsIndexRoute = ReportsIndexRouteImport.update({
+  id: '/reports/',
+  path: '/reports/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersIndexRoute = OrdersIndexRouteImport.update({
+  id: '/orders/',
+  path: '/orders/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BillingIndexRoute = BillingIndexRouteImport.update({
+  id: '/billing/',
+  path: '/billing/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReportsSalesRoute = ReportsSalesRouteImport.update({
   id: '/reports/sales',
   path: '/reports/sales',
@@ -121,6 +119,26 @@ const ReportsSalesRoute = ReportsSalesRouteImport.update({
 const ReportsInventoryRoute = ReportsInventoryRouteImport.update({
   id: '/reports/inventory',
   path: '/reports/inventory',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersOverviewRoute = OrdersOverviewRouteImport.update({
+  id: '/orders/overview',
+  path: '/orders/overview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersHistoryRoute = OrdersHistoryRouteImport.update({
+  id: '/orders/history',
+  path: '/orders/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BillingQuickBillRoute = BillingQuickBillRouteImport.update({
+  id: '/billing/quick-bill',
+  path: '/billing/quick-bill',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BillingBookTableRoute = BillingBookTableRouteImport.update({
+  id: '/billing/book-table',
+  path: '/billing/book-table',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiWsTokenRoute = ApiWsTokenRouteImport.update({
@@ -304,14 +322,10 @@ const ApiCategoryTemplatesCuisineRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/affiliate': typeof AffiliateRoute
-  '/book-table': typeof BookTableRoute
   '/crm': typeof CrmRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/menu': typeof MenuRoute
-  '/order-history': typeof OrderHistoryRoute
-  '/orders': typeof OrdersRoute
-  '/quick-bill': typeof QuickBillRoute
   '/api/addons': typeof ApiAddonsRoute
   '/api/category': typeof ApiCategoryRouteWithChildren
   '/api/crm': typeof ApiCrmRouteWithChildren
@@ -325,8 +339,15 @@ export interface FileRoutesByFullPath {
   '/api/users': typeof ApiUsersRoute
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
   '/api/ws-token': typeof ApiWsTokenRoute
+  '/billing/book-table': typeof BillingBookTableRoute
+  '/billing/quick-bill': typeof BillingQuickBillRoute
+  '/orders/history': typeof OrdersHistoryRoute
+  '/orders/overview': typeof OrdersOverviewRoute
   '/reports/inventory': typeof ReportsInventoryRoute
   '/reports/sales': typeof ReportsSalesRoute
+  '/billing': typeof BillingIndexRoute
+  '/orders': typeof OrdersIndexRoute
+  '/reports': typeof ReportsIndexRoute
   '/users': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -354,14 +375,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/affiliate': typeof AffiliateRoute
-  '/book-table': typeof BookTableRoute
   '/crm': typeof CrmRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/menu': typeof MenuRoute
-  '/order-history': typeof OrderHistoryRoute
-  '/orders': typeof OrdersRoute
-  '/quick-bill': typeof QuickBillRoute
   '/api/addons': typeof ApiAddonsRoute
   '/api/category': typeof ApiCategoryRouteWithChildren
   '/api/crm': typeof ApiCrmRouteWithChildren
@@ -375,8 +392,15 @@ export interface FileRoutesByTo {
   '/api/users': typeof ApiUsersRoute
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
   '/api/ws-token': typeof ApiWsTokenRoute
+  '/billing/book-table': typeof BillingBookTableRoute
+  '/billing/quick-bill': typeof BillingQuickBillRoute
+  '/orders/history': typeof OrdersHistoryRoute
+  '/orders/overview': typeof OrdersOverviewRoute
   '/reports/inventory': typeof ReportsInventoryRoute
   '/reports/sales': typeof ReportsSalesRoute
+  '/billing': typeof BillingIndexRoute
+  '/orders': typeof OrdersIndexRoute
+  '/reports': typeof ReportsIndexRoute
   '/users': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -405,14 +429,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/affiliate': typeof AffiliateRoute
-  '/book-table': typeof BookTableRoute
   '/crm': typeof CrmRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/menu': typeof MenuRoute
-  '/order-history': typeof OrderHistoryRoute
-  '/orders': typeof OrdersRoute
-  '/quick-bill': typeof QuickBillRoute
   '/api/addons': typeof ApiAddonsRoute
   '/api/category': typeof ApiCategoryRouteWithChildren
   '/api/crm': typeof ApiCrmRouteWithChildren
@@ -426,8 +446,15 @@ export interface FileRoutesById {
   '/api/users': typeof ApiUsersRoute
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
   '/api/ws-token': typeof ApiWsTokenRoute
+  '/billing/book-table': typeof BillingBookTableRoute
+  '/billing/quick-bill': typeof BillingQuickBillRoute
+  '/orders/history': typeof OrdersHistoryRoute
+  '/orders/overview': typeof OrdersOverviewRoute
   '/reports/inventory': typeof ReportsInventoryRoute
   '/reports/sales': typeof ReportsSalesRoute
+  '/billing/': typeof BillingIndexRoute
+  '/orders/': typeof OrdersIndexRoute
+  '/reports/': typeof ReportsIndexRoute
   '/users/': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -457,14 +484,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/affiliate'
-    | '/book-table'
     | '/crm'
     | '/dashboard'
     | '/login'
     | '/menu'
-    | '/order-history'
-    | '/orders'
-    | '/quick-bill'
     | '/api/addons'
     | '/api/category'
     | '/api/crm'
@@ -478,8 +501,15 @@ export interface FileRouteTypes {
     | '/api/users'
     | '/api/waiter-orders'
     | '/api/ws-token'
+    | '/billing/book-table'
+    | '/billing/quick-bill'
+    | '/orders/history'
+    | '/orders/overview'
     | '/reports/inventory'
     | '/reports/sales'
+    | '/billing'
+    | '/orders'
+    | '/reports'
     | '/users'
     | '/api/admin/update'
     | '/api/auth/login'
@@ -507,14 +537,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/affiliate'
-    | '/book-table'
     | '/crm'
     | '/dashboard'
     | '/login'
     | '/menu'
-    | '/order-history'
-    | '/orders'
-    | '/quick-bill'
     | '/api/addons'
     | '/api/category'
     | '/api/crm'
@@ -528,8 +554,15 @@ export interface FileRouteTypes {
     | '/api/users'
     | '/api/waiter-orders'
     | '/api/ws-token'
+    | '/billing/book-table'
+    | '/billing/quick-bill'
+    | '/orders/history'
+    | '/orders/overview'
     | '/reports/inventory'
     | '/reports/sales'
+    | '/billing'
+    | '/orders'
+    | '/reports'
     | '/users'
     | '/api/admin/update'
     | '/api/auth/login'
@@ -557,14 +590,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/affiliate'
-    | '/book-table'
     | '/crm'
     | '/dashboard'
     | '/login'
     | '/menu'
-    | '/order-history'
-    | '/orders'
-    | '/quick-bill'
     | '/api/addons'
     | '/api/category'
     | '/api/crm'
@@ -578,8 +607,15 @@ export interface FileRouteTypes {
     | '/api/users'
     | '/api/waiter-orders'
     | '/api/ws-token'
+    | '/billing/book-table'
+    | '/billing/quick-bill'
+    | '/orders/history'
+    | '/orders/overview'
     | '/reports/inventory'
     | '/reports/sales'
+    | '/billing/'
+    | '/orders/'
+    | '/reports/'
     | '/users/'
     | '/api/admin/update'
     | '/api/auth/login'
@@ -608,14 +644,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AffiliateRoute: typeof AffiliateRoute
-  BookTableRoute: typeof BookTableRoute
   CrmRoute: typeof CrmRoute
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   MenuRoute: typeof MenuRoute
-  OrderHistoryRoute: typeof OrderHistoryRoute
-  OrdersRoute: typeof OrdersRoute
-  QuickBillRoute: typeof QuickBillRoute
   ApiAddonsRoute: typeof ApiAddonsRoute
   ApiCategoryRoute: typeof ApiCategoryRouteWithChildren
   ApiCrmRoute: typeof ApiCrmRouteWithChildren
@@ -629,8 +661,15 @@ export interface RootRouteChildren {
   ApiUsersRoute: typeof ApiUsersRoute
   ApiWaiterOrdersRoute: typeof ApiWaiterOrdersRoute
   ApiWsTokenRoute: typeof ApiWsTokenRoute
+  BillingBookTableRoute: typeof BillingBookTableRoute
+  BillingQuickBillRoute: typeof BillingQuickBillRoute
+  OrdersHistoryRoute: typeof OrdersHistoryRoute
+  OrdersOverviewRoute: typeof OrdersOverviewRoute
   ReportsInventoryRoute: typeof ReportsInventoryRoute
   ReportsSalesRoute: typeof ReportsSalesRoute
+  BillingIndexRoute: typeof BillingIndexRoute
+  OrdersIndexRoute: typeof OrdersIndexRoute
+  ReportsIndexRoute: typeof ReportsIndexRoute
   UsersIndexRoute: typeof UsersIndexRoute
   ApiAdminUpdateRoute: typeof ApiAdminUpdateRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
@@ -649,27 +688,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/quick-bill': {
-      id: '/quick-bill'
-      path: '/quick-bill'
-      fullPath: '/quick-bill'
-      preLoaderRoute: typeof QuickBillRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/orders': {
-      id: '/orders'
-      path: '/orders'
-      fullPath: '/orders'
-      preLoaderRoute: typeof OrdersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/order-history': {
-      id: '/order-history'
-      path: '/order-history'
-      fullPath: '/order-history'
-      preLoaderRoute: typeof OrderHistoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/menu': {
       id: '/menu'
       path: '/menu'
@@ -698,13 +716,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CrmRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/book-table': {
-      id: '/book-table'
-      path: '/book-table'
-      fullPath: '/book-table'
-      preLoaderRoute: typeof BookTableRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/affiliate': {
       id: '/affiliate'
       path: '/affiliate'
@@ -726,6 +737,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UsersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reports/': {
+      id: '/reports/'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders/': {
+      id: '/orders/'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof OrdersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/billing/': {
+      id: '/billing/'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof BillingIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reports/sales': {
       id: '/reports/sales'
       path: '/reports/sales'
@@ -738,6 +770,34 @@ declare module '@tanstack/react-router' {
       path: '/reports/inventory'
       fullPath: '/reports/inventory'
       preLoaderRoute: typeof ReportsInventoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders/overview': {
+      id: '/orders/overview'
+      path: '/orders/overview'
+      fullPath: '/orders/overview'
+      preLoaderRoute: typeof OrdersOverviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders/history': {
+      id: '/orders/history'
+      path: '/orders/history'
+      fullPath: '/orders/history'
+      preLoaderRoute: typeof OrdersHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/billing/quick-bill': {
+      id: '/billing/quick-bill'
+      path: '/billing/quick-bill'
+      fullPath: '/billing/quick-bill'
+      preLoaderRoute: typeof BillingQuickBillRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/billing/book-table': {
+      id: '/billing/book-table'
+      path: '/billing/book-table'
+      fullPath: '/billing/book-table'
+      preLoaderRoute: typeof BillingBookTableRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/ws-token': {
@@ -1048,14 +1108,10 @@ const ApiOrdersRouteWithChildren = ApiOrdersRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AffiliateRoute: AffiliateRoute,
-  BookTableRoute: BookTableRoute,
   CrmRoute: CrmRoute,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   MenuRoute: MenuRoute,
-  OrderHistoryRoute: OrderHistoryRoute,
-  OrdersRoute: OrdersRoute,
-  QuickBillRoute: QuickBillRoute,
   ApiAddonsRoute: ApiAddonsRoute,
   ApiCategoryRoute: ApiCategoryRouteWithChildren,
   ApiCrmRoute: ApiCrmRouteWithChildren,
@@ -1069,8 +1125,15 @@ const rootRouteChildren: RootRouteChildren = {
   ApiUsersRoute: ApiUsersRoute,
   ApiWaiterOrdersRoute: ApiWaiterOrdersRoute,
   ApiWsTokenRoute: ApiWsTokenRoute,
+  BillingBookTableRoute: BillingBookTableRoute,
+  BillingQuickBillRoute: BillingQuickBillRoute,
+  OrdersHistoryRoute: OrdersHistoryRoute,
+  OrdersOverviewRoute: OrdersOverviewRoute,
   ReportsInventoryRoute: ReportsInventoryRoute,
   ReportsSalesRoute: ReportsSalesRoute,
+  BillingIndexRoute: BillingIndexRoute,
+  OrdersIndexRoute: OrdersIndexRoute,
+  ReportsIndexRoute: ReportsIndexRoute,
   UsersIndexRoute: UsersIndexRoute,
   ApiAdminUpdateRoute: ApiAdminUpdateRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,

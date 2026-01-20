@@ -37,14 +37,25 @@ const navMain = [
     color: 'text-sky-500',
   },
   {
-    title: 'Quick Bill',
-    url: '/quick-bill',
+    title: 'Billing',
+    url: '/billing',
     icon: ShoppingCart,
     color: 'text-indigo-500',
+    isActive: true,
+    items: [
+      {
+        title: 'Quick Bill',
+        url: '/billing/quick-bill',
+      },
+      {
+        title: 'Book Table',
+        url: '/billing/book-table',
+      },
+    ],
   },
   {
-    title: 'Orders',
-    url: '#',
+    title: 'Orders Overview',
+    url: '/orders/overview',
     icon: ShoppingBag,
     color: 'text-amber-500',
     isActive: true,
@@ -55,19 +66,19 @@ const navMain = [
       },
       {
         title: 'Order History',
-        url: '/order-history',
+        url: '/orders/history',
       },
     ],
   },
   {
-    title: 'Menu',
+    title: 'Inventory',
     url: '/menu',
     icon: Utensils,
     color: 'text-rose-500',
   },
   {
     title: 'Reports',
-    url: '#',
+    url: '/reports',
     icon: BarChart3,
     isActive: true,
     color: 'text-emerald-500',
@@ -81,12 +92,6 @@ const navMain = [
         url: '/reports/inventory',
       },
     ],
-  },
-  {
-    title: 'Book Table',
-    url: '/book-table',
-    icon: CalendarCheck,
-    color: 'text-pink-500',
   },
   {
     title: 'Affiliate Center',
