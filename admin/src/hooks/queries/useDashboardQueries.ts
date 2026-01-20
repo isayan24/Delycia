@@ -8,6 +8,7 @@ import type {
   TopSellingItem,
   CategoryRevenueData,
   DeliveryTypeData,
+  InventoryLevelsResponse,
 } from '@/types/dashboard.types'
 
 // ============================================
@@ -18,6 +19,7 @@ export interface DashboardQueryParams {
   rid: string
   startDate?: string
   endDate?: string
+  filter?: string
 }
 
 interface DashboardStatsResponse {
@@ -58,6 +60,10 @@ const transformStatsData = (apiData: any): DashboardStats => {
     ordersGrowth: Number(apiData?.ordersGrowth || 0),
     customersGrowth: Number(apiData?.customersGrowth || 0),
     avgOrderGrowth: Number(apiData?.avgOrderGrowth || 0),
+    totalCustomers: Number(apiData?.totalCustomers || 0),
+    customersToday: Number(apiData?.customersToday || 0),
+    customersMonth: Number(apiData?.customersMonth || 0),
+    customersYear: Number(apiData?.customersYear || 0),
   }
 }
 
@@ -249,6 +255,30 @@ export function useDeliveryTypesQuery(params: DashboardQueryParams) {
     },
     enabled: !!params.rid,
     staleTime: 5 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+  })
+}
+
+/**
+ * Fetch inventory levels
+ */
+export function useInventoryLevelsQuery(params: DashboardQueryParams) {
+  return useQuery({
+    queryKey: queryKeys.dashboard.inventory(params),
+    queryFn: async (): Promise<InventoryLevelsResponse> => {
+      if (!params.rid) throw new Error('Restaurant ID is required')
+
+      const response = await axios.get<InventoryLevelsResponse>(
+        '/api/dashboard',
+        {
+          params: { ...params, endpoint: 'inventory' },
+        },
+      )
+
+      return response.data
+    },
+    enabled: !!params.rid,
+    staleTime: 1 * 60 * 1000, // 1 minute - inventory changes frequently
     gcTime: 5 * 60 * 1000,
   })
 }

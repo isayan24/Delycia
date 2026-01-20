@@ -85,6 +85,12 @@ export const queryKeys = {
       startDate?: string
       endDate?: string
     }) => [...queryKeys.dashboard.all, 'customer-orders', filters] as const,
+    inventory: (filters: {
+      rid: string
+      startDate?: string
+      endDate?: string
+      filter?: string
+    }) => [...queryKeys.dashboard.all, 'inventory', filters] as const,
   },
 
   // Users

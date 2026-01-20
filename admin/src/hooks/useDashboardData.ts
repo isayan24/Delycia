@@ -194,6 +194,10 @@ export const useDashboardData = ({
       ordersGrowth: Number(apiData.stats?.ordersGrowth || 0),
       customersGrowth: Number(apiData.stats?.customersGrowth || 0),
       avgOrderGrowth: Number(apiData.stats?.avgOrderGrowth || 0),
+      totalCustomers: Number(apiData.stats?.totalCustomers || 0),
+      customersToday: Number(apiData.stats?.customersToday || 0),
+      customersMonth: Number(apiData.stats?.customersMonth || 0),
+      customersYear: Number(apiData.stats?.customersYear || 0),
     }
   }
 

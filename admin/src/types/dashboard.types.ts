@@ -7,6 +7,10 @@ export interface DashboardStats {
   ordersGrowth: number
   customersGrowth: number
   avgOrderGrowth: number
+  totalCustomers: number
+  customersToday: number
+  customersMonth: number
+  customersYear: number
 }
 
 export interface SalesTrendData {
@@ -80,4 +84,26 @@ export interface ChurnRiskData {
 export interface RetentionData {
   avgDaysBetweenVisits: string
   returningCustomers: number
+}
+
+export interface InventoryItem {
+  id: number
+  name: string
+  stock: number
+  status: string
+  stockLevel: 'critical' | 'low' | 'medium' | 'good'
+}
+
+export interface InventorySummary {
+  critical: number
+  low: number
+  medium: number
+  good: number
+  total: number
+}
+
+export interface InventoryLevelsResponse {
+  inventory: InventoryItem[]
+  inventoryByLevel: Record<string, InventoryItem[]>
+  summary: InventorySummary
 }

@@ -20,6 +20,7 @@ import { Route as BookTableRouteImport } from './routes/book-table'
 import { Route as AffiliateRouteImport } from './routes/affiliate'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UsersIndexRouteImport } from './routes/users/index'
+import { Route as ReportsInventoryRouteImport } from './routes/reports/inventory'
 import { Route as ApiWsTokenRouteImport } from './routes/api/ws-token'
 import { Route as ApiWaiterOrdersRouteImport } from './routes/api/waiter-orders'
 import { Route as ApiUsersRouteImport } from './routes/api/users'
@@ -109,6 +110,11 @@ const IndexRoute = IndexRouteImport.update({
 const UsersIndexRoute = UsersIndexRouteImport.update({
   id: '/users/',
   path: '/users/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsInventoryRoute = ReportsInventoryRouteImport.update({
+  id: '/reports/inventory',
+  path: '/reports/inventory',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiWsTokenRoute = ApiWsTokenRouteImport.update({
@@ -313,6 +319,7 @@ export interface FileRoutesByFullPath {
   '/api/users': typeof ApiUsersRoute
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
   '/api/ws-token': typeof ApiWsTokenRoute
+  '/reports/inventory': typeof ReportsInventoryRoute
   '/users': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -361,6 +368,7 @@ export interface FileRoutesByTo {
   '/api/users': typeof ApiUsersRoute
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
   '/api/ws-token': typeof ApiWsTokenRoute
+  '/reports/inventory': typeof ReportsInventoryRoute
   '/users': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -410,6 +418,7 @@ export interface FileRoutesById {
   '/api/users': typeof ApiUsersRoute
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
   '/api/ws-token': typeof ApiWsTokenRoute
+  '/reports/inventory': typeof ReportsInventoryRoute
   '/users/': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -460,6 +469,7 @@ export interface FileRouteTypes {
     | '/api/users'
     | '/api/waiter-orders'
     | '/api/ws-token'
+    | '/reports/inventory'
     | '/users'
     | '/api/admin/update'
     | '/api/auth/login'
@@ -508,6 +518,7 @@ export interface FileRouteTypes {
     | '/api/users'
     | '/api/waiter-orders'
     | '/api/ws-token'
+    | '/reports/inventory'
     | '/users'
     | '/api/admin/update'
     | '/api/auth/login'
@@ -556,6 +567,7 @@ export interface FileRouteTypes {
     | '/api/users'
     | '/api/waiter-orders'
     | '/api/ws-token'
+    | '/reports/inventory'
     | '/users/'
     | '/api/admin/update'
     | '/api/auth/login'
@@ -605,6 +617,7 @@ export interface RootRouteChildren {
   ApiUsersRoute: typeof ApiUsersRoute
   ApiWaiterOrdersRoute: typeof ApiWaiterOrdersRoute
   ApiWsTokenRoute: typeof ApiWsTokenRoute
+  ReportsInventoryRoute: typeof ReportsInventoryRoute
   UsersIndexRoute: typeof UsersIndexRoute
   ApiAdminUpdateRoute: typeof ApiAdminUpdateRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
@@ -698,6 +711,13 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/users'
       preLoaderRoute: typeof UsersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reports/inventory': {
+      id: '/reports/inventory'
+      path: '/reports/inventory'
+      fullPath: '/reports/inventory'
+      preLoaderRoute: typeof ReportsInventoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/ws-token': {
@@ -1029,6 +1049,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiUsersRoute: ApiUsersRoute,
   ApiWaiterOrdersRoute: ApiWaiterOrdersRoute,
   ApiWsTokenRoute: ApiWsTokenRoute,
+  ReportsInventoryRoute: ReportsInventoryRoute,
   UsersIndexRoute: UsersIndexRoute,
   ApiAdminUpdateRoute: ApiAdminUpdateRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,

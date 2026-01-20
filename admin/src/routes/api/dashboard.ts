@@ -28,6 +28,7 @@ export const Route = createFileRoute('/api/dashboard')({
           const rid = url.searchParams.get('rid')
           const startDate = url.searchParams.get('startDate')
           const endDate = url.searchParams.get('endDate')
+          const filter = url.searchParams.get('filter')
 
           if (!endpoint) {
             return new Response(
@@ -45,7 +46,7 @@ export const Route = createFileRoute('/api/dashboard')({
 
           // Make request to backend with token from cookie
           const response = await axiosInstance.get(backendUrl, {
-            params: { rid, startDate, endDate },
+            params: { rid, startDate, endDate, filter },
             headers: {
               Authorization: `Bearer ${accessToken}`,
             },

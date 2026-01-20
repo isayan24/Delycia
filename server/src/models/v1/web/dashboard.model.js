@@ -61,10 +61,47 @@ const getDashboardStats = async (req) => {
         ${dateFilter}
     `;
 
+    // Customer Stats
+    // Total Customers (All time)
+    const totalCustomersQuery = `
+      SELECT COUNT(*) as total_customers 
+      FROM user_restaurant_visits 
+      WHERE restaurant_id = ${pool.escape(rid)}
+    `;
+
+    // Customers Today
+    const customersTodayQuery = `
+      SELECT COUNT(*) as customers_today
+      FROM user_restaurant_visits 
+      WHERE restaurant_id = ${pool.escape(rid)}
+        AND DATE(last_visit_at) = CURDATE()
+    `;
+
+    // Customers This Month
+    const customersMonthQuery = `
+      SELECT COUNT(*) as customers_month
+      FROM user_restaurant_visits 
+      WHERE restaurant_id = ${pool.escape(rid)}
+        AND MONTH(last_visit_at) = MONTH(CURDATE())
+        AND YEAR(last_visit_at) = YEAR(CURDATE())
+    `;
+
+    // Customers This Year
+    const customersYearQuery = `
+      SELECT COUNT(*) as customers_year
+      FROM user_restaurant_visits 
+      WHERE restaurant_id = ${pool.escape(rid)}
+        AND YEAR(last_visit_at) = YEAR(CURDATE())
+    `;
+
     const [totalSalesResult] = await pool.query(totalSalesQuery);
     const [totalOrdersResult] = await pool.query(totalOrdersQuery);
     const [newCustomersResult] = await pool.query(newCustomersQuery);
     const [avgOrderValueResult] = await pool.query(avgOrderValueQuery);
+    const [totalCustomersResult] = await pool.query(totalCustomersQuery);
+    const [customersTodayResult] = await pool.query(customersTodayQuery);
+    const [customersMonthResult] = await pool.query(customersMonthQuery);
+    const [customersYearResult] = await pool.query(customersYearQuery);
 
     const stats = {
       totalSales: totalSalesResult[0].total_sales || 0,
@@ -73,6 +110,10 @@ const getDashboardStats = async (req) => {
       avgOrderValue: parseFloat(
         avgOrderValueResult[0].avg_order_value || 0
       ).toFixed(2),
+      totalCustomers: totalCustomersResult[0].total_customers || 0,
+      customersToday: customersTodayResult[0].customers_today || 0,
+      customersMonth: customersMonthResult[0].customers_month || 0,
+      customersYear: customersYearResult[0].customers_year || 0,
     };
 
     return apiResponse.success(
@@ -245,13 +286,22 @@ const getTopSellingItems = async (req) => {
 };
 
 const getInventoryLevels = async (req) => {
-  const { rid } = req.query || {};
+  const { rid, filter } = req.query || {};
 
   if (!rid) {
     return apiResponse.error(400, "Restaurant ID (rid) is required");
   }
 
   try {
+    let filterCondition = "";
+    if (filter === "critical") {
+      filterCondition = "AND stock = 0";
+    } else if (filter === "low") {
+      filterCondition = "AND stock < 10"; // Includes critical (0)
+    } else if (filter === "available") {
+      filterCondition = "AND stock > 0";
+    }
+
     const inventoryQuery = `
       SELECT 
         id,
@@ -265,7 +315,8 @@ const getInventoryLevels = async (req) => {
           ELSE 'good'
         END as stock_level
       FROM inventories 
-      WHERE rid = ${pool.escape(rid)}
+      WHERE rid = ${pool.escape(rid)} 
+      ${filterCondition}
       ORDER BY stock ASC
     `;
 
