@@ -20,6 +20,7 @@ import { Route as BookTableRouteImport } from './routes/book-table'
 import { Route as AffiliateRouteImport } from './routes/affiliate'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UsersIndexRouteImport } from './routes/users/index'
+import { Route as ReportsSalesRouteImport } from './routes/reports/sales'
 import { Route as ReportsInventoryRouteImport } from './routes/reports/inventory'
 import { Route as ApiWsTokenRouteImport } from './routes/api/ws-token'
 import { Route as ApiWaiterOrdersRouteImport } from './routes/api/waiter-orders'
@@ -110,6 +111,11 @@ const IndexRoute = IndexRouteImport.update({
 const UsersIndexRoute = UsersIndexRouteImport.update({
   id: '/users/',
   path: '/users/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsSalesRoute = ReportsSalesRouteImport.update({
+  id: '/reports/sales',
+  path: '/reports/sales',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReportsInventoryRoute = ReportsInventoryRouteImport.update({
@@ -320,6 +326,7 @@ export interface FileRoutesByFullPath {
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
   '/api/ws-token': typeof ApiWsTokenRoute
   '/reports/inventory': typeof ReportsInventoryRoute
+  '/reports/sales': typeof ReportsSalesRoute
   '/users': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -369,6 +376,7 @@ export interface FileRoutesByTo {
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
   '/api/ws-token': typeof ApiWsTokenRoute
   '/reports/inventory': typeof ReportsInventoryRoute
+  '/reports/sales': typeof ReportsSalesRoute
   '/users': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -419,6 +427,7 @@ export interface FileRoutesById {
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
   '/api/ws-token': typeof ApiWsTokenRoute
   '/reports/inventory': typeof ReportsInventoryRoute
+  '/reports/sales': typeof ReportsSalesRoute
   '/users/': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -470,6 +479,7 @@ export interface FileRouteTypes {
     | '/api/waiter-orders'
     | '/api/ws-token'
     | '/reports/inventory'
+    | '/reports/sales'
     | '/users'
     | '/api/admin/update'
     | '/api/auth/login'
@@ -519,6 +529,7 @@ export interface FileRouteTypes {
     | '/api/waiter-orders'
     | '/api/ws-token'
     | '/reports/inventory'
+    | '/reports/sales'
     | '/users'
     | '/api/admin/update'
     | '/api/auth/login'
@@ -568,6 +579,7 @@ export interface FileRouteTypes {
     | '/api/waiter-orders'
     | '/api/ws-token'
     | '/reports/inventory'
+    | '/reports/sales'
     | '/users/'
     | '/api/admin/update'
     | '/api/auth/login'
@@ -618,6 +630,7 @@ export interface RootRouteChildren {
   ApiWaiterOrdersRoute: typeof ApiWaiterOrdersRoute
   ApiWsTokenRoute: typeof ApiWsTokenRoute
   ReportsInventoryRoute: typeof ReportsInventoryRoute
+  ReportsSalesRoute: typeof ReportsSalesRoute
   UsersIndexRoute: typeof UsersIndexRoute
   ApiAdminUpdateRoute: typeof ApiAdminUpdateRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
@@ -711,6 +724,13 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/users'
       preLoaderRoute: typeof UsersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reports/sales': {
+      id: '/reports/sales'
+      path: '/reports/sales'
+      fullPath: '/reports/sales'
+      preLoaderRoute: typeof ReportsSalesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reports/inventory': {
@@ -1050,6 +1070,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiWaiterOrdersRoute: ApiWaiterOrdersRoute,
   ApiWsTokenRoute: ApiWsTokenRoute,
   ReportsInventoryRoute: ReportsInventoryRoute,
+  ReportsSalesRoute: ReportsSalesRoute,
   UsersIndexRoute: UsersIndexRoute,
   ApiAdminUpdateRoute: ApiAdminUpdateRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,

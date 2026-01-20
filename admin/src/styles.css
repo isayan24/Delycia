@@ -421,7 +421,7 @@
       background-color: oklch(0.705 0.213 47.604 / 0.15);
       transition: background-color 0.3s ease;
     }
-    
+
     .dark .item-highlight-blink {
       background-color: oklch(0.646 0.222 41.116 / 0.2);
     }

@@ -8,14 +8,14 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { Outlet } from '@tanstack/react-router'
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from '@/components/ui/sidebar'
 import { Toaster } from 'sonner'
 import { SoundProvider } from '../context/SoundContext'
 import { GlobalOrderPopupManager } from '@/components/admin/orders/GlobalOrderPopupManager'
-import AdminMobileNavWrapper from '@/components/smallComponents/AdminMobileNavWrapper'
-import SidebarWrapper from '@/components/admin/navigation/SidebarWrapper'
-import HeaderWrapper from '@/components/admin/header/HeaderWrapper'
-import SidebarSwitch from '@/components/admin/header/SidebarSwitch'
 import NetworkOfflineNotification from '@/components/common/NetworkOfflineNotification'
 import SessionExpiredNotification from '@/components/common/SessionExpiredNotification'
 // Import axios interceptor to set up global 401 error detection
@@ -26,6 +26,11 @@ import appCss from '../styles.css?url'
 import { useState } from 'react'
 import type { RouterContext } from '@/middleware/auth'
 import { shouldShowUIComponents } from '@/middleware/auth'
+import { AppSidebar } from '@/components/app-sidebar'
+import { useRoleBasedUI } from '@/components/user-roles/useRoleBasedUI'
+import WaiterHeader from '@/components/admin/header/WaiterHeader'
+import { Separator } from '@/components/ui/separator'
+import RouteBreadcrumbs from '@/components/common/RouteBreadcrumbs'
 
 // Note: We don't define beforeLoad here because we get auth from component
 // and pass it via router instantiation in the app setup
@@ -108,10 +113,13 @@ function RootComponent() {
   // Get current route path to determine UI visibility
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const { showHeader, showSidebar } = shouldShowUIComponents(pathname)
+  const { canAccessSidebar, getHeaderType } = useRoleBasedUI()
 
   // Create QueryClient with production-ready configuration
   // Configuration is defined in src/lib/queryClient.ts for better maintainability
   const [queryClient] = useState(() => createQueryClient())
+
+  const useSidebarLayout = showSidebar && canAccessSidebar
 
   return (
     <RootDocument>
@@ -120,22 +128,22 @@ function RootComponent() {
           <NetworkOfflineNotification />
           <SessionExpiredNotification />
 
-          {/* Conditionally render header based on route */}
-          {showHeader && <HeaderWrapper />}
+          {/* Waiter Header fallback when Sidebar is not active but Header is requested (and not 'none') */}
+          {!useSidebarLayout && showHeader && getHeaderType === 'minimal' && (
+            <WaiterHeader />
+          )}
 
-          <div>
+          {useSidebarLayout ? (
             <SidebarProvider className="darks">
-              {/* Conditionally render sidebar based on route */}
-              {showSidebar && (
-                <>
-                  <SidebarWrapper />
-                  <SidebarSwitch />
-                </>
-              )}
-
+              <AppSidebar />
               <SidebarInset className="relative">
-                {/* body content */}
-                <div className="">
+                <header className="flex h-10 shrink-0 items-center gap-2 border-b px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+                  <SidebarTrigger className="-ml-1" />
+                  {/* <Separator orientation="vertical" className="mr-2 h-4" /> */}
+                  <RouteBreadcrumbs />
+                </header>
+
+                <div>
                   <Toaster
                     position="top-center"
                     richColors
@@ -146,10 +154,17 @@ function RootComponent() {
                 </div>
               </SidebarInset>
             </SidebarProvider>
-          </div>
-
-          {/* Conditionally render mobile nav based on route */}
-          {showSidebar && <AdminMobileNavWrapper />}
+          ) : (
+            <div className="">
+              <Toaster
+                position="top-center"
+                richColors
+                // closeButton
+                duration={4000}
+              />
+              <Outlet />
+            </div>
+          )}
 
           {/* Global Order Popup Manager */}
           <GlobalOrderPopupManager />
