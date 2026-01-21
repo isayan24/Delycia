@@ -59,7 +59,7 @@ const CustomerList: React.FC<CustomerListProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="relative w-80">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
           <Input

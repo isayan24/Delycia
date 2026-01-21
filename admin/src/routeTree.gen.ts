@@ -9,20 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as MenuRouteImport } from './routes/menu'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as CrmRouteImport } from './routes/crm'
 import { Route as AffiliateRouteImport } from './routes/affiliate'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UsersIndexRouteImport } from './routes/users/index'
 import { Route as ReportsIndexRouteImport } from './routes/reports/index'
 import { Route as OrdersIndexRouteImport } from './routes/orders/index'
+import { Route as InventoryIndexRouteImport } from './routes/inventory/index'
 import { Route as BillingIndexRouteImport } from './routes/billing/index'
 import { Route as ReportsSalesRouteImport } from './routes/reports/sales'
 import { Route as ReportsInventoryRouteImport } from './routes/reports/inventory'
+import { Route as ReportsCrmRouteImport } from './routes/reports/crm'
 import { Route as OrdersOverviewRouteImport } from './routes/orders/overview'
 import { Route as OrdersHistoryRouteImport } from './routes/orders/history'
+import { Route as InventoryStockRouteImport } from './routes/inventory/stock'
+import { Route as InventoryMenuRouteImport } from './routes/inventory/menu'
 import { Route as BillingQuickBillRouteImport } from './routes/billing/quick-bill'
 import { Route as BillingBookTableRouteImport } from './routes/billing/book-table'
 import { Route as ApiWsTokenRouteImport } from './routes/api/ws-token'
@@ -61,11 +63,6 @@ import { Route as DemoStartSsrFullSsrRouteImport } from './routes/demo/start.ssr
 import { Route as DemoStartSsrDataOnlyRouteImport } from './routes/demo/start.ssr.data-only'
 import { Route as ApiCategoryTemplatesCuisineRouteImport } from './routes/api/category/templates/$cuisine'
 
-const MenuRoute = MenuRouteImport.update({
-  id: '/menu',
-  path: '/menu',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -74,11 +71,6 @@ const LoginRoute = LoginRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CrmRoute = CrmRouteImport.update({
-  id: '/crm',
-  path: '/crm',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AffiliateRoute = AffiliateRouteImport.update({
@@ -106,6 +98,11 @@ const OrdersIndexRoute = OrdersIndexRouteImport.update({
   path: '/orders/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InventoryIndexRoute = InventoryIndexRouteImport.update({
+  id: '/inventory/',
+  path: '/inventory/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BillingIndexRoute = BillingIndexRouteImport.update({
   id: '/billing/',
   path: '/billing/',
@@ -121,6 +118,11 @@ const ReportsInventoryRoute = ReportsInventoryRouteImport.update({
   path: '/reports/inventory',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReportsCrmRoute = ReportsCrmRouteImport.update({
+  id: '/reports/crm',
+  path: '/reports/crm',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OrdersOverviewRoute = OrdersOverviewRouteImport.update({
   id: '/orders/overview',
   path: '/orders/overview',
@@ -129,6 +131,16 @@ const OrdersOverviewRoute = OrdersOverviewRouteImport.update({
 const OrdersHistoryRoute = OrdersHistoryRouteImport.update({
   id: '/orders/history',
   path: '/orders/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InventoryStockRoute = InventoryStockRouteImport.update({
+  id: '/inventory/stock',
+  path: '/inventory/stock',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InventoryMenuRoute = InventoryMenuRouteImport.update({
+  id: '/inventory/menu',
+  path: '/inventory/menu',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BillingQuickBillRoute = BillingQuickBillRouteImport.update({
@@ -322,10 +334,8 @@ const ApiCategoryTemplatesCuisineRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/affiliate': typeof AffiliateRoute
-  '/crm': typeof CrmRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
-  '/menu': typeof MenuRoute
   '/api/addons': typeof ApiAddonsRoute
   '/api/category': typeof ApiCategoryRouteWithChildren
   '/api/crm': typeof ApiCrmRouteWithChildren
@@ -341,11 +351,15 @@ export interface FileRoutesByFullPath {
   '/api/ws-token': typeof ApiWsTokenRoute
   '/billing/book-table': typeof BillingBookTableRoute
   '/billing/quick-bill': typeof BillingQuickBillRoute
+  '/inventory/menu': typeof InventoryMenuRoute
+  '/inventory/stock': typeof InventoryStockRoute
   '/orders/history': typeof OrdersHistoryRoute
   '/orders/overview': typeof OrdersOverviewRoute
+  '/reports/crm': typeof ReportsCrmRoute
   '/reports/inventory': typeof ReportsInventoryRoute
   '/reports/sales': typeof ReportsSalesRoute
   '/billing': typeof BillingIndexRoute
+  '/inventory': typeof InventoryIndexRoute
   '/orders': typeof OrdersIndexRoute
   '/reports': typeof ReportsIndexRoute
   '/users': typeof UsersIndexRoute
@@ -375,10 +389,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/affiliate': typeof AffiliateRoute
-  '/crm': typeof CrmRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
-  '/menu': typeof MenuRoute
   '/api/addons': typeof ApiAddonsRoute
   '/api/category': typeof ApiCategoryRouteWithChildren
   '/api/crm': typeof ApiCrmRouteWithChildren
@@ -394,11 +406,15 @@ export interface FileRoutesByTo {
   '/api/ws-token': typeof ApiWsTokenRoute
   '/billing/book-table': typeof BillingBookTableRoute
   '/billing/quick-bill': typeof BillingQuickBillRoute
+  '/inventory/menu': typeof InventoryMenuRoute
+  '/inventory/stock': typeof InventoryStockRoute
   '/orders/history': typeof OrdersHistoryRoute
   '/orders/overview': typeof OrdersOverviewRoute
+  '/reports/crm': typeof ReportsCrmRoute
   '/reports/inventory': typeof ReportsInventoryRoute
   '/reports/sales': typeof ReportsSalesRoute
   '/billing': typeof BillingIndexRoute
+  '/inventory': typeof InventoryIndexRoute
   '/orders': typeof OrdersIndexRoute
   '/reports': typeof ReportsIndexRoute
   '/users': typeof UsersIndexRoute
@@ -429,10 +445,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/affiliate': typeof AffiliateRoute
-  '/crm': typeof CrmRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
-  '/menu': typeof MenuRoute
   '/api/addons': typeof ApiAddonsRoute
   '/api/category': typeof ApiCategoryRouteWithChildren
   '/api/crm': typeof ApiCrmRouteWithChildren
@@ -448,11 +462,15 @@ export interface FileRoutesById {
   '/api/ws-token': typeof ApiWsTokenRoute
   '/billing/book-table': typeof BillingBookTableRoute
   '/billing/quick-bill': typeof BillingQuickBillRoute
+  '/inventory/menu': typeof InventoryMenuRoute
+  '/inventory/stock': typeof InventoryStockRoute
   '/orders/history': typeof OrdersHistoryRoute
   '/orders/overview': typeof OrdersOverviewRoute
+  '/reports/crm': typeof ReportsCrmRoute
   '/reports/inventory': typeof ReportsInventoryRoute
   '/reports/sales': typeof ReportsSalesRoute
   '/billing/': typeof BillingIndexRoute
+  '/inventory/': typeof InventoryIndexRoute
   '/orders/': typeof OrdersIndexRoute
   '/reports/': typeof ReportsIndexRoute
   '/users/': typeof UsersIndexRoute
@@ -484,10 +502,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/affiliate'
-    | '/crm'
     | '/dashboard'
     | '/login'
-    | '/menu'
     | '/api/addons'
     | '/api/category'
     | '/api/crm'
@@ -503,11 +519,15 @@ export interface FileRouteTypes {
     | '/api/ws-token'
     | '/billing/book-table'
     | '/billing/quick-bill'
+    | '/inventory/menu'
+    | '/inventory/stock'
     | '/orders/history'
     | '/orders/overview'
+    | '/reports/crm'
     | '/reports/inventory'
     | '/reports/sales'
     | '/billing'
+    | '/inventory'
     | '/orders'
     | '/reports'
     | '/users'
@@ -537,10 +557,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/affiliate'
-    | '/crm'
     | '/dashboard'
     | '/login'
-    | '/menu'
     | '/api/addons'
     | '/api/category'
     | '/api/crm'
@@ -556,11 +574,15 @@ export interface FileRouteTypes {
     | '/api/ws-token'
     | '/billing/book-table'
     | '/billing/quick-bill'
+    | '/inventory/menu'
+    | '/inventory/stock'
     | '/orders/history'
     | '/orders/overview'
+    | '/reports/crm'
     | '/reports/inventory'
     | '/reports/sales'
     | '/billing'
+    | '/inventory'
     | '/orders'
     | '/reports'
     | '/users'
@@ -590,10 +612,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/affiliate'
-    | '/crm'
     | '/dashboard'
     | '/login'
-    | '/menu'
     | '/api/addons'
     | '/api/category'
     | '/api/crm'
@@ -609,11 +629,15 @@ export interface FileRouteTypes {
     | '/api/ws-token'
     | '/billing/book-table'
     | '/billing/quick-bill'
+    | '/inventory/menu'
+    | '/inventory/stock'
     | '/orders/history'
     | '/orders/overview'
+    | '/reports/crm'
     | '/reports/inventory'
     | '/reports/sales'
     | '/billing/'
+    | '/inventory/'
     | '/orders/'
     | '/reports/'
     | '/users/'
@@ -644,10 +668,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AffiliateRoute: typeof AffiliateRoute
-  CrmRoute: typeof CrmRoute
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
-  MenuRoute: typeof MenuRoute
   ApiAddonsRoute: typeof ApiAddonsRoute
   ApiCategoryRoute: typeof ApiCategoryRouteWithChildren
   ApiCrmRoute: typeof ApiCrmRouteWithChildren
@@ -663,11 +685,15 @@ export interface RootRouteChildren {
   ApiWsTokenRoute: typeof ApiWsTokenRoute
   BillingBookTableRoute: typeof BillingBookTableRoute
   BillingQuickBillRoute: typeof BillingQuickBillRoute
+  InventoryMenuRoute: typeof InventoryMenuRoute
+  InventoryStockRoute: typeof InventoryStockRoute
   OrdersHistoryRoute: typeof OrdersHistoryRoute
   OrdersOverviewRoute: typeof OrdersOverviewRoute
+  ReportsCrmRoute: typeof ReportsCrmRoute
   ReportsInventoryRoute: typeof ReportsInventoryRoute
   ReportsSalesRoute: typeof ReportsSalesRoute
   BillingIndexRoute: typeof BillingIndexRoute
+  InventoryIndexRoute: typeof InventoryIndexRoute
   OrdersIndexRoute: typeof OrdersIndexRoute
   ReportsIndexRoute: typeof ReportsIndexRoute
   UsersIndexRoute: typeof UsersIndexRoute
@@ -688,13 +714,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/menu': {
-      id: '/menu'
-      path: '/menu'
-      fullPath: '/menu'
-      preLoaderRoute: typeof MenuRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -707,13 +726,6 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/crm': {
-      id: '/crm'
-      path: '/crm'
-      fullPath: '/crm'
-      preLoaderRoute: typeof CrmRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/affiliate': {
@@ -751,6 +763,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrdersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/inventory/': {
+      id: '/inventory/'
+      path: '/inventory'
+      fullPath: '/inventory'
+      preLoaderRoute: typeof InventoryIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/billing/': {
       id: '/billing/'
       path: '/billing'
@@ -772,6 +791,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReportsInventoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reports/crm': {
+      id: '/reports/crm'
+      path: '/reports/crm'
+      fullPath: '/reports/crm'
+      preLoaderRoute: typeof ReportsCrmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/orders/overview': {
       id: '/orders/overview'
       path: '/orders/overview'
@@ -784,6 +810,20 @@ declare module '@tanstack/react-router' {
       path: '/orders/history'
       fullPath: '/orders/history'
       preLoaderRoute: typeof OrdersHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inventory/stock': {
+      id: '/inventory/stock'
+      path: '/inventory/stock'
+      fullPath: '/inventory/stock'
+      preLoaderRoute: typeof InventoryStockRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inventory/menu': {
+      id: '/inventory/menu'
+      path: '/inventory/menu'
+      fullPath: '/inventory/menu'
+      preLoaderRoute: typeof InventoryMenuRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/billing/quick-bill': {
@@ -1108,10 +1148,8 @@ const ApiOrdersRouteWithChildren = ApiOrdersRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AffiliateRoute: AffiliateRoute,
-  CrmRoute: CrmRoute,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
-  MenuRoute: MenuRoute,
   ApiAddonsRoute: ApiAddonsRoute,
   ApiCategoryRoute: ApiCategoryRouteWithChildren,
   ApiCrmRoute: ApiCrmRouteWithChildren,
@@ -1127,11 +1165,15 @@ const rootRouteChildren: RootRouteChildren = {
   ApiWsTokenRoute: ApiWsTokenRoute,
   BillingBookTableRoute: BillingBookTableRoute,
   BillingQuickBillRoute: BillingQuickBillRoute,
+  InventoryMenuRoute: InventoryMenuRoute,
+  InventoryStockRoute: InventoryStockRoute,
   OrdersHistoryRoute: OrdersHistoryRoute,
   OrdersOverviewRoute: OrdersOverviewRoute,
+  ReportsCrmRoute: ReportsCrmRoute,
   ReportsInventoryRoute: ReportsInventoryRoute,
   ReportsSalesRoute: ReportsSalesRoute,
   BillingIndexRoute: BillingIndexRoute,
+  InventoryIndexRoute: InventoryIndexRoute,
   OrdersIndexRoute: OrdersIndexRoute,
   ReportsIndexRoute: ReportsIndexRoute,
   UsersIndexRoute: UsersIndexRoute,

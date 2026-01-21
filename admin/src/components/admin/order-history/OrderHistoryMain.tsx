@@ -74,142 +74,87 @@ export default function OrderHistoryMain() {
 
   return (
     <ErrorBoundary>
-      <Tabs
-        defaultValue="table"
-        className="w-full h-[calc(100vh-9rem)] rounded-2xl"
-      >
-        <div className="flex px-4 py-2 bg-white z-[50] sticky top-0 border">
-          <section className="flex items-center gap-3">
-            <TabsList>
-              <TabsTrigger value="table">Table View</TabsTrigger>
-              <TabsTrigger value="grid">Grid View</TabsTrigger>
+      <div className="h-full flex flex-col gap-4">
+        <Tabs defaultValue="table" className="flex-1 flex flex-col min-h-0">
+          <div className="flex-none bg-white border rounded-xl shadow-sm mb-4 p-2 flex items-center justify-between">
+            <TabsList className="grid w-[200px] grid-cols-2">
+              <TabsTrigger value="table">Table</TabsTrigger>
+              <TabsTrigger value="grid">Grid</TabsTrigger>
             </TabsList>
-          </section>
 
-          <OrderHistoryHeader
-            refreshHistory={refreshHistory}
-            loading={loading}
-          />
-        </div>
-        {/* Grid view - keep existing implementation */}
-        <TabsContent value="grid" className="p-5s h-[calc(100vh-9.3rem)]">
-          {/* Desktop Layout (md and above) */}
-          <div className="hidden md:block rounded-md h-full w-full !border-none">
-            <div className="h-full w-full flex overflow-hidden">
-              <ErrorBoundary
-                fallback={
-                  <div className="w-[40%] h-full border flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="text-4xl mb-2">⚠️</div>
-                      <p className="text-sm text-gray-600">
-                        Error loading order list
-                      </p>
-                      <button
-                        onClick={refreshHistory}
-                        className="mt-2 px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
-                      >
-                        Retry
-                      </button>
-                    </div>
-                  </div>
-                }
-              >
-                <OrderHistoryInfoList
-                  orders={orderHistory}
-                  selectedOrderId={selectedOrderId}
-                  onOrderSelect={handleOrderSelect}
-                  loading={loading}
-                  error={error}
-                  onRetry={refreshHistory}
-                  // Pagination props
-                  pagination={pagination}
-                  currentPage={currentPage}
-                  onPageChange={goToPage}
-                  onNextPage={nextPage}
-                  onPrevPage={prevPage}
-                  // Search props
-                  search={search}
-                  onSearchChange={setSearch}
-                  // Filter props
-                  onDateRangeChange={setDateRange}
-                  onClearFilters={clearFilters}
-                />
-              </ErrorBoundary>
-              <div className="h-full border-l border-gray-300" />
-
-              <ErrorBoundary
-                fallback={
-                  <div className="w-[60%] h-full border flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="text-4xl mb-2">⚠️</div>
-                      <p className="text-sm text-gray-600">
-                        Error loading order details
-                      </p>
-                    </div>
-                  </div>
-                }
-              >
-                <OrderHistoryDetailsList
-                  selectedOrder={selectedOrder}
-                  loading={loading}
-                />
-              </ErrorBoundary>
-            </div>
+            <OrderHistoryHeader
+              refreshHistory={refreshHistory}
+              loading={loading}
+            />
           </div>
 
-          {/* Mobile Layout (below md) */}
-          <div className="block md:hidden h-full overflow-y-auto">
-            <ErrorBoundary
-              fallback={
-                <div className="flex items-center justify-center h-64">
-                  <div className="text-center">
-                    <div className="text-4xl mb-2">⚠️</div>
-                    <p className="text-sm text-gray-600">
-                      Error loading orders
-                    </p>
-                    <button
-                      onClick={refreshHistory}
-                      className="mt-2 px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
-                    >
-                      Retry
-                    </button>
-                  </div>
-                </div>
-              }
-            >
+          {/* Grid View */}
+          <TabsContent
+            value="grid"
+            className="flex-1 min-h-0 mt-0 border rounded-xl shadow-sm bg-white overflow-hidden data-[state=inactive]:hidden"
+          >
+            <div className="hidden md:block h-full w-full">
+              <div className="h-full w-full flex overflow-hidden">
+                <ErrorBoundary fallback={<div>Error</div>}>
+                  <OrderHistoryInfoList
+                    orders={orderHistory}
+                    selectedOrderId={selectedOrderId}
+                    onOrderSelect={handleOrderSelect}
+                    loading={loading}
+                    error={error}
+                    onRetry={refreshHistory}
+                    pagination={pagination}
+                    currentPage={currentPage}
+                    onPageChange={goToPage}
+                    onNextPage={nextPage}
+                    onPrevPage={prevPage}
+                    search={search}
+                    onSearchChange={setSearch}
+                    onDateRangeChange={setDateRange}
+                    onClearFilters={clearFilters}
+                  />
+                </ErrorBoundary>
+                <div className="h-full border-l border-gray-100" />
+                <ErrorBoundary fallback={<div>Error</div>}>
+                  <OrderHistoryDetailsList
+                    selectedOrder={selectedOrder}
+                    loading={loading}
+                  />
+                </ErrorBoundary>
+              </div>
+            </div>
+            <div className="block md:hidden h-full overflow-y-auto">
               <MobileOrderHistory
                 orders={orderHistory}
                 loading={loading}
                 error={error}
                 onRetry={refreshHistory}
               />
-            </ErrorBoundary>
-          </div>
-        </TabsContent>
-        {/* New table view with server-side pagination */}
-        <TabsContent value="table">
-          <section className="borderd p-5 h-[calc(100vh-9.3rem)]">
+            </div>
+          </TabsContent>
+
+          {/* Table View */}
+          <TabsContent
+            value="table"
+            className="flex-1 min-h-0 mt-0 border rounded-xl shadow-sm bg-white overflow-hidden flex flex-col data-[state=inactive]:hidden"
+          >
             <OrderHistoryTablePaginated
               items={orderHistory}
               loading={loading}
               error={error}
-              refreshHistory={refreshHistory}
-              // Pagination props
               pagination={pagination}
               currentPage={currentPage}
               onPageChange={goToPage}
               onNextPage={nextPage}
               onPrevPage={prevPage}
-              // Search props
               search={search}
               onSearchChange={setSearch}
-              // Filter props
               onDateRangeChange={setDateRange}
               onClearFilters={clearFilters}
             />
-          </section>
-        </TabsContent>
-      </Tabs>
+          </TabsContent>
+        </Tabs>
+      </div>
     </ErrorBoundary>
   )
 }

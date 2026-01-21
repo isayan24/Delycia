@@ -50,20 +50,30 @@ export function TablePagination({
   const pageNumbers = getPageNumbers()
 
   return (
-    <div className="border-t bg-gray-50 px-2 py-3 space-y-2">
+    <div className="border-t bg-white px-4 py-3 flex items-center justify-between">
+      {/* Page Info */}
+      <div className="text-sm text-gray-500">
+        Page {currentPage} of {totalPages}
+        {totalOrders !== undefined && perPage && (
+          <span className="hidden sm:inline ml-1">
+            • Showing {Math.min((currentPage - 1) * perPage + 1, totalOrders)}-
+            {Math.min(currentPage * perPage, totalOrders)} of {totalOrders}
+          </span>
+        )}
+      </div>
+
       {/* Pagination Controls */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onPrevPage}
-            disabled={!hasPrevPage || loading}
-          >
-            <ChevronLeft className="w-4 h-4 mr-1" />
-            Previous
-          </Button>
-        </div>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onPrevPage}
+          disabled={!hasPrevPage || loading}
+          className="h-8 w-8 p-0"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          <span className="sr-only">Previous</span>
+        </Button>
 
         <div className="flex items-center gap-1">
           {pageNumbers[0] > 1 && (
@@ -73,10 +83,13 @@ export function TablePagination({
                 size="sm"
                 onClick={() => onPageChange(1)}
                 disabled={loading}
+                className="h-8 w-8 p-0"
               >
                 1
               </Button>
-              {pageNumbers[0] > 2 && <span className="px-2">...</span>}
+              {pageNumbers[0] > 2 && (
+                <span className="px-1 text-gray-400">...</span>
+              )}
             </>
           )}
 
@@ -87,6 +100,7 @@ export function TablePagination({
               size="sm"
               onClick={() => onPageChange(page)}
               disabled={loading}
+              className="h-8 w-8 p-0"
             >
               {page}
             </Button>
@@ -95,13 +109,14 @@ export function TablePagination({
           {pageNumbers[pageNumbers.length - 1] < totalPages && (
             <>
               {pageNumbers[pageNumbers.length - 1] < totalPages - 1 && (
-                <span className="px-2">...</span>
+                <span className="px-1 text-gray-400">...</span>
               )}
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => onPageChange(totalPages)}
                 disabled={loading}
+                className="h-8 w-8 p-0"
               >
                 {totalPages}
               </Button>
@@ -109,28 +124,16 @@ export function TablePagination({
           )}
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onNextPage}
-            disabled={!hasNextPage || loading}
-          >
-            Next
-            <ChevronRight className="w-4 h-4 ml-1" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Page Info - Centered below */}
-      <div className="text-sm text-gray-600 text-center">
-        Page {currentPage} of {totalPages}
-        {totalOrders !== undefined && perPage && (
-          <span className="ml-2">
-            (Showing {Math.min((currentPage - 1) * perPage + 1, totalOrders)}-
-            {Math.min(currentPage * perPage, totalOrders)} of {totalOrders})
-          </span>
-        )}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onNextPage}
+          disabled={!hasNextPage || loading}
+          className="h-8 w-8 p-0"
+        >
+          <ChevronRight className="w-4 h-4" />
+          <span className="sr-only">Next</span>
+        </Button>
       </div>
     </div>
   )

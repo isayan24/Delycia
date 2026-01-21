@@ -72,9 +72,20 @@ const navMain = [
   },
   {
     title: 'Inventory',
-    url: '/menu',
+    url: '/inventory',
     icon: Utensils,
     color: 'text-rose-500',
+    isActive: true,
+    items: [
+      {
+        title: 'Manage Menu',
+        url: '/inventory/menu',
+      },
+      {
+        title: 'Manage Inventory',
+        url: '/inventory/stock',
+      },
+    ],
   },
   {
     title: 'Reports',
@@ -91,20 +102,18 @@ const navMain = [
         title: 'Inventory Report',
         url: '/reports/inventory',
       },
+      {
+        title: 'Customer Management',
+        url: '/reports/crm',
+      },
     ],
   },
-  {
-    title: 'Affiliate Center',
-    url: '/affiliate',
-    icon: Users,
-    color: 'text-purple-500',
-  },
-  {
-    title: 'CRM',
-    url: '/crm',
-    icon: UserCircle,
-    color: 'text-teal-500',
-  },
+  // {
+  //   title: 'Affiliate Center',
+  //   url: '/affiliate',
+  //   icon: Users,
+  //   color: 'text-purple-500',
+  // },
 ]
 
 const navSecondary = [
@@ -112,11 +121,6 @@ const navSecondary = [
     title: 'Support',
     url: '#',
     icon: LifeBuoy,
-  },
-  {
-    title: 'Feedback',
-    url: '#',
-    icon: Send,
   },
 ]
 

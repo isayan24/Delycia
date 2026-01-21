@@ -1,11 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react'
-import { HeaderSearch } from '../../header/HeaderSearch'
 import useInventoryStore from './UseInventoryStates'
 import axios from 'axios'
 import logger from '@/lib/logger-dynamic'
 import useToast from '@/hooks/UseToast'
-import { useAuth } from '@/hooks/useAuth'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import { StockNotificationDialog } from '../stock-dialog/RestockDialog'
 import HeaderNav from '../../header/HeaderNav'
@@ -18,13 +16,9 @@ export default function ManageInventory() {
     handleRestockDialog,
     pendingStockUpdates,
     removePendingStockUpdate,
-    isPendingStockUpdate,
     updateVariableStockStatus,
     currentVariableType,
     cascadeCategoryStatusToItems,
-    // Search and Highlighting
-    handleHighlightItem,
-    handleNavigateToItem,
   } = useInventoryStore()
 
   // Function to handle stock activation API call
@@ -157,37 +151,25 @@ export default function ManageInventory() {
     }
   }
 
-  const handleSearch = (query: string) => {
-    // Add search logic here if needed
-  }
-
   return (
-    <div className="w-full h-[calc(100vh-9rem)] rounded-2xl mt-[4rem] overflow-hidden">
-      {/* todo move the search to dishes tabs only */}
-      {/* review this leads to unnecessary crashes if the search moves from here to another place */}
-      {/* <HeaderSearch
-        onSearch={handleSearch}
-        onHighlightItem={handleHighlightItem}
-        onNavigateToItem={handleNavigateToItem}
-      /> */}
-      <HeaderNav />
+    <div className="w-full h-full flex flex-col gap-4">
+      <div className="flex-1 min-h-0 border rounded-xl bg-white shadow-sm overflow-hidden flex flex-col">
+        <HeaderNav />
 
-      <section className="p-5 xxxxh-[calc(100vh-16rem)] ">
-        {/* Your MenuContent component */}
-        {/* <MenuContent /> */}
+        <section className="flex-1 min-h-0 relative">
+          {/* Debug info - remove in production */}
+          {pendingStockUpdates.size > 0 && (
+            <div className="absolute top-2 right-2 z-50 p-2 bg-yellow-100 border border-yellow-300 rounded shadow-md">
+              <p className="text-sm text-yellow-800">
+                Pending stock updates:{' '}
+                {Array.from(pendingStockUpdates).join(', ')}
+              </p>
+            </div>
+          )}
 
-        {/* Debug info - remove in production */}
-        {pendingStockUpdates.size > 0 && (
-          <div className="mb-4 p-2 bg-yellow-100 border border-yellow-300 rounded">
-            <p className="text-sm text-yellow-800">
-              Pending stock updates:{' '}
-              {Array.from(pendingStockUpdates).join(', ')}
-            </p>
-          </div>
-        )}
-
-        <StockNotificationDialog handleConfirmDate={onConfirmDate} />
-      </section>
+          <StockNotificationDialog handleConfirmDate={onConfirmDate} />
+        </section>
+      </div>
     </div>
   )
 }

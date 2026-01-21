@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Printer, Download } from 'lucide-react'
+import { Printer } from 'lucide-react'
 import { formatISTDateTime, getISTDateKey } from './utils/historyDateUtils'
 import { TableFilters } from './table/components/TableFilters'
 import { TablePagination } from './table/components/TablePagination'
@@ -20,7 +20,6 @@ interface OrderHistoryTablePaginatedProps {
   items: any[]
   loading: boolean
   error: string | null
-  refreshHistory: () => void
   pagination: {
     total_orders: number
     total_pages: number
@@ -43,7 +42,6 @@ export default function OrderHistoryTablePaginated({
   items = [],
   loading,
   error,
-  refreshHistory,
   pagination,
   currentPage,
   onPageChange,
@@ -113,59 +111,10 @@ export default function OrderHistoryTablePaginated({
     setShowBillDialog(true)
   }, [])
 
-  // Export to CSV
-  const exportToCSV = useCallback(() => {
-    const headers = [
-      'Order ID',
-      'Items',
-      'Customer',
-      'Phone',
-      'Status',
-      'Payment',
-      'Amount',
-      'Table',
-      'Date & Time',
-    ]
-
-    const csvData = items.map((order) => {
-      const items = order.items
-        ? typeof order.items === 'string'
-          ? JSON.parse(order.items)
-          : order.items
-        : []
-      const itemsList = items
-        .map((item: any) => `${item.name || item.item_name} (${item.quantity})`)
-        .join('; ')
-
-      return [
-        order.orderId || order.cart_id || 'N/A',
-        itemsList || 'No items',
-        order.customerName || order.customer_name || 'N/A',
-        order.customer_phone || order.customerId || 'N/A',
-        order.order_status || order.status || 'N/A',
-        order.payment_method || 'N/A',
-        `₹${order.totalAmount || order.total_amount || 0}`,
-        order.tableNo || order.table_no || 'N/A',
-        formatISTDateTime(order.createdAt || order.created_at || ''),
-      ]
-    })
-
-    const csvContent = [
-      headers.join(','),
-      ...csvData.map((row) => row.map((cell) => `"${cell}"`).join(',')),
-    ].join('\n')
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = `order_history_${new Date().toISOString().split('T')[0]}.csv`
-    link.click()
-  }, [items])
-
   return (
     <div className="w-full h-full flex flex-col">
       {/* Filters Section */}
-      <div className="flex-shrink-0">
+      <div className="shrink-0">
         <TableFilters
           search={search}
           onSearchChange={onSearchChange}
@@ -173,33 +122,6 @@ export default function OrderHistoryTablePaginated({
           onClearFilters={onClearFilters}
           totalOrders={totalOrders}
         />
-
-        {/* Action Buttons */}
-        <div className="flex items-center justify-between px-4 py-2 border-b">
-          <div className="text-sm text-gray-600">
-            Showing{' '}
-            {Math.min(
-              (currentPage - 1) * (pagination?.per_page || 10) + 1,
-              totalOrders,
-            )}
-            -{Math.min(currentPage * (pagination?.per_page || 10), totalOrders)}{' '}
-            of {totalOrders} orders
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={refreshHistory}>
-              Refresh
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={exportToCSV}
-              className="gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Export CSV
-            </Button>
-          </div>
-        </div>
 
         {/* Error State */}
         {error && (

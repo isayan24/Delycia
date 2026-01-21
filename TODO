@@ -13,6 +13,11 @@ Todo:
     ☐ Sync cart when user has logged in: sync with the redux
 
 Features: 
+  Add staffs Page:
+    ☐ Add a page to add staffs for admin
+    ☐ Add functionality to create staffs with name, username and password
+    ☐ Modify the backend to login with username and password as well(only for admin & staffs)
+
   Overview Page:
     ☐ This page is all about a quick overview of some stuff
     ☐ First make a backend route and functions for this, then this gonna be easy

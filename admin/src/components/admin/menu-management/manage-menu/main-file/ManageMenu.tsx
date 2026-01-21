@@ -17,14 +17,14 @@ export default function ManageMenu() {
   }
 
   return (
-    <div className="w-full h-[calc(100vh-9rem)] rounded-2xl mt-[4rem]">
+    <div className="w-full h-full flex flex-col gap-4">
       <TopButtons
         onSearch={handleSearch}
         onSubmit={handleSubmit}
         onHighlightItem={highlightItem}
         onNavigateToItem={navigateToItem}
       />
-      <section className="border p-5 h-[calc(100vh-12.5rem)]">
+      <section className="flex-1 min-h-0 border rounded-xl bg-white shadow-sm p-4 overflow-hidden">
         <MenuContent />
       </section>
     </div>
