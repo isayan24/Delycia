@@ -1,5 +1,4 @@
 import { Button as StatefulBtn } from '@/components/ui/stateful-button'
-import React from 'react'
 
 import { Download } from 'lucide-react'
 

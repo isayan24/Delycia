@@ -302,53 +302,93 @@ const getInventoryLevels = async (req) => {
       filterCondition = "AND stock > 0";
     }
 
+    // Main Query: Get filtered items
     const inventoryQuery = `
       SELECT 
-        id,
-        name,
-        stock,
-        status,
+        i.id,
+        i.name,
+        i.stock,
+        i.status,
+        CASE 
+          WHEN i.stock = 0 THEN 'critical'
+          WHEN i.stock < 10 THEN 'low'
+          WHEN i.stock < 50 THEN 'medium'
+          ELSE 'good'
+        END as stock_level,
+        COALESCE(SUM(o.quantity), 0) as total_sold,
+        COALESCE(SUM(o.total_amount), 0) as total_revenue,
+        COUNT(DISTINCT o.customer_id) as unique_customers
+      FROM inventories i
+      LEFT JOIN orders o ON i.id = o.item_id AND o.order_status = 'completed'
+      WHERE i.rid = ${pool.escape(rid)} 
+      ${filterCondition}
+      GROUP BY i.id
+      ORDER BY i.stock ASC
+    `;
+
+    // Summary Query: Get counts for ALL items (ignoring filter)
+    const summaryQuery = `
+      SELECT 
         CASE 
           WHEN stock = 0 THEN 'critical'
           WHEN stock < 10 THEN 'low'
           WHEN stock < 50 THEN 'medium'
           ELSE 'good'
-        END as stock_level
-      FROM inventories 
-      WHERE rid = ${pool.escape(rid)} 
-      ${filterCondition}
-      ORDER BY stock ASC
+        END as stock_level,
+        COUNT(*) as count
+      FROM inventories
+      WHERE rid = ${pool.escape(rid)}
+      GROUP BY stock_level
     `;
 
-    const [result] = await pool.query(inventoryQuery);
+    const [inventoryResult] = await pool.query(inventoryQuery);
+    const [summaryResult] = await pool.query(summaryQuery);
 
-    const inventory = result.map((row) => ({
+    const inventory = inventoryResult.map((row) => ({
       id: row.id,
       name: row.name,
       stock: parseInt(row.stock || 0),
       status: row.status,
       stockLevel: row.stock_level,
+      totalSold: parseInt(row.total_sold || 0),
+      totalRevenue: parseFloat(row.total_revenue || 0),
+      uniqueCustomers: parseInt(row.unique_customers || 0),
     }));
 
-    // Group by stock level for easier frontend processing
-    const inventoryByLevel = {
-      critical: inventory.filter((item) => item.stockLevel === "critical"),
-      low: inventory.filter((item) => item.stockLevel === "low"),
-      medium: inventory.filter((item) => item.stockLevel === "medium"),
-      good: inventory.filter((item) => item.stockLevel === "good"),
+    // Process summary counts
+    const summary = {
+      critical: 0,
+      low: 0,
+      medium: 0,
+      good: 0,
+      total: 0,
     };
 
-    const summary = {
-      critical: inventoryByLevel.critical.length,
-      low: inventoryByLevel.low.length,
-      medium: inventoryByLevel.medium.length,
-      good: inventoryByLevel.good.length,
-      total: inventory.length,
-    };
+    summaryResult.forEach(row => {
+      if (summary[row.stock_level] !== undefined) {
+        summary[row.stock_level] = parseInt(row.count || 0);
+      }
+    });
+
+    // Special logic: 'low' should include 'critical' (stock < 10 includes stock = 0)
+    // But in the tabs we usually want distinct buckets or strict subsets. 
+    // The previous logic was: `inventoryByLevel.low` filtered by `stockLevel === 'low'`.
+    // My SQL CASE statement makes them mutually exclusive: 0 -> critical, 1-9 -> low.
+    // If the UI expects "Low Stock" to include 0, we should add critical to low.
+    // However, looking at the previous code: 
+    // `low: inventory.filter((item) => item.stockLevel === "low")`
+    // It was mutually exclusive based on the SQL `CASE` logic.
+    // I will keep them mutually exclusive as per the SQL CASE for consistency with the tabs "Low Stock" vs "Out of Stock".
+
+    summary.total = Object.values(summary).reduce((a, b) => a + b, 0) - summary.total; // Recalculate total correctly
+    // Wait, separate loops is safer
+    summary.total = 0;
+    summaryResult.forEach(row => {
+      summary.total += parseInt(row.count || 0);
+    });
 
     return apiResponse.success(200, "Inventory levels fetched successfully", {
       inventory,
-      inventoryByLevel,
       summary,
     });
   } catch (error) {

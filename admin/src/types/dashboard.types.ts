@@ -92,6 +92,9 @@ export interface InventoryItem {
   stock: number
   status: string
   stockLevel: 'critical' | 'low' | 'medium' | 'good'
+  totalSold: number
+  totalRevenue: number
+  uniqueCustomers: number
 }
 
 export interface InventorySummary {

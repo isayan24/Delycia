@@ -38,6 +38,7 @@ import adminTablesRoutes from "./routes/v1/admin/tables.routes.js";
 import adminDashboardRoutes from "./routes/v1/admin/dashboard.routes.js";
 import adminAddonsRoutes from "./routes/v1/admin/addons.routes.js";
 import adminCrmRoutes from "./routes/v1/admin/crm.routes.js";
+import adminInventoryStatsRoutes from "./routes/v1/admin/inventory-stats.routes.js";
 // System routes
 import systemDataRoutes from "./routes/v1/system/data.routes.js";
 
@@ -143,6 +144,7 @@ app.use("/api/v1/app/voice", voiceRoutes);
 app.use("/api/v1/admin/auth", sanitizeInput, adminAuthRoutes);
 app.use("/api/v1/admin/users", sanitizeInput, adminUserRoutes);
 app.use("/api/v1/admin/inventory", sanitizeInput, adminInventoryRoutes);
+app.use("/api/v1/admin/inventory-stats", sanitizeInput, adminInventoryStatsRoutes);
 app.use("/api/v1/admin/variants", sanitizeInput, adminVariantRoutes);
 app.use("/api/v1/admin/orders", adminOrdersRoutes);
 app.use("/api/v1/admin/restaurants", adminRestaurantsRoutes);

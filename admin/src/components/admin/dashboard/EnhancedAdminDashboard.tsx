@@ -1,13 +1,10 @@
 import React, { useEffect, useMemo } from 'react'
 import { ChefHat, AlertCircle } from 'lucide-react'
-import { Button as StatefulButton } from '@/components/ui/stateful-button'
 import { useDateFilterStore } from '@/store/useDateFilterStore'
 import {
   useDashboardStatsQuery,
   useRefreshDashboard,
 } from '@/hooks/queries/useDashboardQueries'
-import DateFilterComponent from './DateFilterComponent'
-import DateRangeDisplay from './DateRangeDisplay'
 import OverviewPage from './OverviewPage'
 import LoadingScreen from '@/components/common/LoadingScreen'
 import { AnimatePresence, motion } from 'motion/react'
@@ -70,7 +67,6 @@ export const EnhancedAdminDashboard: React.FC<EnhancedAdminDashboardProps> = ({
   // Use stats query mainly for loading/error state of the overview
   const statsQuery = useDashboardStatsQuery(queryParams)
 
-  const isLoading = statsQuery.isLoading
   const hasError = !!statsQuery.error
 
   // Refresh handler
@@ -78,9 +74,10 @@ export const EnhancedAdminDashboard: React.FC<EnhancedAdminDashboardProps> = ({
     refreshDashboard()
   }
 
-  // Show loading state on initial load
-  if (isLoading && !statsQuery.data) {
-    return <LoadingScreen message="Loading dashboard data..." />
+  // Show loading state on initial load only if absolutely necessary (e.g. no RID)
+  // For data refetching, we pass through to OverviewPage which handles skeletons
+  if (!rid) {
+    return <LoadingScreen message="Initializing dashboard..." />
   }
 
   return (
@@ -95,42 +92,9 @@ export const EnhancedAdminDashboard: React.FC<EnhancedAdminDashboardProps> = ({
                 Delycia Dashboard
               </h1>
             </div>
-            <div className="flex items-center space-x-4">
-              <StatefulButton
-                onClick={handleRefresh}
-                disabled={isLoading}
-                className="bg-orange-600 hover:ring-orange-600"
-                title="Refresh dashboard data"
-              >
-                Refresh
-              </StatefulButton>
-              <DateFilterComponent />
-            </div>
           </div>
 
-          {/* Date Range Display */}
-          <div className="mt-3 flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <DateRangeDisplay />
-              {isLoading && statsQuery.data && (
-                <div className="flex items-center space-x-2 text-sm text-orange-600">
-                  <span>Refreshing data...</span>
-                </div>
-              )}
-            </div>
-            {hasError && (
-              <div className="flex items-center space-x-2 text-sm text-red-600">
-                <AlertCircle className="w-4 h-4" />
-                <span>Some data failed to load</span>
-                <button
-                  onClick={handleRefresh}
-                  className="text-red-600 hover:text-red-800 underline"
-                >
-                  Retry
-                </button>
-              </div>
-            )}
-          </div>
+          {/* Date Range Display Removed */}
         </div>
       </div>
 

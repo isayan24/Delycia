@@ -1,11 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import {
-  ChevronRight,
-  CookingPot,
-  History,
-  Package,
-  TrendingUp,
-} from 'lucide-react'
+import { ChevronRight, CookingPot, History } from 'lucide-react'
 
 export const Route = createFileRoute('/orders/overview')({
   component: RouteComponent,

@@ -21,7 +21,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useMemo } from 'react'
 import DateFilterComponent from '@/components/admin/dashboard/DateFilterComponent'
 import DateRangeDisplay from '@/components/admin/dashboard/DateRangeDisplay'
-import { Button } from '@/components/ui/button'
+import { Button as StatefulButton } from '@/components/ui/stateful-button'
 import { AlertCircle } from 'lucide-react'
 
 export const Route = createFileRoute('/reports/sales')({
@@ -60,8 +60,8 @@ function SalesReportPage() {
 
   const hasError = !!(statsQuery.error || salesTrendQuery.error)
 
-  const handleRefresh = () => {
-    refreshDashboard()
+  const handleRefresh = async () => {
+    await refreshDashboard()
   }
 
   if (isLoading && !statsQuery.data) {
@@ -69,27 +69,31 @@ function SalesReportPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-lg shadow-sm">
+    <div className="space-y-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 bg-white p-3 rounded-lg shadow-sm border border-gray-100">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Sales Report</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl font-bold tracking-tight text-gray-900">
+            Sales Report
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
             Analyze your sales performance and trends.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <DateFilterComponent />
-          <Button onClick={handleRefresh} variant="outline">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full md:w-auto">
+          <div className="w-full md:w-auto">
+            <DateFilterComponent />
+          </div>
+          <StatefulButton onClick={handleRefresh} className="w-auto shadow-sm">
             Refresh
-          </Button>
+          </StatefulButton>
         </div>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between px-1">
         <DateRangeDisplay />
         {hasError && (
-          <div className="flex items-center space-x-2 text-sm text-red-600">
-            <AlertCircle className="w-4 h-4" />
+          <div className="flex items-center space-x-2 text-xs text-red-600">
+            <AlertCircle className="w-3.5 h-3.5" />
             <span>Some data failed to load</span>
           </div>
         )}
@@ -104,7 +108,7 @@ function SalesReportPage() {
       />
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Sales Trend */}
         <SalesTrendChart
           data={salesTrendQuery.data || null}
@@ -123,7 +127,7 @@ function SalesReportPage() {
       </div>
 
       {/* Middle Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Top Selling Items */}
         <TopSellingItems
           data={topItemsQuery.data || null}
@@ -146,7 +150,7 @@ function SalesReportPage() {
       </div>
 
       {/* Bottom Row: Customer Activity & Delivery Types */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Customer Activity - Takes up 2/3 space */}
         <div className="lg:col-span-2">
           <CustomerActivityTable rid={rid} />

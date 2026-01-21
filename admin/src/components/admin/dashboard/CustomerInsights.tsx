@@ -144,7 +144,7 @@ const CustomerActivityTable: React.FC<CustomerActivityProps> = ({ rid }) => {
                   </TableCell>
                   <TableCell>
                     <Link
-                      to="/crm"
+                      to="/reports/crm"
                       search={{ customerId: row.userId.toString() }}
                       className="text-orange-600 hover:text-orange-700 hover:underline text-xs flex items-center gap-1"
                     >

@@ -1,23 +1,24 @@
 import React from 'react'
 import {
-  ShieldAlert,
   IndianRupee,
   Box,
   AlertTriangle,
-  QrCode,
   FileText,
-  Plus,
   BarChart3,
   Users,
   ArrowRight,
+  Utensils,
+  ClipboardList,
 } from 'lucide-react'
 import {
   useDashboardStatsQuery,
   useInventoryLevelsQuery,
 } from '@/hooks/queries/useDashboardQueries'
-import { useDateFilterStore } from '@/store/useDateFilterStore'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { motion } from 'motion/react'
+import DateFilterComponent from '@/components/admin/dashboard/DateFilterComponent'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useDateFilterStore } from '@/store/useDateFilterStore'
 
 interface OverviewPageProps {
   rid: string
@@ -49,7 +50,7 @@ const OverviewPage: React.FC<OverviewPageProps> = ({ rid }) => {
       {
         id: 'sales',
         title: '₹' + (stats?.totalSales.toLocaleString() || '0'),
-        subtitle: 'Sales This Month',
+        subtitle: 'Sales', // Shortened from "Sales This Month" as it changes with filter
         value: '',
         icon: IndianRupee,
         color: 'text-green-600',
@@ -91,7 +92,7 @@ const OverviewPage: React.FC<OverviewPageProps> = ({ rid }) => {
       {
         id: 'customers',
         title: (stats?.totalCustomers || 0).toString(),
-        subtitle: 'Total Customers',
+        subtitle: 'Total Customers', // All time generally
         value: '',
         icon: Users,
         color: 'text-purple-600',
@@ -105,25 +106,25 @@ const OverviewPage: React.FC<OverviewPageProps> = ({ rid }) => {
     ],
     quickActions: [
       {
-        title: 'Scan Item',
-        desc: 'Check stock instantly',
-        icon: QrCode,
-        gradient: 'from-blue-400 to-blue-600',
-        link: '/inventory/scan', // Hypothetical
-      },
-      {
-        title: 'Create Bill',
-        desc: 'New sale transaction',
+        title: 'Quick Bill',
+        desc: 'New POS Transaction',
         icon: FileText,
-        gradient: 'from-green-400 to-green-600',
-        link: '/pos', // Point of Sale
+        gradient: 'from-blue-400 to-blue-600',
+        link: '/billing/quick-bill',
       },
       {
-        title: 'Add Item',
-        desc: 'Add to inventory',
-        icon: Plus,
+        title: 'Live Orders',
+        desc: 'Manage active orders',
+        icon: ClipboardList,
+        gradient: 'from-green-400 to-green-600',
+        link: '/orders',
+      },
+      {
+        title: 'Manage Menu',
+        desc: 'Add or edit items',
+        icon: Utensils,
         gradient: 'from-purple-400 to-purple-600',
-        link: '/inventory/add',
+        link: '/inventory/menu',
       },
       {
         title: 'View Reports',
@@ -135,11 +136,11 @@ const OverviewPage: React.FC<OverviewPageProps> = ({ rid }) => {
     ],
     quickVisit: [
       {
-        title: 'Suppliers',
-        desc: 'Manage suppliers',
-        icon: Users,
+        title: 'Manage Stock',
+        desc: 'Update inventory stock',
+        icon: Box,
         gradient: 'from-teal-400 to-teal-600',
-        link: '/suppliers',
+        link: '/inventory/stock',
       },
       {
         title: 'Inventory Report',
@@ -151,9 +152,9 @@ const OverviewPage: React.FC<OverviewPageProps> = ({ rid }) => {
       {
         title: 'Stock Alerts',
         desc: 'See all the alerts for items',
-        icon: Box, // Using Box as generic icon if Alert specific not preferred
+        icon: AlertTriangle,
         gradient: 'from-red-400 to-red-600',
-        link: '/alerts',
+        link: '/reports/inventory?filter=low',
       },
     ],
   }
@@ -162,28 +163,48 @@ const OverviewPage: React.FC<OverviewPageProps> = ({ rid }) => {
     <div className="space-y-8 p-1">
       {/* Top Cards Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {sections.topCards.map((card) => (
-          <motion.div
-            key={card.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`rounded-xl border ${card.borderColor} overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow`}
-          >
-            <div className="p-4 flex flex-col items-center text-center">
-              <card.icon className={`w-8 h-8 mb-3 ${card.iconColor}`} />
-              <h3 className="text-2xl font-bold text-gray-800">{card.title}</h3>
-              <p className="text-gray-500 text-sm font-medium">
-                {card.subtitle}
-              </p>
-            </div>
-            <Link
-              to={card.actionLink}
-              className={`block w-full py-2 text-center text-xs font-semibold ${card.accentColor} hover:opacity-90 transition-opacity flex items-center justify-center gap-1`}
+        {sections.topCards.map((card) => {
+          const showSkeleton = !stats || !inventoryData
+          return (
+            <motion.div
+              key={card.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`rounded-xl border-2 ${card.borderColor} overflow-visible bg-white shadow-sm hover:shadow-md transition-shadow relative group`}
             >
-              {card.actionText} <ArrowRight className="w-3 h-3" />
-            </Link>
-          </motion.div>
-        ))}
+              {showSkeleton ? (
+                <div className="p-4 flex flex-col items-center justify-center pt-8 space-y-4">
+                  <Skeleton className="w-10 h-10 rounded-full" />
+                  <Skeleton className="h-8 w-24" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+              ) : (
+                <>
+                  {card.id === 'sales' && (
+                    <div className="absolute top-2 right-2 z-10">
+                      <DateFilterComponent compact hideCustomRange />
+                    </div>
+                  )}
+                  <div className="p-4 flex flex-col items-center text-center pt-8">
+                    <card.icon className={`w-8 h-8 mb-3 ${card.iconColor}`} />
+                    <h3 className="text-2xl font-bold text-gray-800">
+                      {card.title}
+                    </h3>
+                    <p className="text-gray-500 text-sm font-medium">
+                      {card.subtitle}
+                    </p>
+                  </div>
+                  <Link
+                    to={card.actionLink}
+                    className={`block w-full py-2 text-center text-xs font-semibold ${card.accentColor} hover:opacity-90 transition-opacity flex items-center justify-center gap-1`}
+                  >
+                    {card.actionText} <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </>
+              )}
+            </motion.div>
+          )
+        })}
       </div>
 
       {/* Quick Actions Section */}

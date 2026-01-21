@@ -1,51 +1,57 @@
-
-import React from 'react';
-import { TrendingUp, Users, ShoppingBag, Clock, AlertCircle, RefreshCw } from 'lucide-react';
-import { DashboardStats as StatsType } from '@/types/dashboard.types';
-import { formatCurrency, formatGrowth } from '@/utils/currencyUtils';
+import React from 'react'
+import {
+  TrendingUp,
+  Users,
+  ShoppingBag,
+  Clock,
+  AlertCircle,
+  RefreshCw,
+} from 'lucide-react'
+import { DashboardStats as StatsType } from '@/types/dashboard.types'
+import { formatCurrency, formatGrowth } from '@/utils/currencyUtils'
 
 interface MetricCardProps {
-  title: string;
-  value: string | number;
-  icon: React.ComponentType<any>;
-  color?: string;
-  loading?: boolean;
-  error?: boolean;
-  onRetry?: () => void;
+  title: string
+  value: string | number
+  icon: React.ComponentType<any>
+  color?: string
+  loading?: boolean
+  error?: boolean
+  onRetry?: () => void
 }
 
-const MetricCard: React.FC<MetricCardProps> = ({ 
-  title, 
-  value, 
-  icon: Icon, 
+const MetricCard: React.FC<MetricCardProps> = ({
+  title,
+  value,
+  icon: Icon,
   color = 'orange',
   loading = false,
   error = false,
-  onRetry
+  onRetry,
 }) => {
   if (loading) {
     return (
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
         <div className="animate-pulse">
-          <div className="flex items-center justify-between mb-4">
-            <div className={`p-2 rounded-lg bg-${color}-100`}>
-              <div className="w-6 h-6 bg-gray-300 rounded"></div>
+          <div className="flex items-center justify-between mb-3">
+            <div className={`p-1.5 rounded-lg bg-${color}-100`}>
+              <div className="w-5 h-5 bg-gray-300 rounded"></div>
             </div>
             <div className="w-12 h-4 bg-gray-300 rounded"></div>
           </div>
-          <div className="w-20 h-8 bg-gray-300 rounded mb-1"></div>
-          <div className="w-24 h-4 bg-gray-300 rounded"></div>
+          <div className="w-20 h-7 bg-gray-300 rounded mb-1"></div>
+          <div className="w-24 h-3 bg-gray-300 rounded"></div>
         </div>
       </div>
-    );
+    )
   }
 
   if (error) {
     return (
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-red-200">
-        <div className="flex items-center justify-between mb-4">
-          <div className="p-2 rounded-lg bg-red-100">
-            <AlertCircle className="w-6 h-6 text-red-600" />
+      <div className="bg-white rounded-xl p-4 shadow-sm border border-red-200">
+        <div className="flex items-center justify-between mb-3">
+          <div className="p-1.5 rounded-lg bg-red-100">
+            <AlertCircle className="w-5 h-5 text-red-600" />
           </div>
           {onRetry && (
             <button
@@ -57,54 +63,57 @@ const MetricCard: React.FC<MetricCardProps> = ({
             </button>
           )}
         </div>
-        <h3 className="text-lg font-bold text-red-600 mb-1">Error</h3>
-        <p className="text-red-500 text-sm">{title}</p>
+        <h3 className="text-base font-bold text-red-600 mb-1">Error</h3>
+        <p className="text-red-500 text-xs">{title}</p>
       </div>
-    );
+    )
   }
 
   const formatValue = (val: string | number): string => {
     if (typeof val === 'number') {
-      if (title.toLowerCase().includes('sales') || title.toLowerCase().includes('value')) {
-        return formatCurrency(val);
+      if (
+        title.toLowerCase().includes('sales') ||
+        title.toLowerCase().includes('value')
+      ) {
+        return formatCurrency(val)
       }
-      return val.toLocaleString();
+      return val.toLocaleString()
     }
-    return val.toString();
-  };
- 
+    return val.toString()
+  }
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
-      <div className="flex items-center justify-between mb-4">
-        <div className={`p-2 rounded-lg bg-${color}-100`}>
-          <Icon className={`w-6 h-6 text-${color}-600`} />
+    <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+      <div className="flex items-center justify-between mb-3">
+        <div className={`p-1.5 rounded-lg bg-${color}-100`}>
+          <Icon className={`w-5 h-5 text-${color}-600`} />
         </div>
-         
       </div>
-      <h3 className="text-2xl font-bold text-gray-900 mb-1">
+      <h3 className="text-xl font-bold text-gray-900 mb-1">
         {formatValue(value)}
       </h3>
-      <p className="text-gray-600 text-sm">{title}</p>
+      <p className="text-gray-600 text-xs font-medium uppercase tracking-wide">
+        {title}
+      </p>
     </div>
-  );
-};
+  )
+}
 
 interface DashboardStatsProps {
-  stats: StatsType | null;
-  loading: boolean;
-  error: string | null;
-  onRetry?: () => void;
+  stats: StatsType | null
+  loading: boolean
+  error: string | null
+  onRetry?: () => void
 }
 
 export const DashboardStatsComponent: React.FC<DashboardStatsProps> = ({
   stats,
   loading,
   error,
-  onRetry
+  onRetry,
 }) => {
-  const hasError = !!error;
-  const isLoading = loading && !stats;
+  const hasError = !!error
+  const isLoading = loading && !stats
 
   // Default stats for error state
   const defaultStats: StatsType = {
@@ -115,13 +124,17 @@ export const DashboardStatsComponent: React.FC<DashboardStatsProps> = ({
     salesGrowth: 0,
     ordersGrowth: 0,
     customersGrowth: 0,
-    avgOrderGrowth: 0
-  };
+    avgOrderGrowth: 0,
+    totalCustomers: 0,
+    customersToday: 0,
+    customersMonth: 0,
+    customersYear: 0,
+  }
 
-  const displayStats = stats || defaultStats;
+  const displayStats = stats || defaultStats
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       <MetricCard
         title="Total Sales"
         value={displayStats.totalSales}
@@ -159,7 +172,7 @@ export const DashboardStatsComponent: React.FC<DashboardStatsProps> = ({
         onRetry={onRetry}
       />
     </div>
-  );
-};
+  )
+}
 
-export default DashboardStatsComponent;
+export default DashboardStatsComponent
