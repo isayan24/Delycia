@@ -14,6 +14,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AffiliateRouteImport } from './routes/affiliate'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UsersIndexRouteImport } from './routes/users/index'
+import { Route as StaffIndexRouteImport } from './routes/staff/index'
 import { Route as ReportsIndexRouteImport } from './routes/reports/index'
 import { Route as OrdersIndexRouteImport } from './routes/orders/index'
 import { Route as InventoryIndexRouteImport } from './routes/inventory/index'
@@ -58,6 +59,7 @@ import { Route as ApiAuthSessionRouteImport } from './routes/api/auth/session'
 import { Route as ApiAuthRefreshRouteImport } from './routes/api/auth/refresh'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
+import { Route as ApiAuthCreateAdminRouteImport } from './routes/api/auth/create-admin'
 import { Route as ApiAdminUpdateRouteImport } from './routes/api/admin.update'
 import { Route as DemoStartSsrIndexRouteImport } from './routes/demo/start.ssr.index'
 import { Route as DemoStartSsrSpaModeRouteImport } from './routes/demo/start.ssr.spa-mode'
@@ -88,6 +90,11 @@ const IndexRoute = IndexRouteImport.update({
 const UsersIndexRoute = UsersIndexRouteImport.update({
   id: '/users/',
   path: '/users/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StaffIndexRoute = StaffIndexRouteImport.update({
+  id: '/staff/',
+  path: '/staff/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReportsIndexRoute = ReportsIndexRouteImport.update({
@@ -312,6 +319,11 @@ const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
   path: '/api/auth/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthCreateAdminRoute = ApiAuthCreateAdminRouteImport.update({
+  id: '/api/auth/create-admin',
+  path: '/api/auth/create-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminUpdateRoute = ApiAdminUpdateRouteImport.update({
   id: '/api/admin/update',
   path: '/api/admin/update',
@@ -375,8 +387,10 @@ export interface FileRoutesByFullPath {
   '/inventory': typeof InventoryIndexRoute
   '/orders': typeof OrdersIndexRoute
   '/reports': typeof ReportsIndexRoute
+  '/staff': typeof StaffIndexRoute
   '/users': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
+  '/api/auth/create-admin': typeof ApiAuthCreateAdminRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/refresh': typeof ApiAuthRefreshRoute
@@ -432,8 +446,10 @@ export interface FileRoutesByTo {
   '/inventory': typeof InventoryIndexRoute
   '/orders': typeof OrdersIndexRoute
   '/reports': typeof ReportsIndexRoute
+  '/staff': typeof StaffIndexRoute
   '/users': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
+  '/api/auth/create-admin': typeof ApiAuthCreateAdminRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/refresh': typeof ApiAuthRefreshRoute
@@ -490,8 +506,10 @@ export interface FileRoutesById {
   '/inventory/': typeof InventoryIndexRoute
   '/orders/': typeof OrdersIndexRoute
   '/reports/': typeof ReportsIndexRoute
+  '/staff/': typeof StaffIndexRoute
   '/users/': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
+  '/api/auth/create-admin': typeof ApiAuthCreateAdminRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/refresh': typeof ApiAuthRefreshRoute
@@ -549,8 +567,10 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/orders'
     | '/reports'
+    | '/staff'
     | '/users'
     | '/api/admin/update'
+    | '/api/auth/create-admin'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/refresh'
@@ -606,8 +626,10 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/orders'
     | '/reports'
+    | '/staff'
     | '/users'
     | '/api/admin/update'
+    | '/api/auth/create-admin'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/refresh'
@@ -663,8 +685,10 @@ export interface FileRouteTypes {
     | '/inventory/'
     | '/orders/'
     | '/reports/'
+    | '/staff/'
     | '/users/'
     | '/api/admin/update'
+    | '/api/auth/create-admin'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/auth/refresh'
@@ -721,8 +745,10 @@ export interface RootRouteChildren {
   InventoryIndexRoute: typeof InventoryIndexRoute
   OrdersIndexRoute: typeof OrdersIndexRoute
   ReportsIndexRoute: typeof ReportsIndexRoute
+  StaffIndexRoute: typeof StaffIndexRoute
   UsersIndexRoute: typeof UsersIndexRoute
   ApiAdminUpdateRoute: typeof ApiAdminUpdateRoute
+  ApiAuthCreateAdminRoute: typeof ApiAuthCreateAdminRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthRefreshRoute: typeof ApiAuthRefreshRoute
@@ -774,6 +800,13 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/users'
       preLoaderRoute: typeof UsersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/staff/': {
+      id: '/staff/'
+      path: '/staff'
+      fullPath: '/staff'
+      preLoaderRoute: typeof StaffIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reports/': {
@@ -1084,6 +1117,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/create-admin': {
+      id: '/api/auth/create-admin'
+      path: '/api/auth/create-admin'
+      fullPath: '/api/auth/create-admin'
+      preLoaderRoute: typeof ApiAuthCreateAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/update': {
       id: '/api/admin/update'
       path: '/api/admin/update'
@@ -1217,8 +1257,10 @@ const rootRouteChildren: RootRouteChildren = {
   InventoryIndexRoute: InventoryIndexRoute,
   OrdersIndexRoute: OrdersIndexRoute,
   ReportsIndexRoute: ReportsIndexRoute,
+  StaffIndexRoute: StaffIndexRoute,
   UsersIndexRoute: UsersIndexRoute,
   ApiAdminUpdateRoute: ApiAdminUpdateRoute,
+  ApiAuthCreateAdminRoute: ApiAuthCreateAdminRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthRefreshRoute: ApiAuthRefreshRoute,

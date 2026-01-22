@@ -7,7 +7,8 @@ import sessionCleanupService from '@/services/sessionCleanupService'
 import axios from 'axios'
 
 export interface LoginCredentials {
-  phone_number: string
+  phone_number?: string
+  username?: string
   password: string
 }
 

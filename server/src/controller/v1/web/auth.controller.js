@@ -44,6 +44,11 @@ const waiter_auth = async (req, res) => {
   const response = await auth.waiter_auth(req);
   res.status(response.statusCode).json(response);
 };
+const create_admin = async (req, res) => {
+  const response = await auth.create_admin(req);
+  res.status(response.statusCode).json(response);
+};
+
 export default {
   handleAuth,
   refresh,
@@ -51,4 +56,5 @@ export default {
   verifyOTP,
   admin_login,
   waiter_auth,
+  create_admin,
 };

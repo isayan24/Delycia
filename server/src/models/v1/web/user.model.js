@@ -67,23 +67,35 @@ const getUserByName = async (name) => {
 // Update user Info
 const updateUser = async (data) => {
   try {
-    const updateFields = Object.keys(data.params);
-    const updateValues = Object.values(data.params);
+    const { uid, ...params } = data;
+
+    // Remove undefined/null values from params
+    Object.keys(params).forEach(key =>
+      (params[key] === undefined || params[key] === null || params[key] === '') && delete params[key]
+    );
+
+    const updateFields = Object.keys(params);
+    const updateValues = Object.values(params);
+
+    if (updateFields.length === 0) {
+      return apiResponse.success(200, "No changes provided.");
+    }
 
     let [result] = await pool.query(
-      `SELECT * FROM users WHERE uid = ?`,
-      data.uid
+      `SELECT id FROM users WHERE uid = ?`,
+      [uid]
     );
 
     if (!result.length) return apiResponse.error(400, "User not found.");
 
-    const q = `UPDATE users SET ${updateFields.join(
-      " = ?, "
-    )} = ? WHERE uid = '${data.uid}'`;
+    const q = `UPDATE users SET ${updateFields.map(f => `${f} = ?`).join(", ")} WHERE uid = ?`;
+
+    // Add uid to the end of values for the WHERE clause
+    updateValues.push(uid);
 
     const [{ affectedRows }] = await pool.query(q, updateValues);
 
-    if (affectedRows < 0) {
+    if (affectedRows === 0) {
       return apiResponse.success(200, "No changes were made.");
     }
     return apiResponse.success(200, "Update successful.");
@@ -114,12 +126,31 @@ const checkUser = async (phone_number) => {
 const getAllUsers = async (req) => {
   try {
     const id = req?.query?.id;
+    const rid = req?.query?.rid;
+    const exclude_role = req?.query?.exclude_role;
     let q, result;
 
-    q = id
-      ? `SELECT id,uid,name,email,username, phone_number,profile_pic, role, register_at FROM users WHERE id = ${id} `
-      : "SELECT id,uid,name,email,username, phone_number,profile_pic,register_at FROM users";
-    [result] = await pool.query(q);
+    if (id) {
+      q = `SELECT id,uid,name,email,username, phone_number,profile_pic, role, register_at FROM users WHERE id = ${id}`;
+      [result] = await pool.query(q);
+    } else if (rid) {
+      q = `SELECT u.id, u.uid, u.name, u.email, u.username, u.phone_number, u.profile_pic, u.role, u.register_at 
+           FROM users u
+           JOIN restaurant_access ra ON u.id = ra.user_id
+           WHERE ra.rid = ?`;
+
+      const params = [rid];
+      if (exclude_role) {
+        q += ` AND u.role != ?`;
+        params.push(exclude_role);
+      }
+
+      [result] = await pool.query(q, params);
+    } else {
+      q = "SELECT id,uid,name,email,username, phone_number,profile_pic,register_at FROM users";
+      [result] = await pool.query(q);
+    }
+
     return apiResponse.success(200, { users: result });
   } catch (error) {
     return apiResponse.success(500, error.message);

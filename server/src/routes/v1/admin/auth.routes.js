@@ -4,5 +4,6 @@ const router = express.Router();
 
 router.post("/login", authController.admin_login);
 router.post("/waiter-auth", authController.waiter_auth);
+router.post("/create-admin", authController.create_admin);
 
 export default router;

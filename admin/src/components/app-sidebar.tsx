@@ -108,12 +108,12 @@ const navMain = [
       },
     ],
   },
-  // {
-  //   title: 'Affiliate Center',
-  //   url: '/affiliate',
-  //   icon: Users,
-  //   color: 'text-purple-500',
-  // },
+  {
+    title: 'Staff Management',
+    url: '/staff',
+    icon: Users,
+    color: 'text-purple-500',
+  },
 ]
 
 const navSecondary = [

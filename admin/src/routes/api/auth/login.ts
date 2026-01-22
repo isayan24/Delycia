@@ -9,22 +9,37 @@ export const Route = createFileRoute('/api/auth/login')({
     handlers: {
       POST: async ({ request }) => {
         try {
-          const { phone_number, password } = await request.json()
+          const { phone_number, username, password } = await request.json()
 
-          if (!phone_number || !password) {
+          if (!password) {
             return new Response(
               JSON.stringify({
                 statusCode: 400,
-                message: 'Phone number and password are required',
+                message: 'Password is required',
+              }),
+              { status: 400, headers: { 'Content-Type': 'application/json' } },
+            )
+          }
+
+          if (!phone_number && !username) {
+            return new Response(
+              JSON.stringify({
+                statusCode: 400,
+                message: 'Phone number or Username is required',
               }),
               { status: 400, headers: { 'Content-Type': 'application/json' } },
             )
           }
 
           // Call backend admin login endpoint
+          const payload = {
+            password,
+            ...(phone_number ? { phone_number } : { username }),
+          }
+
           const response = await axios.post(
             `${SERVER_URL}/admin/auth/login`,
-            qs.stringify({ phone_number, password }),
+            qs.stringify(payload),
             {
               headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',

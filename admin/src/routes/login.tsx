@@ -51,8 +51,12 @@ function LoginPage() {
   const onSubmit = async (values: z.infer<typeof signInSchema>) => {
     setIsSubmitting(true)
     try {
+      const isPhoneNumber = /^\d+$/.test(values.identifier)
+
       const result = await login({
-        phone_number: values.identifier,
+        ...(isPhoneNumber
+          ? { phone_number: values.identifier }
+          : { username: values.identifier }),
         password: values.password,
       })
 
@@ -106,13 +110,13 @@ function LoginPage() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-sm md:text-base font-medium">
-                    Admin ID
+                    Phone Number or Username
                   </FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Shield className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                       <Input
-                        placeholder="Enter your admin ID"
+                        placeholder="Enter your phone number or username"
                         className="pl-10 py-2 md:py-3 text-sm md:text-base rounded-lg focus:ring-2 focus:ring-purple-500 transition-all duration-200"
                         {...field}
                       />

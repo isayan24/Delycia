@@ -7,17 +7,27 @@ Todo:
   Inventory:
     ☐ Fix variants are not there when adding new bulk item
     ☐ Fix the tab switch in bulk inventory adding: that working reverse
-    ☐ 
+     
   Cart:
     ☐ Create rid column in the cart table
     ☐ Sync cart when user has logged in: sync with the redux
 
 Features: 
+  Quick Bill:
+    ☐ Add an option to add discount to the bill
+    ☐ Inventory variants are not there when adding new quick bill - add it
+    ☐ Make the ui compact and ease to access 
  
   Add staffs Page:
-    ☐ Add a page to add staffs for admin
-    ☐ Add functionality to create staffs with name, username and password
-    ☐ Modify the backend to login with username and password as well(only for admin & staffs)
+    ☐ Add a page to add staffs for admin @started(26-01-21 23:54)
+    ☐ Add functionality to create staffs with name, username and password @started(26-01-21 23:54)
+    ☐ Modify the backend to login with username and password as well(only for admin & staffs) @started(26-01-21 23:54)
+    ☐ If possible add the functionality to show which staff ordered what for customers @started(26-01-21 23:54)
+
+  Notification System:
+    ☐ Add a notification system for admin and staffs
+    ☐ Create a slider based or sidebar to the right side, from here notifications will store
+    ☐ Notifications like stock alerts, new order, order canceled, staff online etc
 
   Overview Page:
     ✔ This page is all about a quick overview of some stuff @done(26-01-21 10:18)
@@ -25,22 +35,21 @@ Features:
     ✔ In the overview show: @done(26-01-21 10:18)
       ✔ Sales: The sales of the restaurant, filter based sales(today, this month, this year) @done(26-01-21 21:43)
       ✔ Inventory: Show the inventory items, which stocks are very low, show the total nos of them @done(26-01-21 21:43)
-      - Customers: Show the total nos of customers, filter based customers(today, this month, this year)
-      - 
+      ✔ Customers: Show the total nos of customers, filter based customers(today, this month, this year)
+      
     ✔ Make a Page: Reports, that will have sales report and inventory report @done(26-01-21 21:44)
       ✔ In the inventory report will have the complete report of every item, including specific inventory item sales, what perform better, what perform worse, that perticular item ordered how many persons etc. @done(26-01-21 21:44)
       ✔ In the sales report will have: Move the whole dashboard page to here actually @done(26-01-21 21:44)
 
-
   Delycia Wallet:
     ☐ Add wallet to the user profile
     ☐ This will be user specific wallet so no need to in the admin
-    ☐ 
+      
   Explore Delycias:
     ☐ This feature is for user site that shows a map and show delycia restaurants
     ☐ This will increase the user engagement 
     ☐ Include search functionality for searching delycia restaurant or specific location name
-    ☐ 
+    
 
 
      catch (err) {

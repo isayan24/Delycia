@@ -5,6 +5,7 @@ import apiResponse from "../../../utils/apiResponse.js";
 import others from "../../../utils/others.js";
 import whatsapp from "../../../utils/whatsapp.js";
 import MyTwilio from "../../../utils/twilio.js";
+
 const handleAuth = async (req) => {
   const { country_code, phone_number } = req.body;
 
@@ -148,15 +149,26 @@ const verifyOTP = async (req) => {
 
 const admin_login = async (req) => {
   try {
-    const { phone_number, password } = req.body;
+    const { phone_number, username, password } = req.body;
 
-    if (![phone_number, password].every(Boolean))
-      return apiResponse.error(400, "Data is missing!");
+    if (!password) return apiResponse.error(400, "Password is required!");
 
-    const [result] = await pool.query(
-      "SELECT id, role, uid, role FROM users WHERE phone_number = ? AND password = ? AND role != 0",
-      [phone_number, password]
-    );
+    if (!phone_number && !username)
+      return apiResponse.error(400, "Phone number or Username is required!");
+
+    let query =
+      "SELECT id, role, uid, username FROM users WHERE role != 0 AND password = ?";
+    const params = [password];
+
+    if (phone_number) {
+      query += " AND phone_number = ?";
+      params.push(phone_number);
+    } else {
+      query += " AND username = ?";
+      params.push(username);
+    }
+
+    const [result] = await pool.query(query, params);
 
     if (!result.length) return apiResponse.error(400, "user doesn't exist");
 
@@ -230,4 +242,40 @@ const waiter_auth = async (req, res) => {
   }
 };
 
-export default { handleAuth, sendOTP, verifyOTP, admin_login, waiter_auth };
+const create_admin = async (req) => {
+  try {
+    const { name, username, password, role, rid } = req.body;
+
+    if (!name || !username || !password || !role || !rid)
+      return apiResponse.error(400, "All fields (including rid) are required!");
+
+    const [existing] = await pool.query(
+      "SELECT id FROM users WHERE username = ?",
+      [username]
+    );
+
+    if (existing.length)
+      return apiResponse.error(400, "Username already exists!");
+
+    const uid = uuidv4();
+
+    const [result] = await pool.query(
+      "INSERT INTO users (uid, name, username, password, role) VALUES (?, ?, ?, ?, ?)",
+      [uid, name, username, password, role]
+    );
+
+    // Link user to restaurant
+    await pool.query(
+      "INSERT INTO restaurant_access (user_id, rid) VALUES (?, ?)",
+      [result.insertId, rid]
+    );
+
+    return apiResponse.success(201, "Admin created successfully", {
+      id: result.insertId,
+    });
+  } catch (error) {
+    return apiResponse.error(500, error.message);
+  }
+};
+
+export default { handleAuth, sendOTP, verifyOTP, admin_login, waiter_auth, create_admin };
