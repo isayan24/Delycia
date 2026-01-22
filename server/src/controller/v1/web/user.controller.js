@@ -30,9 +30,26 @@ const deleteUser = async (req, res) => {
   }
 };
 
+const deleteStaff = async (req, res) => {
+  try {
+    const { uid } = req.params;
+
+    if (!uid) {
+      return res.status(400).json({ status: false, error: "UID is required." });
+    }
+
+    const response = await userModel.deleteStaff(uid);
+    res.status(response.statusCode).json(response);
+  } catch (error) {
+    res.status(500).json({
+      status: false,
+      error: `Internal server error : ${error.message} `,
+    });
+  }
+};
+
 const updateUser = async (req, res) => {
-  let params = req.body;
-  let uid = req.body.uid;
+  const { uid, ...params } = req.body;
 
   const allowedParams = [
     "username",
@@ -44,19 +61,23 @@ const updateUser = async (req, res) => {
     "role",
     "verified",
   ];
-  // Deleteing the params that are not in the allowed list
+
+  // Filter to only allowed params
+  const filteredParams = {};
   for (let key in params) {
-    if (!allowedParams.includes(key)) {
-      delete params[key];
+    if (allowedParams.includes(key)) {
+      filteredParams[key] = params[key];
     }
   }
-  validationError = validator.validateUserUpdateInput(params);
+
+  validationError = validator.validateUserUpdateInput(filteredParams);
 
   if (validationError) {
     return res.status(400).json(validationError);
   }
-  params = { uid, params };
-  const response = await userModel.updateUser(params);
+
+  // Pass flat object with uid
+  const response = await userModel.updateUser({ uid, ...filteredParams });
 
   if (response.status === false) {
     return res.status(400).json(response);
@@ -95,6 +116,7 @@ const checkUser = async (req, res) => {
 
 export default {
   deleteUser,
+  deleteStaff,
   updateUser,
   getUser,
   checkUser,

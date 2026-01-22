@@ -16,6 +16,22 @@ const deleteUser = async (uid, password) => {
   return await pool.query(q, [uid]);
 };
 
+// Delete Staff (Admin)
+const deleteStaff = async (uid) => {
+  try {
+    const q = "DELETE FROM users WHERE uid = ?";
+    const [result] = await pool.query(q, [uid]); // Use destructuring to get result header
+
+    if (result.affectedRows === 0) {
+      return apiResponse.error(404, "User not found.");
+    }
+
+    return apiResponse.success(200, "Staff deleted successfully.");
+  } catch (error) {
+    return apiResponse.error(500, error.message);
+  }
+};
+
 // Get User
 const getUser = async (uid) => {
   let q, result;
@@ -86,6 +102,7 @@ const updateUser = async (data) => {
       [uid]
     );
 
+
     if (!result.length) return apiResponse.error(400, "User not found.");
 
     const q = `UPDATE users SET ${updateFields.map(f => `${f} = ?`).join(", ")} WHERE uid = ?`;
@@ -98,6 +115,7 @@ const updateUser = async (data) => {
     if (affectedRows === 0) {
       return apiResponse.success(200, "No changes were made.");
     }
+
     return apiResponse.success(200, "Update successful.");
   } catch (error) {
     return apiResponse.error(500, error.message);
@@ -134,7 +152,7 @@ const getAllUsers = async (req) => {
       q = `SELECT id,uid,name,email,username, phone_number,profile_pic, role, register_at FROM users WHERE id = ${id}`;
       [result] = await pool.query(q);
     } else if (rid) {
-      q = `SELECT u.id, u.uid, u.name, u.email, u.username, u.phone_number, u.profile_pic, u.role, u.register_at 
+      q = `SELECT u.id, u.uid, u.name, u.email, u.username, u.phone_number, u.profile_pic, u.role, u.register_at, u.password 
            FROM users u
            JOIN restaurant_access ra ON u.id = ra.user_id
            WHERE ra.rid = ?`;
@@ -159,6 +177,7 @@ const getAllUsers = async (req) => {
 
 export default {
   deleteUser,
+  deleteStaff,
   updateUser,
   getUser,
   checkUser,

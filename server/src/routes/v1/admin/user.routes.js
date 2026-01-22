@@ -6,5 +6,6 @@ const router = express.Router();
 
 router.get("/", authMiddleware, userController.getAllUsers);
 router.patch("/", authMiddleware, userController.updateUser);
+router.delete("/:uid", authMiddleware, userController.deleteStaff);
 
 export default router;

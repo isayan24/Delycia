@@ -8,14 +8,50 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { Edit2, Loader2, Shield, User } from 'lucide-react'
+import { Edit2, Loader2, Shield, User, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { useStaffQuery, StaffMember } from '@/hooks/queries/useStaffQueries'
+import {
+  useStaffQuery,
+  StaffMember,
+  useDeleteStaffMutation,
+} from '@/hooks/queries/useStaffQueries'
 import { EditStaffSheet } from './EditStaffSheet'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { Eye } from 'lucide-react'
 
 export function StaffList() {
   const { data: staff, isLoading } = useStaffQuery()
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null)
+  const [viewPassword, setViewPassword] = useState<string | null>(null)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const deleteMutation = useDeleteStaffMutation()
+
+  const handleDelete = () => {
+    if (deleteId) {
+      deleteMutation.mutate(deleteId, {
+        onSuccess: () => setDeleteId(null),
+      })
+    }
+  }
 
   const getRoleBadge = (role: number) => {
     switch (role) {
@@ -89,9 +125,26 @@ export function StaffList() {
                   <Button
                     variant="ghost"
                     size="sm"
+                    onClick={() =>
+                      setViewPassword(member.password || 'No password set')
+                    }
+                  >
+                    <Eye className="h-4 w-4 text-gray-500" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setSelectedStaff(member)}
                   >
                     <Edit2 className="h-4 w-4 text-gray-500" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                    onClick={() => setDeleteId(member.uid)}
+                  >
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </TableCell>
               </TableRow>
@@ -105,6 +158,77 @@ export function StaffList() {
         open={!!selectedStaff}
         onOpenChange={(open) => !open && setSelectedStaff(null)}
       />
+
+      <ViewPasswordDialog
+        password={viewPassword}
+        open={!!viewPassword}
+        onOpenChange={(open) => !open && setViewPassword(null)}
+      />
+
+      <AlertDialog
+        open={!!deleteId}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              staff member and remove their data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-red-500 hover:bg-red-600"
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
+  )
+}
+
+function ViewPasswordDialog({
+  password,
+  open,
+  onOpenChange,
+}: {
+  password: string | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Staff Password</DialogTitle>
+          <DialogDescription>
+            Current password for the selected staff member.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex items-center space-x-2">
+          <div className="grid flex-1 gap-2">
+            <Label htmlFor="link" className="sr-only">
+              Link
+            </Label>
+            <Input id="link" defaultValue={password || ''} readOnly />
+          </div>
+        </div>
+        <DialogFooter className="sm:justify-end">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => onOpenChange(false)}
+          >
+            Close
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

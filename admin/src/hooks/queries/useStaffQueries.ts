@@ -12,6 +12,7 @@ export interface StaffMember {
   role: number
   profile_pic?: string
   is_active?: number
+  password?: string
 }
 
 // Fetch staff for a specific restaurant
@@ -89,6 +90,31 @@ export const useUpdateStaffMutation = () => {
       showError(
         'Error',
         error.response?.data?.message || 'Failed to update staff member',
+      )
+    },
+  })
+}
+
+export const useDeleteStaffMutation = () => {
+  const queryClient = useQueryClient()
+  const { showError, showSuccess } = useToast()
+  const { user } = useAuth()
+  const rid = user?.selected_rid
+
+  return useMutation({
+    mutationFn: async (uid: string) => {
+      const response = await axios.delete(`/api/users?uid=${uid}`)
+      return response.data
+    },
+    onSuccess: () => {
+      showSuccess('Success', 'Staff member deleted successfully')
+      queryClient.invalidateQueries({ queryKey: ['staff', rid] })
+    },
+    onError: (error: any) => {
+      console.error('Delete staff error:', error)
+      showError(
+        'Error',
+        error.response?.data?.message || 'Failed to delete staff member',
       )
     },
   })

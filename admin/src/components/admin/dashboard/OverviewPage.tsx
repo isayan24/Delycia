@@ -99,7 +99,7 @@ const OverviewPage: React.FC<OverviewPageProps> = ({ rid }) => {
         borderColor: 'border-purple-200',
         bgColor: 'bg-white',
         actionText: 'View Customers',
-        actionLink: '/crm',
+        actionLink: '/reports/crm',
         accentColor: 'bg-purple-100 text-purple-700',
         iconColor: 'text-purple-600',
       },

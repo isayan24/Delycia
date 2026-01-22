@@ -20,7 +20,6 @@ export const Route = createFileRoute('/api/users')({
 
           // Forward all query parameters
           const endpoint = `/admin/users${url.search}`
-          console.log(endpoint, 'endpoint \n\n\n\n\n\n')
 
           const response = await axiosInstance.get(endpoint, {
             headers: { Authorization: `Bearer ${accessToken}` },
@@ -51,6 +50,36 @@ export const Route = createFileRoute('/api/users')({
           return new Response(JSON.stringify(response.data), { status: 200 })
         } catch (error) {
           const errorResponse = handleApiError(error, 'Error updating user')
+          return new Response(JSON.stringify(errorResponse), { status: 500 })
+        }
+      },
+      DELETE: async ({ request }) => {
+        try {
+          const accessToken = getAccessTokenFromCookie(request)
+          const url = new URL(request.url)
+          const uid = url.searchParams.get('uid')
+
+          if (!accessToken) {
+            return new Response(
+              JSON.stringify({ status: 401, message: 'Not authenticated' }),
+              { status: 401 },
+            )
+          }
+
+          if (!uid) {
+            return new Response(
+              JSON.stringify({ status: 400, message: 'UID is required' }),
+              { status: 400 },
+            )
+          }
+
+          const response = await axiosInstance.delete(`/admin/users/${uid}`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          })
+
+          return new Response(JSON.stringify(response.data), { status: 200 })
+        } catch (error) {
+          const errorResponse = handleApiError(error, 'Error deleting user')
           return new Response(JSON.stringify(errorResponse), { status: 500 })
         }
       },
