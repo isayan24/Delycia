@@ -1,5 +1,5 @@
 import { format } from 'date-fns'
-import { User } from '@/types/User'
+import { User } from '@/types/user.types'
 
 // API Order interface based on the console data structure
 export interface ApiOrder {
@@ -22,6 +22,7 @@ export interface ApiOrder {
   table_no: number
   total_amount: number
   variant_id: number
+  customer_phone: string
 }
 
 // Transformed order interface for UI
@@ -275,6 +276,7 @@ export const transformOrderData = (apiOrders: any[]): TransformedOrder[] => {
           customerId: order.customer_id,
           customerName:
             order.customer_name || generateCustomerName(order.customer_id),
+          customerPhone: order.customer_phone || order.customer?.phone || 'N/A',
           items: transformedItems,
           totalAmount: parseFloat(order.total_amount) || 0,
           createdAt: new Date(order.created_at),
@@ -305,6 +307,7 @@ export const transformOrderData = (apiOrders: any[]): TransformedOrder[] => {
           date: formatDateFromUTC(firstItem.created_at),
           customerId: firstItem.customer_id,
           customerName: generateCustomerName(firstItem.customer_id),
+          customerPhone: firstItem.customer_phone || 'N/A',
           items: aggregateOrderItems(orderItems),
           totalAmount: calculateOrderTotal(orderItems),
           createdAt: new Date(firstItem.created_at),

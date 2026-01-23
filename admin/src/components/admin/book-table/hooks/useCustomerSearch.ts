@@ -1,67 +1,33 @@
-import { useState, useEffect } from 'react'
 import { useDebounce } from '@/hooks/useDebounce'
-import axiosInstance from '@/lib/axios'
+import {
+  useUserSearchQuery,
+  type UserSearchResult,
+} from '@/hooks/queries/useUserSearchQuery'
 
-export interface UserSearchResult {
-  uid: string
-  name: string
-  phone_number: string
-  username: string
-  email?: string
-  profile_pic?: string
-}
+export type { UserSearchResult }
 
+/**
+ * Hook for customer search with debouncing
+ * Wraps useUserSearchQuery with debouncing logic
+ * @param searchTerm - Raw search term from input
+ */
 export function useCustomerSearch(searchTerm: string) {
-  const [searchResults, setSearchResults] = useState<UserSearchResult[]>([])
-  const [isSearching, setIsSearching] = useState(false)
-  const [searchError, setSearchError] = useState<string | null>(null)
-
-  // Debounce the search term
+  // Debounce the search term to avoid excessive API calls
   const debouncedSearchTerm = useDebounce(searchTerm, 300)
 
-  useEffect(() => {
-    const searchUsers = async () => {
-      // Only search if there's a search term with at least 2 characters
-      if (!debouncedSearchTerm || debouncedSearchTerm.trim().length < 2) {
-        setSearchResults([])
-        setIsSearching(false)
-        return
-      }
-
-      setIsSearching(true)
-      setSearchError(null)
-
-      try {
-        const response = await axiosInstance.get(`/users/search`, {
-          params: { name: debouncedSearchTerm },
-        })
-
-        if (response.data.status) {
-          setSearchResults(response.data.users || [])
-        } else {
-          setSearchResults([])
-        }
-      } catch (error: any) {
-        console.error('Error searching users:', error)
-        setSearchError('Failed to search users')
-        setSearchResults([])
-      } finally {
-        setIsSearching(false)
-      }
-    }
-
-    searchUsers()
-  }, [debouncedSearchTerm])
+  // Use TanStack Query hook for actual data fetching
+  const { data, isLoading, error } = useUserSearchQuery(debouncedSearchTerm)
 
   const clearResults = () => {
-    setSearchResults([])
-    setSearchError(null)
+    // Note: Results will automatically clear when searchTerm changes
+    // This is kept for backward compatibility but is a no-op
+    // TanStack Query handles this automatically
   }
 
   return {
-    searchResults,
-    isSearching,
-    searchError,
+    searchResults: data?.users || [],
+    isSearching: isLoading,
+    searchError: error ? 'Failed to search users' : null,
     clearResults,
   }
 }

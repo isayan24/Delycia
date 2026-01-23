@@ -50,6 +50,7 @@ import { Route as ReportsInventoryInventoryIdRouteImport } from './routes/report
 import { Route as DemoStartServerFuncsRouteImport } from './routes/demo/start.server-funcs'
 import { Route as DemoStartApiRequestRouteImport } from './routes/demo/start.api-request'
 import { Route as DemoApiNamesRouteImport } from './routes/demo/api.names'
+import { Route as ApiUsersSearchRouteImport } from './routes/api/users.search'
 import { Route as ApiStaffReportsStaffIdRouteImport } from './routes/api/staff-reports/$staffId'
 import { Route as ApiOrdersOrderHistoryRouteImport } from './routes/api/orders/order-history'
 import { Route as ApiOrdersActionsRouteImport } from './routes/api/orders/actions'
@@ -277,6 +278,11 @@ const DemoApiNamesRoute = DemoApiNamesRouteImport.update({
   path: '/demo/api/names',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiUsersSearchRoute = ApiUsersSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => ApiUsersRoute,
+} as any)
 const ApiStaffReportsStaffIdRoute = ApiStaffReportsStaffIdRouteImport.update({
   id: '/$staffId',
   path: '/$staffId',
@@ -397,7 +403,7 @@ export interface FileRoutesByFullPath {
   '/api/restaurant': typeof ApiRestaurantRoute
   '/api/staff-reports': typeof ApiStaffReportsRouteWithChildren
   '/api/table': typeof ApiTableRoute
-  '/api/users': typeof ApiUsersRoute
+  '/api/users': typeof ApiUsersRouteWithChildren
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
   '/api/ws-token': typeof ApiWsTokenRoute
   '/billing/book-table': typeof BillingBookTableRoute
@@ -429,6 +435,7 @@ export interface FileRoutesByFullPath {
   '/api/orders/actions': typeof ApiOrdersActionsRoute
   '/api/orders/order-history': typeof ApiOrdersOrderHistoryRoute
   '/api/staff-reports/$staffId': typeof ApiStaffReportsStaffIdRoute
+  '/api/users/search': typeof ApiUsersSearchRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
@@ -460,7 +467,7 @@ export interface FileRoutesByTo {
   '/api/restaurant': typeof ApiRestaurantRoute
   '/api/staff-reports': typeof ApiStaffReportsRouteWithChildren
   '/api/table': typeof ApiTableRoute
-  '/api/users': typeof ApiUsersRoute
+  '/api/users': typeof ApiUsersRouteWithChildren
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
   '/api/ws-token': typeof ApiWsTokenRoute
   '/billing/book-table': typeof BillingBookTableRoute
@@ -492,6 +499,7 @@ export interface FileRoutesByTo {
   '/api/orders/actions': typeof ApiOrdersActionsRoute
   '/api/orders/order-history': typeof ApiOrdersOrderHistoryRoute
   '/api/staff-reports/$staffId': typeof ApiStaffReportsStaffIdRoute
+  '/api/users/search': typeof ApiUsersSearchRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
@@ -524,7 +532,7 @@ export interface FileRoutesById {
   '/api/restaurant': typeof ApiRestaurantRoute
   '/api/staff-reports': typeof ApiStaffReportsRouteWithChildren
   '/api/table': typeof ApiTableRoute
-  '/api/users': typeof ApiUsersRoute
+  '/api/users': typeof ApiUsersRouteWithChildren
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
   '/api/ws-token': typeof ApiWsTokenRoute
   '/billing/book-table': typeof BillingBookTableRoute
@@ -556,6 +564,7 @@ export interface FileRoutesById {
   '/api/orders/actions': typeof ApiOrdersActionsRoute
   '/api/orders/order-history': typeof ApiOrdersOrderHistoryRoute
   '/api/staff-reports/$staffId': typeof ApiStaffReportsStaffIdRoute
+  '/api/users/search': typeof ApiUsersSearchRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
@@ -621,6 +630,7 @@ export interface FileRouteTypes {
     | '/api/orders/actions'
     | '/api/orders/order-history'
     | '/api/staff-reports/$staffId'
+    | '/api/users/search'
     | '/demo/api/names'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
@@ -684,6 +694,7 @@ export interface FileRouteTypes {
     | '/api/orders/actions'
     | '/api/orders/order-history'
     | '/api/staff-reports/$staffId'
+    | '/api/users/search'
     | '/demo/api/names'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
@@ -747,6 +758,7 @@ export interface FileRouteTypes {
     | '/api/orders/actions'
     | '/api/orders/order-history'
     | '/api/staff-reports/$staffId'
+    | '/api/users/search'
     | '/demo/api/names'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
@@ -779,7 +791,7 @@ export interface RootRouteChildren {
   ApiRestaurantRoute: typeof ApiRestaurantRoute
   ApiStaffReportsRoute: typeof ApiStaffReportsRouteWithChildren
   ApiTableRoute: typeof ApiTableRoute
-  ApiUsersRoute: typeof ApiUsersRoute
+  ApiUsersRoute: typeof ApiUsersRouteWithChildren
   ApiWaiterOrdersRoute: typeof ApiWaiterOrdersRoute
   ApiWsTokenRoute: typeof ApiWsTokenRoute
   BillingBookTableRoute: typeof BillingBookTableRoute
@@ -1105,6 +1117,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoApiNamesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/users/search': {
+      id: '/api/users/search'
+      path: '/search'
+      fullPath: '/api/users/search'
+      preLoaderRoute: typeof ApiUsersSearchRouteImport
+      parentRoute: typeof ApiUsersRoute
+    }
     '/api/staff-reports/$staffId': {
       id: '/api/staff-reports/$staffId'
       path: '/$staffId'
@@ -1317,6 +1336,18 @@ const ApiStaffReportsRouteWithChildren = ApiStaffReportsRoute._addFileChildren(
   ApiStaffReportsRouteChildren,
 )
 
+interface ApiUsersRouteChildren {
+  ApiUsersSearchRoute: typeof ApiUsersSearchRoute
+}
+
+const ApiUsersRouteChildren: ApiUsersRouteChildren = {
+  ApiUsersSearchRoute: ApiUsersSearchRoute,
+}
+
+const ApiUsersRouteWithChildren = ApiUsersRoute._addFileChildren(
+  ApiUsersRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AffiliateRoute: AffiliateRoute,
@@ -1334,7 +1365,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiRestaurantRoute: ApiRestaurantRoute,
   ApiStaffReportsRoute: ApiStaffReportsRouteWithChildren,
   ApiTableRoute: ApiTableRoute,
-  ApiUsersRoute: ApiUsersRoute,
+  ApiUsersRoute: ApiUsersRouteWithChildren,
   ApiWaiterOrdersRoute: ApiWaiterOrdersRoute,
   ApiWsTokenRoute: ApiWsTokenRoute,
   BillingBookTableRoute: BillingBookTableRoute,

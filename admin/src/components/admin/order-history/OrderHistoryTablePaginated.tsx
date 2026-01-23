@@ -96,14 +96,14 @@ export default function OrderHistoryTablePaginated({
         order.customer_name ||
         order.customer?.name ||
         'Guest',
-      customerId:
+      customerPhone:
         order.customer_phone ||
-        order.customerId ||
-        order.customer_id ||
+        order.customerPhone ||
         order.customer?.phone ||
         'N/A',
       items: billItems,
       totalAmount: parseFloat(order.totalAmount || order.total_amount || 0),
+      discount: parseFloat(order.discount || order.discount_amount || 0),
       orderDate: getISTDateKey(order.createdAt || order.created_at),
     }
 

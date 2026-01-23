@@ -27,7 +27,6 @@ export default function BillSummary({
   const [completedOrderData, setCompletedOrderData] = useState<any>(null)
   const { showSuccess, showError } = useToast()
 
-  // review
   const totalAmount = cart.reduce(
     (sum, item) => sum + (item.price ?? item.price) * item.quantity,
     0,

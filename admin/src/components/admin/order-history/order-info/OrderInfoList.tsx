@@ -124,6 +124,7 @@ const OrderInfoList = memo(function OrderInfoList({
 
   // Print bill handler
   const handlePrintBill = useCallback((order: any) => {
+    console.log(order.customer)
     const billItems = order.items.map((item: any) => ({
       name: item.name,
       quantity: item.quantity,
@@ -134,7 +135,8 @@ const OrderInfoList = memo(function OrderInfoList({
       orderId: order.orderId || order.id,
       tableNo: order.tableNo || 'N/A',
       customerName: order.customerName || order.customer?.name || 'Guest',
-      customerId: order.customerId || order.customer?.phone || 'N/A',
+      customerId: order.customerId || 'N/A',
+      customerPhone: order.customer?.phone_number || 'N/A',
       items: billItems,
       totalAmount: order.totalAmount,
       orderDate: getISTDateKey(order.createdAt),

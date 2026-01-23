@@ -59,6 +59,7 @@ export const UseAdminOrderHistory = ({ rid }: UseAdminOrdersProps) => {
   })
 
   const orders = orderHistoryData?.orders || []
+
   const paginationMeta = orderHistoryData
     ? {
         total_orders: orderHistoryData.total_orders,

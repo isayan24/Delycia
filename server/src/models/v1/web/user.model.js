@@ -56,7 +56,8 @@ const getUserByName = async (name) => {
   try {
     let q, result;
     // Use LIKE for prefix matching to support search-as-you-type
-    q = "SELECT * FROM users WHERE name LIKE ?";
+    // Filter by role = 0 to only show customers
+    q = "SELECT * FROM users WHERE name LIKE ? AND role = 0";
     [result] = await pool.query(q, [`${name}%`]);
 
     if (result.length == 0) {
@@ -67,10 +68,9 @@ const getUserByName = async (name) => {
       };
     }
 
-    // Remove sensitive fields from all results
+    // Remove only password field, keep role visible
     const users = result.map(user => {
       delete user.password;
-      delete user.role;
       return user;
     });
 
