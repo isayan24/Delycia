@@ -138,6 +138,9 @@ const OrderInfoList = memo(function OrderInfoList({
       customerId: order.customerId || 'N/A',
       customerPhone: order.customer?.phone_number || 'N/A',
       items: billItems,
+      discountAmount: parseFloat(
+        order.discountAmount || order.discount_amount || 0,
+      ),
       totalAmount: order.totalAmount,
       orderDate: getISTDateKey(order.createdAt),
     }
@@ -311,6 +314,7 @@ const OrderInfoList = memo(function OrderInfoList({
               customer={order.customer}
               items={order.items}
               totalAmount={order.totalAmount}
+              discountAmount={order.discountAmount}
               isSelected={selectedOrderId === order.id}
               onClick={() => onOrderSelect(order.id)}
               onPrint={() => handlePrintBill(order)}

@@ -103,7 +103,9 @@ export default function OrderHistoryTablePaginated({
         'N/A',
       items: billItems,
       totalAmount: parseFloat(order.totalAmount || order.total_amount || 0),
-      discount: parseFloat(order.discount || order.discount_amount || 0),
+      discountAmount: parseFloat(
+        order.discountAmount || order.discount_amount || 0,
+      ),
       orderDate: getISTDateKey(order.createdAt || order.created_at),
     }
 
@@ -147,6 +149,9 @@ export default function OrderHistoryTablePaginated({
                   Status
                 </TableHead>
                 <TableHead className="py-3 text-sm font-semibold">
+                  Discount
+                </TableHead>
+                <TableHead className="py-3 text-sm font-semibold">
                   Amount
                 </TableHead>
                 <TableHead className="py-3 text-sm font-semibold">
@@ -163,7 +168,7 @@ export default function OrderHistoryTablePaginated({
             <TableBody>
               {items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
+                  <TableCell colSpan={8} className="text-center py-8">
                     <div className="text-gray-500 text-sm">
                       {loading ? 'Loading orders...' : 'No orders found'}
                     </div>
@@ -217,6 +222,22 @@ export default function OrderHistoryTablePaginated({
                           ? 'DELIVERED'
                           : 'CANCELLED'}
                       </Badge>
+                    </TableCell>
+
+                    {/* Discount */}
+                    <TableCell className="py-3 px-3">
+                      {(() => {
+                        const discountValue = parseFloat(
+                          order.discountAmount || order.discount_amount || 0,
+                        )
+                        return discountValue > 0 ? (
+                          <div className="text-sm text-green-600 font-medium">
+                            -₹{discountValue.toFixed(2)}
+                          </div>
+                        ) : (
+                          <div className="text-xs text-gray-400">---</div>
+                        )
+                      })()}
                     </TableCell>
 
                     {/* Amount */}

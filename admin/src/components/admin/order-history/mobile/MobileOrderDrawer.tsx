@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from "react";
+import React, { memo, useMemo } from 'react'
 import {
   Drawer,
   DrawerClose,
@@ -6,71 +6,73 @@ import {
   DrawerDescription,
   DrawerHeader,
   DrawerTitle,
-} from "@/components/ui/drawer";
+} from '@/components/ui/drawer'
 import {
   TransformedOrder,
   generateOrderTimeline,
   calculateDeliveryTime,
-} from "../utils/orderHistoryUtils";
-import CustomerAvatar from "../CustomerAvatar";
-import { X } from "lucide-react";
+} from '../utils/orderHistoryUtils'
+import CustomerAvatar from '../CustomerAvatar'
+import { X } from 'lucide-react'
 
 interface MobileOrderDrawerProps {
-  order: TransformedOrder | null;
-  isOpen: boolean;
-  onClose: () => void;
+  order: TransformedOrder | null
+  isOpen: boolean
+  onClose: () => void
+  onPrintBill: (order: TransformedOrder) => void
 }
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case "DELIVERED":
-      return "bg-green-600 text-white";
-    case "CANCELLED":
-      return "bg-red-500 text-white";
+    case 'DELIVERED':
+      return 'bg-green-600 text-white'
+    case 'CANCELLED':
+      return 'bg-red-500 text-white'
     default:
-      return "bg-gray-500 text-white";
+      return 'bg-gray-500 text-white'
   }
-};
+}
 
 const getTimelineColor = (status: string) => {
   switch (status) {
-    case "DELIVERED":
-      return "bg-green-500";
-    case "CANCELLED":
-      return "bg-red-500";
+    case 'DELIVERED':
+      return 'bg-green-500'
+    case 'CANCELLED':
+      return 'bg-red-500'
     default:
-      return "bg-gray-300";
+      return 'bg-gray-300'
   }
-};
+}
 
 const MobileOrderDrawer = memo(function MobileOrderDrawer({
   order,
   isOpen,
   onClose,
+  onPrintBill,
 }: MobileOrderDrawerProps) {
   // Memoize calculations
   const timeline = useMemo(
     () => (order ? generateOrderTimeline(order) : []),
-    [order]
-  );
+    [order],
+  )
   const deliveryTime = useMemo(
-    () => (order ? calculateDeliveryTime(order) : ""),
-    [order]
-  );
+    () => (order ? calculateDeliveryTime(order) : ''),
+    [order],
+  )
   const totalItems = useMemo(
     () => order?.items.reduce((sum, item) => sum + item.quantity, 0) || 0,
-    [order?.items]
-  );
+    [order?.items],
+  )
   const statusColorClass = useMemo(
-    () => (order ? getStatusColor(order.status) : ""),
-    [order?.status]
-  );
+    () => (order ? getStatusColor(order.status) : ''),
+    [order?.status],
+  )
   const timelineColorClass = useMemo(
-    () => (order ? getTimelineColor(order.status) : ""),
-    [order?.status]
-  );
+    () => (order ? getTimelineColor(order.status) : ''),
+    [order?.status],
+  )
 
-  if (!order) return null;
+  if (!order) return null
 
   return (
     <Drawer open={isOpen} onOpenChange={onClose}>
@@ -119,7 +121,7 @@ const MobileOrderDrawer = memo(function MobileOrderDrawer({
                   {order.customer?.name || order.customerName}
                 </div>
                 <div className="text-gray-600 text-sm">
-                  {totalItems} item{totalItems !== 1 ? "s" : ""}
+                  {totalItems} item{totalItems !== 1 ? 's' : ''}
                   {order.customer?.phone && ` • ${order.customer.phone}`}
                 </div>
               </div>
@@ -188,7 +190,7 @@ const MobileOrderDrawer = memo(function MobileOrderDrawer({
                   <div key={index} className="flex flex-col items-center">
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        step.completed ? timelineColorClass : "bg-gray-300"
+                        step.completed ? timelineColorClass : 'bg-gray-300'
                       }`}
                     >
                       {step.completed && (
@@ -249,20 +251,38 @@ const MobileOrderDrawer = memo(function MobileOrderDrawer({
 
           {/* Total */}
           <div className="border-t pt-4 mb-4">
+            {order.discountAmount &&
+              parseFloat(String(order.discountAmount)) > 0 && (
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-gray-600">Discount:</span>
+                  <span className="text-sm text-green-600 font-medium">
+                    -₹{parseFloat(String(order.discountAmount)).toFixed(2)}
+                  </span>
+                </div>
+              )}
             <div className="flex justify-between items-center">
               <span className="text-lg font-semibold text-gray-900">
                 Total Amount
               </span>
               <span className="text-xl font-bold text-gray-900">
-                ₹{order.totalAmount.toFixed(2)}
+                {order.discountAmount &&
+                parseFloat(String(order.discountAmount)) > 0
+                  ? `₹${(
+                      order.totalAmount -
+                      parseFloat(String(order.discountAmount))
+                    ).toFixed(2)}`
+                  : `₹${order.totalAmount.toFixed(2)}`}
               </span>
             </div>
           </div>
 
           {/* Print Bill Button - Only show for delivered orders */}
-          {order.status === "DELIVERED" && (
+          {order.status === 'DELIVERED' && (
             <div className="pb-4">
-              <button className="w-full py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors font-medium flex items-center justify-center gap-2">
+              <button
+                onClick={() => order && onPrintBill(order)}
+                className="w-full py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors font-medium flex items-center justify-center gap-2"
+              >
                 <svg
                   className="w-4 h-4"
                   fill="none"
@@ -283,7 +303,7 @@ const MobileOrderDrawer = memo(function MobileOrderDrawer({
         </div>
       </DrawerContent>
     </Drawer>
-  );
-});
+  )
+})
 
-export default MobileOrderDrawer;
+export default MobileOrderDrawer

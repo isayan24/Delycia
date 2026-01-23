@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { Card } from '@/components/ui/card'
 import MenuSection from './MenuSection'
 import BillSummary from './BillSummary'
@@ -21,6 +21,7 @@ export default function QuickBillMain() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null,
   )
+  const [discount, setDiscount] = useState<number>(0)
 
   const addToCart = useCallback((item: Item) => {
     setCart((prev) => {
@@ -51,19 +52,20 @@ export default function QuickBillMain() {
   const clearCart = useCallback(() => {
     setCart([])
     setSelectedCustomer(null)
+    setDiscount(0)
   }, [])
 
   return (
-    <div className="flex h-full gap-4 p-4 text-black">
+    <div className="flex h-full gap-3 p-3 text-black">
       {/* Left Side: Menu Selection */}
       <div className="flex-1 min-w-0">
         <MenuSection addToCart={addToCart} />
       </div>
 
       {/* Right Side: Bill Summary & Customer */}
-      <div className="w-[400px] flex flex-col gap-4">
-        <Card className="flex-1 flex flex-col overflow-hidden p-4 gap-4">
-          <h2 className="text-xl font-bold">Quick Bill</h2>
+      <div className="w-[380px] flex flex-col gap-3">
+        <Card className="flex-1 flex flex-col overflow-hidden p-3 gap-3">
+          <h2 className="text-lg font-bold">Quick Bill</h2>
 
           <CustomerSearch
             selectedCustomer={selectedCustomer}
@@ -76,6 +78,8 @@ export default function QuickBillMain() {
               updateQuantity={updateQuantity}
               selectedCustomer={selectedCustomer}
               onOrderComplete={clearCart}
+              discount={discount}
+              setDiscount={setDiscount}
             />
           </div>
         </Card>

@@ -1,25 +1,24 @@
-
-import React, { useState, useTransition } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Plus, Loader2 } from "lucide-react";
-import { ProcessedOrder } from "@/types/WebSocketOrder";
-import { CompactOrderHeader } from "../order-ui-card/CompactOrderHeader";
-import { MobileOrderAccordion } from "../small-screen/MobileOrderAccordion";
-import { ProcessingCountdownDisplay } from "../countdown";
-import logger from "@/lib/logger-dynamic";
-import { calculateTimeElapsed } from "../utils/orderProcessing";
+import React, { useState, useTransition } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { AlertCircle, Plus, Loader2 } from 'lucide-react'
+import { ProcessedOrder } from '@/types/WebSocketOrder'
+import { CompactOrderHeader } from '../order-ui-card/CompactOrderHeader'
+import { MobileOrderAccordion } from '../small-screen/MobileOrderAccordion'
+import { ProcessingCountdownDisplay } from '../countdown'
+import logger from '@/lib/logger-dynamic'
+import { calculateTimeElapsed } from '../utils/orderProcessing'
 
 interface ProcessingOrderCardProps {
-  order: ProcessedOrder;
-  onMarkReady: (order: ProcessedOrder) => void;
-  onCall: (customerId: number) => void;
-  onViewTimeline: (customerId: number) => void;
-  onExtendTime?: (order: ProcessedOrder, additionalMinutes: number) => void; // Callback for extending time
-  isMarkingReadyTransition: boolean;
-  handleMarkDelivered: (order: ProcessedOrder) => void;
-  isMarkDelivered: boolean;
+  order: ProcessedOrder
+  onMarkReady: (order: ProcessedOrder) => void
+  onCall: (customerId: number) => void
+  onViewTimeline: (customerId: number) => void
+  onExtendTime?: (order: ProcessedOrder, additionalMinutes: number) => void // Callback for extending time
+  isMarkingReadyTransition: boolean
+  handleMarkDelivered: (order: ProcessedOrder) => void
+  isMarkDelivered: boolean
 }
 
 export function ProcessingOrderCard({
@@ -32,67 +31,65 @@ export function ProcessingOrderCard({
   handleMarkDelivered,
   isMarkDelivered,
 }: ProcessingOrderCardProps) {
-  const [showExtendOptions, setShowExtendOptions] = useState(false);
+  const [showExtendOptions, setShowExtendOptions] = useState(false)
   const [selectedExtendTime, setSelectedExtendTime] = useState<number | null>(
-    null
-  );
-  const [, startTransition] = useTransition();
-  const [isExtendingTime, setIsExtendingTime] = useState(false);
+    null,
+  )
+  const [, startTransition] = useTransition()
+  const [isExtendingTime, setIsExtendingTime] = useState(false)
 
   // Use actual preparation time from order data
-  const totalPrepTime = order.preparation_time || 30; // Default to 30 minutes if not set
+  const totalPrepTime = order.preparation_time || 30 // Default to 30 minutes if not set
 
   // For processing orders, use preparation_started_at if available, otherwise use updated_at (when order was accepted)
   const processingStartTime =
     order.preparation_started_at ||
     order.items[0]?.updated_at ||
-    order.created_at;
+    order.created_at
 
   // Calculate time elapsed for header display (non-reactive)
-  const timeElapsed = calculateTimeElapsed(processingStartTime);
+  const timeElapsed = calculateTimeElapsed(processingStartTime)
 
-  // fix remove in future
   const hasSpecialInstructions = order.items.some(
     (item) =>
-      item.special_instructions && item.special_instructions.trim() !== ""
-  );
+      item.special_instructions && item.special_instructions.trim() !== '',
+  )
 
-  // fix remove in future
   const getSpecialInstructionsItems = () => {
     return order.items.filter(
       (item) =>
-        item.special_instructions && item.special_instructions.trim() !== ""
-    );
-  };
+        item.special_instructions && item.special_instructions.trim() !== '',
+    )
+  }
 
   const handleMarkReady = () => {
-    onMarkReady(order);
-  };
+    onMarkReady(order)
+  }
 
   const handleExtendTimeSelection = (minutes: number) => {
-    setSelectedExtendTime(minutes);
-  };
+    setSelectedExtendTime(minutes)
+  }
 
   const handleAddTime = () => {
     if (selectedExtendTime && onExtendTime) {
-      setIsExtendingTime(true);
+      setIsExtendingTime(true)
 
       startTransition(async () => {
         try {
           // Call the parent callback to handle DB saving
-          await onExtendTime(order, selectedExtendTime);
+          await onExtendTime(order, selectedExtendTime)
 
           // Reset the UI only after successful extension
-          setShowExtendOptions(false);
-          setSelectedExtendTime(null);
+          setShowExtendOptions(false)
+          setSelectedExtendTime(null)
         } catch (error) {
-          console.error("Failed to extend time:", error);
+          console.error('Failed to extend time:', error)
         } finally {
-          setIsExtendingTime(false);
+          setIsExtendingTime(false)
         }
-      });
+      })
     }
-  };
+  }
   const statusBadge = (
     <Badge
       variant="secondary"
@@ -100,7 +97,7 @@ export function ProcessingOrderCard({
     >
       🔄 PROCESSING
     </Badge>
-  );
+  )
 
   return (
     <Card className="w-full shadow-md border-l-4 border-l-orange-400 hover:shadow-lg transition-shadow">
@@ -121,7 +118,7 @@ export function ProcessingOrderCard({
             <div className="flex items-center gap-2 text-amber-800 mb-1">
               <AlertCircle className="h-4 w-4" />
               <span className="text-sm font-medium">
-                Special Instructions:{" "}
+                Special Instructions:{' '}
                 {getSpecialInstructionsItems()[0]?.special_instructions}
               </span>
             </div>
@@ -155,7 +152,7 @@ export function ProcessingOrderCard({
         />
       </CardContent>
     </Card>
-  );
+  )
 }
 
 const OrderDetailsDesktop = ({ order }: any) => {
@@ -166,9 +163,23 @@ const OrderDetailsDesktop = ({ order }: any) => {
           <h4 className="font-medium text-[1rem]">
             Order Items ({order.items.length})
           </h4>
-          <span className="text-sm font-semibold text-[1rem]">
-            ₹{order.total_amount}
-          </span>
+          <div className="text-right">
+            {order.discount_amount &&
+              parseFloat(String(order.discount_amount)) > 0 && (
+                <span className="block text-xs text-green-600 font-medium">
+                  -₹{parseFloat(String(order.discount_amount)).toFixed(2)} off
+                </span>
+              )}
+            <span className="text-sm font-semibold text-[1rem]">
+              {order.discount_amount &&
+              parseFloat(String(order.discount_amount)) > 0
+                ? `₹${(
+                    order.total_amount -
+                    parseFloat(String(order.discount_amount))
+                  ).toFixed(2)}`
+                : `₹${order.total_amount}`}
+            </span>
+          </div>
         </div>
         <div className="space-y-1 ">
           {order.items.slice(0, 3).map((item: any, index: any) => (
@@ -190,24 +201,24 @@ const OrderDetailsDesktop = ({ order }: any) => {
         </div>
         <div className="flex items-center gap-2 text-xs mt-2 pt-2 border-t">
           <div
-            className={`w-2 h-2 rounded-full ${order.payment_status.toLowerCase() === "paid" ? "bg-green-500" : "bg-red-500"}`}
+            className={`w-2 h-2 rounded-full ${order.payment_status.toLowerCase() === 'paid' ? 'bg-green-500' : 'bg-red-500'}`}
           />
           <span
             className={
-              order.payment_status.toLowerCase() === "paid"
-                ? "text-green-700"
-                : "text-red-700"
+              order.payment_status.toLowerCase() === 'paid'
+                ? 'text-green-700'
+                : 'text-red-700'
             }
           >
-            {order.payment_status.toLowerCase() === "paid"
-              ? "Paid"
-              : "Payment Pending"}
+            {order.payment_status.toLowerCase() === 'paid'
+              ? 'Paid'
+              : 'Payment Pending'}
           </span>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 const ActionButtons = ({
   order,
@@ -226,7 +237,7 @@ const ActionButtons = ({
   isMarkDelivered,
   handleMarkDelivered,
 }: any) => {
-  const [isTimeExpired, setIsTimeExpired] = useState(false);
+  const [isTimeExpired, setIsTimeExpired] = useState(false)
 
   return (
     <div className="space-y-2">
@@ -279,7 +290,7 @@ const ActionButtons = ({
                     Marking Ready...
                   </>
                 ) : (
-                  "Mark Ready"
+                  'Mark Ready'
                 )}
               </Button>
             </div>
@@ -290,7 +301,7 @@ const ActionButtons = ({
               </p>
               <div className="flex gap-2 flex-wrap">
                 <Button
-                  variant={selectedExtendTime === 5 ? "default" : "outline"}
+                  variant={selectedExtendTime === 5 ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => handleExtendTimeSelection(5)}
                   className="min-h-[40px] flex-1"
@@ -299,7 +310,7 @@ const ActionButtons = ({
                   +5 min
                 </Button>
                 <Button
-                  variant={selectedExtendTime === 10 ? "default" : "outline"}
+                  variant={selectedExtendTime === 10 ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => handleExtendTimeSelection(10)}
                   className="min-h-[40px] flex-1"
@@ -308,7 +319,7 @@ const ActionButtons = ({
                   +10 min
                 </Button>
                 <Button
-                  variant={selectedExtendTime === 15 ? "default" : "outline"}
+                  variant={selectedExtendTime === 15 ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => handleExtendTimeSelection(15)}
                   className="min-h-[40px] flex-1"
@@ -317,7 +328,7 @@ const ActionButtons = ({
                   +15 min
                 </Button>
                 <Button
-                  variant={selectedExtendTime === 20 ? "default" : "outline"}
+                  variant={selectedExtendTime === 20 ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => handleExtendTimeSelection(20)}
                   className="min-h-[40px] flex-1"
@@ -326,7 +337,7 @@ const ActionButtons = ({
                   +20 min
                 </Button>
                 <Button
-                  variant={selectedExtendTime === 30 ? "default" : "outline"}
+                  variant={selectedExtendTime === 30 ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => handleExtendTimeSelection(30)}
                   className="min-h-[40px] flex-1"
@@ -341,8 +352,8 @@ const ActionButtons = ({
                   size="sm"
                   className="flex-1 min-h-[44px] text-[1rem] max-[768px]:text-[.8rem]"
                   onClick={() => {
-                    setShowExtendOptions(false);
-                    setSelectedExtendTime(null);
+                    setShowExtendOptions(false)
+                    setSelectedExtendTime(null)
                   }}
                   disabled={isExtendingTime}
                 >
@@ -359,7 +370,7 @@ const ActionButtons = ({
                       Adding Time...
                     </>
                   ) : (
-                    "Add Time"
+                    'Add Time'
                   )}
                 </Button>
               </div>
@@ -368,5 +379,5 @@ const ActionButtons = ({
         </>
       )}
     </div>
-  );
-};
+  )
+}

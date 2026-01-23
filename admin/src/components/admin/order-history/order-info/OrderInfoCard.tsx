@@ -13,6 +13,7 @@ interface OrderInfoCardProps {
   customer?: CustomerInfo
   items: TransformedOrderItem[]
   totalAmount: number
+  discountAmount?: number
   isSelected?: boolean
   onClick?: () => void
   onPrint?: () => void
@@ -39,6 +40,7 @@ const OrderInfoCard = memo(function OrderInfoCard({
   customer,
   items,
   totalAmount,
+  discountAmount,
   isSelected = false,
   onClick,
   onPrint,
@@ -143,8 +145,13 @@ const OrderInfoCard = memo(function OrderInfoCard({
             {formattedItems}
           </p>
         </div>
-        <div className="flex-shrink-0">
-          <span className="text-lg font-semibold text-gray-900">
+        <div className="flex-shrink-0 text-right">
+          {discountAmount && parseFloat(String(discountAmount)) > 0 && (
+            <div className="text-xs text-green-600 font-medium whitespace-nowrap">
+              -₹{parseFloat(String(discountAmount)).toFixed(2)} off
+            </div>
+          )}
+          <span className="text-lg font-semibold text-gray-900 whitespace-nowrap">
             ₹{totalAmount.toFixed(2)}
           </span>
         </div>

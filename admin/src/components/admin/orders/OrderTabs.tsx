@@ -1,35 +1,35 @@
-import React from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Volume2, VolumeX } from "lucide-react";
-import { ProcessedOrder } from "@/types/WebSocketOrder";
-import { PendingOrderCard } from "./order-states/PendingOrderCard";
-import { ProcessingOrderCard } from "./order-states/ProcessingOrderCard";
-import { ReadyOrderCard } from "./order-states/ReadyOrderCard";
-import { DeliveredOrderCard } from "./order-states/DeliveredOrderCard";
-import { useSoundContext } from "@/context/SoundContext";
+import React from 'react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
+import { Volume2, VolumeX } from 'lucide-react'
+import { ProcessedOrder } from '@/types/WebSocketOrder'
+import { PendingOrderCard } from './order-states/PendingOrderCard'
+import { ProcessingOrderCard } from './order-states/ProcessingOrderCard'
+import { ReadyOrderCard } from './order-states/ReadyOrderCard'
+import { DeliveredOrderCard } from './order-states/DeliveredOrderCard'
+import { useSoundContext } from '@/context/SoundContext'
 
 interface OrderTabsProps {
-  activeTab: string;
-  onTabChange: (value: string) => void;
-  pendingOrders: ProcessedOrder[];
-  processingOrders: ProcessedOrder[];
-  readyOrders: ProcessedOrder[];
-  deliveredOrders: ProcessedOrder[];
-  cancelledOrders: ProcessedOrder[];
+  activeTab: string
+  onTabChange: (value: string) => void
+  pendingOrders: ProcessedOrder[]
+  processingOrders: ProcessedOrder[]
+  readyOrders: ProcessedOrder[]
+  deliveredOrders: ProcessedOrder[]
+  cancelledOrders: ProcessedOrder[]
   // Handler functions
-  handleAcceptOrder: (order: ProcessedOrder, prepTime: number) => void;
-  handleRejectOrder: (order: ProcessedOrder) => void;
-  handleMarkReady: (order: ProcessedOrder) => void;
-  handleMarkDelivered: (order: ProcessedOrder) => void;
-  handleCall: (order: ProcessedOrder) => void;
-  handleViewTimeline: (order: ProcessedOrder) => void;
-  handleExtendTime: (order: ProcessedOrder, additionalMinutes: number) => void;
+  handleAcceptOrder: (order: ProcessedOrder, prepTime: number) => void
+  handleRejectOrder: (order: ProcessedOrder) => void
+  handleMarkReady: (order: ProcessedOrder) => void
+  handleMarkDelivered: (order: ProcessedOrder) => void
+  handleCall: (order: ProcessedOrder) => void
+  handleViewTimeline: (order: ProcessedOrder) => void
+  handleExtendTime: (order: ProcessedOrder, additionalMinutes: number) => void
   // Transition states
-  isAcceptingOrder: boolean;
-  isRejectingOrder: boolean;
-  isMarkingReady: boolean;
-  isMarkDelivered: boolean;
+  isAcceptingOrder: boolean
+  isRejectingOrder: boolean
+  isMarkingReady: boolean
+  isMarkDelivered: boolean
 }
 
 export default function OrderTabs({
@@ -52,7 +52,7 @@ export default function OrderTabs({
   isMarkingReady,
   isMarkDelivered,
 }: OrderTabsProps) {
-  const { isSoundEnabled, toggleSound } = useSoundContext();
+  const { isSoundEnabled, toggleSound } = useSoundContext()
   return (
     <Tabs
       value={activeTab}
@@ -129,7 +129,7 @@ export default function OrderTabs({
                 ) : (
                   <Volume2 className="h-4 w-4" />
                 )}
-                {isSoundEnabled ? "Mute Alerts" : "Unmute Alerts"}
+                {isSoundEnabled ? 'Mute Alerts' : 'Unmute Alerts'}
               </Button>
             </div>
 
@@ -249,7 +249,13 @@ export default function OrderTabs({
                     </h3>
                     <p className="text-sm text-muted-foreground">
                       Customer: {order.customer_name} | Total: ₹
-                      {order.total_amount}
+                      {order.discount_amount && order.discount_amount > 0 ? (
+                        <span>
+                          {order.total_amount - order.discount_amount}
+                        </span>
+                      ) : (
+                        order.total_amount
+                      )}
                     </p>
                   </div>
                   <span className="text-xs text-red-600 bg-red-100 px-2 py-1 rounded">
@@ -262,5 +268,5 @@ export default function OrderTabs({
         )}
       </TabsContent>
     </Tabs>
-  );
+  )
 }

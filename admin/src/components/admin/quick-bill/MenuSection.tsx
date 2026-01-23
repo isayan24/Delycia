@@ -1,14 +1,16 @@
-import React, { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Search } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Search, ChevronDown, ChevronUp } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { useInventoryItems } from '@/hooks/useInventoryItems'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import { useCategoriesQuery } from '@/hooks/queries/useCategoriesQuery'
-import { Item } from '@/types/menu.types'
+import { Item, Variant } from '@/types/menu.types'
 import LoadingScreen from '@/components/common/LoadingScreen'
+import axiosInstance from '@/lib/axios'
 
 interface MenuSectionProps {
   addToCart: (item: Item) => void
@@ -39,6 +41,8 @@ export default function MenuSection({ addToCart }: MenuSectionProps) {
   const { selectedRestaurant } = useRestaurantSelector()
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [variants, setVariants] = useState<Record<string, Variant[]>>({})
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
 
   // 🎯 Use TanStack Query for categories - automatic caching, loading, error handling!
   const {
@@ -55,6 +59,7 @@ export default function MenuSection({ addToCart }: MenuSectionProps) {
   // We want all items here because we filter by category client-side
   // but also filter by category when a category is selected (visual filter).
   const { allItems, loading: loadingItems } = useInventoryItems(null)
+
   // Derived filtered items based on search OR category
   const filteredItems = useMemo(() => {
     let result = allItems
@@ -73,6 +78,74 @@ export default function MenuSection({ addToCart }: MenuSectionProps) {
 
     return result
   }, [allItems, selectedCategoryId, searchQuery])
+
+  // Fetch variants for all filtered items
+  useEffect(() => {
+    const fetchVariantsForItems = async () => {
+      if (filteredItems.length === 0) return
+
+      try {
+        // Fetch variants for all items in parallel
+        const variantPromises = filteredItems.map(async (item) => {
+          try {
+            const response = await axiosInstance.get(
+              `/variants?inventory_id=${item.id}`,
+            )
+            return { itemId: item.id, variants: response.data?.variants || [] }
+          } catch (error) {
+            console.error(
+              `Failed to fetch variants for item ${item.id}:`,
+              error,
+            )
+            return { itemId: item.id, variants: [] }
+          }
+        })
+
+        const variantResults = await Promise.all(variantPromises)
+
+        // Update variants state
+        setVariants((prev) => {
+          const newVariants = { ...prev }
+          variantResults.forEach(({ itemId, variants: itemVariants }) => {
+            newVariants[itemId] = itemVariants
+          })
+          return newVariants
+        })
+      } catch (error) {
+        console.error('Error fetching variants:', error)
+      }
+    }
+
+    fetchVariantsForItems()
+  }, [filteredItems])
+
+  const toggleItemExpansion = (itemId: string) => {
+    setExpandedItems((prev) => {
+      const newSet = new Set(prev)
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId)
+      } else {
+        newSet.add(itemId)
+      }
+      return newSet
+    })
+  }
+
+  const handleAddToCart = (item: Item, variant?: Variant) => {
+    if (variant) {
+      // Create a modified item with variant info
+      const modifiedItem: Item = {
+        ...item,
+        id: `${item.id}_variant_${variant.id}`,
+        name: `${item.name} - ${variant.name}`,
+        price: variant.price,
+        variantId: variant.id,
+      }
+      addToCart(modifiedItem)
+    } else {
+      addToCart(item)
+    }
+  }
 
   if (categoriesError) {
     return (
@@ -104,8 +177,8 @@ export default function MenuSection({ addToCart }: MenuSectionProps) {
   }
 
   return (
-    <div className="flex flex-col h-full gap-4">
-      <div className="flex items-center gap-4">
+    <div className="flex flex-col h-full gap-3">
+      <div className="flex items-center gap-3">
         <Tabs
           value={searchQuery ? 'all' : selectedCategoryId}
           onValueChange={(val) => {
@@ -144,43 +217,107 @@ export default function MenuSection({ addToCart }: MenuSectionProps) {
         />
       </div>
 
-      <ScrollArea className="flex-1 border rounded-md p-4">
+      <ScrollArea className="flex-1 border rounded-md p-3">
         {loadingCategories || (loadingItems && allItems.length === 0) ? (
           <>
             <LoadingScreen message="Loading Inventory" />
           </>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {filteredItems.map((item) => (
-              <Card
-                key={item.id}
-                className="cursor-pointer hover:bg-slate-50 transition-colors"
-                onClick={() => addToCart(item)}
-              >
-                <CardContent className="p-4 flex flex-col items-center text-center gap-2">
-                  <div className="w-full aspect-square bg-gray-100 rounded-md overflow-hidden relative">
-                    {item.img || item.images.length > 0 ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={item.img || item.images[0]}
-                        alt={item.name}
-                        className="object-cover w-full h-full"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center w-full h-full text-gray-400 text-xs">
-                        No Image
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
+            {filteredItems.map((item) => {
+              const itemVariants = variants[item.id] || []
+              const hasVariants = itemVariants.length > 0
+              const isExpanded = expandedItems.has(item.id)
+
+              return (
+                <div key={item.id} className="flex flex-col">
+                  {/* Main Item Card */}
+                  <Card
+                    className={`cursor-pointer hover:bg-slate-50 transition-colors ${
+                      hasVariants && isExpanded ? 'rounded-b-none' : ''
+                    }`}
+                    onClick={() => {
+                      if (!hasVariants) {
+                        handleAddToCart(item)
+                      } else {
+                        toggleItemExpansion(item.id)
+                      }
+                    }}
+                  >
+                    <CardContent className="p-2 flex flex-col items-center text-center gap-1">
+                      <div className="w-full aspect-square bg-gray-100 rounded-md overflow-hidden relative">
+                        {item.img || item.images?.length > 0 ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={item.img || item.images[0]}
+                            alt={item.name}
+                            className="object-cover w-full h-full"
+                          />
+                        ) : (
+                          <div className="flex items-center justify-center w-full h-full text-gray-400 text-xs">
+                            No Image
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <div className="font-medium text-sm line-clamp-2">
-                    {item.name}
-                  </div>
-                  <div className="font-bold text-green-600">
-                    ₹{item.price || item.cost_price || 0}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                      <div className="font-medium text-xs line-clamp-2 w-full">
+                        {item.name}
+                      </div>
+                      <div className="flex items-center justify-between w-full">
+                        <div className="font-bold text-green-600 text-sm">
+                          ₹{item.price || item.cost_price || 0}
+                        </div>
+                        {hasVariants && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-5 w-5 p-0"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              toggleItemExpansion(item.id)
+                            }}
+                          >
+                            {isExpanded ? (
+                              <ChevronUp className="h-3 w-3" />
+                            ) : (
+                              <ChevronDown className="h-3 w-3" />
+                            )}
+                          </Button>
+                        )}
+                      </div>
+                      {hasVariants && (
+                        <p className="text-[10px] text-gray-500">
+                          {itemVariants.length} size
+                          {itemVariants.length > 1 ? 's' : ''}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Variant Options Dropdown */}
+                  {hasVariants && isExpanded && (
+                    <div className="bg-gray-50 border border-t-0 rounded-b-md p-2 space-y-1">
+                      {itemVariants.map((variant) => (
+                        <Button
+                          key={variant.id}
+                          variant="outline"
+                          size="sm"
+                          className="w-full justify-between h-7 text-xs"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleAddToCart(item, variant)
+                          }}
+                        >
+                          <span>{variant.name}</span>
+                          <span className="font-semibold text-green-600">
+                            ₹{variant.price}
+                          </span>
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
             {filteredItems.length === 0 &&
               !loadingItems &&
               !loadingCategories &&

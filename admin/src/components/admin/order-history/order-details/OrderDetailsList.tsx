@@ -1,15 +1,15 @@
-import React, { memo, useMemo } from "react";
-import OrderDetailsCard from "./OrderDetailsCard";
+import React, { memo, useMemo } from 'react'
+import OrderDetailsCard from './OrderDetailsCard'
 import {
   TransformedOrder,
   generateOrderTimeline,
   calculateDeliveryTime,
-} from "../utils/orderHistoryUtils";
-import { OrderDetailsSkeleton } from "../LoadingSkeleton";
+} from '../utils/orderHistoryUtils'
+import { OrderDetailsSkeleton } from '../LoadingSkeleton'
 
 interface OrderDetailsListProps {
-  selectedOrder: TransformedOrder | null;
-  loading: boolean;
+  selectedOrder: TransformedOrder | null
+  loading: boolean
 }
 
 // Default state when no order is selected
@@ -21,8 +21,8 @@ const DefaultState = memo(() => (
       Choose an order from the list to view its details
     </p>
   </div>
-));
-DefaultState.displayName = "DefaultState";
+))
+DefaultState.displayName = 'DefaultState'
 
 const OrderDetailsList = memo(function OrderDetailsList({
   selectedOrder,
@@ -32,12 +32,12 @@ const OrderDetailsList = memo(function OrderDetailsList({
   // These hooks must be called before any conditional returns
   const timeline = useMemo(
     () => (selectedOrder ? generateOrderTimeline(selectedOrder) : []),
-    [selectedOrder]
-  );
+    [selectedOrder],
+  )
   const deliveryTime = useMemo(
-    () => (selectedOrder ? calculateDeliveryTime(selectedOrder) : ""),
-    [selectedOrder]
-  );
+    () => (selectedOrder ? calculateDeliveryTime(selectedOrder) : ''),
+    [selectedOrder],
+  )
 
   // Show loading state
   if (loading) {
@@ -45,7 +45,7 @@ const OrderDetailsList = memo(function OrderDetailsList({
       <div className="w-[60%] h-full border flex flex-col">
         <OrderDetailsSkeleton />
       </div>
-    );
+    )
   }
 
   // Show default state when no order is selected
@@ -54,7 +54,7 @@ const OrderDetailsList = memo(function OrderDetailsList({
       <div className="w-[60%] h-full border flex flex-col">
         <DefaultState />
       </div>
-    );
+    )
   }
 
   return (
@@ -74,9 +74,10 @@ const OrderDetailsList = memo(function OrderDetailsList({
         specialInstructions={selectedOrder.specialInstructions}
         tableNo={selectedOrder.tableNo}
         paymentStatus={selectedOrder.paymentStatus}
+        discountAmount={selectedOrder.discountAmount}
       />
     </div>
-  );
-});
+  )
+})
 
-export default OrderDetailsList;
+export default OrderDetailsList

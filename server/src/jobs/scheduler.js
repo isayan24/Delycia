@@ -26,7 +26,7 @@ const resetTablesJob = async () => {
  */
 const refreshInventoryStatsJob = async () => {
   try {
-    await db.query('CALL sp_refresh_inventory_stats(?)', [null]);
+    await pool.query('CALL sp_refresh_inventory_stats(?)', [null]);
     console.log('✅ Inventory stats refreshed at', new Date().toISOString());
   } catch (error) {
     console.error('❌ Inventory stats refresh failed:', error.message);
@@ -45,11 +45,11 @@ export const initScheduler = () => {
   resetTablesInterval = setInterval(resetTablesJob, 5 * 60 * 1000);
 
   // Start inventory stats refresh job (every 10 minutes)
-  inventoryStatsInterval = setInterval(refreshInventoryStatsJob, 10 * 60 * 1000);
+  inventoryStatsInterval = setInterval(refreshInventoryStatsJob, 5 * 60 * 1000);
 
   console.log('🔄 Scheduler initialized:');
   console.log('   ├─ Table auto-reset: Every 5 minutes');
-  console.log('   ├─ Inventory stats refresh: Every 10 minutes');
+  console.log('   ├─ Inventory stats refresh: Every 5 minutes');
   console.log('   └─ Ready to run');
 };
 

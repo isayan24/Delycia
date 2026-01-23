@@ -113,7 +113,6 @@ export const useGlobalOrderPopupStore = create<GlobalOrderPopupState>(
           preparation_time: prepTime,
           preparation_started_at: new Date().toISOString(),
         }
-
         await axios.patch('/api/orders', apiData)
 
         // Mark order as processed

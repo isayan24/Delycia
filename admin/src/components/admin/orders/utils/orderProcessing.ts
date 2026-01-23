@@ -7,59 +7,59 @@ import {
   PaymentStatus,
   DeliveryType,
   OrderStatus,
-} from "@/types/WebSocketOrder";
+} from '@/types/WebSocketOrder'
 
 /**
  * Groups orders by customer_id (needed for processWebSocketOrders)
  */
 function groupOrdersByCustomer(orders: WebSocketOrder[]): OrderGrouping {
   const groupedOrders = orders.reduce((groups: OrderGrouping, order) => {
-    const customerId = order.customer_id;
+    const customerId = order.customer_id
     if (!groups[customerId]) {
-      groups[customerId] = [];
+      groups[customerId] = []
     }
-    groups[customerId].push(order);
-    return groups;
-  }, {});
-  return groupedOrders;
+    groups[customerId].push(order)
+    return groups
+  }, {})
+  return groupedOrders
 }
 
 /**
  * Calculates total amount from processed order items (needed for processWebSocketOrders)
  */
 function calculateOrderTotals(items: ProcessedOrderItem[]): number {
-  return items.reduce((total, item) => total + item.total_amount, 0);
+  return items.reduce((total, item) => total + item.total_amount, 0)
 }
 
 /**
  * Masks phone number for privacy (needed for processWebSocketOrders)
  */
 function formatPhoneNumber(phone: string): string {
-  if (!phone || phone.length < 4) return phone;
+  if (!phone || phone.length < 4) return phone
 
-  const digits = phone.replace(/\D/g, "");
-  if (digits.length <= 4) return phone;
+  const digits = phone.replace(/\D/g, '')
+  if (digits.length <= 4) return phone
 
-  const start = digits.slice(0, 2);
-  const end = digits.slice(-2);
-  const middle = "*".repeat(Math.max(0, digits.length - 4));
+  const start = digits.slice(0, 2)
+  const end = digits.slice(-2)
+  const middle = '*'.repeat(Math.max(0, digits.length - 4))
 
-  return `${start}${middle}${end}`;
+  return `${start}${middle}${end}`
 }
 
 /**
  * Determines the overall payment status for grouped orders (needed for processWebSocketOrders)
  */
 function getGroupPaymentStatus(items: ProcessedOrderItem[]): string {
-  if (!items.length) return PaymentStatus.PENDING;
+  if (!items.length) return PaymentStatus.PENDING
 
-  const statuses = items.map((item) => item.payment_status.toLowerCase());
+  const statuses = items.map((item) => item.payment_status.toLowerCase())
 
   if (statuses.every((status) => status === PaymentStatus.COMPLETED)) {
-    return PaymentStatus.COMPLETED;
+    return PaymentStatus.COMPLETED
   }
 
-  return PaymentStatus.PENDING;
+  return PaymentStatus.PENDING
 }
 
 /**
@@ -67,9 +67,9 @@ function getGroupPaymentStatus(items: ProcessedOrderItem[]): string {
  */
 function getDeliveryType(table_no: number): string {
   if (!table_no || table_no === 0) {
-    return DeliveryType.DELIVERY;
+    return DeliveryType.DELIVERY
   }
-  return DeliveryType.DINE_IN;
+  return DeliveryType.DINE_IN
 }
 
 /**
@@ -78,9 +78,9 @@ function getDeliveryType(table_no: number): string {
 function calculateOrderPreparationTime(items: ProcessedOrderItem[]): number {
   const preparationTimes = items
     .map((item) => item.preparation_time)
-    .filter((time): time is number => time !== undefined && time > 0);
+    .filter((time): time is number => time !== undefined && time > 0)
 
-  return preparationTimes.length > 0 ? Math.max(...preparationTimes) : 30;
+  return preparationTimes.length > 0 ? Math.max(...preparationTimes) : 30
 }
 
 /**
@@ -89,25 +89,25 @@ function calculateOrderPreparationTime(items: ProcessedOrderItem[]): number {
 function getUniqueTableNumbers(items: ProcessedOrderItem[]): number[] {
   const tableNumbers = items
     .map((item) => item.table_no)
-    .filter((table) => table && table > 0);
+    .filter((table) => table && table > 0)
 
-  return [...new Set(tableNumbers)];
+  return [...new Set(tableNumbers)]
 }
 
 /**
  * Groups items by their created_at timestamp (needed for processWebSocketOrders)
  */
 function groupItemsByOrderTime(items: any[]): {
-  [timestamp: string]: any[];
+  [timestamp: string]: any[]
 } {
   return items.reduce((groups: { [timestamp: string]: any[] }, item) => {
-    const timestamp = item.created_at;
+    const timestamp = item.created_at
     if (!groups[timestamp]) {
-      groups[timestamp] = [];
+      groups[timestamp] = []
     }
-    groups[timestamp].push(item);
-    return groups;
-  }, {});
+    groups[timestamp].push(item)
+    return groups
+  }, {})
 }
 
 /**
@@ -117,16 +117,16 @@ function groupItemsByOrderTime(items: any[]): {
 export function convertUTCToIST(dateString: string): Date {
   try {
     // Parse the UTC date
-    const utcDate = new Date(dateString);
+    const utcDate = new Date(dateString)
 
     // Add 5 hours and 30 minutes to convert UTC to IST
-    const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
-    const istDate = new Date(utcDate.getTime() + istOffset);
+    const istOffset = 5.5 * 60 * 60 * 1000 // 5.5 hours in milliseconds
+    const istDate = new Date(utcDate.getTime() + istOffset)
 
-    return istDate;
+    return istDate
   } catch (error) {
-    console.error("Error converting UTC to IST:", error);
-    return new Date(dateString); // Fallback to original date
+    console.error('Error converting UTC to IST:', error)
+    return new Date(dateString) // Fallback to original date
   }
 }
 
@@ -136,17 +136,17 @@ export function convertUTCToIST(dateString: string): Date {
 export function formatOrderTime(dateString: string): string {
   try {
     // Convert UTC to IST first
-    const istDate = convertUTCToIST(dateString);
+    const istDate = convertUTCToIST(dateString)
 
     // Format the IST time
-    return istDate.toLocaleTimeString("en-IN", {
-      hour: "numeric",
-      minute: "2-digit",
+    return istDate.toLocaleTimeString('en-IN', {
+      hour: 'numeric',
+      minute: '2-digit',
       hour12: true,
-    });
+    })
   } catch (error) {
-    console.error("Error formatting order time:", error);
-    return dateString;
+    console.error('Error formatting order time:', error)
+    return dateString
   }
 }
 
@@ -156,39 +156,39 @@ export function formatOrderTime(dateString: string): string {
 export function formatOrderDate(dateString: string): string {
   try {
     // Convert UTC to IST
-    const istDate = convertUTCToIST(dateString);
+    const istDate = convertUTCToIST(dateString)
 
     // Get current IST date for comparison
-    const nowUTC = new Date();
-    const nowIST = convertUTCToIST(nowUTC.toISOString());
+    const nowUTC = new Date()
+    const nowIST = convertUTCToIST(nowUTC.toISOString())
 
     const todayIST = new Date(
       nowIST.getFullYear(),
       nowIST.getMonth(),
-      nowIST.getDate()
-    );
-    const yesterdayIST = new Date(todayIST);
-    yesterdayIST.setDate(yesterdayIST.getDate() - 1);
+      nowIST.getDate(),
+    )
+    const yesterdayIST = new Date(todayIST)
+    yesterdayIST.setDate(yesterdayIST.getDate() - 1)
 
     const orderDateIST = new Date(
       istDate.getFullYear(),
       istDate.getMonth(),
-      istDate.getDate()
-    );
+      istDate.getDate(),
+    )
 
     if (orderDateIST.getTime() === todayIST.getTime()) {
-      return "Today";
+      return 'Today'
     } else if (orderDateIST.getTime() === yesterdayIST.getTime()) {
-      return "Yesterday";
+      return 'Yesterday'
     } else {
-      return istDate.toLocaleDateString("en-IN", {
-        day: "numeric",
-        month: "short",
-      });
+      return istDate.toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+      })
     }
   } catch (error) {
-    console.error("Error formatting order date:", error);
-    return dateString;
+    console.error('Error formatting order date:', error)
+    return dateString
   }
 }
 
@@ -200,18 +200,18 @@ export function calculateTimeElapsed(orderTime: string): number {
     // Parse the UTC order time
     // const orderDate = new Date(orderTime);
 
-    const orderDate = convertUTCToIST(orderTime);
+    const orderDate = convertUTCToIST(orderTime)
     // Get current time
-    const now = new Date();
+    const now = new Date()
 
     // Calculate difference in milliseconds
-    const diffInMs = now.getTime() - orderDate.getTime();
+    const diffInMs = now.getTime() - orderDate.getTime()
 
     // Convert to minutes
-    return Math.floor(diffInMs / (1000 * 60));
+    return Math.floor(diffInMs / (1000 * 60))
   } catch (error) {
-    console.error("Error calculating time elapsed:", error);
-    return 0;
+    console.error('Error calculating time elapsed:', error)
+    return 0
   }
 }
 
@@ -221,45 +221,43 @@ export function calculateTimeElapsed(orderTime: string): number {
 export function calculateRemainingTime(
   orderTime: string,
   prepTime: number,
-  startTime?: string
+  startTime?: string,
 ): { minutes: number; seconds: number; totalSeconds: number } {
   // Use preparation start time if available, otherwise use order time
-  const baseTime = startTime || orderTime;
-  const baseDate = convertUTCToIST(baseTime);
-  const now = new Date();
+  const baseTime = startTime || orderTime
+  const baseDate = convertUTCToIST(baseTime)
+  const now = new Date()
 
   // Calculate elapsed time in seconds
-  const elapsedSeconds = Math.floor(
-    (now.getTime() - baseDate.getTime()) / 1000
-  );
-  const totalPrepSeconds = prepTime * 60;
-  const remainingSeconds = Math.max(0, totalPrepSeconds - elapsedSeconds);
+  const elapsedSeconds = Math.floor((now.getTime() - baseDate.getTime()) / 1000)
+  const totalPrepSeconds = prepTime * 60
+  const remainingSeconds = Math.max(0, totalPrepSeconds - elapsedSeconds)
 
   return {
     minutes: Math.floor(remainingSeconds / 60),
     seconds: remainingSeconds % 60,
     totalSeconds: remainingSeconds,
-  };
+  }
 }
 
 /**
  * Formats remaining time as MM:SS
  */
 export function formatRemainingTime(
-  remainingTime: { minutes: number; seconds: number } | number
+  remainingTime: { minutes: number; seconds: number } | number,
 ): string {
   // Handle both old number format and new object format for backward compatibility
-  if (typeof remainingTime === "number") {
-    if (remainingTime <= 0) return "00:00";
-    const mins = Math.floor(remainingTime);
-    const secs = Math.floor((remainingTime - mins) * 60);
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  if (typeof remainingTime === 'number') {
+    if (remainingTime <= 0) return '00:00'
+    const mins = Math.floor(remainingTime)
+    const secs = Math.floor((remainingTime - mins) * 60)
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
 
-  const { minutes, seconds } = remainingTime;
-  if (minutes <= 0 && seconds <= 0) return "00:00";
+  const { minutes, seconds } = remainingTime
+  if (minutes <= 0 && seconds <= 0) return '00:00'
 
-  return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
 }
 
 /**
@@ -267,14 +265,14 @@ export function formatRemainingTime(
  */
 export function formatTimeElapsed(minutes: number): string {
   if (minutes < 60) {
-    return `${minutes} mins ago`;
+    return `${minutes} mins ago`
   } else {
-    const hours = Math.floor(minutes / 60);
-    const remainingMins = minutes % 60;
+    const hours = Math.floor(minutes / 60)
+    const remainingMins = minutes % 60
     if (remainingMins === 0) {
-      return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+      return `${hours} hour${hours > 1 ? 's' : ''} ago`
     } else {
-      return `${hours}h ${remainingMins}m ago`;
+      return `${hours}h ${remainingMins}m ago`
     }
   }
 }
@@ -283,31 +281,31 @@ export function formatTimeElapsed(minutes: number): string {
  * Calculates remaining time for order acceptance (5 minutes from order placement)
  */
 export function calculateAcceptanceCountdown(orderTime: string): {
-  minutes: number;
-  seconds: number;
-  totalSeconds: number;
-  isExpired: boolean;
+  minutes: number
+  seconds: number
+  totalSeconds: number
+  isExpired: boolean
 } {
   try {
-    const orderDate = convertUTCToIST(orderTime);
-    const now = new Date();
+    const orderDate = convertUTCToIST(orderTime)
+    const now = new Date()
 
     // Calculate elapsed time in seconds
     const elapsedSeconds = Math.floor(
-      (now.getTime() - orderDate.getTime()) / 1000
-    );
-    const acceptanceTimeLimit = 5 * 60; // 5 minutes in seconds
-    const remainingSeconds = Math.max(0, acceptanceTimeLimit - elapsedSeconds);
+      (now.getTime() - orderDate.getTime()) / 1000,
+    )
+    const acceptanceTimeLimit = 5 * 60 // 5 minutes in seconds
+    const remainingSeconds = Math.max(0, acceptanceTimeLimit - elapsedSeconds)
 
     return {
       minutes: Math.floor(remainingSeconds / 60),
       seconds: remainingSeconds % 60,
       totalSeconds: remainingSeconds,
       isExpired: remainingSeconds <= 0,
-    };
+    }
   } catch (error) {
-    console.error("Error calculating acceptance countdown:", error);
-    return { minutes: 5, seconds: 0, totalSeconds: 300, isExpired: false };
+    console.error('Error calculating acceptance countdown:', error)
+    return { minutes: 5, seconds: 0, totalSeconds: 300, isExpired: false }
   }
 }
 
@@ -315,11 +313,11 @@ export function calculateAcceptanceCountdown(orderTime: string): {
  * Formats acceptance countdown as MM:SS
  */
 export function formatAcceptanceCountdown(countdown: {
-  minutes: number;
-  seconds: number;
+  minutes: number
+  seconds: number
 }): string {
-  const { minutes, seconds } = countdown;
-  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  const { minutes, seconds } = countdown
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`
 }
 
 /**
@@ -327,19 +325,19 @@ export function formatAcceptanceCountdown(countdown: {
  */
 export function isOrderFromPast24Hours(orderTime: string): boolean {
   try {
-    const orderDate = convertUTCToIST(orderTime);
-    const now = new Date();
+    const orderDate = convertUTCToIST(orderTime)
+    const now = new Date()
 
     // Calculate difference in milliseconds
-    const diffInMs = now.getTime() - orderDate.getTime();
+    const diffInMs = now.getTime() - orderDate.getTime()
 
     // Convert to hours (24 hours = 24 * 60 * 60 * 1000 milliseconds)
-    const diffInHours = diffInMs / (1000 * 60 * 60);
+    const diffInHours = diffInMs / (1000 * 60 * 60)
 
-    return diffInHours <= 24;
+    return diffInHours <= 24
   } catch (error) {
-    console.error("Error checking if order is from past 24 hours:", error);
-    return false;
+    console.error('Error checking if order is from past 24 hours:', error)
+    return false
   }
 }
 
@@ -348,39 +346,39 @@ export function isOrderFromPast24Hours(orderTime: string): boolean {
  * Groups by customer first, then by order time to create separate orders for different timestamps
  */
 export function processWebSocketOrders(
-  orders: WebSocketOrder[]
+  orders: WebSocketOrder[],
 ): OrderProcessingResult {
-  const errors: string[] = [];
-  const processedOrders: ProcessedOrder[] = [];
+  const errors: string[] = []
+  const processedOrders: ProcessedOrder[] = []
 
   try {
     // Group orders by customer
-    const groupedOrders = groupOrdersByCustomer(orders);
+    const groupedOrders = groupOrdersByCustomer(orders)
 
     // Process each customer group
     Object.entries(groupedOrders).forEach(([customerIdStr, customerOrders]) => {
       try {
-        const customerId = parseInt(customerIdStr);
+        const customerId = parseInt(customerIdStr)
 
         // Use the first order for customer info (should be same across all orders)
-        const firstOrder = customerOrders[0];
+        const firstOrder = customerOrders[0]
 
         // Collect all items from all orders for this customer
-        const allItems: any[] = [];
+        const allItems: any[] = []
 
         customerOrders.forEach((order: WebSocketOrder) => {
           // Handle both string and array formats for items
           const items =
-            typeof order.items === "string"
+            typeof order.items === 'string'
               ? JSON.parse(order.items)
-              : order.items;
+              : order.items
           items.forEach((item: any) => {
-            allItems.push(item);
-          });
-        });
+            allItems.push(item)
+          })
+        })
 
         // Group items by their created_at timestamp (order time)
-        const itemsByOrderTime = groupItemsByOrderTime(allItems);
+        const itemsByOrderTime = groupItemsByOrderTime(allItems)
 
         // Create separate ProcessedOrder for each order time
         Object.entries(itemsByOrderTime).forEach(
@@ -397,25 +395,26 @@ export function processWebSocketOrders(
                 created_at: item.created_at,
                 updated_at: item.updated_at,
                 table_no: item.table_no,
-                special_instructions: item.special_instructions || "",
+                special_instructions: item.special_instructions || '',
                 preparation_time: item.preparation_time,
-              })
-            );
+                discount_amount: item.discount_amount,
+              }),
+            )
 
             // Calculate totals and metadata for this specific order time
-            const totalAmount = calculateOrderTotals(processedItems);
-            const paymentStatus = getGroupPaymentStatus(processedItems);
-            const uniqueTableNumbers = getUniqueTableNumbers(processedItems);
-            const hasTableAssignment = uniqueTableNumbers.length > 0;
-            const isDelivery = !hasTableAssignment;
+            const totalAmount = calculateOrderTotals(processedItems)
+            const paymentStatus = getGroupPaymentStatus(processedItems)
+            const uniqueTableNumbers = getUniqueTableNumbers(processedItems)
+            const hasTableAssignment = uniqueTableNumbers.length > 0
+            const isDelivery = !hasTableAssignment
 
             // Get table number from first item (should be same for all items in this order)
-            const tableNo = processedItems[0]?.table_no || 0;
-            const deliveryType = getDeliveryType(tableNo);
+            const tableNo = processedItems[0]?.table_no || 0
+            const deliveryType = getDeliveryType(tableNo)
             const orderStatus =
-              processedItems[0]?.order_status || OrderStatus.PENDING; // Derive from the first item
+              processedItems[0]?.order_status || OrderStatus.PENDING // Derive from the first item
             const preparationTime =
-              calculateOrderPreparationTime(processedItems);
+              calculateOrderPreparationTime(processedItems)
 
             const processedOrder: ProcessedOrder = {
               customer_id: customerId,
@@ -438,27 +437,28 @@ export function processWebSocketOrders(
               is_delivery: isDelivery,
               unique_table_numbers: uniqueTableNumbers,
               preparation_time: preparationTime,
-            };
+              discount_amount: firstOrder.discount_amount,
+            }
 
-            processedOrders.push(processedOrder);
-          }
-        );
+            processedOrders.push(processedOrder)
+          },
+        )
       } catch (error) {
-        const errorMsg = `Error processing customer ${customerIdStr}: ${error instanceof Error ? error.message : "Unknown error"}`;
-        errors.push(errorMsg);
-        console.error(errorMsg, error);
+        const errorMsg = `Error processing customer ${customerIdStr}: ${error instanceof Error ? error.message : 'Unknown error'}`
+        errors.push(errorMsg)
+        console.error(errorMsg, error)
       }
-    });
+    })
 
     // Sort by order time (most recent first)
     processedOrders.sort(
       (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    )
   } catch (error) {
-    const errorMsg = `Error processing orders: ${error instanceof Error ? error.message : "Unknown error"}`;
-    errors.push(errorMsg);
-    console.error(errorMsg, error);
+    const errorMsg = `Error processing orders: ${error instanceof Error ? error.message : 'Unknown error'}`
+    errors.push(errorMsg)
+    console.error(errorMsg, error)
   }
 
   return {
@@ -466,5 +466,5 @@ export function processWebSocketOrders(
     totalOrders: orders.length,
     totalCustomers: processedOrders.length,
     errors,
-  };
+  }
 }

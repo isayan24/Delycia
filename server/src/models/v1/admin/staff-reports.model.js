@@ -62,8 +62,8 @@ const getStaffLeaderboard = async (req) => {
         u.profile_pic,
         u.role,
         COUNT(DISTINCT o.cart_id) AS total_orders,
-        SUM(o.total_amount) AS total_revenue,
-        ROUND(AVG(o.total_amount), 2) AS avg_order_value,
+        SUM(o.total_amount - COALESCE(o.discount_amount, 0)) AS total_revenue,
+        ROUND(SUM(o.total_amount - COALESCE(o.discount_amount, 0)) / NULLIF(COUNT(DISTINCT o.cart_id), 0), 2) AS avg_order_value,
         MIN(o.created_at) AS first_order_date,
         MAX(o.created_at) AS last_order_date,
         COUNT(DISTINCT o.customer_id) AS unique_customers
@@ -71,6 +71,7 @@ const getStaffLeaderboard = async (req) => {
       INNER JOIN users u ON o.placed_by_staff_id = u.id
       WHERE o.rid = ?
         AND o.placed_by_staff_id IS NOT NULL
+        AND o.order_status != 'cancelled'
         ${dateFilter}
       GROUP BY u.id, u.name, u.username, u.profile_pic, u.role
       ORDER BY total_revenue DESC
@@ -147,6 +148,7 @@ const getStaffOrders = async (req) => {
       FROM orders o
       WHERE o.placed_by_staff_id = ?
         AND o.rid = ?
+        AND o.order_status != 'cancelled'
         ${dateFilter}
     `;
 
@@ -201,6 +203,7 @@ const getStaffOrders = async (req) => {
       LEFT JOIN inventories i ON o.item_id = i.id
       WHERE o.placed_by_staff_id = ?
         AND o.rid = ?
+        AND o.order_status != 'cancelled'
         ${dateFilter}
       GROUP BY o.cart_id, o.customer_id, o.table_no, o.payment_method, 
                o.payment_status, o.order_status, o.delivery_type, 

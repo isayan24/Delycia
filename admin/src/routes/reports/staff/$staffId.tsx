@@ -120,7 +120,10 @@ function StaffOrdersPage() {
 
   const totalRevenue =
     data?.orders.reduce(
-      (sum, order) => sum + parseFloat(order.order_total.toString()),
+      (sum, order) =>
+        sum +
+        (parseFloat(order.order_total.toString()) -
+          parseFloat(order.total_discount.toString() || '0')),
       0,
     ) || 0
   const totalOrders = data?.orders.length || 0
@@ -195,7 +198,9 @@ function StaffOrdersPage() {
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Avg Order Value</p>
-              <p className="text-lg font-bold">₹{avgOrderValue}</p>
+              <p className="text-lg font-bold">
+                ₹{avgOrderValue.toFixed(0) || 0}
+              </p>
             </div>
           </div>
         </Card>
@@ -225,7 +230,11 @@ function StaffOrdersPage() {
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-emerald-600">
-                      ₹{order.order_total}
+                      {order.total_discount > 0 ? (
+                        <>₹{order.order_total - order.total_discount}</>
+                      ) : (
+                        <>₹{order.order_total}</>
+                      )}
                     </p>
                     <p className="text-xs text-muted-foreground capitalize">
                       {order.order_status}

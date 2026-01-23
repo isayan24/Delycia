@@ -104,6 +104,9 @@ const getOrders24Hours = async (rid) => {
     const q = `
       SELECT 
         o.customer_id,
+        SUM(o.total_amount) AS total_amount,
+        SUM(o.discount_amount) AS discount_amount,
+        COUNT(o.id) AS order_count,
         u.name,
         CONCAT(LEFT(u.phone_number, 2), REPEAT('*', LENGTH(u.phone_number) - 4), RIGHT(u.phone_number, 2)) AS phone_number,
         CONCAT(LEFT(u.email, 2), REPEAT('*', GREATEST(0, LOCATE('@', u.email) - 2)), SUBSTRING(u.email, LOCATE('@', u.email))) AS email,

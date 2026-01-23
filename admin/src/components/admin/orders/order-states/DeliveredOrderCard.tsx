@@ -1,32 +1,25 @@
-
-import React, { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  CheckCircle,
-  ChevronDown,
-  ChevronUp,
-  Phone,
-  Clock,
-} from "lucide-react";
-import { ProcessedOrder } from "@/types/WebSocketOrder";
+import React, { useState, useEffect } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { CheckCircle, ChevronDown, ChevronUp, Phone, Clock } from 'lucide-react'
+import { ProcessedOrder } from '@/types/WebSocketOrder'
 import {
   calculateTimeElapsed,
   formatTimeElapsed,
   formatOrderTime,
-} from "../utils/orderProcessing";
+} from '../utils/orderProcessing'
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+} from '@/components/ui/collapsible'
 
 interface DeliveredOrderCardProps {
-  order: ProcessedOrder;
-  onCall: (customerId: number) => void;
-  onViewTimeline: (customerId: number) => void;
-  showCallButton?: boolean;
+  order: ProcessedOrder
+  onCall: (customerId: number) => void
+  onViewTimeline: (customerId: number) => void
+  showCallButton?: boolean
 }
 
 export function DeliveredOrderCard({
@@ -35,31 +28,30 @@ export function DeliveredOrderCard({
   onViewTimeline,
   showCallButton = true,
 }: DeliveredOrderCardProps) {
-  const [timeElapsed, setTimeElapsed] = useState(0);
-  const [isOpen, setIsOpen] = useState(false);
+  const [timeElapsed, setTimeElapsed] = useState(0)
+  const [isOpen, setIsOpen] = useState(false)
 
   // Calculate time elapsed since order was placed using IST-aware function
   useEffect(() => {
     const updateElapsed = () => {
-      const elapsed = calculateTimeElapsed(order.created_at);
-      setTimeElapsed(elapsed);
-    };
+      const elapsed = calculateTimeElapsed(order.created_at)
+      setTimeElapsed(elapsed)
+    }
 
-    updateElapsed();
-    const interval = setInterval(updateElapsed, 60000); // Update every minute
+    updateElapsed()
+    const interval = setInterval(updateElapsed, 60000) // Update every minute
 
-    return () => clearInterval(interval);
-  }, [order.created_at]);
+    return () => clearInterval(interval)
+  }, [order.created_at])
 
   const getOrderTypeDisplay = () => {
     if (order.is_delivery) {
-      return "DELIVERY";
+      return 'DELIVERY'
     } else if (order.unique_table_numbers.length > 0) {
-      return `TABLE ${order.unique_table_numbers.join(", ")}`;
+      return `TABLE ${order.unique_table_numbers.join(', ')}`
     }
-    return "TAKEAWAY";
-  };
-
+    return 'TAKEAWAY'
+  }
   return (
     <Card className="w-full shadow-sm border-l-4 border-l-green-400 bg-green-50/20 hover:shadow-md transition-shadow">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -89,7 +81,15 @@ export function DeliveredOrderCard({
                     <Clock className="h-3 w-3" />
                     {formatTimeElapsed(timeElapsed)}
                   </span>
-                  <span>₹{order.total_amount}</span>
+                  <span>
+                    {order.discount_amount &&
+                    parseFloat(String(order.discount_amount)) > 0
+                      ? `₹${(
+                          order.total_amount -
+                          parseFloat(String(order.discount_amount))
+                        ).toFixed(2)}`
+                      : `₹${order.total_amount}`}
+                  </span>
                   <span>{order.items.length} items</span>
                 </div>
               </div>
@@ -128,9 +128,24 @@ export function DeliveredOrderCard({
                 <h4 className="font-medium text-sm">
                   Order Items ({order.items.length})
                 </h4>
-                <span className="text-sm font-semibold">
-                  ₹{order.total_amount}
-                </span>
+                <div className="text-right">
+                  {order.discount_amount &&
+                    parseFloat(String(order.discount_amount)) > 0 && (
+                      <span className="block text-xs text-green-600 font-medium">
+                        -₹{parseFloat(String(order.discount_amount)).toFixed(2)}{' '}
+                        off
+                      </span>
+                    )}
+                  <span className="text-sm font-semibold">
+                    {order.discount_amount &&
+                    parseFloat(String(order.discount_amount)) > 0
+                      ? `₹${(
+                          order.total_amount -
+                          parseFloat(String(order.discount_amount))
+                        ).toFixed(2)}`
+                      : `₹${order.total_amount}`}
+                  </span>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -154,18 +169,18 @@ export function DeliveredOrderCard({
               <div className="flex items-center justify-between text-xs mt-3 pt-2 border-t">
                 <div className="flex items-center gap-2">
                   <div
-                    className={`w-2 h-2 rounded-full ${order.payment_status.toLowerCase() === "paid" ? "bg-green-500" : "bg-red-500"}`}
+                    className={`w-2 h-2 rounded-full ${order.payment_status.toLowerCase() === 'paid' ? 'bg-green-500' : 'bg-red-500'}`}
                   />
                   <span
                     className={
-                      order.payment_status.toLowerCase() === "paid"
-                        ? "text-green-700"
-                        : "text-red-700"
+                      order.payment_status.toLowerCase() === 'paid'
+                        ? 'text-green-700'
+                        : 'text-red-700'
                     }
                   >
-                    {order.payment_status.toLowerCase() === "paid"
-                      ? "Paid"
-                      : "Payment Pending"}
+                    {order.payment_status.toLowerCase() === 'paid'
+                      ? 'Paid'
+                      : 'Payment Pending'}
                   </span>
                 </div>
               </div>
@@ -188,7 +203,7 @@ export function DeliveredOrderCard({
                   <span>{formatOrderTime(order.created_at)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Order ID:</span>
+                  <span className="text-gray-600">Customer ID:</span>
                   <span>#{order.customer_id}</span>
                 </div>
               </div>
@@ -208,5 +223,5 @@ export function DeliveredOrderCard({
         </CardContent>
       </Collapsible>
     </Card>
-  );
+  )
 }

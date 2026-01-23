@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from 'react'
-import { TransformedOrder } from '@/utils/orderHistoryUtils'
 import CustomerAvatar from '../CustomerAvatar'
+import { TransformedOrder } from '../utils/orderHistoryUtils'
 
 interface MobileOrderCardProps {
   order: TransformedOrder
@@ -18,36 +18,46 @@ const getStatusColor = (status: string) => {
   }
 }
 
-const MobileOrderCard = memo(function MobileOrderCard({ order, onClick }: MobileOrderCardProps) {
+const MobileOrderCard = memo(function MobileOrderCard({
+  order,
+  onClick,
+}: MobileOrderCardProps) {
   // Memoize the formatted items to prevent recalculation
   const formattedItems = useMemo(() => {
     if (!order.items || order.items.length === 0) {
       return 'No items available'
     }
-    
+
     // Show first 2 items, then "and X more" if there are more
     const displayItems = order.items.slice(0, 2)
     const remainingCount = order.items.length - 2
-    
-    let itemsText = displayItems.map(item => `${item.quantity} x ${item.name}`).join(', ')
-    
+
+    let itemsText = displayItems
+      .map((item) => `${item.quantity} x ${item.name}`)
+      .join(', ')
+
     if (remainingCount > 0) {
       itemsText += ` and ${remainingCount} more`
     }
-    
+
     return itemsText
   }, [order.items])
 
-  const statusColorClass = useMemo(() => getStatusColor(order.status), [order.status])
+  const statusColorClass = useMemo(
+    () => getStatusColor(order.status),
+    [order.status],
+  )
 
   return (
-    <div 
+    <div
       className="bg-white rounded-xl p-3 mb-2 border border-gray-200 shadow-sm cursor-pointer hover:shadow-md transition-all duration-200"
       onClick={onClick}
     >
       {/* Header with status and time */}
       <div className="flex justify-between items-center mb-2">
-        <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColorClass}`}>
+        <span
+          className={`px-3 py-1 rounded-full text-xs font-medium ${statusColorClass}`}
+        >
           {order.status}
         </span>
         <div className="text-right text-gray-500 text-xs">
@@ -58,7 +68,9 @@ const MobileOrderCard = memo(function MobileOrderCard({ order, onClick }: Mobile
       {/* Order ID */}
       <div className="mb-2">
         <span className="text-gray-700 font-medium text-sm">ID: </span>
-        <span className="text-gray-900 font-semibold text-sm">{order.orderId}</span>
+        <span className="text-gray-900 font-semibold text-sm">
+          {order.orderId}
+        </span>
       </div>
 
       {/* Items */}
@@ -70,8 +82,8 @@ const MobileOrderCard = memo(function MobileOrderCard({ order, onClick }: Mobile
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
           {order.customer && (
-            <CustomerAvatar 
-              initials={order.customer.initials} 
+            <CustomerAvatar
+              initials={order.customer.initials}
               name={order.customer.name}
               size="sm"
             />
@@ -80,9 +92,17 @@ const MobileOrderCard = memo(function MobileOrderCard({ order, onClick }: Mobile
             By {order.customer?.name || order.customerName}
           </span>
         </div>
-        <span className="text-base font-semibold text-gray-900">
-          ₹{order.totalAmount.toFixed(2)}
-        </span>
+        <div className="text-right">
+          {order.discountAmount &&
+            parseFloat(String(order.discountAmount)) > 0 && (
+              <div className="text-xs text-green-600 font-medium">
+                -₹{parseFloat(String(order.discountAmount)).toFixed(2)} off
+              </div>
+            )}
+          <span className="text-base font-semibold text-gray-900">
+            ₹{order.totalAmount.toFixed(2)}
+          </span>
+        </div>
       </div>
     </div>
   )

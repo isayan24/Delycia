@@ -8,6 +8,8 @@ interface PrintBillDialogProps {
     tableNo: string | number
     customerName: string
     customerId: string
+    discountAmount: number
+    customerPhone: string
     items: Array<{
       name: string
       quantity: number

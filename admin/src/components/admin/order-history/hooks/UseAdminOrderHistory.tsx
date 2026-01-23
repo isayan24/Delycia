@@ -95,6 +95,7 @@ export const UseAdminOrderHistory = ({ rid }: UseAdminOrdersProps) => {
     if (stableOrders.length > 0) {
       // Transform raw API data to UI format
       const transformed = transformOrderData(stableOrders)
+
       setTransformedOrders(transformed)
     } else {
       setTransformedOrders([])

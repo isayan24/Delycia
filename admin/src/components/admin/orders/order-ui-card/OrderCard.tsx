@@ -1,20 +1,19 @@
-
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Volume2, VolumeX, X } from "lucide-react";
-import { ProcessedOrder } from "@/types/WebSocketOrder";
-import { formatOrderTime } from "../utils/orderProcessing";
-import { OrderHeader } from "./OrderHeader";
-import { OrderItems } from "./OrderItems";
-import { OrderSummary } from "./OrderSummary";
-import { PrepTimeSelector } from "./PrepTimeSelector";
+import React, { useState } from 'react'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Volume2, VolumeX, X } from 'lucide-react'
+import { ProcessedOrder } from '@/types/WebSocketOrder'
+import { formatOrderTime } from '../utils/orderProcessing'
+import { OrderHeader } from './OrderHeader'
+import { OrderItems } from './OrderItems'
+import { OrderSummary } from './OrderSummary'
+import { PrepTimeSelector } from './PrepTimeSelector'
 
 interface OrderCardProps {
-  order: ProcessedOrder;
-  onAccept: (customerId: number) => void;
-  onReject: (customerId: number) => void;
-  onUpdatePrepTime: (customerId: number, time: number) => void;
+  order: ProcessedOrder
+  onAccept: (customerId: number) => void
+  onReject: (customerId: number) => void
+  onUpdatePrepTime: (customerId: number, time: number) => void
 }
 
 export function OrderCard({
@@ -23,45 +22,45 @@ export function OrderCard({
   onReject,
   onUpdatePrepTime,
 }: OrderCardProps) {
-  const [prepTime, setPrepTime] = useState(45);
-  const [isMuted, setIsMuted] = useState(false);
-  const [countdown, setCountdown] = useState(300); // 5 minutes in seconds
+  const [prepTime, setPrepTime] = useState(45)
+  const [isMuted, setIsMuted] = useState(false)
+  const [countdown, setCountdown] = useState(300) // 5 minutes in seconds
 
   // Countdown timer effect
   React.useEffect(() => {
-    if (countdown <= 0) return;
+    if (countdown <= 0) return
 
     const timer = setInterval(() => {
-      setCountdown((prev) => Math.max(0, prev - 1));
-    }, 1000);
+      setCountdown((prev) => Math.max(0, prev - 1))
+    }, 1000)
 
-    return () => clearInterval(timer);
-  }, [countdown]);
+    return () => clearInterval(timer)
+  }, [countdown])
 
   const formatCountdown = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
 
   const handleAccept = () => {
-    onAccept(order.customer_id);
-    onUpdatePrepTime(order.customer_id, prepTime);
-  };
+    onAccept(order.customer_id)
+    onUpdatePrepTime(order.customer_id, prepTime)
+  }
 
   const handlePrepTimeChange = (newTime: number) => {
-    setPrepTime(Math.max(5, newTime));
-  };
+    setPrepTime(Math.max(5, newTime))
+  }
 
   // Determine order type display
   const getOrderTypeDisplay = () => {
     if (order.is_delivery) {
-      return "DELIVERY ORDER";
+      return 'DELIVERY ORDER'
     } else if (order.unique_table_numbers.length > 0) {
-      return `TABLE ${order.unique_table_numbers.join(", ")}`;
+      return `TABLE ${order.unique_table_numbers.join(', ')}`
     }
-    return "TAKEAWAY ORDER";
-  };
+    return 'TAKEAWAY ORDER'
+  }
 
   return (
     <Card className="w-full max-w-2xl mx-auto shadow-lg">
@@ -69,7 +68,7 @@ export function OrderCard({
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">
             {order.order_count === 1
-              ? "1 new order"
+              ? '1 new order'
               : `${order.order_count} new orders`}
           </h3>
           <div className="flex items-center gap-2">
@@ -125,9 +124,9 @@ export function OrderCard({
           itemCount={order.items.length}
           subtotal={order.total_amount}
           taxes={0.0}
-          discount={0.0}
-          total={order.total_amount}
-          isPaid={order.payment_status.toLowerCase() === "paid"}
+          discount={order.discount_amount || 0}
+          total={order.total_amount - (order.discount_amount || 0)}
+          isPaid={order.payment_status.toLowerCase() === 'paid'}
         />
 
         {/* Action Buttons */}
@@ -165,5 +164,5 @@ export function OrderCard({
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

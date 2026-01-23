@@ -21,7 +21,7 @@ interface BillData {
   customerPhone: string
   items: BillItem[]
   totalAmount: number
-  discount?: number
+  discountAmount?: number
   orderDate: string
   paymentMethod: string
   paymentStatus: string
@@ -135,13 +135,17 @@ export default function ThermalBill({
       drawLine()
 
       // Discount (if applicable)
-      if (billData.discount && billData.discount > 0) {
+      if (billData.discountAmount && billData.discountAmount > 0) {
         y += 5
         ctx.font = '12px Courier New, monospace'
         ctx.textAlign = 'left'
         ctx.fillText('Discount:', padding, y)
         ctx.textAlign = 'right'
-        ctx.fillText(`-₹${billData.discount.toFixed(2)}`, width - padding, y)
+        ctx.fillText(
+          `-₹${billData.discountAmount.toFixed(2)}`,
+          width - padding,
+          y,
+        )
         y += 16
       }
 
@@ -257,13 +261,17 @@ export default function ThermalBill({
       drawLine()
 
       // Discount (if applicable)
-      if (billData.discount && billData.discount > 0) {
+      if (billData.discountAmount && billData.discountAmount > 0) {
         y += 5
         ctx.font = '12px Courier New, monospace'
         ctx.textAlign = 'left'
         ctx.fillText('Discount:', padding, y)
         ctx.textAlign = 'right'
-        ctx.fillText(`-₹${billData.discount.toFixed(2)}`, width - padding, y)
+        ctx.fillText(
+          `-₹${billData.discountAmount.toFixed(2)}`,
+          width - padding,
+          y,
+        )
         y += 16
       }
 
@@ -403,7 +411,7 @@ export default function ThermalBill({
       { name: 'Cold Drink', quantity: 2, price: 80 },
     ],
     totalAmount: 640,
-    discount: 50,
+    discountAmount: 50,
     orderDate: '2024-03-15 14:30',
     paymentMethod: 'Cash',
     paymentStatus: 'Paid',
@@ -534,21 +542,24 @@ export default function ThermalBill({
               </div>
 
               {/* Discount */}
-              {currentBillData.discount && currentBillData.discount > 0 && (
-                <div className="py-1" style={{ padding: '4px 0' }}>
-                  <div
-                    className="flex justify-between"
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      fontSize: '12px',
-                    }}
-                  >
-                    <span>Discount:</span>
-                    <span>-₹{currentBillData.discount.toFixed(2)}</span>
+              {currentBillData?.discountAmount &&
+                currentBillData?.discountAmount > 0 && (
+                  <div className="py-1" style={{ padding: '4px 0' }}>
+                    <div
+                      className="flex justify-between"
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        fontSize: '12px',
+                      }}
+                    >
+                      <span>Discount:</span>
+                      <span>
+                        -₹{currentBillData?.discountAmount.toFixed(2)}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Total */}
               <div
@@ -569,7 +580,13 @@ export default function ThermalBill({
                   }}
                 >
                   <span>TOTAL:</span>
-                  <span>₹{currentBillData.totalAmount.toFixed(2)}</span>
+                  <span>
+                    {currentBillData.discountAmount &&
+                    currentBillData.discountAmount > 0
+                      ? currentBillData.totalAmount -
+                        currentBillData.discountAmount
+                      : currentBillData.totalAmount}
+                  </span>
                 </div>
               </div>
 

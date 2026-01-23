@@ -1,17 +1,17 @@
-import React from "react";
+import React from 'react'
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
-import { AlertCircle } from "lucide-react";
-import { ProcessedOrder } from "@/types/WebSocketOrder";
+} from '@/components/ui/accordion'
+import { Badge } from '@/components/ui/badge'
+import { AlertCircle } from 'lucide-react'
+import { ProcessedOrder } from '@/types/WebSocketOrder'
 
 interface MobileOrderAccordionProps {
-  order: ProcessedOrder;
-  showSpecialInstructions?: boolean;
+  order: ProcessedOrder
+  showSpecialInstructions?: boolean
 }
 
 export function MobileOrderAccordion({
@@ -20,15 +20,15 @@ export function MobileOrderAccordion({
 }: MobileOrderAccordionProps) {
   const hasSpecialInstructions = order.items.some(
     (item) =>
-      item.special_instructions && item.special_instructions.trim() !== ""
-  );
+      item.special_instructions && item.special_instructions.trim() !== '',
+  )
 
   const getSpecialInstructionsItems = () => {
     return order.items.filter(
       (item) =>
-        item.special_instructions && item.special_instructions.trim() !== ""
-    );
-  };
+        item.special_instructions && item.special_instructions.trim() !== '',
+    )
+  }
 
   return (
     <div className="md:hidden">
@@ -44,7 +44,7 @@ export function MobileOrderAccordion({
                 <div className="flex items-center gap-2 text-amber-800 mb-1">
                   <AlertCircle className="h-4 w-4" />
                   <span className="text-sm font-medium">
-                    Special Instructions:{" "}
+                    Special Instructions:{' '}
                     {getSpecialInstructionsItems()[0]?.special_instructions}
                   </span>
                 </div>
@@ -83,24 +83,25 @@ export function MobileOrderAccordion({
               </div>
               <div className="flex items-center gap-2 text-xs">
                 <div
-                  className={`w-2 h-2 rounded-full ${order.payment_status.toLowerCase() === "paid" ? "bg-green-500" : "bg-red-500"}`}
+                  className={`w-2 h-2 rounded-full ${order.payment_status.toLowerCase() === 'paid' ? 'bg-green-500' : 'bg-red-500'}`}
                 />
                 <span
                   className={
-                    order.payment_status.toLowerCase() === "paid"
-                      ? "text-green-700"
-                      : "text-red-700"
+                    order.payment_status.toLowerCase() === 'paid'
+                      ? 'text-green-700'
+                      : 'text-red-700'
                   }
                 >
-                  {order.payment_status.toLowerCase() === "paid"
-                    ? "Paid"
-                    : "Payment Pending"}
+                  {order.payment_status.toLowerCase() === 'paid'
+                    ? 'Paid'
+                    : 'Payment Pending'}
                 </span>
               </div>
             </div>
           </AccordionContent>
+          z
         </AccordionItem>
       </Accordion>
     </div>
-  );
+  )
 }

@@ -1,21 +1,20 @@
-
-import React, { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ProcessedOrder } from "@/types/WebSocketOrder";
-import { calculateTimeElapsed } from "../utils/orderProcessing";
-import { CompactOrderHeader } from "../order-ui-card/CompactOrderHeader";
-import { MobileOrderAccordion } from "../small-screen/MobileOrderAccordion";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Loader2 } from "lucide-react";
+import React, { useState, useEffect } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { ProcessedOrder } from '@/types/WebSocketOrder'
+import { calculateTimeElapsed } from '../utils/orderProcessing'
+import { CompactOrderHeader } from '../order-ui-card/CompactOrderHeader'
+import { MobileOrderAccordion } from '../small-screen/MobileOrderAccordion'
+import { useIsMobile } from '@/hooks/use-mobile'
+import { Loader2 } from 'lucide-react'
 
 interface ReadyOrderCardProps {
-  order: ProcessedOrder;
-  onMarkDelivered: (order: ProcessedOrder) => void;
-  onCall: (customerId: number) => void;
-  onViewTimeline: (customerId: number) => void;
-  isMarkDelivered: boolean;
+  order: ProcessedOrder
+  onMarkDelivered: (order: ProcessedOrder) => void
+  onCall: (customerId: number) => void
+  onViewTimeline: (customerId: number) => void
+  isMarkDelivered: boolean
 }
 
 export function ReadyOrderCard({
@@ -25,20 +24,20 @@ export function ReadyOrderCard({
   onViewTimeline,
   isMarkDelivered,
 }: ReadyOrderCardProps) {
-  const [timeElapsed, setTimeElapsed] = useState(0);
-  const isMobile = useIsMobile();
+  const [timeElapsed, setTimeElapsed] = useState(0)
+  const isMobile = useIsMobile()
   // Calculate time elapsed since order was placed using IST-aware function
   useEffect(() => {
     const updateElapsed = () => {
-      const elapsed = calculateTimeElapsed(order.created_at);
-      setTimeElapsed(elapsed);
-    };
+      const elapsed = calculateTimeElapsed(order.created_at)
+      setTimeElapsed(elapsed)
+    }
 
-    updateElapsed();
-    const interval = setInterval(updateElapsed, 60000); // Update every minute
+    updateElapsed()
+    const interval = setInterval(updateElapsed, 60000) // Update every minute
 
-    return () => clearInterval(interval);
-  }, [order.created_at]);
+    return () => clearInterval(interval)
+  }, [order.created_at])
 
   const statusBadge = (
     <Badge
@@ -47,7 +46,7 @@ export function ReadyOrderCard({
     >
       ✅ READY
     </Badge>
-  );
+  )
 
   return (
     <Card className="w-full shadow-md border-l-4 border-l-blue-400 hover:shadow-lg transition-shadow">
@@ -65,7 +64,7 @@ export function ReadyOrderCard({
           order.items.some(
             (item) =>
               item.special_instructions &&
-              item.special_instructions.trim() !== ""
+              item.special_instructions.trim() !== '',
           ) && (
             <div className="bg-yellow-50 border border-yellow-200 px-3 py-2 rounded-lg ">
               <div className="flex items-center gap-2 text-yellow-800">
@@ -87,9 +86,24 @@ export function ReadyOrderCard({
               <h4 className="font-medium text-sm">
                 Order Items ({order.items.length})
               </h4>
-              <span className="text-sm font-semibold">
-                ₹{order.total_amount}
-              </span>
+              <div className="text-right">
+                {order.discount_amount &&
+                  parseFloat(String(order.discount_amount)) > 0 && (
+                    <span className="block text-xs text-green-600 font-medium">
+                      -₹{parseFloat(String(order.discount_amount)).toFixed(2)}{' '}
+                      off
+                    </span>
+                  )}
+                <span className="text-sm font-semibold">
+                  {order.discount_amount &&
+                  parseFloat(String(order.discount_amount)) > 0
+                    ? `₹${(
+                        order.total_amount -
+                        parseFloat(String(order.discount_amount))
+                      ).toFixed(2)}`
+                    : `₹${order.total_amount}`}
+                </span>
+              </div>
             </div>
             <div className="space-y-1">
               {order.items.slice(0, 3).map((item, index) => (
@@ -111,18 +125,18 @@ export function ReadyOrderCard({
             </div>
             <div className="flex items-center gap-2 text-xs mt-2 pt-2 border-t">
               <div
-                className={`w-2 h-2 rounded-full ${order.payment_status.toLowerCase() === "paid" ? "bg-green-500" : "bg-red-500"}`}
+                className={`w-2 h-2 rounded-full ${order.payment_status.toLowerCase() === 'paid' ? 'bg-green-500' : 'bg-red-500'}`}
               />
               <span
                 className={
-                  order.payment_status.toLowerCase() === "paid"
-                    ? "text-green-700"
-                    : "text-red-700"
+                  order.payment_status.toLowerCase() === 'paid'
+                    ? 'text-green-700'
+                    : 'text-red-700'
                 }
               >
-                {order.payment_status.toLowerCase() === "paid"
-                  ? "Paid"
-                  : "Payment Pending"}
+                {order.payment_status.toLowerCase() === 'paid'
+                  ? 'Paid'
+                  : 'Payment Pending'}
               </span>
             </div>
           </div>
@@ -138,5 +152,5 @@ export function ReadyOrderCard({
         </Button>
       </CardContent>
     </Card>
-  );
+  )
 }

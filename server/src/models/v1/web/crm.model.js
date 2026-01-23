@@ -1,12 +1,40 @@
 import pool from "../../../config/db.connection.js";
 import apiResponse from "../../../utils/apiResponse.js";
 
-const getRestaurantCustomers = async (rid) => {
+const getRestaurantCustomers = async (rid, timeRange = 'this_month') => {
   if (!rid) {
     return apiResponse.error(400, "Restaurant ID (rid) is required");
   }
 
   try {
+    let intervalCondition = "";
+
+    switch (timeRange) {
+      case 'today':
+        intervalCondition = "AND last_visit_at >= CURDATE()";
+        break;
+      case 'yesterday':
+        intervalCondition = "AND last_visit_at >= DATE_SUB(CURDATE(), INTERVAL 1 DAY) AND last_visit_at < CURDATE()";
+        break;
+      case 'this_week':
+        intervalCondition = "AND YEARWEEK(last_visit_at, 1) = YEARWEEK(CURDATE(), 1)";
+        break;
+      case 'this_month':
+        intervalCondition = "AND last_visit_at >= DATE_FORMAT(NOW(), '%Y-%m-01')";
+        break;
+      case 'last_month':
+        intervalCondition = "AND last_visit_at >= DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m-01') AND last_visit_at < DATE_FORMAT(NOW(), '%Y-%m-01')";
+        break;
+      case 'this_year':
+        intervalCondition = "AND YEAR(last_visit_at) = YEAR(CURDATE())";
+        break;
+      case 'all_time':
+        intervalCondition = "";
+        break;
+      default: // Default to this month
+        intervalCondition = "AND last_visit_at >= DATE_FORMAT(NOW(), '%Y-%m-01')";
+    }
+
     // Detailed query to fetch customer insights
     // We join user_restaurant_visits with users table
     // We also join with a subquery on orders to get aggregate spending data
@@ -28,15 +56,15 @@ const getRestaurantCustomers = async (rid) => {
       LEFT JOIN (
         SELECT 
           o.customer_id,
-          SUM(o.total_amount) as total_spent,
-          SUM(o.total_amount) / NULLIF(COUNT(DISTINCT o.cart_id), 0) as avg_order_value,
+          SUM(o.total_amount - COALESCE(o.discount_amount, 0)) as total_spent,
+          SUM(o.total_amount - COALESCE(o.discount_amount, 0)) / NULLIF(COUNT(DISTINCT o.cart_id), 0) as avg_order_value,
           SUBSTRING_INDEX(GROUP_CONCAT(i.name ORDER BY o.created_at DESC SEPARATOR ','), ',', 3) as last_order_items_str
         FROM orders o
         LEFT JOIN inventories i ON o.item_id = i.id
-        WHERE o.rid = ?
+        WHERE o.rid = ? AND o.order_status = 'completed'
         GROUP BY o.customer_id
       ) o_stats ON urv.user_id = o_stats.customer_id
-      WHERE urv.restaurant_id = ?
+      WHERE urv.restaurant_id = ? ${intervalCondition}
       ORDER BY urv.last_visit_at DESC
     `;
 
@@ -183,8 +211,8 @@ const getCustomerDetails = async (rid, customerId) => {
       SELECT 
         u.id, u.name, u.email, u.phone_number, u.profile_pic,
         urv.visit_count, urv.first_visit_at, urv.last_visit_at,
-        (SELECT SUM(total_amount) FROM orders WHERE rid = ? AND customer_id = ?) as total_spent,
-        (SELECT AVG(total_amount) FROM orders WHERE rid = ? AND customer_id = ?) as avg_order_value
+        (SELECT SUM(total_amount - COALESCE(discount_amount, 0)) FROM orders WHERE rid = ? AND customer_id = ? AND order_status = 'completed') as total_spent,
+        (SELECT SUM(total_amount - COALESCE(discount_amount, 0)) / COUNT(DISTINCT cart_id) FROM orders WHERE rid = ? AND customer_id = ? AND order_status = 'completed') as avg_order_value
       FROM users u
       JOIN user_restaurant_visits urv ON u.id = urv.user_id
       WHERE u.id = ? AND urv.restaurant_id = ?
@@ -196,6 +224,7 @@ const getCustomerDetails = async (rid, customerId) => {
         MIN(o.id) as order_id,
         o.cart_id,
         SUM(o.total_amount) as total_amount,
+        SUM(o.discount_amount) as discount_amount,
         MAX(o.created_at) as created_at,
         o.order_status,
         GROUP_CONCAT(i.name SEPARATOR ', ') as items

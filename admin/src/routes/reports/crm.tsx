@@ -36,6 +36,7 @@ function CRMPage() {
 
   const { data: customers = [], isLoading } = useCRMListQuery({
     rid: rid?.toString() || '',
+    timeRange,
   })
 
   return (

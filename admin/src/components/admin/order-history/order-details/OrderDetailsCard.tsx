@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from 'react'
-import { TransformedOrderItem, CustomerInfo } from '@/utils/orderHistoryUtils'
 import CustomerAvatar from '../CustomerAvatar'
+import { CustomerInfo, TransformedOrderItem } from '../utils/orderHistoryUtils'
 
 interface TimelineStep {
   label: string
@@ -25,6 +25,7 @@ interface OrderDetailsCardProps {
   specialInstructions?: string
   tableNo: number
   paymentStatus: string
+  discountAmount?: number
 }
 
 const getStatusColor = (status: string) => {
@@ -64,12 +65,18 @@ const OrderDetailsCard = memo(function OrderDetailsCard({
   deliveryType,
   specialInstructions,
   tableNo,
-  paymentStatus
+  paymentStatus,
+  discountAmount,
 }: OrderDetailsCardProps) {
-
   // Memoize calculations to prevent unnecessary recalculations
-  const totalItems = useMemo(() => items.reduce((sum, item) => sum + item.quantity, 0), [items])
-  const totalAmount = useMemo(() => items.reduce((sum, item) => sum + item.price, 0), [items])
+  const totalItems = useMemo(
+    () => items.reduce((sum, item) => sum + item.quantity, 0),
+    [items],
+  )
+  const totalAmount = useMemo(
+    () => items.reduce((sum, item) => sum + item.price, 0),
+    [items],
+  )
   const statusColorClass = useMemo(() => getStatusColor(status), [status])
   const timelineColorClass = useMemo(() => getTimelineColor(status), [status])
 
@@ -78,13 +85,19 @@ const OrderDetailsCard = memo(function OrderDetailsCard({
       {/* Header */}
       <div className="flex justify-between items-start mb-3">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">ID: {orderId}</h2>
-          <span className={`px-3 py-1 rounded-md text-sm font-medium ${statusColorClass}`}>
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">
+            ID: {orderId}
+          </h2>
+          <span
+            className={`px-3 py-1 rounded-md text-sm font-medium ${statusColorClass}`}
+          >
             {status}
           </span>
         </div>
         <div className="text-right">
-          <div className="text-gray-600 mb-3">{time} | {date}</div>
+          <div className="text-gray-600 mb-3">
+            {time} | {date}
+          </div>
           <button className="px-4 py-2 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-50">
             Help
           </button>
@@ -147,7 +160,9 @@ const OrderDetailsCard = memo(function OrderDetailsCard({
       {/* Special Instructions */}
       {specialInstructions && (
         <div className="mb-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <h4 className="text-sm font-medium text-yellow-800 mb-1">Special Instructions</h4>
+          <h4 className="text-sm font-medium text-yellow-800 mb-1">
+            Special Instructions
+          </h4>
           <p className="text-sm text-yellow-700">{specialInstructions}</p>
         </div>
       )}
@@ -162,25 +177,42 @@ const OrderDetailsCard = memo(function OrderDetailsCard({
       <div className="mb-8 px-10">
         <div className="relative">
           {/* Timeline line */}
-          <div className={`absolute top-6 left-6 right-6 h-0.5 ${timelineColorClass}`}></div>
+          <div
+            className={`absolute top-6 left-6 right-6 h-0.5 ${timelineColorClass}`}
+          ></div>
 
           {/* Timeline steps */}
           <div className="flex justify-between relative">
             {timeline.map((step, index) => (
               <div key={index} className="flex flex-col items-center">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${step.completed ? timelineColorClass : 'bg-gray-300'
-                  }`}>
+                <div
+                  className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                    step.completed ? timelineColorClass : 'bg-gray-300'
+                  }`}
+                >
                   {step.completed && (
-                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    <svg
+                      className="w-6 h-6 text-white"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   )}
                 </div>
                 <div className="text-center mt-2">
-                  <div className="text-sm text-gray-700 font-medium">{step.label}</div>
+                  <div className="text-sm text-gray-700 font-medium">
+                    {step.label}
+                  </div>
                   <div className="text-xs text-gray-500">{step.time}</div>
                   {step.hasView && (
-                    <button className="text-blue-500 text-xs mt-1 hover:underline">View</button>
+                    <button className="text-blue-500 text-xs mt-1 hover:underline">
+                      View
+                    </button>
                   )}
                 </div>
               </div>
@@ -207,7 +239,10 @@ const OrderDetailsCard = memo(function OrderDetailsCard({
         <div className="space-y-4 mb-3">
           {items && items.length > 0 ? (
             items.map((item, index) => (
-              <div key={index} className="flex justify-between items-start p-3 bg-gray-50 rounded-lg">
+              <div
+                key={index}
+                className="flex justify-between items-start p-3 bg-gray-50 rounded-lg"
+              >
                 <div className="flex-1">
                   <div className="font-medium text-gray-900">
                     {item.quantity} x {item.name}
@@ -227,9 +262,27 @@ const OrderDetailsCard = memo(function OrderDetailsCard({
 
         {/* Total */}
         <div className="border-t pt-4">
+          {discountAmount && parseFloat(String(discountAmount)) > 0 && (
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-medium text-gray-600">
+                Discount
+              </span>
+              <span className="text-sm font-medium text-green-600">
+                -₹{parseFloat(String(discountAmount)).toFixed(2)}
+              </span>
+            </div>
+          )}
           <div className="flex justify-between items-center">
-            <span className="text-lg font-semibold text-gray-900">Total Amount</span>
-            <span className="text-xl font-bold text-gray-900">₹{totalAmount.toFixed(2)}</span>
+            <span className="text-lg font-semibold text-gray-900">
+              Total Amount
+            </span>
+            <span className="text-xl font-bold text-gray-900">
+              {discountAmount && parseFloat(String(discountAmount)) > 0
+                ? `₹${(
+                    totalAmount - parseFloat(String(discountAmount))
+                  ).toFixed(2)}`
+                : `₹${totalAmount.toFixed(2)}`}
+            </span>
           </div>
         </div>
       </div>

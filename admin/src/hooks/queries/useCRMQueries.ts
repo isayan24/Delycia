@@ -30,6 +30,7 @@ export interface CustomerDetails {
     order_id: number
     cart_id: string
     total_amount: number
+    discount_amount?: number
     created_at: string
     order_status: string
     items: string
@@ -50,12 +51,12 @@ interface CustomerDetailsResponse {
 }
 
 // Queries
-export function useCRMListQuery(params: { rid: string }) {
+export function useCRMListQuery(params: { rid: string; timeRange?: string }) {
   return useQuery({
     queryKey: queryKeys.crm.list(params),
     queryFn: async (): Promise<Customer[]> => {
       if (!params.rid) throw new Error('Restaurant ID is required')
-
+      console.log('getRestaurantCustomers params:', params)
       const response = await axios.get<CRMListResponse>('/api/crm', {
         params,
       })

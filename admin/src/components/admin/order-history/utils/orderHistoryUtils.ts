@@ -50,6 +50,7 @@ export interface TransformedOrder {
   customer?: CustomerInfo
   items: TransformedOrderItem[]
   totalAmount: number
+  discountAmount?: number | any
   createdAt: Date
   updatedAt: Date
   paymentMethod: string
@@ -287,6 +288,7 @@ export const transformOrderData = (apiOrders: any[]): TransformedOrder[] => {
           preparationTime: 0, // Not available in grouped structure
           tableNo: order.table_no,
           paymentStatus: order.payment_status,
+          discountAmount: order.discount_amount || 0,
         }
       })
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())

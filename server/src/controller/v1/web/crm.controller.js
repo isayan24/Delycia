@@ -1,13 +1,13 @@
 import crmModel from "../../../models/v1/web/crm.model.js";
 
 const getRestaurantCustomers = async (req, res) => {
-  const { rid } = req.query;
+  const { rid, timeRange } = req.query;
 
   if (!rid) {
-    return res.status(400).json({ status: false, message: "Restaurant ID is required" });
+    return res.status(400).json({ status: false, message: "Restaurant ID (rid) is required" });
   }
 
-  const response = await crmModel.getRestaurantCustomers(rid);
+  const response = await crmModel.getRestaurantCustomers(rid, timeRange);
   res.status(response.statusCode).json(response);
 };
 

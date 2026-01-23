@@ -1,25 +1,24 @@
-
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Loader2, Volume2, VolumeX, X } from "lucide-react";
-import { ProcessedOrder } from "@/types/WebSocketOrder";
-import { formatOrderTime } from "../utils/orderProcessing";
-import { OrderHeader } from "../order-ui-card/OrderHeader";
-import { OrderItems } from "../order-ui-card/OrderItems";
-import { OrderSummary } from "../order-ui-card/OrderSummary";
-import { PrepTimeSelector } from "../order-ui-card/PrepTimeSelector";
-import { useSoundContext } from "@/context/SoundContext";
-import { CountdownDisplay } from "../countdown";
+import React, { useState } from 'react'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Loader2, Volume2, VolumeX, X } from 'lucide-react'
+import { ProcessedOrder } from '@/types/WebSocketOrder'
+import { formatOrderTime } from '../utils/orderProcessing'
+import { OrderHeader } from '../order-ui-card/OrderHeader'
+import { OrderItems } from '../order-ui-card/OrderItems'
+import { OrderSummary } from '../order-ui-card/OrderSummary'
+import { PrepTimeSelector } from '../order-ui-card/PrepTimeSelector'
+import { useSoundContext } from '@/context/SoundContext'
+import { CountdownDisplay } from '../countdown'
 
 interface OrderPopupProps {
-  order: ProcessedOrder;
-  onAccept: (order: any, prepTime: number) => void;
-  onReject: (order: any) => void;
-  onClose: () => void;
-  isVisible: boolean;
-  onTogglePopups: () => void;
-  isTransitioning: boolean;
+  order: ProcessedOrder
+  onAccept: (order: any, prepTime: number) => void
+  onReject: (order: any) => void
+  onClose: () => void
+  isVisible: boolean
+  onTogglePopups: () => void
+  isTransitioning: boolean
 }
 
 export function OrderPopup({
@@ -31,29 +30,29 @@ export function OrderPopup({
   onTogglePopups,
   isTransitioning,
 }: OrderPopupProps) {
-  const [prepTime, setPrepTime] = useState(30);
-  const { isSoundEnabled, toggleSound } = useSoundContext();
+  const [prepTime, setPrepTime] = useState(30)
+  const { isSoundEnabled, toggleSound } = useSoundContext()
 
   const handleAccept = () => {
-    onAccept(order, prepTime);
-  };
+    onAccept(order, prepTime)
+  }
 
   const handlePrepTimeChange = (newTime: number) => {
-    setPrepTime(Math.max(5, newTime));
-  };
+    setPrepTime(Math.max(5, newTime))
+  }
 
   const getOrderTypeDisplay = () => {
     if (order.is_delivery) {
-      return "DELIVERY ORDER";
+      return 'DELIVERY ORDER'
     } else if (order.unique_table_numbers.length > 0) {
-      return `TABLE ${order.unique_table_numbers.join(", ")}`;
+      return `TABLE ${order.unique_table_numbers.join(', ')}`
     }
-    return "TAKEAWAY ORDER";
-  };
+    return 'TAKEAWAY ORDER'
+  }
 
   // Handle order expiration through CountdownDisplay component
 
-  if (!isVisible) return null;
+  if (!isVisible) return null
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-2 ">
@@ -75,14 +74,14 @@ export function OrderPopup({
                 ) : (
                   <Volume2 className="h-4 w-4" />
                 )}
-                {isSoundEnabled ? "Mute" : "Unmute"}
+                {isSoundEnabled ? 'Mute' : 'Unmute'}
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  onClose();
-                  onTogglePopups();
+                  onClose()
+                  onTogglePopups()
                 }}
               >
                 <X className="h-4 w-4" />
@@ -113,7 +112,7 @@ export function OrderPopup({
             {order.items.some(
               (item) =>
                 item.special_instructions &&
-                item.special_instructions.trim() !== ""
+                item.special_instructions.trim() !== '',
             ) && (
               <div className="bg-yellow-50 border border-yellow-200 px-3 py-2 rounded-lg ">
                 <div className="flex items-center gap-2 text-yellow-800">
@@ -141,9 +140,9 @@ export function OrderPopup({
               itemCount={order.items.length}
               subtotal={order.total_amount}
               taxes={0.0}
-              discount={0.0}
-              total={order.total_amount}
-              isPaid={order.payment_status.toLowerCase() === "paid"}
+              discount={order.discount_amount || 0}
+              total={order.total_amount - (order.discount_amount || 0)}
+              isPaid={order.payment_status.toLowerCase() === 'paid'}
             />
 
             {/* Prep Time Selector */}
@@ -185,5 +184,5 @@ export function OrderPopup({
         </div>
       </Card>
     </div>
-  );
+  )
 }
