@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Menu, User, Users, Trash2, Plus } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useFetchTable } from './hooks/useFetchTable'
@@ -173,6 +174,31 @@ export default function ShowTables({
       </div>
 
       {/* Loading State */}
+
+      {loading && user?.selected_rid && (
+        <div className="space-y-4">
+          {/* Tabs Skeleton */}
+          <div className="flex gap-2 mb-4">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-10 w-24" />
+            ))}
+          </div>
+          <Skeleton className="h-4 w-32 mb-4" />
+          {/* Tables Grid Skeleton */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+              <Card key={i} className="border-gray-200">
+                <CardContent className="p-4 text-center">
+                  <Skeleton className="h-6 w-16 mx-auto mb-2" />
+                  <Skeleton className="h-8 w-8 mx-auto mb-2" />
+                  <Skeleton className="h-4 w-12 mx-auto mb-1" />
+                  <Skeleton className="h-3 w-16 mx-auto" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Error State */}
       {error && !loading && (

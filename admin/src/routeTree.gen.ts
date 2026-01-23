@@ -31,6 +31,7 @@ import { Route as ApiWsTokenRouteImport } from './routes/api/ws-token'
 import { Route as ApiWaiterOrdersRouteImport } from './routes/api/waiter-orders'
 import { Route as ApiUsersRouteImport } from './routes/api/users'
 import { Route as ApiTableRouteImport } from './routes/api/table'
+import { Route as ApiStaffReportsRouteImport } from './routes/api/staff-reports'
 import { Route as ApiRestaurantRouteImport } from './routes/api/restaurant'
 import { Route as ApiQuickBillRouteImport } from './routes/api/quick-bill'
 import { Route as ApiOrdersRouteImport } from './routes/api/orders'
@@ -42,11 +43,14 @@ import { Route as ApiCrmRouteImport } from './routes/api/crm'
 import { Route as ApiCategoryRouteImport } from './routes/api/category'
 import { Route as ApiAddonsRouteImport } from './routes/api/addons'
 import { Route as UsersPIndexRouteImport } from './routes/users/p/index'
+import { Route as ReportsStaffIndexRouteImport } from './routes/reports/staff/index'
 import { Route as ReportsInventoryIndexRouteImport } from './routes/reports/inventory/index'
+import { Route as ReportsStaffStaffIdRouteImport } from './routes/reports/staff/$staffId'
 import { Route as ReportsInventoryInventoryIdRouteImport } from './routes/reports/inventory/$inventoryId'
 import { Route as DemoStartServerFuncsRouteImport } from './routes/demo/start.server-funcs'
 import { Route as DemoStartApiRequestRouteImport } from './routes/demo/start.api-request'
 import { Route as DemoApiNamesRouteImport } from './routes/demo/api.names'
+import { Route as ApiStaffReportsStaffIdRouteImport } from './routes/api/staff-reports/$staffId'
 import { Route as ApiOrdersOrderHistoryRouteImport } from './routes/api/orders/order-history'
 import { Route as ApiOrdersActionsRouteImport } from './routes/api/orders/actions'
 import { Route as ApiInventoryBulkRouteImport } from './routes/api/inventory.bulk'
@@ -177,6 +181,11 @@ const ApiTableRoute = ApiTableRouteImport.update({
   path: '/api/table',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiStaffReportsRoute = ApiStaffReportsRouteImport.update({
+  id: '/api/staff-reports',
+  path: '/api/staff-reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiRestaurantRoute = ApiRestaurantRouteImport.update({
   id: '/api/restaurant',
   path: '/api/restaurant',
@@ -232,9 +241,19 @@ const UsersPIndexRoute = UsersPIndexRouteImport.update({
   path: '/users/p/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReportsStaffIndexRoute = ReportsStaffIndexRouteImport.update({
+  id: '/reports/staff/',
+  path: '/reports/staff/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReportsInventoryIndexRoute = ReportsInventoryIndexRouteImport.update({
   id: '/reports/inventory/',
   path: '/reports/inventory/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsStaffStaffIdRoute = ReportsStaffStaffIdRouteImport.update({
+  id: '/reports/staff/$staffId',
+  path: '/reports/staff/$staffId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReportsInventoryInventoryIdRoute =
@@ -257,6 +276,11 @@ const DemoApiNamesRoute = DemoApiNamesRouteImport.update({
   id: '/demo/api/names',
   path: '/demo/api/names',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStaffReportsStaffIdRoute = ApiStaffReportsStaffIdRouteImport.update({
+  id: '/$staffId',
+  path: '/$staffId',
+  getParentRoute: () => ApiStaffReportsRoute,
 } as any)
 const ApiOrdersOrderHistoryRoute = ApiOrdersOrderHistoryRouteImport.update({
   id: '/order-history',
@@ -371,6 +395,7 @@ export interface FileRoutesByFullPath {
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/quick-bill': typeof ApiQuickBillRoute
   '/api/restaurant': typeof ApiRestaurantRoute
+  '/api/staff-reports': typeof ApiStaffReportsRouteWithChildren
   '/api/table': typeof ApiTableRoute
   '/api/users': typeof ApiUsersRoute
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
@@ -403,11 +428,14 @@ export interface FileRoutesByFullPath {
   '/api/inventory/bulk': typeof ApiInventoryBulkRoute
   '/api/orders/actions': typeof ApiOrdersActionsRoute
   '/api/orders/order-history': typeof ApiOrdersOrderHistoryRoute
+  '/api/staff-reports/$staffId': typeof ApiStaffReportsStaffIdRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
   '/reports/inventory/$inventoryId': typeof ReportsInventoryInventoryIdRoute
+  '/reports/staff/$staffId': typeof ReportsStaffStaffIdRoute
   '/reports/inventory': typeof ReportsInventoryIndexRoute
+  '/reports/staff': typeof ReportsStaffIndexRoute
   '/users/p': typeof UsersPIndexRoute
   '/api/category/templates/$cuisine': typeof ApiCategoryTemplatesCuisineRoute
   '/demo/start/ssr/data-only': typeof DemoStartSsrDataOnlyRoute
@@ -430,6 +458,7 @@ export interface FileRoutesByTo {
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/quick-bill': typeof ApiQuickBillRoute
   '/api/restaurant': typeof ApiRestaurantRoute
+  '/api/staff-reports': typeof ApiStaffReportsRouteWithChildren
   '/api/table': typeof ApiTableRoute
   '/api/users': typeof ApiUsersRoute
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
@@ -462,11 +491,14 @@ export interface FileRoutesByTo {
   '/api/inventory/bulk': typeof ApiInventoryBulkRoute
   '/api/orders/actions': typeof ApiOrdersActionsRoute
   '/api/orders/order-history': typeof ApiOrdersOrderHistoryRoute
+  '/api/staff-reports/$staffId': typeof ApiStaffReportsStaffIdRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
   '/reports/inventory/$inventoryId': typeof ReportsInventoryInventoryIdRoute
+  '/reports/staff/$staffId': typeof ReportsStaffStaffIdRoute
   '/reports/inventory': typeof ReportsInventoryIndexRoute
+  '/reports/staff': typeof ReportsStaffIndexRoute
   '/users/p': typeof UsersPIndexRoute
   '/api/category/templates/$cuisine': typeof ApiCategoryTemplatesCuisineRoute
   '/demo/start/ssr/data-only': typeof DemoStartSsrDataOnlyRoute
@@ -490,6 +522,7 @@ export interface FileRoutesById {
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/quick-bill': typeof ApiQuickBillRoute
   '/api/restaurant': typeof ApiRestaurantRoute
+  '/api/staff-reports': typeof ApiStaffReportsRouteWithChildren
   '/api/table': typeof ApiTableRoute
   '/api/users': typeof ApiUsersRoute
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
@@ -522,11 +555,14 @@ export interface FileRoutesById {
   '/api/inventory/bulk': typeof ApiInventoryBulkRoute
   '/api/orders/actions': typeof ApiOrdersActionsRoute
   '/api/orders/order-history': typeof ApiOrdersOrderHistoryRoute
+  '/api/staff-reports/$staffId': typeof ApiStaffReportsStaffIdRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
   '/reports/inventory/$inventoryId': typeof ReportsInventoryInventoryIdRoute
+  '/reports/staff/$staffId': typeof ReportsStaffStaffIdRoute
   '/reports/inventory/': typeof ReportsInventoryIndexRoute
+  '/reports/staff/': typeof ReportsStaffIndexRoute
   '/users/p/': typeof UsersPIndexRoute
   '/api/category/templates/$cuisine': typeof ApiCategoryTemplatesCuisineRoute
   '/demo/start/ssr/data-only': typeof DemoStartSsrDataOnlyRoute
@@ -551,6 +587,7 @@ export interface FileRouteTypes {
     | '/api/orders'
     | '/api/quick-bill'
     | '/api/restaurant'
+    | '/api/staff-reports'
     | '/api/table'
     | '/api/users'
     | '/api/waiter-orders'
@@ -583,11 +620,14 @@ export interface FileRouteTypes {
     | '/api/inventory/bulk'
     | '/api/orders/actions'
     | '/api/orders/order-history'
+    | '/api/staff-reports/$staffId'
     | '/demo/api/names'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
     | '/reports/inventory/$inventoryId'
+    | '/reports/staff/$staffId'
     | '/reports/inventory'
+    | '/reports/staff'
     | '/users/p'
     | '/api/category/templates/$cuisine'
     | '/demo/start/ssr/data-only'
@@ -610,6 +650,7 @@ export interface FileRouteTypes {
     | '/api/orders'
     | '/api/quick-bill'
     | '/api/restaurant'
+    | '/api/staff-reports'
     | '/api/table'
     | '/api/users'
     | '/api/waiter-orders'
@@ -642,11 +683,14 @@ export interface FileRouteTypes {
     | '/api/inventory/bulk'
     | '/api/orders/actions'
     | '/api/orders/order-history'
+    | '/api/staff-reports/$staffId'
     | '/demo/api/names'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
     | '/reports/inventory/$inventoryId'
+    | '/reports/staff/$staffId'
     | '/reports/inventory'
+    | '/reports/staff'
     | '/users/p'
     | '/api/category/templates/$cuisine'
     | '/demo/start/ssr/data-only'
@@ -669,6 +713,7 @@ export interface FileRouteTypes {
     | '/api/orders'
     | '/api/quick-bill'
     | '/api/restaurant'
+    | '/api/staff-reports'
     | '/api/table'
     | '/api/users'
     | '/api/waiter-orders'
@@ -701,11 +746,14 @@ export interface FileRouteTypes {
     | '/api/inventory/bulk'
     | '/api/orders/actions'
     | '/api/orders/order-history'
+    | '/api/staff-reports/$staffId'
     | '/demo/api/names'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
     | '/reports/inventory/$inventoryId'
+    | '/reports/staff/$staffId'
     | '/reports/inventory/'
+    | '/reports/staff/'
     | '/users/p/'
     | '/api/category/templates/$cuisine'
     | '/demo/start/ssr/data-only'
@@ -729,6 +777,7 @@ export interface RootRouteChildren {
   ApiOrdersRoute: typeof ApiOrdersRouteWithChildren
   ApiQuickBillRoute: typeof ApiQuickBillRoute
   ApiRestaurantRoute: typeof ApiRestaurantRoute
+  ApiStaffReportsRoute: typeof ApiStaffReportsRouteWithChildren
   ApiTableRoute: typeof ApiTableRoute
   ApiUsersRoute: typeof ApiUsersRoute
   ApiWaiterOrdersRoute: typeof ApiWaiterOrdersRoute
@@ -757,7 +806,9 @@ export interface RootRouteChildren {
   DemoStartApiRequestRoute: typeof DemoStartApiRequestRoute
   DemoStartServerFuncsRoute: typeof DemoStartServerFuncsRoute
   ReportsInventoryInventoryIdRoute: typeof ReportsInventoryInventoryIdRoute
+  ReportsStaffStaffIdRoute: typeof ReportsStaffStaffIdRoute
   ReportsInventoryIndexRoute: typeof ReportsInventoryIndexRoute
+  ReportsStaffIndexRoute: typeof ReportsStaffIndexRoute
   UsersPIndexRoute: typeof UsersPIndexRoute
   DemoStartSsrDataOnlyRoute: typeof DemoStartSsrDataOnlyRoute
   DemoStartSsrFullSsrRoute: typeof DemoStartSsrFullSsrRoute
@@ -921,6 +972,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTableRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/staff-reports': {
+      id: '/api/staff-reports'
+      path: '/api/staff-reports'
+      fullPath: '/api/staff-reports'
+      preLoaderRoute: typeof ApiStaffReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/restaurant': {
       id: '/api/restaurant'
       path: '/api/restaurant'
@@ -998,11 +1056,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UsersPIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reports/staff/': {
+      id: '/reports/staff/'
+      path: '/reports/staff'
+      fullPath: '/reports/staff'
+      preLoaderRoute: typeof ReportsStaffIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reports/inventory/': {
       id: '/reports/inventory/'
       path: '/reports/inventory'
       fullPath: '/reports/inventory'
       preLoaderRoute: typeof ReportsInventoryIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reports/staff/$staffId': {
+      id: '/reports/staff/$staffId'
+      path: '/reports/staff/$staffId'
+      fullPath: '/reports/staff/$staffId'
+      preLoaderRoute: typeof ReportsStaffStaffIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reports/inventory/$inventoryId': {
@@ -1032,6 +1104,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/demo/api/names'
       preLoaderRoute: typeof DemoApiNamesRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/staff-reports/$staffId': {
+      id: '/api/staff-reports/$staffId'
+      path: '/$staffId'
+      fullPath: '/api/staff-reports/$staffId'
+      preLoaderRoute: typeof ApiStaffReportsStaffIdRouteImport
+      parentRoute: typeof ApiStaffReportsRoute
     }
     '/api/orders/order-history': {
       id: '/api/orders/order-history'
@@ -1226,6 +1305,18 @@ const ApiOrdersRouteWithChildren = ApiOrdersRoute._addFileChildren(
   ApiOrdersRouteChildren,
 )
 
+interface ApiStaffReportsRouteChildren {
+  ApiStaffReportsStaffIdRoute: typeof ApiStaffReportsStaffIdRoute
+}
+
+const ApiStaffReportsRouteChildren: ApiStaffReportsRouteChildren = {
+  ApiStaffReportsStaffIdRoute: ApiStaffReportsStaffIdRoute,
+}
+
+const ApiStaffReportsRouteWithChildren = ApiStaffReportsRoute._addFileChildren(
+  ApiStaffReportsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AffiliateRoute: AffiliateRoute,
@@ -1241,6 +1332,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiOrdersRoute: ApiOrdersRouteWithChildren,
   ApiQuickBillRoute: ApiQuickBillRoute,
   ApiRestaurantRoute: ApiRestaurantRoute,
+  ApiStaffReportsRoute: ApiStaffReportsRouteWithChildren,
   ApiTableRoute: ApiTableRoute,
   ApiUsersRoute: ApiUsersRoute,
   ApiWaiterOrdersRoute: ApiWaiterOrdersRoute,
@@ -1269,7 +1361,9 @@ const rootRouteChildren: RootRouteChildren = {
   DemoStartApiRequestRoute: DemoStartApiRequestRoute,
   DemoStartServerFuncsRoute: DemoStartServerFuncsRoute,
   ReportsInventoryInventoryIdRoute: ReportsInventoryInventoryIdRoute,
+  ReportsStaffStaffIdRoute: ReportsStaffStaffIdRoute,
   ReportsInventoryIndexRoute: ReportsInventoryIndexRoute,
+  ReportsStaffIndexRoute: ReportsStaffIndexRoute,
   UsersPIndexRoute: UsersPIndexRoute,
   DemoStartSsrDataOnlyRoute: DemoStartSsrDataOnlyRoute,
   DemoStartSsrFullSsrRoute: DemoStartSsrFullSsrRoute,

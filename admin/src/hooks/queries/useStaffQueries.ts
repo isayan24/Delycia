@@ -48,7 +48,6 @@ export const useCreateStaffMutation = () => {
 
   return useMutation({
     mutationFn: async (data: any) => {
-      console.log(data, 'staff creation \n\n\n\n\n\n\n')
       const response = await axios.post(`/api/auth/create-admin`, {
         ...data,
         rid,

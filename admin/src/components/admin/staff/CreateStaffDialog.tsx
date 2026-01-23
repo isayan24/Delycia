@@ -143,7 +143,8 @@ export function CreateStaffDialog() {
                       <SelectItem value="3">Restaurant Owner</SelectItem>
                       <SelectItem value="4">Restaurant Manager</SelectItem>
                       <SelectItem value="5">Waiter</SelectItem>
-                      <SelectItem value="6">Delivery</SelectItem>
+                      <SelectItem value="6">Kitchen Staff</SelectItem>
+                      <SelectItem value="7">Delivery</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

@@ -1,11 +1,12 @@
 // Route access configuration
 export const ROUTE_ACCESS: Record<string, number[]> = {
-  // all can acc
+  // all can access
   '/login': [1, 2, 3, 4, 5, 6],
   '/p': [1, 2, 3, 4, 5, 6],
+
   // Waiter specific routes
-  '/book-table': [5, 4, 3, 2, 1], // Waiter and above can access tables
-  '/waiter': [5, 4, 3, 2, 1], // Waiter dashboard
+  '/billing/book-table': [5, 4, 3, 2, 1], // Waiter and above can access tables
+  '/billing/quick-bill': [5, 4, 3, 2, 1], // Waiter and above can access quick bill
   '/waiter/orders': [5, 4, 3, 2, 1], // Waiter order management
 
   // Delivery routes
@@ -35,10 +36,10 @@ export const ROUTE_ACCESS: Record<string, number[]> = {
   '/super-admin': [1],
   '/super-admin/system': [1],
   '/super-admin/global': [1],
-};
+}
 
 // UI Component access configuration
-export const UI_ACCESS: any = { 
+export const UI_ACCESS: any = {
   sidebar: {
     waiter: [], // Waiters don't see sidebar
     delivery: [6], // Delivery sees minimal sidebar
@@ -58,16 +59,17 @@ export const UI_ACCESS: any = {
   orderPopup: {
     waiter: [],
     admin: [4, 3, 2, 1],
-  }
-};
+  },
+}
 
 // Default redirects for each role
 export const DEFAULT_ROUTES: Record<number, string> = {
   0: '/', // Customer -> Home
   1: '/dashboard', // Super Admin -> Super Admin Dashboard
-  2: '/orders', // Admin -> Admin Dashboard
-  3: '/orders', // Restaurant Owner -> Owner Dashboard
+  2: '/dashboard', // Admin -> Admin Dashboard
+  3: '/dashboard', // Restaurant Owner -> Owner Dashboard
   4: '/orders', // Restaurant Manager -> Management Dashboard
-  5: '/book-table', // Waiter -> Tables (their main work area)
-  6: '/delivery', // Delivery -> Delivery Dashboard
-};
+  5: '/billing/book-table', // Waiter -> Tables (their main work area)
+  6: '/orders', // Kitchen Staff -> Kitchen Dashboard
+  7: '/delivery', // Delivery -> Delivery Dashboard
+}

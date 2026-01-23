@@ -4,6 +4,7 @@ import signatureService from '@/lib/crypto/signatureService'
 import cryptoConfig from '@/lib/crypto/config'
 import logger from '@/lib/logger'
 import { getAccessTokenFromCookie } from '@/lib/server-cookies'
+import jwt from 'jsonwebtoken'
 import {
   WaiterOrderRequest,
   OrderItem,
@@ -27,6 +28,21 @@ export const Route = createFileRoute('/api/waiter-orders')({
               }),
               { status: 401, headers: { 'Content-Type': 'application/json' } },
             )
+          }
+
+          // Decode JWT to extract staff information
+          let staffId: number | null = null
+          let staffRole: number | null = null
+          try {
+            const decoded: any = jwt.decode(accessToken)
+            if (decoded) {
+              staffId = decoded.id || null
+              staffRole = decoded.role || null
+            }
+          } catch (error) {
+            logger.error('Failed to decode JWT token', {
+              error: error instanceof Error ? error.message : 'Unknown error',
+            })
           }
 
           const data: WaiterOrderRequest = await request.json()
@@ -95,6 +111,8 @@ export const Route = createFileRoute('/api/waiter-orders')({
                 special_instructions: specialInstructions,
                 total_amount: item.totalPrice,
                 table_no: table?.table_number || 0,
+                placed_by_staff_id: staffId,
+                placed_by_role_id: staffRole,
               }),
             )
 

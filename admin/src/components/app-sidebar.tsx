@@ -7,11 +7,8 @@ import {
   ShoppingBag,
   Utensils,
   BarChart3,
-  CalendarCheck,
   Users,
-  UserCircle,
   LifeBuoy,
-  Send,
 } from 'lucide-react'
 
 import { NavMain } from '@/components/nav-main'
@@ -105,6 +102,10 @@ const navMain = [
       {
         title: 'Customer Management',
         url: '/reports/crm',
+      },
+      {
+        title: 'Staff Reports',
+        url: '/reports/staff',
       },
     ],
   },

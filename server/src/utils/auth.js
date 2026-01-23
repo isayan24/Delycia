@@ -10,6 +10,7 @@ const createUserModel = (user) => {
   return {
     uid: user.uid,
     id: user.id,
+    role: user.role,
   };
 };
 

@@ -193,6 +193,36 @@ export const transformUserToCustomer = (user: User): CustomerInfo => {
 }
 
 /**
+ * Parse order items from string or return as-is if already an array
+ * Handles JSON_ARRAYAGG string format from MySQL
+ */
+export const parseOrderItems = (items: any): any[] => {
+  // If items is undefined or null, return empty array
+  if (!items) {
+    return []
+  }
+
+  // If it's already an array, return it
+  if (Array.isArray(items)) {
+    return items
+  }
+
+  // If it's a string, try to parse it
+  if (typeof items === 'string') {
+    try {
+      const parsed = JSON.parse(items)
+      return Array.isArray(parsed) ? parsed : []
+    } catch (e) {
+      console.error('Failed to parse items JSON:', e)
+      return []
+    }
+  }
+
+  // If it's some other type, return empty array
+  return []
+}
+
+/**
  * Transforms API order data to UI format
  * Handles both old flat structure and new grouped cart_id structure
  */

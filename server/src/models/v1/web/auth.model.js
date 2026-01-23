@@ -270,6 +270,7 @@ const create_admin = async (req) => {
       [result.insertId, rid]
     );
 
+
     return apiResponse.success(201, "Admin created successfully", {
       id: result.insertId,
     });

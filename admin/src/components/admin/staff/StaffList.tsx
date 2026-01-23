@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Edit2, Loader2, Shield, User, Trash2 } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+
 import {
   useStaffQuery,
   StaffMember,
@@ -37,6 +37,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Eye } from 'lucide-react'
+import { getRoleBadge } from './helpers/getRoleBadge'
 
 export function StaffList() {
   const { data: staff, isLoading } = useStaffQuery()
@@ -50,23 +51,6 @@ export function StaffList() {
       deleteMutation.mutate(deleteId, {
         onSuccess: () => setDeleteId(null),
       })
-    }
-  }
-
-  const getRoleBadge = (role: number) => {
-    switch (role) {
-      case 2:
-        return <Badge className="bg-purple-500">Admin</Badge>
-      case 3:
-        return <Badge className="bg-indigo-500">Restaurant Owner</Badge>
-      case 4:
-        return <Badge className="bg-green-500">Restaurant Manager</Badge>
-      case 5:
-        return <Badge className="bg-blue-500">Waiter</Badge>
-      case 6:
-        return <Badge className="bg-yellow-500">Delivery</Badge>
-      default:
-        return <Badge variant="secondary">Unknown</Badge>
     }
   }
 

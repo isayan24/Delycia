@@ -4,6 +4,7 @@ import cryptoConfig from '@/lib/crypto/config'
 import signatureService from '@/lib/crypto/signatureService'
 import logger from '@/lib/logger-dynamic'
 import { getAccessTokenFromCookie } from '@/lib/server-cookies'
+import jwt from 'jsonwebtoken'
 
 export const Route = createFileRoute('/api/quick-bill')({
   server: {
@@ -22,6 +23,21 @@ export const Route = createFileRoute('/api/quick-bill')({
               }),
               { status: 401, headers: { 'Content-Type': 'application/json' } },
             )
+          }
+
+          // Decode JWT to extract staff information
+          let staffId: number | null = null
+          let staffRole: number | null = null
+          try {
+            const decoded: any = jwt.decode(accessToken)
+            if (decoded) {
+              staffId = decoded.id || null
+              staffRole = decoded.role || null
+            }
+          } catch (error) {
+            logger.error('Failed to decode JWT token', {
+              error: error instanceof Error ? error.message : 'Unknown error',
+            })
           }
 
           const data = await request.json()
@@ -89,6 +105,8 @@ export const Route = createFileRoute('/api/quick-bill')({
               discount_amount: item.discount_amount || 0,
               total_amount: item.totalItemAmount,
               table_no: item.table_no || 0,
+              placed_by_staff_id: staffId,
+              placed_by_role_id: staffRole,
             }))
 
             // Generate signature for the transformed order items

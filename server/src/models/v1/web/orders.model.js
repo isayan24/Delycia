@@ -22,7 +22,7 @@ const create_orders = async (req) => {
   try {
     await conn.beginTransaction();
     q =
-      "INSERT INTO orders (rid, cart_id, customer_id, item_id, variant_id, quantity, payment_method, special_instructions, delivery_type, discount_amount, total_amount, table_no, order_status) VALUES ?";
+      "INSERT INTO orders (rid, cart_id, customer_id, item_id, variant_id, quantity, payment_method, special_instructions, delivery_type, discount_amount, total_amount, table_no, order_status, placed_by_staff_id, placed_by_role_id) VALUES ?";
     const values = orders.map((order) => [
       order.rid,
       cart_id,
@@ -37,9 +37,11 @@ const create_orders = async (req) => {
       order.total_amount,
       order.table_no || 0,
       order.order_status || "pending",
+      order.placed_by_staff_id || null,
+      order.placed_by_role_id || null,
     ]);
 
-    // Output example : [[1, 101, 2, "shipped", "paid", 200],..]
+    // Output example : [[1, 101, 2, "shipped", "paid", 200, 1, 3],..]
 
     await conn.query(q, [values]);
     await conn.commit();
