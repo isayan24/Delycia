@@ -24,7 +24,6 @@ export function PendingOrderCard({
   isAcceptingOrder,
   isRejectingOrder,
 }: PendingOrderCardProps) {
-  console.log(order, 'order things')
   const [prepTime, setPrepTime] = useState(30)
 
   const handleAccept = () => {
@@ -35,13 +34,9 @@ export function PendingOrderCard({
     setPrepTime(Math.max(5, newTime))
   }
 
-  const handleCall = (customerId: number) => {
-    console.log('📞 CALL CUSTOMER:', customerId)
-  }
+  const handleCall = (customerId: number) => {}
 
-  const handleViewTimeline = (customerId: number) => {
-    console.log('📋 VIEW TIMELINE:', customerId)
-  }
+  const handleViewTimeline = (customerId: number) => {}
 
   // Order expiration is now handled by CountdownDisplay component
 

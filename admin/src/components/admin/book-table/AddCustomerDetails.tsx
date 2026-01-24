@@ -16,6 +16,7 @@ import {
   Check,
   MessageSquare,
   Plus,
+  Tag,
 } from 'lucide-react'
 import { useTableStore } from '@/store/useTableStore'
 import axios from 'axios'
@@ -134,6 +135,14 @@ export default function AddCustomerDetails() {
     }
   }
 
+  const [discount, setDiscount] = useState<number>(0)
+
+  // ... (previous helper functions)
+
+  const subtotal = getTotalAmount()
+  const validatedDiscount = Math.max(0, Math.min(discount, subtotal))
+  const finalAmount = subtotal - validatedDiscount
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -143,16 +152,23 @@ export default function AddCustomerDetails() {
 
     setIsSubmitting(true)
     try {
+      const discountPerItem =
+        orderItems.length > 0 ? validatedDiscount / orderItems.length : 0
+
       const orderData = {
         customerDetails,
         specialInstructions,
-        orderItems,
-        totalAmount: getTotalAmount(),
+        orderItems: orderItems.map((item) => ({
+          ...item,
+          discount_amount: discountPerItem,
+        })),
+        totalAmount: finalAmount,
         table,
       }
       await axios.post('/api/waiter-orders', orderData)
       showSuccess('Success', 'Order placed successfully')
       setCustomerDetails({ name: '', phone_number: '', username: '' })
+      setDiscount(0)
       clearAllItems()
       changeState(0)
 
@@ -161,10 +177,7 @@ export default function AddCustomerDetails() {
         await refetchTables()
       } catch (refetchError) {
         console.error('Error refetching tables:', refetchError)
-        // Don't show error to user as the main operation was successful
       }
-
-      // Reset form and go back to initial state
     } catch (error) {
       console.error('Error submitting order:', error)
       showError('Error', 'Error submitting order try again')
@@ -172,8 +185,6 @@ export default function AddCustomerDetails() {
       setIsSubmitting(false)
     }
   }
-
-  const totalAmount = getTotalAmount()
 
   return (
     <div className="h-[calc(100vh-5rem)] overflow-auto p-4">
@@ -192,7 +203,7 @@ export default function AddCustomerDetails() {
             <p className="text-sm text-orange-600 font-medium">
               Table {table?.table_number || '#'}
             </p>
-            <p className="text-lg font-bold text-orange-800">₹{totalAmount}</p>
+            <p className="text-lg font-bold text-orange-800">₹{finalAmount}</p>
           </div>
         </div>
 
@@ -343,6 +354,30 @@ export default function AddCustomerDetails() {
                 </div>
               )}
 
+              {/* Discount Field */}
+              <div className="space-y-2">
+                <Label
+                  htmlFor="discount"
+                  className="text-sm font-medium text-gray-700 flex items-center gap-2"
+                >
+                  <Tag className="h-4 w-4 text-orange-500" />
+                  Discount (₹)
+                </Label>
+                <Input
+                  id="discount"
+                  type="number"
+                  min="0"
+                  max={subtotal}
+                  placeholder="0.00"
+                  value={discount > 0 ? discount : ''}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value)
+                    setDiscount(isNaN(val) ? 0 : val)
+                  }}
+                  className="h-12 !text-[1rem] border-1 border-orange-200 focus:border-orange-400 focus:ring-1 focus:ring-orange-200"
+                />
+              </div>
+
               {/* Order Summary */}
               <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg p-4 border border-orange-100">
                 <h3 className="font-semibold text-gray-800 mb-2">
@@ -360,9 +395,21 @@ export default function AddCustomerDetails() {
                     {orderItems.length} item{orderItems.length > 1 ? 's' : ''}
                   </span>
                 </div>
+                <div className="flex justify-between items-center text-sm text-gray-600 mb-1">
+                  <span>Subtotal:</span>
+                  <span className="font-medium">₹{subtotal}</span>
+                </div>
+                {validatedDiscount > 0 && (
+                  <div className="flex justify-between items-center text-sm text-green-600 mb-1">
+                    <span>Discount:</span>
+                    <span className="font-medium">
+                      -₹{validatedDiscount.toFixed(2)}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center text-lg font-bold text-orange-800 pt-2 border-t border-orange-200">
                   <span>Total Amount:</span>
-                  <span>₹{totalAmount}</span>
+                  <span>₹{finalAmount}</span>
                 </div>
               </div>
 

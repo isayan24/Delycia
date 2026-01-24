@@ -48,7 +48,7 @@ export default function BookTableMain() {
   }
 
   return (
-    <div className="relative h-[calc(100vh-5rem)] overflow-hidden border">
+    <div className="relative h-[calc(100vh-7rem)] overflow-hidden">
       {/* Add Tables View */}
       <div
         className={`absolute inset-0 transition-transform duration-500 ease-in-out ${

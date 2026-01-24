@@ -107,7 +107,7 @@ export const Route = createFileRoute('/api/waiter-orders')({
                 quantity: item.quantity.toString(),
                 payment_method: 'cash',
                 delivery_type: 'dine-in',
-                discount_amount: 0,
+                discount_amount: item.discount_amount || 0,
                 special_instructions: specialInstructions,
                 total_amount: item.totalPrice,
                 table_no: table?.table_number || 0,
