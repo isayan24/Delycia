@@ -160,7 +160,7 @@ function InventoryReportPage() {
   }
 
   return (
-    <div className="bg-gray-50/50 min-h-screen font-sans">
+    <div className="bg-gray-50/50   font-sans">
       <div className="max-w-7xl mx-auto space-y-4">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">

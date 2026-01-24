@@ -29,6 +29,7 @@ export interface InventoryStatsData {
     status: string
     quantity: number
     amount: number
+    discount: number
     date: string
     customer: {
       id: number

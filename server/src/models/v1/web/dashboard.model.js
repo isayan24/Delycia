@@ -252,9 +252,15 @@ const getTopSellingItems = async (req) => {
         i.name,
         SUM(o.quantity) as total_quantity,
         COUNT(o.id) as order_count,
-        SUM(o.total_amount) as total_revenue
+        SUM(o.total_amount - (COALESCE(o.discount_amount, 0) / COALESCE(calc.cnt, 1))) as total_revenue
       FROM orders o
       JOIN inventories i ON o.item_id = i.id
+      JOIN (
+        SELECT cart_id, COUNT(*) as cnt 
+        FROM orders 
+        WHERE rid = ${pool.escape(rid)}
+        GROUP BY cart_id
+      ) calc ON o.cart_id = calc.cart_id
       WHERE o.rid = ${pool.escape(rid)}
         AND o.order_status = 'completed'
         ${dateFilter}
@@ -303,6 +309,7 @@ const getInventoryLevels = async (req) => {
     }
 
     // Main Query: Get filtered items
+    // Optimized to use inventory_stats table
     const inventoryQuery = `
       SELECT 
         i.id,
@@ -315,14 +322,13 @@ const getInventoryLevels = async (req) => {
           WHEN i.stock < 50 THEN 'medium'
           ELSE 'good'
         END as stock_level,
-        COALESCE(SUM(o.quantity), 0) as total_sold,
-        COALESCE(SUM(o.total_amount), 0) as total_revenue,
-        COUNT(DISTINCT o.customer_id) as unique_customers
+        COALESCE(s.units_sold, 0) as total_sold,
+        COALESCE(s.total_revenue, 0) as total_revenue,
+        COALESCE(s.order_count, 0) as unique_customers
       FROM inventories i
-      LEFT JOIN orders o ON i.id = o.item_id AND o.order_status = 'completed'
+      LEFT JOIN inventory_stats s ON i.id = s.item_id
       WHERE i.rid = ${pool.escape(rid)} 
       ${filterCondition}
-      GROUP BY i.id
       ORDER BY i.stock ASC
     `;
 
@@ -415,11 +421,17 @@ const getRevenueByCategory = async (req) => {
       SELECT 
         c.id as category_id,
         c.name as category_name,
-        SUM(o.total_amount) as total_revenue,
+        SUM(o.total_amount - (COALESCE(o.discount_amount, 0) / COALESCE(calc.cnt, 1))) as total_revenue,
         COUNT(o.id) as order_count
       FROM orders o
       JOIN inventories i ON o.item_id = i.id
       JOIN categories c ON i.category_id = c.id
+      JOIN (
+        SELECT cart_id, COUNT(*) as cnt 
+        FROM orders 
+        WHERE rid = ${pool.escape(rid)}
+        GROUP BY cart_id
+      ) calc ON o.cart_id = calc.cart_id
       WHERE o.rid = ${pool.escape(rid)}
         AND o.order_status = 'completed'
         ${dateFilter}

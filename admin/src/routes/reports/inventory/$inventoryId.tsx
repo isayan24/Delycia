@@ -45,7 +45,6 @@ function InventoryItemDetailPage() {
     page,
     limit,
   )
-
   if (isLoading) {
     if (!user?.selected_rid) {
       return <LoadingScreen message="Loading item details..." />
@@ -379,7 +378,14 @@ function InventoryItemDetailPage() {
                         {order.quantity}
                       </TableCell>
                       <TableCell className="py-2 text-sm text-right">
-                        ₹{order.amount}
+                        <div>
+                          <div>₹{order.amount}</div>
+                          {order.discount > 0 && (
+                            <div className="text-[10px] text-red-500">
+                              -₹{order.discount.toFixed(2)}
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))

@@ -62,13 +62,16 @@ const getItemStats = async (req) => {
     const ordersQuery = `
       SELECT 
         o.id,
+        o.cart_id,
         o.order_status,
         o.quantity,
         o.total_amount,
+        o.discount_amount,
         o.created_at,
         o.customer_id,
         u.name as customer_name,
-        u.phone_number
+        u.phone_number,
+        (SELECT COUNT(*) FROM orders o2 WHERE o2.cart_id = o.cart_id) as cart_item_count
       FROM orders o
       LEFT JOIN users u ON o.customer_id = u.id
       WHERE o.item_id = ? AND o.rid = ?
@@ -101,18 +104,26 @@ const getItemStats = async (req) => {
       },
 
       // Recent Activity
-      recentOrders: ordersResult.map(order => ({
-        id: order.id,
-        status: order.order_status,
-        quantity: order.quantity,
-        amount: order.total_amount,
-        date: order.created_at,
-        customer: {
-          id: order.customer_id,
-          name: order.customer_name || 'Guest',
-          phone: order.phone_number
-        }
-      })),
+      recentOrders: ordersResult.map(order => {
+        const discountPerItem = order.discount_amount && order.cart_item_count > 0
+          ? (order.discount_amount / order.cart_item_count)
+          : 0;
+        const netAmount = Math.max(0, order.total_amount - discountPerItem);
+
+        return {
+          id: order.id,
+          status: order.order_status,
+          quantity: order.quantity,
+          amount: netAmount,
+          discount: discountPerItem,
+          date: order.created_at,
+          customer: {
+            id: order.customer_id,
+            name: order.customer_name || 'Guest',
+            phone: order.phone_number
+          }
+        };
+      }),
 
       pagination: {
         total: totalOrders,
