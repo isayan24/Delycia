@@ -9,7 +9,7 @@ export const Route = createFileRoute('/billing/quick-bill')({
 
 function QuickBillPage() {
   return (
-    <div className="h-[calc(100vh-4rem)]">
+    <div className="h-[calc(100vh-6rem)]">
       <QuickBillMain />
     </div>
   )

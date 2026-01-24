@@ -89,7 +89,6 @@ export default function BillSummary({
           totalItemAmount: item.price * item.quantity,
         })),
       }
-
       // Use axios directly for internal Next.js API route to avoid base URL issues
       // Importing locally if not available or assuming axios is available
       const { default: axios } = await import('axios')
@@ -104,13 +103,14 @@ export default function BillSummary({
           tableNo: 'N/A',
           customerName: selectedCustomer.name,
           customerId: selectedCustomer.phone_number,
-          items: cart.map((i) => ({
-            name: i.name,
+          items: cart.map((i: any) => ({
+            name: i.cartItemName || i.name,
             quantity: i.quantity,
-            price: i.price || i.cost_price,
+            price: (i.price || i.cost_price) * i.quantity, // Show total line price
+            addons: i.addons,
           })),
-          discount: validatedDiscount,
-          totalAmount: totalAmount,
+          discountAmount: validatedDiscount,
+          totalAmount: subtotal,
           orderDate: new Date().toLocaleString(),
           paymentMethod: 'Cash',
           paymentStatus: 'Paid',
@@ -134,7 +134,7 @@ export default function BillSummary({
   }
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 rounded-md border">
+    <div className="flex flex-col h-full bg-slate-50 rounded-md">
       {completedOrderData && showBillDialog && (
         <ThermalBill
           isOpen={showBillDialog}
@@ -146,7 +146,7 @@ export default function BillSummary({
         />
       )}
 
-      <ScrollArea className="flex-1 p-3">
+      <ScrollArea className="flex-1 p-3 overflow-auto">
         {cart.length === 0 ? (
           <div className="text-center text-gray-400 mt-10">Cart is empty</div>
         ) : (

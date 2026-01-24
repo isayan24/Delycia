@@ -57,7 +57,7 @@ async function getOrderDetails(ordersData) {
           WHERE oa.order_id = ?
         `;
         const [addonResult] = await pool.execute(addonQuery, [orderData.id]);
-        console.log(addonResult, 'addonResult')
+
         if (addonResult.length > 0) {
           const addonDetails = addonResult.map(addon => {
             const qty = addon.quantity > 1 ? ` x${addon.quantity}` : '';

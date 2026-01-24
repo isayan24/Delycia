@@ -107,6 +107,7 @@ export const Route = createFileRoute('/api/quick-bill')({
               table_no: item.table_no || 0,
               placed_by_staff_id: staffId,
               placed_by_role_id: staffRole,
+              addons: item.addons,
             }))
 
             // Generate signature for the transformed order items

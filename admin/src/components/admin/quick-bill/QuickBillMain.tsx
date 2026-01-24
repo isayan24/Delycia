@@ -56,10 +56,10 @@ export default function QuickBillMain() {
   }, [])
 
   return (
-    <div className="flex h-full gap-3 p-3 text-black">
+    <div className="flex h-full gap-1 text-black">
       {/* Left Side: Menu Selection */}
       <div className="flex-1 min-w-0">
-        <MenuSection addToCart={addToCart} />
+        <MenuSection addToCart={addToCart} cart={cart} />
       </div>
 
       {/* Right Side: Bill Summary & Customer */}

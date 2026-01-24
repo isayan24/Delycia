@@ -37,6 +37,7 @@ export interface Item {
   is_active?: number
   is_veg?: number
   description?: string
+  cartItemName?: string // Base name for billing (Item + Variant, no addons)
 }
 
 export interface MenuContextType {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useRef } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Minus, Plus } from 'lucide-react'
 import { useItemAddonsQuery } from '@/hooks/queries/useItemAddonsQuery'
 
 interface Addon {
@@ -18,6 +18,7 @@ interface Addon {
   is_veg: number
   max_quantity?: number
   is_default?: number
+  quantity?: number
 }
 
 interface AddonSelectionProps {
@@ -37,7 +38,10 @@ export default function AddonSelection({
   onClose,
   onConfirm,
 }: AddonSelectionProps) {
-  const [selectedAddons, setSelectedAddons] = useState<Set<number>>(new Set())
+  const [addonQuantities, setAddonQuantities] = useState<
+    Record<number, number>
+  >({})
+  const hasAutoConfirmed = useRef(false)
 
   // Clean itemId to get the real inventory id if it's a variant
   const realItemId = useMemo(() => {
@@ -53,15 +57,15 @@ export default function AddonSelection({
 
   // Pre-select default addons
   useEffect(() => {
-    if (addons.length > 0 && selectedAddons.size === 0) {
-      const defaults = new Set<number>()
+    if (addons.length > 0 && Object.keys(addonQuantities).length === 0) {
+      const defaults: Record<number, number> = {}
       addons.forEach((addon) => {
         if (addon.is_default) {
-          defaults.add(addon.id)
+          defaults[addon.id] = 1
         }
       })
-      if (defaults.size > 0) {
-        setSelectedAddons(defaults)
+      if (Object.keys(defaults).length > 0) {
+        setAddonQuantities(defaults)
       }
     }
   }, [addons])
@@ -69,39 +73,71 @@ export default function AddonSelection({
   // Reset selection when modal closes or item changes
   useEffect(() => {
     if (!isOpen) {
-      setSelectedAddons(new Set())
+      setAddonQuantities({})
+      hasAutoConfirmed.current = false
     }
   }, [isOpen])
 
-  const toggleAddon = (addonId: number) => {
-    setSelectedAddons((prev) => {
-      const newSet = new Set(prev)
-      if (newSet.has(addonId)) {
-        newSet.delete(addonId)
-      } else {
-        newSet.add(addonId)
+  // Auto-confirm if no addons available
+  useEffect(() => {
+    if (
+      isOpen &&
+      !isLoading &&
+      addons.length === 0 &&
+      !hasAutoConfirmed.current
+    ) {
+      hasAutoConfirmed.current = true
+      onConfirm([])
+    }
+  }, [isOpen, isLoading, addons, onConfirm])
+
+  const updateQuantity = (addonId: number, delta: number) => {
+    setAddonQuantities((prev) => {
+      const currentQty = prev[addonId] || 0
+      const newQty = Math.max(0, Math.min(10, currentQty + delta)) // Max 10
+
+      if (newQty === 0) {
+        const { [addonId]: _, ...rest } = prev
+        return rest
       }
-      return newSet
+      return { ...prev, [addonId]: newQty }
+    })
+  }
+
+  const toggleAddon = (addonId: number) => {
+    setAddonQuantities((prev) => {
+      const currentQty = prev[addonId] || 0
+      if (currentQty > 0) {
+        const { [addonId]: _, ...rest } = prev
+        return rest
+      } else {
+        return { ...prev, [addonId]: 1 }
+      }
     })
   }
 
   const handleConfirm = () => {
-    const selected = addons.filter((addon) => selectedAddons.has(addon.id))
+    const selected = addons
+      .filter((addon) => (addonQuantities[addon.id] || 0) > 0)
+      .map((addon) => ({
+        ...addon,
+        quantity: addonQuantities[addon.id],
+      }))
     onConfirm(selected)
   }
 
   const calculateTotal = () => {
-    const addonsTotal = addons
-      .filter((addon) => selectedAddons.has(addon.id))
-      .reduce((sum, addon) => sum + addon.price, 0)
+    const addonsTotal = addons.reduce((sum, addon) => {
+      const qty = addonQuantities[addon.id] || 0
+      return sum + addon.price * qty
+    }, 0)
     return itemPrice + addonsTotal
   }
 
-  // If no addons are available (and not loading), we might want to skip this modal?
-  // But for now, user might want to see that there are no addons.
-  // Optimization: Component could notify parent to skip if addons.length === 0,
-  // but that requires fetching before showing.
-  // Simpler: Show modal, saying "No key addons available" if empty.
+  // If auto-confirming, don't show content
+  if (isOpen && !isLoading && addons.length === 0) {
+    return null
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -115,38 +151,92 @@ export default function AddonSelection({
             <div className="flex justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
-          ) : addons.length === 0 ? (
-            <div className="text-center text-muted-foreground py-4">
-              No addons available for this item.
-            </div>
           ) : (
             <div className="space-y-4">
               <h4 className="font-medium text-sm text-gray-500">Add-ons</h4>
               <div className="grid gap-3">
-                {addons.map((addon) => (
-                  <div
-                    key={addon.id}
-                    className="flex items-center justify-between space-x-2 border rounded-lg p-3 cursor-pointer hover:bg-slate-50"
-                    onClick={() => toggleAddon(addon.id)}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`addon-${addon.id}`}
-                        checked={selectedAddons.has(addon.id)}
-                        onCheckedChange={() => toggleAddon(addon.id)}
-                      />
-                      <label
-                        htmlFor={`addon-${addon.id}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                      >
-                        {addon.name}
-                      </label>
+                {addons.map((addon) => {
+                  const qty = addonQuantities[addon.id] || 0
+                  const isSelected = qty > 0
+
+                  return (
+                    <div
+                      key={addon.id}
+                      className={`flex items-center justify-between space-x-2 border rounded-lg p-3 transition-colors ${
+                        isSelected
+                          ? 'bg-primary/5 border-primary/20'
+                          : 'hover:bg-slate-50'
+                      }`}
+                      onClick={(e) => {
+                        // Prevent toggling if clicking on buttons
+                        if (
+                          (e.target as HTMLElement).closest('button') ||
+                          (e.target as HTMLElement).closest('.stop-propagation')
+                        )
+                          return
+                        toggleAddon(addon.id)
+                      }}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Checkbox
+                          id={`addon-${addon.id}`}
+                          checked={isSelected}
+                          onCheckedChange={() => toggleAddon(addon.id)}
+                          className="stop-propagation"
+                        />
+                        <div className="flex flex-col">
+                          <label
+                            htmlFor={`addon-${addon.id}`}
+                            className="text-sm font-medium leading-none cursor-pointer"
+                          >
+                            {addon.name}
+                          </label>
+                          <span className="text-xs text-muted-foreground mt-1">
+                            {addon.price > 0 ? `+₹${addon.price}` : 'Free'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        {isSelected && (
+                          <div className="flex items-center gap-2 stop-propagation">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-7 w-7 rounded-sm"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                updateQuantity(addon.id, -1)
+                              }}
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <span className="text-sm font-medium w-4 text-center">
+                              {qty}
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-7 w-7 rounded-sm"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                updateQuantity(addon.id, 1)
+                              }}
+                              disabled={qty >= 10}
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        )}
+                        <div className="text-sm font-semibold w-16 text-right">
+                          {addon.price * qty > 0
+                            ? `+₹${addon.price * qty}`
+                            : ''}
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-sm font-semibold">
-                      {addon.price > 0 ? `+₹${addon.price}` : 'Free'}
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           )}

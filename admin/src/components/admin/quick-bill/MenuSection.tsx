@@ -1,9 +1,8 @@
 import { useState, useMemo, useEffect } from 'react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Card, CardContent } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
-import { Search, ChevronDown, ChevronUp } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { useInventoryItems } from '@/hooks/useInventoryItems'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
@@ -11,10 +10,11 @@ import { useCategoriesQuery } from '@/hooks/queries/useCategoriesQuery'
 import { Item, Variant } from '@/types/menu.types'
 import LoadingScreen from '@/components/common/LoadingScreen'
 import axiosInstance from '@/lib/axios'
-import AddonSelection from '../book-table/AddonSelection'
+import MenuGridItem from './MenuGridItem'
 
 interface MenuSectionProps {
   addToCart: (item: Item) => void
+  cart: any[]
 }
 
 // Simple fuzzy search helper
@@ -23,10 +23,8 @@ const fuzzyMatch = (text: string, term: string) => {
   const t = text.toLowerCase()
   const q = term.toLowerCase()
 
-  // Direct inclusion
   if (t.includes(q)) return true
 
-  // Basic character sequence matching
   let i = 0
   let j = 0
   while (i < t.length && j < q.length) {
@@ -38,18 +36,16 @@ const fuzzyMatch = (text: string, term: string) => {
   return j === q.length
 }
 
-export default function MenuSection({ addToCart }: MenuSectionProps) {
+export default function MenuSection({ addToCart, cart }: MenuSectionProps) {
   const { selectedRestaurant } = useRestaurantSelector()
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [variants, setVariants] = useState<Record<string, Variant[]>>({})
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
-  const [addonModalItem, setAddonModalItem] = useState<{
-    item: Item
-    variant?: Variant
-  } | null>(null)
+  // Track which item is currently being customized (Inline Addon Selection)
+  const [customizingItemId, setCustomizingItemId] = useState<string | null>(
+    null,
+  )
 
-  // 🎯 Use TanStack Query for categories - automatic caching, loading, error handling!
   const {
     data: categoriesData,
     isLoading: loadingCategories,
@@ -59,21 +55,16 @@ export default function MenuSection({ addToCart }: MenuSectionProps) {
 
   const categories = categoriesData?.categories || []
 
-  // Fetch all items by passing undefined/null or handling it.
-  // useInventoryItems(null) fetches all items for the restaurant.
-  // We want all items here because we filter by category client-side
-  // but also filter by category when a category is selected (visual filter).
+  // Fetch all items from inventory
   const { allItems, loading: loadingItems } = useInventoryItems(null)
 
-  // Derived filtered items based on search OR category
+  // Derived filtered items
   const filteredItems = useMemo(() => {
     let result = allItems
 
-    // If there's a search query, filter all items by search query
     if (searchQuery.trim()) {
       result = allItems.filter((item) => fuzzyMatch(item.name, searchQuery))
     } else {
-      // If no search query, filter by selected category (if not 'all')
       if (selectedCategoryId !== 'all') {
         result = result.filter(
           (item) => item.category_id === selectedCategoryId,
@@ -84,13 +75,12 @@ export default function MenuSection({ addToCart }: MenuSectionProps) {
     return result
   }, [allItems, selectedCategoryId, searchQuery])
 
-  // Fetch variants for all filtered items
+  // Fetch variants for filtered items
   useEffect(() => {
     const fetchVariantsForItems = async () => {
       if (filteredItems.length === 0) return
 
       try {
-        // Fetch variants for all items in parallel
         const variantPromises = filteredItems.map(async (item) => {
           try {
             const response = await axiosInstance.get(
@@ -108,7 +98,6 @@ export default function MenuSection({ addToCart }: MenuSectionProps) {
 
         const variantResults = await Promise.all(variantPromises)
 
-        // Update variants state
         setVariants((prev) => {
           const newVariants = { ...prev }
           variantResults.forEach(({ itemId, variants: itemVariants }) => {
@@ -124,49 +113,34 @@ export default function MenuSection({ addToCart }: MenuSectionProps) {
     fetchVariantsForItems()
   }, [filteredItems])
 
-  const toggleItemExpansion = (itemId: string) => {
-    setExpandedItems((prev) => {
-      const newSet = new Set(prev)
-      if (newSet.has(itemId)) {
-        newSet.delete(itemId)
-      } else {
-        newSet.add(itemId)
-      }
-      return newSet
-    })
-  }
-
-  const handleAddToCart = (item: Item, variant?: Variant) => {
-    // Open addon selection instead of adding directly
-    setAddonModalItem({ item, variant })
-  }
-
-  const handleConfirmAddons = (selectedAddons: any[]) => {
-    if (!addonModalItem) return
-
-    const { item, variant } = addonModalItem
-
-    let uniqueId = variant ? `${item.id}_variant_${variant.id}` : item.id
+  // DIRECT ADD TO CART - NO DIALOG
+  const onAddItem = (item: Item, variant?: Variant, addons: any[] = []) => {
+    let uniqueId = variant ? `${item.id}_variant_${variant.id}` : `${item.id}`
     let finalPrice = variant
       ? variant.price
       : item.price || item.cost_price || 0
     let finalName = variant ? `${item.name} - ${variant.name}` : item.name
 
+    // Store base name for billing
+    const cartItemName = finalName
+
     // If addons selected, append to ID and Name, update Price
-    if (selectedAddons.length > 0) {
-      const sortedAddonIds = selectedAddons
-        .map((a: any) => a.id)
+    if (addons.length > 0) {
+      const sortedAddonIds = addons
+        .map((a: any) => `${a.id}:${a.quantity || 1}`)
         .sort()
         .join('_')
       uniqueId = `${uniqueId}_addons_${sortedAddonIds}`
 
-      const addonsPrice = selectedAddons.reduce(
-        (sum: number, a: any) => sum + a.price,
+      const addonsPrice = addons.reduce(
+        (sum: number, a: any) => sum + a.price * (a.quantity || 1),
         0,
       )
       finalPrice += addonsPrice
 
-      const addonNames = selectedAddons.map((a: any) => a.name).join(', ')
+      const addonNames = addons
+        .map((a: any) => (a.quantity > 1 ? `${a.name} x${a.quantity}` : a.name))
+        .join(', ')
       finalName = `${finalName} (+ ${addonNames})`
     }
 
@@ -174,10 +148,10 @@ export default function MenuSection({ addToCart }: MenuSectionProps) {
       ...item,
       id: uniqueId,
       name: finalName,
+      cartItemName: cartItemName,
       price: finalPrice,
       variantId: variant?.id,
-      addons: selectedAddons,
-      // quick bill specific:
+      addons: addons,
       category_id: item.category_id,
       is_active: item.is_active,
       is_veg: item.is_veg,
@@ -186,25 +160,23 @@ export default function MenuSection({ addToCart }: MenuSectionProps) {
     }
 
     addToCart(modifiedItem)
-    setAddonModalItem(null)
+    setCustomizingItemId(null)
   }
 
+  // Handle errors and empty states
   if (categoriesError) {
     return (
-      <div className="p-4 text-center">
-        <p className="text-red-600 mb-2">Failed to load categories</p>
-        <button
-          onClick={() => refetchCategories()}
-          className="text-blue-600 hover:underline"
-        >
+      <div className="flex flex-col items-center justify-center p-8 text-center h-full">
+        <p className="text-red-500 mb-4 font-medium">
+          Failed to load categories
+        </p>
+        <Button onClick={() => refetchCategories()} variant="outline">
           Retry
-        </button>
+        </Button>
       </div>
     )
   }
 
-  // If no categories and not loading, show message
-  // Only show after data has been fetched (categoriesData is defined)
   if (
     !loadingCategories &&
     !loadingItems &&
@@ -212,34 +184,49 @@ export default function MenuSection({ addToCart }: MenuSectionProps) {
     categories.length === 0
   ) {
     return (
-      <div className="p-4 text-center">
+      <div className="flex items-center justify-center h-full p-8 text-muted-foreground">
         No categories found. Please select a restaurant.
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col h-full gap-3">
-      <div className="flex items-center gap-3">
+    <div className="flex flex-col h-full gap-0 bg-background/50 rounded-lg">
+      {/* Search and Category Filter Header */}
+      <div className="space-y-2 p-1">
+        {/* Search Bar - Modernized */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search for items..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 h-10 bg-white border shadow-sm focus-visible:ring-1 focus-visible:ring-primary/50"
+          />
+        </div>
+
+        {/* Categories - Pill Style */}
         <Tabs
           value={searchQuery ? 'all' : selectedCategoryId}
           onValueChange={(val) => {
             setSelectedCategoryId(val)
-            // Clear search if changing category manually? Maybe better UX.
             if (val !== 'all' && searchQuery) setSearchQuery('')
           }}
-          className="flex-1 w-full overflow-hidden"
+          className="w-full"
         >
           <ScrollArea className="w-full whitespace-nowrap pb-2">
-            <TabsList className="flex flex-nowrap overflow-x-auto">
-              <TabsTrigger value="all" className="flex-shrink-0">
-                All
+            <TabsList className="flex flex-nowrap bg-transparent gap-2 h-auto justify-start">
+              <TabsTrigger
+                value="all"
+                className="rounded-full px-3 py-2 border bg-white data-[state=active]:bg-primary data-[state=active]:text-primary-foreground shadow-sm hover:bg-gray-50 transition-all data-[state=active]:border-primary"
+              >
+                All Items
               </TabsTrigger>
               {categories.map((cat: { id: string; name: string }) => (
                 <TabsTrigger
                   key={cat.id}
                   value={cat.id}
-                  className="flex-shrink-0"
+                  className="rounded-full px-3 py-2 border bg-white data-[state=active]:bg-primary data-[state=active]:text-primary-foreground shadow-sm hover:bg-gray-50 transition-all data-[state=active]:border-primary"
                 >
                   {cat.name}
                 </TabsTrigger>
@@ -249,150 +236,36 @@ export default function MenuSection({ addToCart }: MenuSectionProps) {
         </Tabs>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <Input
-          placeholder="Search food..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
-        />
-      </div>
-
-      <ScrollArea className="flex-1 border rounded-md p-3">
+      {/* Item Grid */}
+      <ScrollArea className="flex-1 pr-2 overflow-auto">
         {loadingCategories || (loadingItems && allItems.length === 0) ? (
-          <>
-            <LoadingScreen message="Loading Inventory" />
-          </>
+          <div className="h-64 flex items-center justify-center">
+            <LoadingScreen message="Loading Menu..." />
+          </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
-            {filteredItems.map((item) => {
-              const itemVariants = variants[item.id] || []
-              const hasVariants = itemVariants.length > 0
-              const isExpanded = expandedItems.has(item.id)
-
-              return (
-                <div key={item.id} className="flex flex-col">
-                  {/* Main Item Card */}
-                  <Card
-                    className={`cursor-pointer hover:bg-slate-50 transition-colors ${
-                      hasVariants && isExpanded ? 'rounded-b-none' : ''
-                    }`}
-                    onClick={() => {
-                      if (!hasVariants) {
-                        handleAddToCart(item)
-                      } else {
-                        toggleItemExpansion(item.id)
-                      }
-                    }}
-                  >
-                    <CardContent className="p-2 flex flex-col items-center text-center gap-1">
-                      <div className="w-full aspect-square bg-gray-100 rounded-md overflow-hidden relative">
-                        {item.img || item.images?.length > 0 ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={item.img || item.images[0]}
-                            alt={item.name}
-                            className="object-cover w-full h-full"
-                          />
-                        ) : (
-                          <div className="flex items-center justify-center w-full h-full text-gray-400 text-xs">
-                            No Image
-                          </div>
-                        )}
-                      </div>
-                      <div className="font-medium text-xs line-clamp-2 w-full">
-                        {item.name}
-                      </div>
-                      <div className="flex items-center justify-between w-full">
-                        <div className="font-bold text-green-600 text-sm">
-                          ₹{item.price || item.cost_price || 0}
-                        </div>
-                        {hasVariants && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-5 w-5 p-0"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              toggleItemExpansion(item.id)
-                            }}
-                          >
-                            {isExpanded ? (
-                              <ChevronUp className="h-3 w-3" />
-                            ) : (
-                              <ChevronDown className="h-3 w-3" />
-                            )}
-                          </Button>
-                        )}
-                      </div>
-                      {hasVariants && (
-                        <p className="text-[10px] text-gray-500">
-                          {itemVariants.length} size
-                          {itemVariants.length > 1 ? 's' : ''}
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  {/* Variant Options Dropdown */}
-                  {hasVariants && isExpanded && (
-                    <div className="bg-gray-50 border border-t-0 rounded-b-md p-2 space-y-1">
-                      {itemVariants.map((variant) => (
-                        <Button
-                          key={variant.id}
-                          variant="outline"
-                          size="sm"
-                          className="w-full justify-between h-7 text-xs"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleAddToCart(item, variant)
-                          }}
-                        >
-                          <span>{variant.name}</span>
-                          <span className="font-semibold text-green-600">
-                            ₹{variant.price}
-                          </span>
-                        </Button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 pb-20">
+            {filteredItems.map((item) => (
+              <MenuGridItem
+                key={item.id}
+                item={item}
+                variants={variants[item.id] || []}
+                cart={cart}
+                isCustomizing={customizingItemId === item.id}
+                setCustomizingId={setCustomizingItemId}
+                onAddItem={onAddItem}
+              />
+            ))}
             {filteredItems.length === 0 &&
               !loadingItems &&
-              !loadingCategories &&
-              filteredItems !== undefined && (
-                <div className="col-span-full text-center text-gray-500 py-10">
-                  No items found.
+              !loadingCategories && (
+                <div className="col-span-full flex flex-col items-center justify-center py-12 text-muted-foreground">
+                  <Search className="w-12 h-12 mb-2 opacity-20" />
+                  <p>No items found trying searching for something else.</p>
                 </div>
               )}
           </div>
         )}
       </ScrollArea>
-      {addonModalItem && (
-        <AddonSelection
-          isOpen={!!addonModalItem}
-          onClose={() => setAddonModalItem(null)}
-          itemId={
-            addonModalItem.variant
-              ? `${addonModalItem.item.id}_variant_${addonModalItem.variant.id}`
-              : addonModalItem.item.id
-          }
-          itemName={
-            addonModalItem.variant
-              ? `${addonModalItem.item.name} - ${addonModalItem.variant.name}`
-              : addonModalItem.item.name
-          }
-          itemPrice={
-            addonModalItem.variant
-              ? addonModalItem.variant.price
-              : addonModalItem.item.price || addonModalItem.item.cost_price || 0
-          }
-          onConfirm={handleConfirmAddons}
-        />
-      )}
     </div>
   )
 }
