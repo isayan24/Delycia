@@ -86,6 +86,9 @@ export default function OrderHistoryTablePaginated({
       name: item.name || item.item_name || 'Unknown Item',
       quantity: item.quantity || 1,
       price: item.price || 0,
+      variant_name: item.variant_name,
+      addons:
+        typeof item.addons === 'string' ? JSON.parse(item.addons) : item.addons,
     }))
 
     const billData = {
@@ -139,6 +142,9 @@ export default function OrderHistoryTablePaginated({
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50">
+                <TableHead className="py-3 text-sm font-semibold w-[100px]">
+                  ID
+                </TableHead>
                 <TableHead className="py-3 text-sm font-semibold">
                   Items
                 </TableHead>
@@ -168,7 +174,7 @@ export default function OrderHistoryTablePaginated({
             <TableBody>
               {items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8">
+                  <TableCell colSpan={9} className="text-center py-8">
                     <div className="text-gray-500 text-sm">
                       {loading ? 'Loading orders...' : 'No orders found'}
                     </div>
@@ -180,6 +186,13 @@ export default function OrderHistoryTablePaginated({
                     key={`${order.cartId}-${index}`}
                     className="hover:bg-gray-50"
                   >
+                    {/* ID */}
+                    <TableCell className="py-3 px-3">
+                      <div className="font-mono text-xs text-gray-500">
+                        #{order.cart_id || order.id || 'N/A'}
+                      </div>
+                    </TableCell>
+
                     {/* Items */}
                     <TableCell className="py-3 px-3 max-w-[200px]">
                       <OrderItemsCell

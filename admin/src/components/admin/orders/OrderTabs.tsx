@@ -258,9 +258,30 @@ export default function OrderTabs({
                       )}
                     </p>
                   </div>
-                  <span className="text-xs text-red-600 bg-red-100 px-2 py-1 rounded">
+                  {/* No extra closing div here */}
+                  <span className="text-xs text-red-600 bg-red-100 px-2 py-1 rounded self-start">
                     ❌ Cancelled
                   </span>
+                </div>
+                <div className="mt-2 text-sm text-gray-600 space-y-1">
+                  {order.items.map((item, index) => (
+                    <div key={index}>
+                      <div className="flex justify-between">
+                        <span>
+                          {item.quantity}x {item.display_name}
+                        </span>
+                      </div>
+                      {item.addons && item.addons.length > 0 && (
+                        <div className="ml-4 flex flex-col gap-0 text-xs text-gray-500">
+                          {item.addons.map((addon, aIndex) => (
+                            <span key={aIndex}>
+                              + {addon.quantity} x {addon.name}: ₹{addon.price}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}

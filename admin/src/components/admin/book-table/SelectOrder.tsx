@@ -10,6 +10,8 @@ import { useTableStore } from '@/store/useTableStore'
 import OrderHeader from './OrderHeader'
 import axiosInstance from '@/lib/axios'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
+import AddonSelection from './AddonSelection' // New import
+import { useQueryClient } from '@tanstack/react-query'
 
 interface Category {
   id: string
@@ -65,6 +67,10 @@ export default function SelectOrder({ onOrderSubmit }: SelectOrderProps) {
   const [allItems, setAllItems] = useState<InventoryItem[]>([])
   const [variants, setVariants] = useState<Record<string, Variant[]>>({})
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
+  const [addonModalItem, setAddonModalItem] = useState<{
+    item: InventoryItem
+    variant?: Variant
+  } | null>(null)
 
   const {
     items,
@@ -214,8 +220,59 @@ export default function SelectOrder({ onOrderSubmit }: SelectOrderProps) {
 
   // Get quantity for item or variant
   const getQuantity = (itemId: string, variant?: Variant) => {
+    // We only check pure item ID or variant ID here for the display counter
+    // This simple check might need improvement if we want to show total across all addon-configurations of this item
+    // But for now, sticking to the standard ID check used in the store might be limiting if we change IDs.
+    // However, for the LIST view, we usually show if *any* of this item is added?
+    // Or just show 0 if custom configurations exist?
+    // Current implementation of store uses specific keys.
+    // If I add "Burger_addon_1", the quantity for "Burger" (id=1) will be 0.
+    // So the list view will show "Add" button again. This is actually expected behavior for customizable items (you can configure another one).
+
     const uniqueId = variant ? `${itemId}_variant_${variant.id}` : itemId
     return quantities[uniqueId] || 0
+  }
+
+  const handleAddItemWithAddons = (item: InventoryItem, variant?: Variant) => {
+    setAddonModalItem({ item, variant })
+  }
+
+  const handleConfirmAddons = (selectedAddons: any[]) => {
+    if (!addonModalItem) return
+
+    const { item, variant } = addonModalItem
+
+    let uniqueId = variant ? `${item.id}_variant_${variant.id}` : item.id
+    let finalPrice = variant ? variant.price : item.price
+    let finalName = variant ? `${item.name} - ${variant.name}` : item.name
+
+    // If addons selected, append to ID and Name, update Price
+    if (selectedAddons.length > 0) {
+      const sortedAddonIds = selectedAddons
+        .map((a) => a.id)
+        .sort()
+        .join('_')
+      uniqueId = `${uniqueId}_addons_${sortedAddonIds}`
+
+      const addonsPrice = selectedAddons.reduce((sum, a) => sum + a.price, 0)
+      finalPrice += addonsPrice
+
+      const addonNames = selectedAddons.map((a) => a.name).join(', ')
+      finalName = `${finalName} (+ ${addonNames})`
+    }
+
+    const modifiedItem = {
+      ...item,
+      id: uniqueId,
+      name: finalName,
+      price: finalPrice,
+      isVariant: !!variant,
+      variantId: variant?.id,
+      addons: selectedAddons, // Store addons in the item data
+    }
+
+    updateQuantity(uniqueId, 1, modifiedItem)
+    setAddonModalItem(null)
   }
 
   const totalAmount = getTotalAmount()
@@ -357,9 +414,7 @@ export default function SelectOrder({ onOrderSubmit }: SelectOrderProps) {
                               <Button
                                 size="sm"
                                 className="text-sm px-4 w-full !transition-none"
-                                onClick={() =>
-                                  handleQuantityUpdate(item.id, 1, item)
-                                }
+                                onClick={() => handleAddItemWithAddons(item)}
                               >
                                 Add
                               </Button>
@@ -441,12 +496,7 @@ export default function SelectOrder({ onOrderSubmit }: SelectOrderProps) {
                                         size="sm"
                                         className="text-xs px-3 py-1"
                                         onClick={() =>
-                                          handleQuantityUpdate(
-                                            item.id,
-                                            1,
-                                            item,
-                                            variant,
-                                          )
+                                          handleAddItemWithAddons(item, variant)
                                         }
                                       >
                                         Add
@@ -493,6 +543,28 @@ export default function SelectOrder({ onOrderSubmit }: SelectOrderProps) {
             </Button>
           </div>
         </div>
+      )}
+      {addonModalItem && (
+        <AddonSelection
+          isOpen={!!addonModalItem}
+          onClose={() => setAddonModalItem(null)}
+          itemId={
+            addonModalItem.variant
+              ? `${addonModalItem.item.id}_variant_${addonModalItem.variant.id}`
+              : addonModalItem.item.id
+          }
+          itemName={
+            addonModalItem.variant
+              ? `${addonModalItem.item.name} - ${addonModalItem.variant.name}`
+              : addonModalItem.item.name
+          }
+          itemPrice={
+            addonModalItem.variant
+              ? addonModalItem.variant.price
+              : addonModalItem.item.price
+          }
+          onConfirm={handleConfirmAddons}
+        />
       )}
     </div>
   )

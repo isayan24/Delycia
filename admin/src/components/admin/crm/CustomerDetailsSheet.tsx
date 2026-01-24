@@ -38,7 +38,6 @@ export default function CustomerDetailsSheet({
     rid: rid?.toString() || '',
     customerId,
   })
-
   const profile = details?.profile
 
   return (
@@ -161,7 +160,54 @@ export default function CustomerDetailsSheet({
                           </div>
 
                           <div className="text-sm text-gray-700 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                            {order.items}
+                            {(() => {
+                              let items = order.items
+                              if (typeof items === 'string') {
+                                try {
+                                  items = JSON.parse(items)
+                                } catch (e) {
+                                  return order.items // Fallback to string if parse fails
+                                }
+                              }
+
+                              if (!Array.isArray(items)) return null
+
+                              return (
+                                <div className="space-y-3">
+                                  {items.map((item: any, idx: number) => (
+                                    <div key={idx} className="text-sm">
+                                      <div className="font-medium text-gray-900">
+                                        {item.quantity} x {item.name}
+                                        {item.variant_name && (
+                                          <span className="text-gray-500 font-normal text-xs ml-1">
+                                            ({item.variant_name})
+                                          </span>
+                                        )}
+                                      </div>
+                                      {item.addons &&
+                                        item.addons.length > 0 && (
+                                          <div className="ml-4 mt-1 space-y-0.5">
+                                            {item.addons.map(
+                                              (addon: any, aIdx: number) => (
+                                                <div
+                                                  key={aIdx}
+                                                  className="text-xs text-gray-500 flex gap-1"
+                                                >
+                                                  <span>
+                                                    + {addon.quantity}{' '}
+                                                    {addon.name}
+                                                  </span>
+                                                  <span>(₹{addon.price})</span>
+                                                </div>
+                                              ),
+                                            )}
+                                          </div>
+                                        )}
+                                    </div>
+                                  ))}
+                                </div>
+                              )
+                            })()}
                           </div>
                         </div>
                       </div>

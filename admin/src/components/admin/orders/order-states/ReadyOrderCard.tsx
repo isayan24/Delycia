@@ -107,15 +107,27 @@ export function ReadyOrderCard({
             </div>
             <div className="space-y-1">
               {order.items.slice(0, 3).map((item, index) => (
-                <div
-                  key={index}
-                  className="flex justify-between items-center text-sm"
-                >
-                  <span className="flex-1 truncate">
-                    {item.quantity}x {item.display_name}
-                  </span>
-                  <span className="font-medium">₹{item.total_amount}</span>
-                </div>
+                <React.Fragment key={index}>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="flex-1 truncate">
+                      {item.quantity}x {item.display_name}
+                    </span>
+                    <span className="font-medium">₹{item.total_amount}</span>
+                  </div>
+                  {/* Render Addons */}
+                  {item.addons && item.addons.length > 0 && (
+                    <div className="ml-0 flex flex-col gap-0.5 mt-0.5 mb-1 pl-4">
+                      {item.addons.map((addon: any, addonIndex: number) => (
+                        <span
+                          key={addonIndex}
+                          className="text-xs text-gray-500 block"
+                        >
+                          + {addon.quantity} x {addon.name}: ₹{addon.price}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </React.Fragment>
               ))}
               {order.items.length > 3 && (
                 <p className="text-xs text-gray-600 font-medium">

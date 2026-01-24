@@ -1,7 +1,8 @@
 
 Todo:
    Priority Fix:    
-      
+    ✔ In quick bill & table-book, when searching for customers.. the staff names are also got visible there, fix it @done(26-01-23 15:46)
+    ✔ In the history or other print bill, the customer phn. number -> showing the id @done(26-01-23 15:46)
     ☐ Fix when site is in sleep, add a btn to refresh the site for latest token flow and user detection
 
   Inventory:
@@ -19,10 +20,10 @@ Features:
     ☐ Make the ui compact and ease to access 
  
   Add staffs Page:
-    ☐ Add a page to add staffs for admin @started(26-01-21 23:54)
-    ☐ Add functionality to create staffs with name, username and password @started(26-01-21 23:54)
-    ☐ Modify the backend to login with username and password as well(only for admin & staffs) @started(26-01-21 23:54)
-    ☐ If possible add the functionality to show which staff ordered what for customers @started(26-01-21 23:54)
+    ✔ Add a page to add staffs for admin @started(26-01-21 23:54) @done(26-01-23 14:45) @lasted(1d14h51m55s)
+    ✔ Add functionality to create staffs with name, username and password @started(26-01-21 23:54) @done(26-01-23 14:45) @lasted(1d14h51m55s)
+    ✔ Modify the backend to login with username and password as well(only for admin & staffs) @started(26-01-21 23:54) @done(26-01-23 14:45) @lasted(1d14h51m55s)
+    ✔ If possible add the functionality to show which staff ordered what for customers @started(26-01-21 23:54) @done(26-01-23 14:45) @lasted(1d14h51m55s)
 
   Notification System:
     ☐ Add a notification system for admin and staffs

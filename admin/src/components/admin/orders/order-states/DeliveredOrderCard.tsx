@@ -156,9 +156,27 @@ export function DeliveredOrderCard({
                   >
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-3 w-3 text-green-600" />
-                      <span className="flex-1">
-                        {item.quantity}x {item.display_name}
-                      </span>
+                      <div className="flex-1">
+                        <span className="block">
+                          {item.quantity}x {item.display_name}
+                        </span>
+                        {/* Render Addons */}
+                        {item.addons && item.addons.length > 0 && (
+                          <div className="ml-0 flex flex-col gap-0.5 mt-0.5">
+                            {item.addons.map(
+                              (addon: any, addonIndex: number) => (
+                                <span
+                                  key={addonIndex}
+                                  className="text-xs text-gray-500 block"
+                                >
+                                  + {addon.quantity} x {addon.name}: ₹
+                                  {addon.price}
+                                </span>
+                              ),
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <span className="font-medium">₹{item.total_amount}</span>
                   </div>

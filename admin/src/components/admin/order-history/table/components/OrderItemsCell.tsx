@@ -30,12 +30,42 @@ export function OrderItemsCell({
     <div className="space-y-0.5">
       {itemsToShow.map((item: any, index: number) => (
         <div key={index} className="text-sm">
-          <span className="font-medium">
+          <div className="font-medium text-gray-900">
             {item.name || item.item_name || 'Unknown Item'}
-          </span>
+            {item.variant_name && (
+              <span className="text-gray-500 text-xs font-normal ml-1">
+                [{item.variant_name}]
+              </span>
+            )}
+          </div>
           {item.quantity > 1 && (
-            <span className="text-gray-600 ml-1">× {item.quantity}</span>
+            <div className="text-xs text-blue-600 font-medium mt-0.5">
+              Qty: {item.quantity}
+            </div>
           )}
+
+          {/* Addons */}
+          {(() => {
+            const addons =
+              typeof item.addons === 'string'
+                ? JSON.parse(item.addons)
+                : item.addons
+
+            if (!addons || addons.length === 0) return null
+
+            return (
+              <div className="ml-2 flex flex-col gap-0.5 mt-0.5">
+                {addons.map((addon: any, addonIndex: number) => (
+                  <span
+                    key={addonIndex}
+                    className="text-[0.7rem] text-gray-500 block"
+                  >
+                    + {addon.quantity} {addon.name} ({addon.price})
+                  </span>
+                ))}
+              </div>
+            )
+          })()}
         </div>
       ))}
 

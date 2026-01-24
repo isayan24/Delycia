@@ -227,9 +227,29 @@ const getCustomerDetails = async (rid, customerId) => {
         SUM(o.discount_amount) as discount_amount,
         MAX(o.created_at) as created_at,
         o.order_status,
-        GROUP_CONCAT(i.name SEPARATOR ', ') as items
+        JSON_ARRAYAGG(
+          JSON_OBJECT(
+            'name', i.name,
+            'quantity', o.quantity,
+            'price', o.total_amount,
+            'variant_name', v.name,
+            'addons', (
+              SELECT JSON_ARRAYAGG(
+                JSON_OBJECT(
+                  'name', a.name,
+                  'price', oa.price,
+                  'quantity', oa.quantity
+                )
+              )
+              FROM order_addons oa
+              JOIN addons a ON oa.addon_id = a.id
+              WHERE oa.order_id = o.id
+            )
+          )
+        ) as items
       FROM orders o
       LEFT JOIN inventories i ON o.item_id = i.id
+      LEFT JOIN variants v ON o.variant_id = v.id
       WHERE o.rid = ? AND o.customer_id = ?
       GROUP BY o.cart_id
       ORDER BY MAX(o.created_at) DESC

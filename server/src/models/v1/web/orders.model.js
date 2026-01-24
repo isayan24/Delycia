@@ -43,7 +43,33 @@ const create_orders = async (req) => {
 
     // Output example : [[1, 101, 2, "shipped", "paid", 200, 1, 3],..]
 
-    await conn.query(q, [values]);
+    const [result] = await conn.query(q, [values]);
+
+    // Insert addons if present
+    const addonValues = [];
+    const startId = result.insertId;
+
+    orders.forEach((order, index) => {
+      const orderId = startId + index;
+      order.id = orderId; // Assign ID to the order object for further use (sockets, getOrderDetails)
+
+      if (order.addons && Array.isArray(order.addons) && order.addons.length > 0) {
+        order.addons.forEach((addon) => {
+          addonValues.push([
+            orderId,
+            addon.addon_id || addon.id, // Support both formats
+            addon.quantity || 1,
+            addon.price
+          ]);
+        });
+      }
+    });
+
+    if (addonValues.length > 0) {
+      const addonQ = "INSERT INTO order_addons (order_id, addon_id, quantity, price) VALUES ?";
+      await conn.query(addonQ, [addonValues]);
+    }
+
     await conn.commit();
     app.io.of("/orders").emit("orders_refresh");
     app.io.of("/orders-by-table").emit("orders_created", { orders });
@@ -65,7 +91,22 @@ const get_orders = async (req) => {
 
   try {
     [result] = await pool.query(
-      "SELECT * FROM orders WHERE customer_id = ?",
+      `SELECT o.*, v.name as variant_name,
+        (
+          SELECT JSON_ARRAYAGG(
+            JSON_OBJECT(
+              'name', a.name,
+              'price', oa.price,
+              'quantity', oa.quantity
+            )
+          )
+          FROM order_addons oa
+          JOIN addons a ON oa.addon_id = a.id
+          WHERE oa.order_id = o.id
+        ) AS addons
+       FROM orders o 
+       LEFT JOIN variants v ON o.variant_id = v.id
+       WHERE o.customer_id = ?`,
       customer_id
     );
     return apiResponse.success(200, "success", { orders: result });
@@ -128,11 +169,25 @@ const getOrders24Hours = async (rid) => {
             'delivery_type', o.delivery_type,
             'discount_amount', o.discount_amount,
             'updated_at', o.updated_at,
-            'table_no', o.table_no
+            'table_no', o.table_no,
+            'variant_name', v.name,
+            'addons', (
+              SELECT JSON_ARRAYAGG(
+                JSON_OBJECT(
+                  'name', a.name,
+                  'price', oa.price,
+                  'quantity', oa.quantity
+                )
+              )
+              FROM order_addons oa
+              JOIN addons a ON oa.addon_id = a.id
+              WHERE oa.order_id = o.id
+            )
           )
         ) AS items
       FROM orders o
       JOIN users u ON o.customer_id = u.id
+      LEFT JOIN variants v ON o.variant_id = v.id
       WHERE o.rid = ? AND o.created_at >= NOW() - INTERVAL 1 DAY
       GROUP BY o.customer_id, o.created_at
       ORDER BY o.created_at DESC
@@ -270,6 +325,15 @@ const getOrderByTable = async (data) => {
         });
       }
 
+      // Fetch addons for this order item
+      const [addonsResult] = await pool.query(
+        `SELECT a.name, oa.quantity, oa.price 
+         FROM order_addons oa 
+         JOIN addons a ON oa.addon_id = a.id 
+         WHERE oa.order_id = ?`,
+        [id]
+      );
+
       userMap.get(customer_id).orders.push({
         id,
         item_id,
@@ -281,13 +345,14 @@ const getOrderByTable = async (data) => {
         created_at,
         updated_at,
         item_name,
-        item_img: parsedImages, // <-- now always an array
+        item_img: parsedImages,
+        addons: addonsResult, // Add addons here
       });
     }
 
-    const groupedData = Array.from(userMap.values());
+    const result = Array.from(userMap.values());
 
-    return { status: true, data: groupedData };
+    return { status: true, data: result };
   } catch (error) {
     return { status: false, error: error.message };
   }
@@ -380,12 +445,26 @@ const get_paginated_orders = async (req) => {
             'quantity', o.quantity,
             'price', o.total_amount,
             'variant_id', o.variant_id,
-            'special_instructions', o.special_instructions
+            'variant_name', v.name,
+            'special_instructions', o.special_instructions,
+            'addons', (
+              SELECT JSON_ARRAYAGG(
+                JSON_OBJECT(
+                  'name', a.name,
+                  'price', oa.price,
+                  'quantity', oa.quantity
+                )
+              )
+              FROM order_addons oa
+              JOIN addons a ON oa.addon_id = a.id
+              WHERE oa.order_id = o.id
+            )
           )
         ) AS items
       FROM orders o
       LEFT JOIN users u ON o.customer_id = u.id
       LEFT JOIN inventories i ON o.item_id = i.id
+      LEFT JOIN variants v ON o.variant_id = v.id
       WHERE ${whereClause}
       GROUP BY o.cart_id, o.customer_id, o.table_no, o.payment_method, 
                o.payment_status, o.order_status, o.delivery_type, 

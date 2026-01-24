@@ -11,6 +11,7 @@ import { useCategoriesQuery } from '@/hooks/queries/useCategoriesQuery'
 import { Item, Variant } from '@/types/menu.types'
 import LoadingScreen from '@/components/common/LoadingScreen'
 import axiosInstance from '@/lib/axios'
+import AddonSelection from '../book-table/AddonSelection'
 
 interface MenuSectionProps {
   addToCart: (item: Item) => void
@@ -43,6 +44,10 @@ export default function MenuSection({ addToCart }: MenuSectionProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [variants, setVariants] = useState<Record<string, Variant[]>>({})
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
+  const [addonModalItem, setAddonModalItem] = useState<{
+    item: Item
+    variant?: Variant
+  } | null>(null)
 
   // 🎯 Use TanStack Query for categories - automatic caching, loading, error handling!
   const {
@@ -132,19 +137,56 @@ export default function MenuSection({ addToCart }: MenuSectionProps) {
   }
 
   const handleAddToCart = (item: Item, variant?: Variant) => {
-    if (variant) {
-      // Create a modified item with variant info
-      const modifiedItem: Item = {
-        ...item,
-        id: `${item.id}_variant_${variant.id}`,
-        name: `${item.name} - ${variant.name}`,
-        price: variant.price,
-        variantId: variant.id,
-      }
-      addToCart(modifiedItem)
-    } else {
-      addToCart(item)
+    // Open addon selection instead of adding directly
+    setAddonModalItem({ item, variant })
+  }
+
+  const handleConfirmAddons = (selectedAddons: any[]) => {
+    if (!addonModalItem) return
+
+    const { item, variant } = addonModalItem
+
+    let uniqueId = variant ? `${item.id}_variant_${variant.id}` : item.id
+    let finalPrice = variant
+      ? variant.price
+      : item.price || item.cost_price || 0
+    let finalName = variant ? `${item.name} - ${variant.name}` : item.name
+
+    // If addons selected, append to ID and Name, update Price
+    if (selectedAddons.length > 0) {
+      const sortedAddonIds = selectedAddons
+        .map((a: any) => a.id)
+        .sort()
+        .join('_')
+      uniqueId = `${uniqueId}_addons_${sortedAddonIds}`
+
+      const addonsPrice = selectedAddons.reduce(
+        (sum: number, a: any) => sum + a.price,
+        0,
+      )
+      finalPrice += addonsPrice
+
+      const addonNames = selectedAddons.map((a: any) => a.name).join(', ')
+      finalName = `${finalName} (+ ${addonNames})`
     }
+
+    const modifiedItem: Item = {
+      ...item,
+      id: uniqueId,
+      name: finalName,
+      price: finalPrice,
+      variantId: variant?.id,
+      addons: selectedAddons,
+      // quick bill specific:
+      category_id: item.category_id,
+      is_active: item.is_active,
+      is_veg: item.is_veg,
+      description: item.description,
+      image: item.image,
+    }
+
+    addToCart(modifiedItem)
+    setAddonModalItem(null)
   }
 
   if (categoriesError) {
@@ -329,6 +371,28 @@ export default function MenuSection({ addToCart }: MenuSectionProps) {
           </div>
         )}
       </ScrollArea>
+      {addonModalItem && (
+        <AddonSelection
+          isOpen={!!addonModalItem}
+          onClose={() => setAddonModalItem(null)}
+          itemId={
+            addonModalItem.variant
+              ? `${addonModalItem.item.id}_variant_${addonModalItem.variant.id}`
+              : addonModalItem.item.id
+          }
+          itemName={
+            addonModalItem.variant
+              ? `${addonModalItem.item.name} - ${addonModalItem.variant.name}`
+              : addonModalItem.item.name
+          }
+          itemPrice={
+            addonModalItem.variant
+              ? addonModalItem.variant.price
+              : addonModalItem.item.price || addonModalItem.item.cost_price || 0
+          }
+          onConfirm={handleConfirmAddons}
+        />
+      )}
     </div>
   )
 }

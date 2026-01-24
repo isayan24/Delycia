@@ -33,6 +33,10 @@ export interface Item {
   rid?: string
   stock?: number
   variantId?: string // For cart items with selected variant
+  addons?: any[]
+  is_active?: number
+  is_veg?: number
+  description?: string
 }
 
 export interface MenuContextType {

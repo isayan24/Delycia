@@ -283,6 +283,7 @@ export default function OrderHistoryTable({
     setShowBillDialog(true)
   }, [])
 
+  console.log(items, 'order.items')
   // Render items ordered with expand/collapse functionality
   const renderItemsOrdered = useCallback(
     (order: any) => {
@@ -303,9 +304,26 @@ export default function OrderHistoryTable({
           <div className="space-y-1">
             {itemsToShow.map((item: any, itemIndex: number) => (
               <div key={itemIndex} className="text-sm">
-                <span className="">{item.name}</span>
+                <span className="">
+                  {item.item_name || item.name}
+                  {item.variant_name ? ` (${item.variant_name})` : ''}
+                </span>
                 {item.quantity > 1 && (
                   <span className="text-gray-600 ml-1">(x{item.quantity})</span>
+                )}
+                {/* Render Addons */}
+                {item.addons && item.addons.length > 0 && (
+                  <div className="ml-2 flex flex-col gap-0.5 mt-0.5">
+                    {item.addons.map((addon: any, addonIndex: number) => (
+                      <span
+                        key={addonIndex}
+                        className="text-[0.7rem] text-gray-500 block"
+                      >
+                        + {addon.quantity > 1 ? `${addon.quantity} x ` : ''}
+                        {addon.name}
+                      </span>
+                    ))}
+                  </div>
                 )}
               </div>
             ))}

@@ -246,7 +246,29 @@ const OrderDetailsCard = memo(function OrderDetailsCard({
                 <div className="flex-1">
                   <div className="font-medium text-gray-900">
                     {item.quantity} x {item.name}
+                    {item.variant_name && (
+                      <span className="text-gray-600 font-normal">
+                        {' '}
+                        ({item.variant_name})
+                      </span>
+                    )}
                   </div>
+                  {item.addons && item.addons.length > 0 && (
+                    <div className="mt-1 space-y-0.5">
+                      {item.addons.map((addon: any, idx: number) => (
+                        <div
+                          key={idx}
+                          className="text-xs text-gray-500 pl-4 flex gap-1"
+                        >
+                          <span>+</span>
+                          <span>
+                            {addon.quantity} x {addon.name}
+                          </span>
+                          <span>(₹{addon.price})</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="text-lg font-semibold text-gray-900">
                   ₹{item.price.toFixed(2)}

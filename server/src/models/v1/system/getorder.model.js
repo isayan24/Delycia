@@ -49,6 +49,34 @@ async function getOrderDetails(ordersData) {
           itemName += ` x${orderData.quantity}`;
         }
 
+        // Fetch addons for this order item
+        const addonQuery = `
+          SELECT a.name, oa.quantity, oa.price 
+          FROM order_addons oa 
+          JOIN addons a ON oa.addon_id = a.id 
+          WHERE oa.order_id = ?
+        `;
+        const [addonResult] = await pool.execute(addonQuery, [orderData.id]);
+        console.log(addonResult, 'addonResult')
+        if (addonResult.length > 0) {
+          const addonDetails = addonResult.map(addon => {
+            const qty = addon.quantity > 1 ? ` x${addon.quantity}` : '';
+            return `${addon.name}${qty}`;
+          }).join(', ');
+          itemName += `\n   + ${addonDetails}`;
+
+          // Add addon prices to total
+          // Assuming orderData.total_amount already includes addon prices if it was updated during order creation/linking
+          // If not, we might need to add it here, but usually total_amount in orders table should be final.
+          // Let's check logic: create_orders inserts orders first, then addons. 
+          // It inserts price into order_addons. 
+          // Does it update orders.total_amount?
+          // In create_orders:
+          // const values = orders.map(...) -> includes total_amount.
+          // Frontend calculates total_amount including addons.
+          // So database total_amount is correct. We don't need to add it here.
+        }
+
         itemsList.push(itemName);
         totalAmount += parseInt(orderData.total_amount);
       }

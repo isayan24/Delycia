@@ -20,6 +20,7 @@ export interface FullOrderItem {
   totalPrice: number
   updated_at: string
   discount_amount?: number
+  addons?: any[]
   [key: string]: any // Allow additional properties
 }
 
@@ -37,6 +38,7 @@ export interface OrderItem {
   discount_amount: number
   special_instructions: string
   total_amount: number
+  addons?: any[]
 }
 
 /**

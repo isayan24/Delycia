@@ -398,6 +398,7 @@ export function processWebSocketOrders(
                 special_instructions: item.special_instructions || '',
                 preparation_time: item.preparation_time,
                 discount_amount: item.discount_amount,
+                addons: item.addons,
               }),
             )
 

@@ -12,8 +12,9 @@ interface BillItem {
   name: string
   quantity: number
   price: number
+  variant_name?: string | null
+  addons?: any[]
 }
-
 interface BillData {
   orderId: string
   tableNo: string | number
@@ -117,7 +118,7 @@ export default function ThermalBill({
 
       // Items
       billData.items.forEach((item) => {
-        const itemText = `${item.name} x${item.quantity}`
+        const itemText = `${item.name}${item.variant_name ? ` (${item.variant_name})` : ''} x${item.quantity}`
         const priceText = `₹${item.price}`
 
         // Draw item name and quantity
@@ -129,6 +130,25 @@ export default function ThermalBill({
         ctx.fillText(priceText, width - padding, y)
 
         y += lineHeight
+
+        // Draw addons
+        if (item.addons && item.addons.length > 0) {
+          ctx.font = '10px Courier New, monospace'
+          item.addons.forEach((addon: any) => {
+            const addonText = `  + ${addon.quantity} ${addon.name} (${addon.price})`
+            const addonPrice = `₹${addon.price}`
+
+            ctx.textAlign = 'left'
+            ctx.fillText(addonText, padding, y)
+
+            ctx.textAlign = 'right'
+            ctx.fillText(addonPrice, width - padding, y)
+
+            y += lineHeight
+          })
+          // Reset font
+          ctx.font = '12px Courier New, monospace'
+        }
       })
 
       y += 10
@@ -247,7 +267,7 @@ export default function ThermalBill({
       y += 5
 
       billData.items.forEach((item) => {
-        const itemText = `${item.name} x${item.quantity}`
+        const itemText = `${item.name}${item.variant_name ? ` (${item.variant_name})` : ''} x${item.quantity}`
         const priceText = `₹${item.price}`
 
         ctx.textAlign = 'left'
@@ -255,6 +275,23 @@ export default function ThermalBill({
         ctx.textAlign = 'right'
         ctx.fillText(priceText, width - padding, y)
         y += lineHeight
+
+        if (item.addons && item.addons.length > 0) {
+          ctx.font = '10px Courier New, monospace'
+          item.addons.forEach((addon: any) => {
+            const addonText = `  + ${addon.quantity} ${addon.name} (${addon.price})`
+            const addonPrice = `₹${addon.price}`
+
+            ctx.textAlign = 'left'
+            ctx.fillText(addonText, padding, y)
+
+            ctx.textAlign = 'right'
+            ctx.fillText(addonPrice, width - padding, y)
+
+            y += lineHeight
+          })
+          ctx.font = '12px Courier New, monospace'
+        }
       })
 
       y += 10
@@ -532,10 +569,37 @@ export default function ThermalBill({
                         }}
                       >
                         <span>
-                          {item.name} x{item.quantity}
+                          {item.name}{' '}
+                          {item.variant_name ? `(${item.variant_name})` : ''} x
+                          {item.quantity}
                         </span>
                         <span>₹{item.price}</span>
                       </div>
+                      {item.addons && item.addons.length > 0 && (
+                        <div
+                          style={{
+                            fontSize: '10px',
+                            color: '#666',
+                            marginTop: '2px',
+                          }}
+                        >
+                          {item.addons.map((addon: any, aIdx: number) => (
+                            <div
+                              key={aIdx}
+                              className="flex justify-between pl-2"
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                paddingLeft: '8px',
+                              }}
+                            >
+                              <span>
+                                + {addon.quantity} {addon.name} ({addon.price})
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

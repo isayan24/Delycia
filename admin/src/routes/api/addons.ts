@@ -28,6 +28,7 @@ export const Route = createFileRoute('/api/addons')({
           const is_active = url.searchParams.get('is_active')
           const id = url.searchParams.get('id')
           const addon_id = url.searchParams.get('addon_id')
+          const inventory_id = url.searchParams.get('inventory_id')
 
           // Build backend endpoint with query params
           const queryParams = new URLSearchParams()
@@ -35,11 +36,17 @@ export const Route = createFileRoute('/api/addons')({
           if (is_active) queryParams.append('is_active', is_active)
           if (id) queryParams.append('id', id)
           if (addon_id) queryParams.append('addon_id', addon_id)
+          if (inventory_id) queryParams.append('inventory_id', inventory_id)
 
           const queryString = queryParams.toString()
-          const endpoint = queryString
-            ? `/admin/addons?${queryString}`
-            : '/admin/addons'
+          let endpoint = '/admin/addons'
+
+          // If inventory_id is present, use the inventory-specific endpoint
+          if (inventory_id) {
+            endpoint = `/admin/addons/inventory`
+          }
+
+          endpoint = queryString ? `${endpoint}?${queryString}` : endpoint
 
           // Call backend with token from cookie
           const response = await axiosInstance.get(endpoint, {

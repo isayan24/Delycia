@@ -1,62 +1,67 @@
-import { create } from "zustand";
+import { create } from 'zustand'
 
 interface InventoryItem {
-  id: string;
-  name: string;
-  price: number;
-  description?: string;
-  image?: string;
-  category_id: string;
+  id: string
+  name: string
+  price: number
+  description?: string
+  image?: string
+  category_id: string
+  addons?: any[]
 }
 
 interface OrderItem {
-  id: string;
-  name: string;
-  price: number;
-  description?: string;
-  image?: string;
-  category_id: string;
+  id: string
+  name: string
+  price: number
+  description?: string
+  image?: string
+  category_id: string
   // Order-specific properties
-  quantity: number;
-  totalPrice: number;
+  quantity: number
+  totalPrice: number
   // Variant tracking
-  isVariant?: boolean;
-  originalItemId?: string;
-  variantId?: string;
+  isVariant?: boolean
+  variantId?: string
+  addons?: any[]
 }
 
 interface TableStoreProps {
   // State
-  currentState: number;
-  orderItems: OrderItem[];
-  quantities: Record<string, number>;
-  itemsData: Record<string, InventoryItem>;
-  table: any;
-  categoryId: string;
-  
+  currentState: number
+  orderItems: OrderItem[]
+  quantities: Record<string, number>
+  itemsData: Record<string, InventoryItem>
+  table: any
+  categoryId: string
+
   // Highlighting state
-  highlightedItemId: string | null;
-  highlightTimestamp: number | null;
+  highlightedItemId: string | null
+  highlightTimestamp: number | null
 
   // Actions
-  changeState: (state: number) => void;
-  setOrderItems: (orderItems: OrderItem[]) => void;
-  clearAllItems: () => void;
-  updateQuantity: (itemId: string, change: number, itemData: InventoryItem) => void;
-  setTable: (table: any) => void;
-  setCategoryId: (categoryId: string) => void;
-  
+  changeState: (state: number) => void
+  setOrderItems: (orderItems: OrderItem[]) => void
+  clearAllItems: () => void
+  updateQuantity: (
+    itemId: string,
+    change: number,
+    itemData: InventoryItem,
+  ) => void
+  setTable: (table: any) => void
+  setCategoryId: (categoryId: string) => void
+
   // Highlighting actions
-  setHighlightedItem: (itemId: string | null) => void;
-  clearHighlight: () => void;
+  setHighlightedItem: (itemId: string | null) => void
+  clearHighlight: () => void
 
   // table functions
-  setRefetchTablesFunction: (fn: (() => Promise<void>) | null) => void;
-  refetchTables: () => Promise<void>;
-  refetchTablesFunction: (() => Promise<void>) | null;
-  
-  // Computed getters 
-  getTotalAmount: () => number;                                                
+  setRefetchTablesFunction: (fn: (() => Promise<void>) | null) => void
+  refetchTables: () => Promise<void>
+  refetchTablesFunction: (() => Promise<void>) | null
+
+  // Computed getters
+  getTotalAmount: () => number
 }
 
 export const useTableStore = create<TableStoreProps>((set, get) => ({
@@ -66,8 +71,8 @@ export const useTableStore = create<TableStoreProps>((set, get) => ({
   quantities: {},
   itemsData: {},
   table: {},
-  categoryId: "",
-  
+  categoryId: '',
+
   // Highlighting initial state
   highlightedItemId: null,
   highlightTimestamp: null,
@@ -77,23 +82,23 @@ export const useTableStore = create<TableStoreProps>((set, get) => ({
 
   // Actions
   setCategoryId: (categoryId) => {
-    set({ categoryId });
+    set({ categoryId })
   },
   changeState: (state) => {
-    set({ currentState: state });
+    set({ currentState: state })
   },
-  setOrderItems: (orderItems) => { 
-    set({ orderItems });
+  setOrderItems: (orderItems) => {
+    set({ orderItems })
   },
   clearAllItems: () => {
-    set({ 
-      orderItems: [], 
+    set({
+      orderItems: [],
       quantities: {},
-      itemsData: {}
-    });
+      itemsData: {},
+    })
   },
   updateQuantity: (itemId, change, itemData) => {
-    const newQuantity = Math.max(0, (get().quantities[itemId] || 0) + change);
+    const newQuantity = Math.max(0, (get().quantities[itemId] || 0) + change)
 
     set((state) => {
       const newState = {
@@ -102,40 +107,40 @@ export const useTableStore = create<TableStoreProps>((set, get) => ({
           ...state.quantities,
           [itemId]: newQuantity,
         },
-      }; 
+      }
 
       // Store item data when quantity > 0, remove when quantity = 0
       if (newQuantity > 0) {
         newState.itemsData = {
           ...state.itemsData,
           [itemId]: itemData,
-        };
+        }
       } else {
-        const { [itemId]: removed, ...remainingItemsData } = state.itemsData;
-        newState.itemsData = remainingItemsData;
+        const { [itemId]: removed, ...remainingItemsData } = state.itemsData
+        newState.itemsData = remainingItemsData
       }
 
-      return newState;
-    });
+      return newState
+    })
 
     // Update orderItems based on current state
-    const updatedState = get();
+    const updatedState = get()
 
     const selectedItems = Object.entries(updatedState.quantities)
       .filter(([_, quantity]) => quantity > 0)
       .map(([itemId, quantity]) => {
-        const item = updatedState.itemsData[itemId];
-        if (!item) return null; 
+        const item = updatedState.itemsData[itemId]
+        if (!item) return null
 
         // Check if this is a variant item (has underscore and variant in ID)
-        const isVariant = itemId.includes('_variant_');
-        let originalItemId = '';
-        let variantId = '';
-        
+        const isVariant = itemId.includes('_variant_')
+        let originalItemId = ''
+        let variantId = ''
+
         if (isVariant) {
-          const parts = itemId.split('_variant_');
-          originalItemId = parts[0];
-          variantId = parts[1];
+          const parts = itemId.split('_variant_')
+          originalItemId = parts[0]
+          variantId = parts[1]
         }
 
         return {
@@ -145,51 +150,54 @@ export const useTableStore = create<TableStoreProps>((set, get) => ({
           isVariant,
           originalItemId: isVariant ? originalItemId : undefined,
           variantId: isVariant ? variantId : undefined,
-        };
+        }
       })
-      .filter(Boolean) as OrderItem[]; 
+      .filter(Boolean) as OrderItem[]
 
-    set({ orderItems: selectedItems });
+    set({ orderItems: selectedItems })
   },
   setTable: (table) => {
-    set({ table });
-  }, 
+    set({ table })
+  },
 
   // Highlighting actions
   setHighlightedItem: (itemId) => {
-    const timestamp = Date.now();
-    set({ 
+    const timestamp = Date.now()
+    set({
       highlightedItemId: itemId,
-      highlightTimestamp: timestamp
-    });
+      highlightTimestamp: timestamp,
+    })
   },
-  
+
   clearHighlight: () => {
-    set({ 
+    set({
       highlightedItemId: null,
-      highlightTimestamp: null
-    });
+      highlightTimestamp: null,
+    })
   },
 
   // table functions
   setRefetchTablesFunction(fn) {
-    set({ refetchTablesFunction: fn });
+    set({ refetchTablesFunction: fn })
   },
   refetchTables: async () => {
-    const { refetchTablesFunction } = get();
+    const { refetchTablesFunction } = get()
     if (refetchTablesFunction) {
       try {
-        await refetchTablesFunction();
+        await refetchTablesFunction()
       } catch (error) {
-        console.error('Error refetching tables:', error);
+        console.error('Error refetching tables:', error)
       }
     } else {
-      console.warn('No refetch function available');
+      console.warn('No refetch function available')
     }
   },
 
   getTotalAmount: () => {
-    const selectedItems = get().orderItems;
-    return selectedItems.reduce((sum, orderItem) => sum + orderItem.totalPrice, 0);
-  }, 
-}));
+    const selectedItems = get().orderItems
+    return selectedItems.reduce(
+      (sum, orderItem) => sum + orderItem.totalPrice,
+      0,
+    )
+  },
+}))

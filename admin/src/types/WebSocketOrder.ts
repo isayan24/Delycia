@@ -14,6 +14,11 @@ export interface WebSocketOrderItem {
   special_instructions: string
   preparation_time?: number
   discount_amount?: number
+  addons?: {
+    name: string
+    price: number
+    quantity: number
+  }[]
 }
 
 export interface WebSocketOrder {
@@ -43,6 +48,11 @@ export interface ProcessedOrderItem {
   special_instructions: string
   preparation_time?: number
   discount_amount?: number
+  addons?: {
+    name: string
+    price: number
+    quantity: number
+  }[]
 }
 
 export interface ProcessedOrder {

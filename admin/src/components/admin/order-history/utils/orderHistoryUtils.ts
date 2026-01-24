@@ -30,6 +30,9 @@ export interface TransformedOrderItem {
   name: string
   quantity: number
   price: number
+  addons?: any[]
+  variant_name?: string | null
+  item_name?: string
 }
 
 export interface CustomerInfo {
@@ -232,7 +235,9 @@ export const transformOrderData = (apiOrders: any[]): TransformedOrder[] => {
   if (!apiOrders || apiOrders.length === 0) {
     return []
   }
-
+  if (!apiOrders || apiOrders.length === 0) {
+    return []
+  }
   // Check if this is the new grouped structure (has cart_id and items field)
   // items can be either a string (JSON from MySQL) or already parsed array
   const isGroupedStructure =
@@ -253,7 +258,6 @@ export const transformOrderData = (apiOrders: any[]): TransformedOrder[] => {
             items = []
           }
         }
-
         // Ensure items is an array
         if (!Array.isArray(items)) {
           items = []
@@ -261,11 +265,28 @@ export const transformOrderData = (apiOrders: any[]): TransformedOrder[] => {
 
         // Transform items to TransformedOrderItem format
         const transformedItems: TransformedOrderItem[] = items.map(
-          (item: any) => ({
-            name: item.item_name || `Item #${item.item_id}`,
-            quantity: item.quantity || 1,
-            price: item.price || 0,
-          }),
+          (item: any) => {
+            let addons = item.addons
+
+            // Safe parse addons if it's a string
+            if (typeof addons === 'string') {
+              try {
+                addons = JSON.parse(addons)
+              } catch (e) {
+                console.error('Failed to parse addons JSON:', e)
+                addons = []
+              }
+            }
+
+            return {
+              name: item.item_name || `Item #${item.item_id}`,
+              item_name: item.item_name,
+              quantity: item.quantity || 1,
+              price: item.price || 0,
+              variant_name: item.variant_name,
+              addons: Array.isArray(addons) ? addons : [],
+            }
+          },
         )
 
         return {

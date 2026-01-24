@@ -129,6 +129,8 @@ const OrderInfoList = memo(function OrderInfoList({
       name: item.name,
       quantity: item.quantity,
       price: item.price,
+      variant_name: item.variant_name,
+      addons: item.addons,
     }))
 
     const billData = {

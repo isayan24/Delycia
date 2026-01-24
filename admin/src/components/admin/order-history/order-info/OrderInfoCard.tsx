@@ -56,7 +56,10 @@ const OrderInfoCard = memo(function OrderInfoCard({
     const remainingCount = items.length - 2
 
     let itemsText = displayItems
-      .map((item) => `${item.quantity} x ${item.name}`)
+      .map((item) => {
+        const variantText = item.variant_name ? ` (${item.variant_name})` : ''
+        return `${item.quantity} x ${item.name}${variantText}`
+      })
       .join(', ')
 
     if (remainingCount > 0) {

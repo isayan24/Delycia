@@ -113,6 +113,7 @@ export const Route = createFileRoute('/api/waiter-orders')({
                 table_no: table?.table_number || 0,
                 placed_by_staff_id: staffId,
                 placed_by_role_id: staffRole,
+                addons: item.addons, // Pass addons to backend
               }),
             )
 
