@@ -1,51 +1,17 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-// import { fetchCategories } from "@/helpers/categories/fetchCategories"; // OLD - Replaced with TanStack Query
-import { useCategoriesQuery } from '@/hooks/queries' // NEW - TanStack Query hook
+import { useCategoriesQuery } from '@/hooks/queries'
 import { useInventoryItems } from '@/hooks/useInventoryItems'
 import { useEffect, useState, useMemo } from 'react'
-import { Plus, Minus, ShoppingCart, ChevronDown, ChevronUp } from 'lucide-react'
-import { Separator } from '@/components/ui/separator'
+import { ShoppingCart } from 'lucide-react'
 import { useTableStore } from '@/store/useTableStore'
 import OrderHeader from './OrderHeader'
 import axiosInstance from '@/lib/axios'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
-import AddonSelection from './AddonSelection' // New import
-import { useQueryClient } from '@tanstack/react-query'
+import InventoryItemRow from './InventoryItemRow'
+import { Category, Item, Variant } from '@/types/menu.types'
 
-interface Category {
-  id: string
-  name: string
-}
-
-interface InventoryItem {
-  id: string
-  name: string
-  price: number
-  description?: string
-  image?: string
-  category_id: string
-  stock?: number
-}
-
-interface Variant {
-  id: string
-  name: string
-  price: number
-  inventory_id: string
-}
-
-interface OrderItem {
-  item: InventoryItem
-  quantity: number
-  totalPrice: number
-}
-
-interface SelectOrderProps {
-  onOrderSubmit?: (orderItems: OrderItem[]) => void
-}
-
-export default function SelectOrder({ onOrderSubmit }: SelectOrderProps) {
+export default function SelectOrder() {
   const {
     quantities,
     orderItems,
@@ -61,51 +27,39 @@ export default function SelectOrder({ onOrderSubmit }: SelectOrderProps) {
 
   const { selectedRid } = useRestaurantSelector()
 
-  // NEW - Use TanStack Query for categories 🚀
   const { data: categoriesData } = useCategoriesQuery(selectedRid)
 
-  const [allItems, setAllItems] = useState<InventoryItem[]>([])
+  const [allItems, setAllItems] = useState<Item[]>([])
   const [variants, setVariants] = useState<Record<string, Variant[]>>({})
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
-  const [addonModalItem, setAddonModalItem] = useState<{
-    item: InventoryItem
-    variant?: Variant
-  } | null>(null)
 
   const {
     items,
-    loading,
     error,
     allItems: allItemsFromApi,
   } = useInventoryItems(categoryId)
 
-  // NEW - Filter categories that have items using useMemo for optimization
   const categories = useMemo(() => {
     if (!categoriesData?.categories || allItemsFromApi.length === 0) {
       return []
     }
 
-    // Get unique category IDs from items
     const categoryIdsInItems = [
       ...new Set(
         allItemsFromApi.map((item) => item.category_id).filter(Boolean),
       ),
     ]
 
-    // Filter categories that exist in allItemsFromApi
     return categoriesData.categories.filter((category: any) =>
       categoryIdsInItems.includes(category.id),
     )
   }, [categoriesData, allItemsFromApi])
 
-  // Set first available category as default
   useEffect(() => {
     if (categories.length > 0 && !categoryId) {
       setCategoryId(categories[0].id)
     }
   }, [categories, categoryId, setCategoryId])
 
-  // Store all items from all categories
   useEffect(() => {
     if (items.length > 0) {
       setAllItems((prev) => {
@@ -118,13 +72,11 @@ export default function SelectOrder({ onOrderSubmit }: SelectOrderProps) {
     }
   }, [items])
 
-  // Fetch variants for all items in current category
   useEffect(() => {
     const fetchVariantsForCategory = async () => {
       if (items.length === 0) return
 
       try {
-        // Fetch variants for all items in parallel
         const variantPromises = items.map(async (item) => {
           try {
             const response = await axiosInstance.get(
@@ -142,7 +94,6 @@ export default function SelectOrder({ onOrderSubmit }: SelectOrderProps) {
 
         const variantResults = await Promise.all(variantPromises)
 
-        // Update variants state
         setVariants((prev) => {
           const newVariants = { ...prev }
           variantResults.forEach(({ itemId, variants: itemVariants }) => {
@@ -158,7 +109,6 @@ export default function SelectOrder({ onOrderSubmit }: SelectOrderProps) {
     fetchVariantsForCategory()
   }, [items])
 
-  // Handle animation cleanup after highlighting
   useEffect(() => {
     if (highlightedItemId && highlightTimestamp) {
       const timer = setTimeout(() => {
@@ -168,7 +118,6 @@ export default function SelectOrder({ onOrderSubmit }: SelectOrderProps) {
     }
   }, [highlightedItemId, highlightTimestamp, clearHighlight])
 
-  // Cleanup highlighting on component unmount
   useEffect(() => {
     return () => {
       if (highlightedItemId) {
@@ -180,19 +129,16 @@ export default function SelectOrder({ onOrderSubmit }: SelectOrderProps) {
   const handleQuantityUpdate = (
     itemId: string,
     change: number,
-    itemData?: InventoryItem,
+    itemData?: Item,
     variant?: Variant,
   ) => {
-    // Create a unique key for variant items
     const uniqueId = variant ? `${itemId}_variant_${variant.id}` : itemId
-    // Find the current item data
     const currentItem =
       itemData ||
       items.find((item) => item.id === itemId) ||
       allItems.find((item) => item.id === itemId)
 
     if (currentItem) {
-      // Create modified item data for variants
       const modifiedItem = variant
         ? {
             ...currentItem,
@@ -206,58 +152,28 @@ export default function SelectOrder({ onOrderSubmit }: SelectOrderProps) {
     }
   }
 
-  const toggleItemExpansion = (itemId: string) => {
-    setExpandedItems((prev) => {
-      const newSet = new Set(prev)
-      if (newSet.has(itemId)) {
-        newSet.delete(itemId)
-      } else {
-        newSet.add(itemId)
-      }
-      return newSet
-    })
-  }
-
-  // Get quantity for item or variant
   const getQuantity = (itemId: string, variant?: Variant) => {
-    // We only check pure item ID or variant ID here for the display counter
-    // This simple check might need improvement if we want to show total across all addon-configurations of this item
-    // But for now, sticking to the standard ID check used in the store might be limiting if we change IDs.
-    // However, for the LIST view, we usually show if *any* of this item is added?
-    // Or just show 0 if custom configurations exist?
-    // Current implementation of store uses specific keys.
-    // If I add "Burger_addon_1", the quantity for "Burger" (id=1) will be 0.
-    // So the list view will show "Add" button again. This is actually expected behavior for customizable items (you can configure another one).
-
     const uniqueId = variant ? `${itemId}_variant_${variant.id}` : itemId
     return quantities[uniqueId] || 0
   }
 
-  const handleAddItemWithAddons = (item: InventoryItem, variant?: Variant) => {
-    setAddonModalItem({ item, variant })
-  }
-
-  const handleConfirmAddons = (selectedAddons: any[]) => {
-    if (!addonModalItem) return
-
-    const { item, variant } = addonModalItem
-
+  // Unified Add Item Handler
+  const onAddItem = (item: Item, variant?: Variant, addons: any[] = []) => {
     let uniqueId = variant ? `${item.id}_variant_${variant.id}` : item.id
     let finalPrice = variant ? variant.price : item.price
     let finalName = variant ? `${item.name} - ${variant.name}` : item.name
 
-    // If addons selected, append to ID and Name, update Price
-    if (selectedAddons.length > 0) {
-      const sortedAddonIds = selectedAddons
+    if (addons.length > 0) {
+      const sortedAddonIds = addons
         .map((a) => a.id)
         .sort()
         .join('_')
       uniqueId = `${uniqueId}_addons_${sortedAddonIds}`
 
-      const addonsPrice = selectedAddons.reduce((sum, a) => sum + a.price, 0)
+      const addonsPrice = addons.reduce((sum, a) => sum + a.price, 0)
       finalPrice += addonsPrice
 
-      const addonNames = selectedAddons.map((a) => a.name).join(', ')
+      const addonNames = addons.map((a) => a.name).join(', ')
       finalName = `${finalName} (+ ${addonNames})`
     }
 
@@ -268,11 +184,10 @@ export default function SelectOrder({ onOrderSubmit }: SelectOrderProps) {
       price: finalPrice,
       isVariant: !!variant,
       variantId: variant?.id,
-      addons: selectedAddons, // Store addons in the item data
+      addons: addons,
     }
 
     updateQuantity(uniqueId, 1, modifiedItem)
-    setAddonModalItem(null)
   }
 
   const totalAmount = getTotalAmount()
@@ -298,7 +213,7 @@ export default function SelectOrder({ onOrderSubmit }: SelectOrderProps) {
       </header>
 
       <Tabs value={categoryId} className="px-5s">
-        <TabsList className="!bg-white mb-4 overflow-auto w-full rounded-none justify-start text-sm">
+        <TabsList className="bg-white! mb-4 overflow-auto w-full rounded-none justify-start text-sm">
           {categories.length > 0 &&
             categories.map((category: Category) => (
               <TabsTrigger
@@ -318,7 +233,7 @@ export default function SelectOrder({ onOrderSubmit }: SelectOrderProps) {
             className={`mt-0 p-2 overflow-y-auto ${
               orderItems.length > 0
                 ? 'h-[calc(100vh-25rem)]'
-                : 'h-[calc(100vh-15rem)] max-[768px]:pb-[2rem]'
+                : 'h-[calc(100vh-15rem)] max-[500px]:pb-8'
             }`}
           >
             {items.length === 0 ? (
@@ -329,189 +244,18 @@ export default function SelectOrder({ onOrderSubmit }: SelectOrderProps) {
               </div>
             ) : (
               <div className="space-y-0 border rounded-md shadow-sm">
-                {items.map((item: InventoryItem, index) => {
-                  const isHighlighted = highlightedItemId === item.id
-                  const itemVariants = variants[item.id] || []
-                  const hasVariants = itemVariants.length > 0
-                  const isExpanded = expandedItems.has(item.id)
-
+                {items.map((item: Item, index) => {
                   return (
-                    <div key={item.id}>
-                      {/* Main Item */}
-                      <div
-                        className={`p-4 flex items-center gap-4 transition-all rounded-md duration-200 ${
-                          isHighlighted ? 'item-highlight-blink' : ''
-                        }`}
-                      >
-                        {/* Item Details */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-lg text-gray-900 dark:text-white mb-1">
-                              {item.name}
-                            </h3>
-                            {hasVariants && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => toggleItemExpansion(item.id)}
-                                className="p-1 h-6 w-6"
-                              >
-                                {isExpanded ? (
-                                  <ChevronUp className="h-3 w-3" />
-                                ) : (
-                                  <ChevronDown className="h-3 w-3" />
-                                )}
-                              </Button>
-                            )}
-                          </div>
-                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            ₹{item.price.toFixed(2)}{' '}
-                            {hasVariants ? '(Full)' : 'each'}
-                          </p>
-                          {hasVariants && (
-                            <p className="text-xs text-gray-500">
-                              {itemVariants.length} variant
-                              {itemVariants.length > 1 ? 's' : ''} available
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Quantity Controls for Main Item */}
-                        <div className="flex items-center gap-4 !transition-none">
-                          {getQuantity(item.id) ? (
-                            <div className="!transition-none flex items-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 !transition-none"
-                                onClick={() =>
-                                  handleQuantityUpdate(item.id, -1, item)
-                                }
-                              >
-                                <Minus className="h-4 w-4" />
-                              </Button>
-                              <span className="w-8 text-center font-semibold">
-                                {getQuantity(item.id)}
-                              </span>
-                              <Button
-                                disabled={
-                                  item.stock
-                                    ? getQuantity(item.id) === item.stock
-                                    : false
-                                }
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 !transition-none"
-                                onClick={() =>
-                                  handleQuantityUpdate(item.id, 1, item)
-                                }
-                              >
-                                <Plus className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="text-right min-w-[80px] !transition-none">
-                              <Button
-                                size="sm"
-                                className="text-sm px-4 w-full !transition-none"
-                                onClick={() => handleAddItemWithAddons(item)}
-                              >
-                                Add
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* mark Variants Section */}
-                      {hasVariants && isExpanded && (
-                        <div className="bg-gray-50 dark:bg-gray-800/50 border-t">
-                          <div className="px-4 py-2">
-                            <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                              Available Sizes:
-                            </p>
-                            <div className="space-y-2">
-                              {itemVariants.map((variant) => (
-                                <div
-                                  key={variant.id}
-                                  className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded border"
-                                >
-                                  <div className="flex-1">
-                                    <p className="font-medium text-gray-900 dark:text-white">
-                                      {variant.name}
-                                    </p>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                                      ₹{variant.price.toFixed(2)}
-                                    </p>
-                                  </div>
-
-                                  {/* Variant Quantity Controls */}
-                                  <div className="flex items-center gap-2">
-                                    {getQuantity(item.id, variant) ? (
-                                      <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-6 w-6"
-                                          onClick={() =>
-                                            handleQuantityUpdate(
-                                              item.id,
-                                              -1,
-                                              item,
-                                              variant,
-                                            )
-                                          }
-                                        >
-                                          <Minus className="h-3 w-3" />
-                                        </Button>
-                                        <span className="w-6 text-center font-semibold text-sm">
-                                          {getQuantity(item.id, variant)}
-                                        </span>
-                                        <Button
-                                          variant="ghost"
-                                          disabled={
-                                            item.stock
-                                              ? getQuantity(
-                                                  item.id,
-                                                  variant,
-                                                ) === item.stock
-                                              : false
-                                          }
-                                          size="icon"
-                                          className="h-6 w-6"
-                                          onClick={() =>
-                                            handleQuantityUpdate(
-                                              item.id,
-                                              1,
-                                              item,
-                                              variant,
-                                            )
-                                          }
-                                        >
-                                          <Plus className="h-3 w-3" />
-                                        </Button>
-                                      </div>
-                                    ) : (
-                                      <Button
-                                        size="sm"
-                                        className="text-xs px-3 py-1"
-                                        onClick={() =>
-                                          handleAddItemWithAddons(item, variant)
-                                        }
-                                      >
-                                        Add
-                                      </Button>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {index < items.length - 1 && <Separator />}
-                    </div>
+                    <InventoryItemRow
+                      key={item.id}
+                      item={item}
+                      variants={variants[item.id] || []}
+                      getQuantity={getQuantity}
+                      onUpdateQuantity={handleQuantityUpdate}
+                      onAddItem={onAddItem}
+                      isLast={index === items.length - 1}
+                      highlightedItemId={highlightedItemId}
+                    />
                   )
                 })}
               </div>
@@ -522,7 +266,7 @@ export default function SelectOrder({ onOrderSubmit }: SelectOrderProps) {
 
       {/* Order Summary and Add to Order Button */}
       {orderItems.length > 0 && (
-        <div className="fixed max-[768px]:bottom-[3rem] bottom-[1rem] w-full bg-white dark:bg-gray-900 border-t p-4 mt-6">
+        <div className="fixed max-[500px]:bottom-12 bottom-4 w-full bg-white dark:bg-gray-900 border-t p-4 mt-6">
           <div className="max-w-4xl">
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -543,28 +287,6 @@ export default function SelectOrder({ onOrderSubmit }: SelectOrderProps) {
             </Button>
           </div>
         </div>
-      )}
-      {addonModalItem && (
-        <AddonSelection
-          isOpen={!!addonModalItem}
-          onClose={() => setAddonModalItem(null)}
-          itemId={
-            addonModalItem.variant
-              ? `${addonModalItem.item.id}_variant_${addonModalItem.variant.id}`
-              : addonModalItem.item.id
-          }
-          itemName={
-            addonModalItem.variant
-              ? `${addonModalItem.item.name} - ${addonModalItem.variant.name}`
-              : addonModalItem.item.name
-          }
-          itemPrice={
-            addonModalItem.variant
-              ? addonModalItem.variant.price
-              : addonModalItem.item.price
-          }
-          onConfirm={handleConfirmAddons}
-        />
       )}
     </div>
   )

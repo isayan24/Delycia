@@ -4,10 +4,18 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTrigger,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer'
 import { cn } from '@/lib/utils'
 import { Item, Variant } from '@/types/menu.types'
 import { ShoppingBag } from 'lucide-react'
 import AddonSelector from './AddonSelector'
+import { useMediaQuery } from '@/hooks/use-media-query'
 
 interface MenuGridItemProps {
   item: Item
@@ -28,6 +36,7 @@ export default function MenuGridItem({
   onAddItem,
 }: MenuGridItemProps) {
   const hasVariants = variants.length > 0
+  const isDesktop = useMediaQuery('(min-width: 768px)')
 
   const itemQuantity = (cart || [])
     .filter(
@@ -101,18 +110,17 @@ export default function MenuGridItem({
           {item.name}
         </h3>
 
-        <div className="flex items-center justify-between mt-auto">
-          <div className="flex flex-col">
-            <span className="font-bold text-base text-primary">
-              {hasVariants ? 'From ' : ''}₹{item.price || item.cost_price || 0}
-            </span>
+        <div className="flex flex-wrap justify-between">
+          <div className="font-bold text-base text-primary">
+            {hasVariants ? 'From ' : ''}₹{item.price || item.cost_price || 0}
           </div>
-
-          {hasVariants && (
-            <span className="text-[10px] text-muted-foreground bg-slate-100 px-1.5 py-0.5 rounded-full">
-              {variants.length + 1} sizes
-            </span>
-          )}
+          <div>
+            {hasVariants && (
+              <span className="text-[10px] whitespace-nowrap text-muted-foreground bg-slate-200 px-1.5 py-0.5 rounded-full">
+                {variants.length + 1} sizes
+              </span>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -126,6 +134,47 @@ export default function MenuGridItem({
     )
   }
 
+  // Mobile Drawer
+  if (!isDesktop) {
+    return (
+      <Drawer
+        open={isCustomizing}
+        onOpenChange={(isOpen) => {
+          if (isOpen) setCustomizingId(item.id)
+          else if (isCustomizing) setCustomizingId(null)
+        }}
+      >
+        <DrawerTrigger asChild>
+          <div>
+            <ItemCard onClick={() => setCustomizingId(item.id)} />
+          </div>
+        </DrawerTrigger>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle className="hidden">Customize Item</DrawerTitle>
+          </DrawerHeader>
+          <div className="p-4 pt-2">
+            <AddonSelector
+              className="w-full"
+              originalItemId={item.id}
+              basePrice={item.price || item.cost_price || 0}
+              variants={displayVariants}
+              onAdd={(addons, selectedVariant) => {
+                if (selectedVariant && selectedVariant.id === 'original_full') {
+                  onAddItem(item, undefined, addons)
+                } else {
+                  onAddItem(item, selectedVariant, addons)
+                }
+              }}
+              onCancel={() => setCustomizingId(null)}
+            />
+          </div>
+        </DrawerContent>
+      </Drawer>
+    )
+  }
+
+  // Desktop Popover
   return (
     <Popover
       open={isCustomizing}
@@ -146,6 +195,7 @@ export default function MenuGridItem({
         sideOffset={10}
       >
         <AddonSelector
+          className="w-[300px]"
           originalItemId={item.id}
           basePrice={item.price || item.cost_price || 0}
           variants={displayVariants}

@@ -1,9 +1,16 @@
 import { useState, useCallback } from 'react'
-import { Card } from '@/components/ui/card'
 import MenuSection from './MenuSection'
-import BillSummary from './BillSummary'
-import CustomerSearch from './CustomerSearch'
 import { Item } from '@/types/menu.types'
+import { useMediaQuery } from '@/hooks/use-media-query'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTrigger,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer'
+import QuickBillSidebar from './QuickBillSidebar'
+import { Button } from '@/components/ui/button'
 
 export interface CartItem extends Item {
   quantity: number
@@ -22,6 +29,7 @@ export default function QuickBillMain() {
     null,
   )
   const [discount, setDiscount] = useState<number>(0)
+  const isDesktop = useMediaQuery('(min-width: 768px)')
 
   const addToCart = useCallback((item: Item) => {
     setCart((prev) => {
@@ -55,35 +63,71 @@ export default function QuickBillMain() {
     setDiscount(0)
   }, [])
 
+  // Mobile Summary Calculations
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0)
+  const subtotal = cart.reduce(
+    (sum, item) => sum + (item.price ?? item.cost_price) * item.quantity,
+    0,
+  )
+  const totalAmount = Math.max(0, subtotal - discount)
+
   return (
-    <div className="flex h-full gap-1 text-black">
+    <div className="flex h-full gap-1 text-black relative">
       {/* Left Side: Menu Selection */}
-      <div className="flex-1 min-w-0">
+      <div className={`flex-1 min-w-0 ${!isDesktop ? 'pb-20' : ''}`}>
         <MenuSection addToCart={addToCart} cart={cart} />
       </div>
 
-      {/* Right Side: Bill Summary & Customer */}
-      <div className="w-[380px] flex flex-col gap-3">
-        <Card className="flex-1 flex flex-col overflow-hidden p-3 gap-3">
-          <h2 className="text-lg font-bold">Quick Bill</h2>
-
-          <CustomerSearch
+      {/* Desktop Right Side */}
+      {isDesktop ? (
+        <div className="w-[380px] flex flex-col gap-3">
+          <QuickBillSidebar
             selectedCustomer={selectedCustomer}
-            onSelectCustomer={setSelectedCustomer}
+            setSelectedCustomer={setSelectedCustomer}
+            cart={cart}
+            updateQuantity={updateQuantity}
+            onOrderComplete={clearCart}
+            discount={discount}
+            setDiscount={setDiscount}
           />
-
-          <div className="flex-1 overflow-hidden min-h-0">
-            <BillSummary
-              cart={cart}
-              updateQuantity={updateQuantity}
-              selectedCustomer={selectedCustomer}
-              onOrderComplete={clearCart}
-              discount={discount}
-              setDiscount={setDiscount}
-            />
-          </div>
-        </Card>
-      </div>
+        </div>
+      ) : (
+        /* Mobile Bottom Bar & Drawer */
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg z-50">
+          <Drawer>
+            <DrawerTrigger asChild>
+              <Button
+                className="w-full h-12 flex justify-between items-center text-lg"
+                size="lg"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="bg-primary-foreground/20 px-2 py-0.5 rounded text-sm font-bold">
+                    {totalItems}
+                  </div>
+                  <span className="text-sm font-normal">View Bill</span>
+                </div>
+                <div className="font-bold">₹{totalAmount.toFixed(2)}</div>
+              </Button>
+            </DrawerTrigger>
+            <DrawerContent className="h-[85vh]">
+              <DrawerHeader>
+                <DrawerTitle>Current Order</DrawerTitle>
+              </DrawerHeader>
+              <div className="h-full px-4 pb-4">
+                <QuickBillSidebar
+                  selectedCustomer={selectedCustomer}
+                  setSelectedCustomer={setSelectedCustomer}
+                  cart={cart}
+                  updateQuantity={updateQuantity}
+                  onOrderComplete={clearCart}
+                  discount={discount}
+                  setDiscount={setDiscount}
+                />
+              </div>
+            </DrawerContent>
+          </Drawer>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,29 +1,14 @@
 import { create } from 'zustand'
+import { Item } from '@/types/menu.types'
 
-interface InventoryItem {
-  id: string
-  name: string
-  price: number
-  description?: string
-  image?: string
-  category_id: string
-  addons?: any[]
-}
-
-interface OrderItem {
-  id: string
-  name: string
-  price: number
-  description?: string
-  image?: string
-  category_id: string
+interface OrderItem extends Item {
   // Order-specific properties
   quantity: number
   totalPrice: number
   // Variant tracking
   isVariant?: boolean
+  originalItemId?: string
   variantId?: string
-  addons?: any[]
 }
 
 interface TableStoreProps {
@@ -31,7 +16,7 @@ interface TableStoreProps {
   currentState: number
   orderItems: OrderItem[]
   quantities: Record<string, number>
-  itemsData: Record<string, InventoryItem>
+  itemsData: Record<string, Item>
   table: any
   categoryId: string
 
@@ -43,11 +28,7 @@ interface TableStoreProps {
   changeState: (state: number) => void
   setOrderItems: (orderItems: OrderItem[]) => void
   clearAllItems: () => void
-  updateQuantity: (
-    itemId: string,
-    change: number,
-    itemData: InventoryItem,
-  ) => void
+  updateQuantity: (itemId: string, change: number, itemData: Item) => void
   setTable: (table: any) => void
   setCategoryId: (categoryId: string) => void
 

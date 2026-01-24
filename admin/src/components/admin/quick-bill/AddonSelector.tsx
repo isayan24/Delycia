@@ -5,6 +5,7 @@ import { Loader2, Minus, Plus } from 'lucide-react'
 import { useItemAddonsQuery } from '@/hooks/queries/useItemAddonsQuery'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Variant } from '@/types/menu.types'
+import { cn } from '@/lib/utils'
 
 interface AddonType {
   id: number
@@ -22,6 +23,7 @@ interface AddonSelectorProps {
   variants?: Variant[]
   onAdd: (addons: AddonType[], variant?: Variant) => void
   onCancel: () => void
+  className?: string
 }
 
 export default function AddonSelector({
@@ -30,6 +32,7 @@ export default function AddonSelector({
   variants = [],
   onAdd,
   onCancel,
+  className,
 }: AddonSelectorProps) {
   const [addonQuantities, setAddonQuantities] = useState<
     Record<number, number>
@@ -119,7 +122,7 @@ export default function AddonSelector({
 
   return (
     <div
-      className="w-[300px] flex flex-col gap-3 p-1"
+      className="w-[300px] flex flex-col gap-3 p-1 max-[500px]:w-full"
       onClick={(e) => e.stopPropagation()}
     >
       <div className="flex items-center justify-between px-1">
