@@ -91,35 +91,35 @@ export default function CuisineSelector({ onSelect }: CuisineSelectorProps) {
   }
 
   return (
-    <div className="py-6">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+    <div className="py-4">
+      <div className="text-center mb-6">
+        <h2 className="text-lg md:text-2xl font-bold text-gray-900 mb-1">
           Select Cuisine Type
         </h2>
-        <p className="text-gray-600">
+        <p className="text-xs md:text-base text-gray-600">
           Browse category templates organized by cuisine
         </p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {cuisines.map((cuisine: any) => {
           const icon = CUISINE_ICONS[cuisine.cuisine_type] || '🍽️'
 
           return (
             <Card
               key={cuisine.cuisine_type}
-              className="p-6 cursor-pointer hover:shadow-xl hover:border-orange-300 transition-all duration-200 border-2 group"
+              className="p-3 cursor-pointer hover:shadow-xl hover:border-orange-300 transition-all duration-200 border-2 group"
               onClick={() => onSelect(cuisine.cuisine_type)}
             >
-              <div className="flex flex-col items-center text-center space-y-3">
-                <div className="text-5xl group-hover:scale-110 transition-transform">
+              <div className="flex flex-col items-center text-center space-y-2">
+                <div className="text-3xl group-hover:scale-110 transition-transform">
                   {icon}
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-1">
+                  <h3 className="font-semibold text-sm text-gray-900 mb-0.5">
                     {cuisine.cuisine_type}
                   </h3>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-[10px] text-gray-500">
                     {cuisine.template_count}{' '}
                     {cuisine.template_count === 1 ? 'category' : 'categories'}
                   </p>

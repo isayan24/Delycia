@@ -6,12 +6,14 @@ import { Badge } from '@/components/ui/badge'
 import DeleteItem from './navigation/DeleteItem'
 import AddItemDetailsModal from './add-update-item/AddItemDetailsModal'
 import { ItemRow } from './ItemRow'
+import { CompactItemRow } from './CompactItemRow'
 import UpdateItemDetailsModal from './add-update-item/UpdateItemDetails'
 import { Plus, Package, ShoppingCart, AlertCircle } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useMenuStore } from '@/store/useMenuStore'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
-import { useCategoriesQuery } from '@/hooks/queries' // TanStack Query
+import { useCategoriesQuery } from '@/hooks/queries'
+import { useMediaQuery } from '@/hooks/use-media-query'
 
 export const ItemList = React.memo(() => {
   const { selectedRid } = useRestaurantSelector()
@@ -44,25 +46,42 @@ export const ItemList = React.memo(() => {
   const { items, loading, error, refetch } =
     useInventoryItems(selectedCategoryId)
 
+  const isDesktop = useMediaQuery('(min-width: 768px)')
+
   const itemList = useMemo(
     () =>
-      items?.map((item: any) => (
-        <ItemRow
-          key={item.id}
-          item={item}
-          onEdit={openEditItemDialog}
-          onDelete={openDeleteItemDialog}
-          isHighlighted={
-            highlightedItemType === 'inventory' && highlightedItemId === item.id
-          }
-        />
-      )),
+      items?.map((item: any) =>
+        isDesktop ? (
+          <ItemRow
+            key={item.id}
+            item={item}
+            onEdit={openEditItemDialog}
+            onDelete={openDeleteItemDialog}
+            isHighlighted={
+              highlightedItemType === 'inventory' &&
+              highlightedItemId === item.id
+            }
+          />
+        ) : (
+          <CompactItemRow
+            key={item.id}
+            item={item}
+            onEdit={openEditItemDialog}
+            onDelete={openDeleteItemDialog}
+            isHighlighted={
+              highlightedItemType === 'inventory' &&
+              highlightedItemId === item.id
+            }
+          />
+        ),
+      ),
     [
       items,
       openEditItemDialog,
       openDeleteItemDialog,
       highlightedItemId,
       highlightedItemType,
+      isDesktop,
     ],
   )
 
@@ -90,18 +109,18 @@ export const ItemList = React.memo(() => {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="p-6 pb-4 border-b border-gray-200 bg-gradient-to-r from-white to-gray-50">
-        <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="p-4 pb-2 rounded-t-md md:p-6 md:pb-4 border-b border-gray-200 bg-gradient-to-r from-white to-gray-50">
+        <div className="flex items-center justify-between gap-2 md:gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center shrink-0">
               <Package className="w-5 h-5 text-green-600" />
             </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">
+            <div className="min-w-0">
+              <h2 className="text-lg md:text-xl font-bold text-gray-900 truncate">
                 {selectedCategory.name}
               </h2>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant="secondary" className="text-xs">
+              <div className="flex items-center gap-2 mt-0.5 md:mt-1">
+                <Badge variant="secondary" className="text-[10px] md:text-xs">
                   {itemCount} {itemCount === 1 ? 'item' : 'items'}
                 </Badge>
               </div>
@@ -110,10 +129,11 @@ export const ItemList = React.memo(() => {
 
           <Button
             onClick={() => openAddItemDialog(selectedCategory)}
-            className="bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+            className="bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 h-8 text-xs px-3 md:h-10 md:text-sm md:px-4 shrink-0"
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Add New Item
+            <Plus className="w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+            <span className="md:hidden">Add New</span>
+            <span className="hidden md:inline">Add New Item</span>
           </Button>
           {/* ✅ Removed Refresh Categories button - auto-updates via mutations */}
         </div>
@@ -121,7 +141,7 @@ export const ItemList = React.memo(() => {
 
       {/* Items List */}
       <ScrollArea className="flex-1 overflow-auto">
-        <div className="p-4">
+        <div className="p-2 md:p-4">
           {loading ? (
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (

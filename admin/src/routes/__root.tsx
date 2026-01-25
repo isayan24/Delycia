@@ -143,7 +143,7 @@ function RootComponent() {
                   <RouteBreadcrumbs />
                 </header>
 
-                <div className="p-5 max-w-[90vw]s mx-autod borderx">
+                <div className="p-5 max-[500px]:p-1 max-w-[90vw]s mx-autod borderx">
                   <Toaster
                     position="top-center"
                     richColors

@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import {
   Search,
@@ -53,7 +52,7 @@ export default function TemplateGallery({
     // Filter templates based on search query
     if (searchQuery.trim()) {
       const filtered = templates.filter(
-        (template) =>
+        (template: CategoryTemplate) =>
           template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           template.description
             ?.toLowerCase()
@@ -86,9 +85,9 @@ export default function TemplateGallery({
             Back to Cuisines
           </Button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Skeleton key={i} className="h-64 rounded-lg" />
+            <Skeleton key={i} className="h-48 rounded-lg" />
           ))}
         </div>
       </div>
@@ -190,13 +189,13 @@ export default function TemplateGallery({
       </div>
 
       {/* Templates Grid */}
-      <ScrollArea className="h-[400px] pr-4">
+      <div className="pb-4">
         {filteredTemplates.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500">No templates match your search.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {filteredTemplates.map((template) => (
               <TemplateCard
                 key={template.id}
@@ -208,7 +207,7 @@ export default function TemplateGallery({
             ))}
           </div>
         )}
-      </ScrollArea>
+      </div>
 
       {/* Preview Modal */}
       {previewTemplate && (

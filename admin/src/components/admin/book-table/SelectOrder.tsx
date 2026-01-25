@@ -207,13 +207,13 @@ export default function SelectOrder() {
   }
 
   return (
-    <div className="overflow-x-hidden relative max-w-4xl mx-auto">
-      <header className="py-4 px-1 border-b">
+    <div className="flex flex-col h-full overflow-hidden relative max-w-4xl mx-auto">
+      <header className="py-4 px-1 border-b flex-none">
         <OrderHeader />
       </header>
 
-      <Tabs value={categoryId} className="px-5s">
-        <TabsList className="bg-white! mb-4 overflow-auto w-full rounded-none justify-start text-sm">
+      <Tabs value={categoryId} className="flex-1 flex flex-col min-h-0 px-5s">
+        <TabsList className="bg-white! mb-4 overflow-auto w-full rounded-none justify-start text-sm flex-none">
           {categories.length > 0 &&
             categories.map((category: Category) => (
               <TabsTrigger
@@ -230,11 +230,7 @@ export default function SelectOrder() {
           <TabsContent
             key={category.id}
             value={category.id}
-            className={`mt-0 p-2 overflow-y-auto ${
-              orderItems.length > 0
-                ? 'h-[calc(100vh-25rem)]'
-                : 'h-[calc(100vh-15rem)] max-[500px]:pb-8'
-            }`}
+            className="mt-0 p-2 overflow-y-auto flex-1 h-full pb-4"
           >
             {items.length === 0 ? (
               <div className="text-center py-8">
@@ -266,9 +262,9 @@ export default function SelectOrder() {
 
       {/* Order Summary and Add to Order Button */}
       {orderItems.length > 0 && (
-        <div className="fixed max-[500px]:bottom-12 bottom-4 w-full bg-white dark:bg-gray-900 border-t p-4 mt-6">
-          <div className="max-w-4xl">
-            <div className="flex items-center justify-between mb-4">
+        <div className="flex-none w-full bg-white dark:bg-gray-900 border-t p-2 z-50">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center justify-between mb-1">
               <div>
                 <h3 className="font-semibold text-lg">Order Summary</h3>
                 <p className="text-sm text-muted-foreground">
@@ -277,7 +273,9 @@ export default function SelectOrder() {
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-bold">₹{totalAmount}</p>
+                <p className="text-2xl font-bold max-[500px]:text-lg">
+                  ₹{totalAmount}
+                </p>
               </div>
             </div>
 

@@ -2,13 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   User,
   Phone,
@@ -187,257 +181,265 @@ export default function AddCustomerDetails() {
   }
 
   return (
-    <div className="h-[calc(100vh-5rem)] overflow-auto p-4">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <Button
-            variant="outline"
-            onClick={() => changeState(2)}
-            className="flex items-center gap-2 hover:bg-orange-100 border-orange-200"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Preview
-          </Button>
-          <div className="text-right">
-            <p className="text-sm text-orange-600 font-medium">
-              Table {table?.table_number || '#'}
-            </p>
-            <p className="text-lg font-bold text-orange-800">₹{finalAmount}</p>
-          </div>
-        </div>
-
-        {/* Main Card */}
-        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
-          <CardHeader className="text-center pb-6">
-            <div className="mx-auto w-16 h-16 bg-gradient-to-br from-orange-400 to-amber-500 rounded-full flex items-center justify-center mb-4">
-              <User className="h-8 w-8 text-white" />
+    <div className="h-full flex flex-col relative overflow-hidden">
+      <div className="flex-1 overflow-auto p-4 pb-32">
+        <div className="max-w-2xl mx-auto">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <Button
+              variant="outline"
+              onClick={() => changeState(2)}
+              className="flex items-center gap-2 hover:bg-orange-100 border-orange-200"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Preview
+            </Button>
+            <div className="text-right">
+              <p className="text-sm text-orange-600 font-medium">
+                Table {table?.table_number || '#'}
+              </p>
+              <p className="text-lg font-bold text-orange-800">
+                ₹{finalAmount}
+              </p>
             </div>
-            <CardTitle className="text-2xl font-bold text-gray-800">
-              Customer Details
-            </CardTitle>
-            <CardDescription className="text-gray-600">
-              Please provide your details to complete the order
-            </CardDescription>
-          </CardHeader>
+          </div>
 
-          <CardContent className="space-y-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Name Field with Autocomplete */}
-              <div className="space-y-2 relative" ref={searchRef}>
-                <Label
-                  htmlFor="name"
-                  className="text-sm font-medium text-gray-700 flex items-center gap-2"
-                >
-                  <User className="h-4 w-4 text-orange-500" />
-                  Full Name
-                </Label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Enter your full name"
-                  value={customerDetails.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  onFocus={() => setShowSearchResults(true)}
-                  autoComplete="off"
-                  className={`h-12 !text-[1.1rem] border-1 transition-all duration-200 focus:ring-1 focus:ring-orange-200 ${
-                    errors.name
-                      ? 'border-red-300 focus:border-red-400'
-                      : 'border-orange-200 focus:border-orange-400'
-                  }`}
-                />
-                {errors.name && (
-                  <p className="text-sm text-red-600 flex items-center gap-1">
-                    <span className="w-1 h-1 bg-red-600 rounded-full"></span>
-                    {errors.name}
-                  </p>
-                )}
-
-                {/* Search Results Dropdown */}
-                {showSearchResults && customerDetails.name.length > 0 && (
-                  <CustomerSearchDropdown
-                    isSearching={isSearching}
-                    searchError={searchError}
-                    searchResults={searchResults}
-                    onUserSelect={handleUserSelect}
-                  />
-                )}
-              </div>
-
-              {/* Mobile Field */}
-              <div className="space-y-2">
-                <Label
-                  htmlFor="phone_number"
-                  className="text-sm font-medium text-gray-700 flex items-center gap-2"
-                >
-                  <Phone className="h-4 w-4 text-orange-500" />
-                  Mobile Number
-                </Label>
-                <Input
-                  id="phone_number"
-                  type="tel"
-                  placeholder="Enter 10-digit mobile number"
-                  value={customerDetails.phone_number}
-                  onChange={(e) =>
-                    handleInputChange(
-                      'phone_number',
-                      e.target.value.replace(/\D/g, '').slice(0, 10),
-                    )
-                  }
-                  className={`h-12 !text-[1rem] border-1 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${
-                    errors.phone_number
-                      ? 'border-red-300 focus:border-red-400'
-                      : 'border-orange-200 focus:border-orange-400'
-                  }`}
-                />
-                {errors.phone_number && (
-                  <p className="text-sm text-red-600 flex items-center gap-1">
-                    <span className="w-1 h-1 bg-red-600 rounded-full"></span>
-                    {errors.phone_number}
-                  </p>
-                )}
-              </div>
-
-              {/* Special Instructions Toggle Button */}
-              {!showSpecialInstructions && (
-                <div className="flex justify-center">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowSpecialInstructions(true)}
-                    className="flex items-center gap-2 text-orange-600 border-orange-200 hover:bg-orange-50 hover:border-orange-300 transition-all duration-200"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Add Special Instructions
-                  </Button>
-                </div>
-              )}
-
-              {/* Special Instructions Field */}
-              {showSpecialInstructions && (
-                <div className="space-y-2">
+          {/* Main Card */}
+          <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+            <div className="flex items-center justify-center gap-2 px-6 pb-4 border-b border-gray-100">
+              <User className="h-4 w-4 text-orange-500" />
+              <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                Customer Details
+              </h2>
+            </div>
+            <CardContent className="space-y-6">
+              <form
+                id="customer-details-form"
+                onSubmit={handleSubmit}
+                className="space-y-6"
+              >
+                {/* Name Field with Autocomplete */}
+                <div className="space-y-2 relative" ref={searchRef}>
                   <Label
-                    htmlFor="special_instructions"
+                    htmlFor="name"
                     className="text-sm font-medium text-gray-700 flex items-center gap-2"
                   >
-                    <MessageSquare className="h-4 w-4 text-orange-500" />
-                    Special Instructions
-                    <span className="text-xs text-gray-500 font-normal">
-                      (Optional)
-                    </span>
+                    <User className="h-4 w-4 text-orange-500" />
+                    Full Name
                   </Label>
-                  <div className="relative">
-                    <Input
-                      id="special_instructions"
-                      type="text"
-                      placeholder="Any special requests or dietary requirements..."
-                      value={specialInstructions || ''}
-                      onChange={(e) => setSpecialInstructions(e.target.value)}
-                      className="h-12 text-base border-1 border-orange-200 focus:border-orange-400 transition-all duration-200 focus:ring-1 focus:ring-orange-200 pr-10"
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={customerDetails.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    onFocus={() => setShowSearchResults(true)}
+                    autoComplete="off"
+                    className={`h-12 !text-[1.1rem] border-1 transition-all duration-200 focus:ring-1 focus:ring-orange-200 ${
+                      errors.name
+                        ? 'border-red-300 focus:border-red-400'
+                        : 'border-orange-200 focus:border-orange-400'
+                    }`}
+                  />
+                  {errors.name && (
+                    <p className="text-sm text-red-600 flex items-center gap-1">
+                      <span className="w-1 h-1 bg-red-600 rounded-full"></span>
+                      {errors.name}
+                    </p>
+                  )}
+
+                  {/* Search Results Dropdown */}
+                  {showSearchResults && customerDetails.name.length > 0 && (
+                    <CustomerSearchDropdown
+                      isSearching={isSearching}
+                      searchError={searchError}
+                      searchResults={searchResults}
+                      onUserSelect={handleUserSelect}
                     />
+                  )}
+                </div>
+
+                {/* Mobile Field */}
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="phone_number"
+                    className="text-sm font-medium text-gray-700 flex items-center gap-2"
+                  >
+                    <Phone className="h-4 w-4 text-orange-500" />
+                    Mobile Number
+                  </Label>
+                  <Input
+                    id="phone_number"
+                    type="tel"
+                    placeholder="Enter 10-digit mobile number"
+                    value={customerDetails.phone_number}
+                    onChange={(e) =>
+                      handleInputChange(
+                        'phone_number',
+                        e.target.value.replace(/\D/g, '').slice(0, 10),
+                      )
+                    }
+                    className={`h-12 !text-[1rem] border-1 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${
+                      errors.phone_number
+                        ? 'border-red-300 focus:border-red-400'
+                        : 'border-orange-200 focus:border-orange-400'
+                    }`}
+                  />
+                  {errors.phone_number && (
+                    <p className="text-sm text-red-600 flex items-center gap-1">
+                      <span className="w-1 h-1 bg-red-600 rounded-full"></span>
+                      {errors.phone_number}
+                    </p>
+                  )}
+                </div>
+
+                {/* Special Instructions Toggle Button */}
+                {!showSpecialInstructions && (
+                  <div className="flex justify-center">
                     <Button
                       type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setShowSpecialInstructions(false)
-                      }}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                      variant="outline"
+                      onClick={() => setShowSpecialInstructions(true)}
+                      className="flex items-center gap-2 text-orange-600 border-orange-200 hover:bg-orange-50 hover:border-orange-300 transition-all duration-200"
                     >
-                      ×
+                      <Plus className="h-4 w-4" />
+                      Add Special Instructions
                     </Button>
                   </div>
-                  <p className="text-xs text-gray-500">
-                    Let us know about any allergies, spice preferences, or
-                    special requests
-                  </p>
-                </div>
-              )}
+                )}
 
-              {/* Discount Field */}
-              <div className="space-y-2">
-                <Label
-                  htmlFor="discount"
-                  className="text-sm font-medium text-gray-700 flex items-center gap-2"
-                >
-                  <Tag className="h-4 w-4 text-orange-500" />
-                  Discount (₹)
-                </Label>
-                <Input
-                  id="discount"
-                  type="number"
-                  min="0"
-                  max={subtotal}
-                  placeholder="0.00"
-                  value={discount > 0 ? discount : ''}
-                  onChange={(e) => {
-                    const val = parseFloat(e.target.value)
-                    setDiscount(isNaN(val) ? 0 : val)
-                  }}
-                  className="h-12 !text-[1rem] border-1 border-orange-200 focus:border-orange-400 focus:ring-1 focus:ring-orange-200"
-                />
-              </div>
+                {/* Special Instructions Field */}
+                {showSpecialInstructions && (
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="special_instructions"
+                      className="text-sm font-medium text-gray-700 flex items-center gap-2"
+                    >
+                      <MessageSquare className="h-4 w-4 text-orange-500" />
+                      Special Instructions
+                      <span className="text-xs text-gray-500 font-normal">
+                        (Optional)
+                      </span>
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="special_instructions"
+                        type="text"
+                        placeholder="Any special requests or dietary requirements..."
+                        value={specialInstructions || ''}
+                        onChange={(e) => setSpecialInstructions(e.target.value)}
+                        className="h-12 text-base border-1 border-orange-200 focus:border-orange-400 transition-all duration-200 focus:ring-1 focus:ring-orange-200 pr-10"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setShowSpecialInstructions(false)
+                        }}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                      >
+                        ×
+                      </Button>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Let us know about any allergies, spice preferences, or
+                      special requests
+                    </p>
+                  </div>
+                )}
 
-              {/* Order Summary */}
-              <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg p-4 border border-orange-100">
-                <h3 className="font-semibold text-gray-800 mb-2">
-                  Order Summary
-                </h3>
-                <div className="flex justify-between items-center text-sm text-gray-600 mb-1">
-                  <span>Table Number:</span>
-                  <span className="font-medium">
-                    #{table?.table_number || '#'}
-                  </span>
+                {/* Discount Field */}
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="discount"
+                    className="text-sm font-medium text-gray-700 flex items-center gap-2"
+                  >
+                    <Tag className="h-4 w-4 text-orange-500" />
+                    Discount (₹)
+                  </Label>
+                  <Input
+                    id="discount"
+                    type="number"
+                    min="0"
+                    max={subtotal}
+                    placeholder="0.00"
+                    value={discount > 0 ? discount : ''}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value)
+                      setDiscount(isNaN(val) ? 0 : val)
+                    }}
+                    className="h-12 !text-[1rem] border-1 border-orange-200 focus:border-orange-400 focus:ring-1 focus:ring-orange-200"
+                  />
                 </div>
-                <div className="flex justify-between items-center text-sm text-gray-600 mb-1">
-                  <span>Items:</span>
-                  <span className="font-medium">
-                    {orderItems.length} item{orderItems.length > 1 ? 's' : ''}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center text-sm text-gray-600 mb-1">
-                  <span>Subtotal:</span>
-                  <span className="font-medium">₹{subtotal}</span>
-                </div>
-                {validatedDiscount > 0 && (
-                  <div className="flex justify-between items-center text-sm text-green-600 mb-1">
-                    <span>Discount:</span>
+
+                {/* Order Summary */}
+                <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg p-4 border border-orange-100">
+                  <h3 className="font-semibold text-gray-800 mb-2">
+                    Order Summary
+                  </h3>
+                  <div className="flex justify-between items-center text-sm text-gray-600 mb-1">
+                    <span>Table Number:</span>
                     <span className="font-medium">
-                      -₹{validatedDiscount.toFixed(2)}
+                      #{table?.table_number || '#'}
                     </span>
                   </div>
-                )}
-                <div className="flex justify-between items-center text-lg font-bold text-orange-800 pt-2 border-t border-orange-200">
-                  <span>Total Amount:</span>
-                  <span>₹{finalAmount}</span>
+                  <div className="flex justify-between items-center text-sm text-gray-600 mb-1">
+                    <span>Items:</span>
+                    <span className="font-medium">
+                      {orderItems.length} item{orderItems.length > 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm text-gray-600 mb-1">
+                    <span>Subtotal:</span>
+                    <span className="font-medium">₹{subtotal}</span>
+                  </div>
+                  {validatedDiscount > 0 && (
+                    <div className="flex justify-between items-center text-sm text-green-600 mb-1">
+                      <span>Discount:</span>
+                      <span className="font-medium">
+                        -₹{validatedDiscount.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center text-lg font-bold text-orange-800 pt-2 border-t border-orange-200">
+                    <span>Total Amount:</span>
+                    <span>₹{finalAmount}</span>
+                  </div>
                 </div>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Footer */}
+          <div className="text-center mt-6 text-sm text-gray-500">
+            <p>Your order will be confirmed once submitted</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Sticky Footer */}
+      <div className="absolute bottom-0 left-0 right-0 p-2 border-t bg-white z-10">
+        <div className="max-w-2xl mx-auto">
+          {/* Submit Button */}
+          <Button
+            type="submit"
+            form="customer-details-form"
+            disabled={isSubmitting}
+            className="w-full h-10 text-base font-semibold bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Processing Order...
               </div>
-
-              {/* Submit Button */}
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full h-12 text-base font-semibold bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Processing Order...
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <Check className="h-5 w-5" />
-                    Complete Order
-                  </div>
-                )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Footer */}
-        <div className="text-center mt-6 text-sm text-gray-500">
-          <p>Your order will be confirmed once submitted</p>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Check className="h-5 w-5" />
+                Complete Order
+              </div>
+            )}
+          </Button>
         </div>
       </div>
     </div>

@@ -47,6 +47,11 @@ export default function InventoryItemRow({
       <div
         className={`p-4 flex items-center gap-4 transition-all rounded-md duration-200 ${
           isHighlighted ? 'item-highlight-blink' : ''
+        } ${
+          // OOS Styles
+          item.stock !== undefined && item.stock !== null && item.stock <= 0
+            ? 'opacity-60 grayscale bg-gray-50'
+            : ''
         }`}
       >
         {/* Item Details */}
@@ -96,7 +101,18 @@ export default function InventoryItemRow({
             </div>
           ) : (
             <div className="text-right min-w-[80px] transition-none!">
-              {!hasVariants ? (
+              {/* Check OOS before showing Add buttons */}
+              {item.stock !== undefined &&
+              item.stock !== null &&
+              item.stock <= 0 ? (
+                <Button
+                  size="sm"
+                  disabled
+                  className="text-xs px-2 w-full opacity-70 cursor-not-allowed"
+                >
+                  Out of Stock
+                </Button>
+              ) : !hasVariants ? (
                 <AddButton onClick={() => onAddItem(item)} />
               ) : (
                 <ItemCustomization

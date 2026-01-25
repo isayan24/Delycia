@@ -8,23 +8,21 @@ export default function ManageMenu() {
 
   const handleSearch = (query: string) => {
     // Add search logic here if needed
-    console.log('Search query:', query)
   }
 
   const handleSubmit = () => {
     // Add submit logic here if needed
-    console.log('Submit changes')
   }
 
   return (
-    <div className="w-full h-full flex flex-col gap-4">
+    <div className="w-full h-fulls h-[calc(100vh-6rem)] flex flex-col gap-2 md:gap-2">
       <TopButtons
         onSearch={handleSearch}
         onSubmit={handleSubmit}
         onHighlightItem={highlightItem}
         onNavigateToItem={navigateToItem}
       />
-      <section className="flex-1 min-h-0 border rounded-xl bg-white shadow-sm p-4 overflow-hidden">
+      <section className="flex-1 min-h-0 md:borderd md:rounded-xl bg-white md:shadow-sm p-0 md:p-2 overflow-hidden">
         <MenuContent />
       </section>
     </div>

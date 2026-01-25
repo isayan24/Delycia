@@ -1,37 +1,24 @@
 /* eslint-disable @next/next/no-img-element */
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Loader2, X, Package, Sparkles, Check } from 'lucide-react'
+import { X, Package, Sparkles } from 'lucide-react'
 import { WizardState, CategoryTemplate } from './types/wizardTypes'
-import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
-import {
-  useTemplatesByCuisineQuery,
-  useCreateCategoryMutation,
-  useCreateCategoryAsTemplateMutation,
-  useCreateCategoriesFromTemplatesMutation,
-} from '@/hooks/queries' // NEW - TanStack Query
-import axios from 'axios'
-import useToast from '@/hooks/UseToast'
+import { useTemplatesByCuisineQuery } from '@/hooks/queries'
 
 interface ReviewConfirmProps {
   wizardState: WizardState
   onRemoveTemplate: (templateId: number) => void
   onRemoveCustomCategory: (id: string) => void
-  onComplete: () => void
+  onComplete: () => void // Kept for compatibility but unused
 }
 
 export default function ReviewConfirm({
   wizardState,
   onRemoveTemplate,
   onRemoveCustomCategory,
-  onComplete,
 }: ReviewConfirmProps) {
-  const { selectedRid } = useRestaurantSelector()
-  const { showSuccess, showError } = useToast()
-
   // NEW - Use TanStack Query for fetching templates 🚀
   const { data: allTemplates = [], isLoading: loading } =
     useTemplatesByCuisineQuery(
@@ -39,13 +26,7 @@ export default function ReviewConfirm({
       wizardState.source === 'templates' && !!wizardState.selectedCuisine,
     )
 
-  // ✅ Use TanStack Query mutations
-  const createCategoryMutation = useCreateCategoryMutation()
-  const createCategoryAsTemplateMutation = useCreateCategoryAsTemplateMutation()
-  const createFromTemplatesMutation = useCreateCategoriesFromTemplatesMutation()
-
   const [templates, setTemplates] = useState<CategoryTemplate[]>([])
-  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     if (wizardState.source === 'templates' && allTemplates.length > 0) {
@@ -57,118 +38,6 @@ export default function ReviewConfirm({
     }
   }, [allTemplates, wizardState.selectedTemplates, wizardState.source])
 
-  const handleSubmit = async () => {
-    if (!selectedRid) {
-      showError('Error', 'No restaurant selected')
-      return
-    }
-    setSubmitting(true)
-    try {
-      if (wizardState.source === 'templates') {
-        // NEW - Use mutation instead of direct API call 🚀
-        const templateIds = Array.from(wizardState.selectedTemplates)
-
-        const result = await createFromTemplatesMutation.mutateAsync({
-          rid: selectedRid,
-          template_ids: templateIds as any[],
-        })
-
-        const created = result.details?.created || []
-        const skipped = result.details?.skipped || []
-
-        if (created.length > 0) {
-          showSuccess(
-            'Success!',
-            `${created.length} categor${created.length === 1 ? 'y' : 'ies'} added successfully!` +
-              (skipped.length > 0
-                ? ` ${skipped.length} skipped (already exist).`
-                : ''),
-          )
-          onComplete()
-        } else if (skipped.length > 0) {
-          showError(
-            'Info',
-            'All selected categories already exist for this restaurant.',
-          )
-        }
-      } else if (wizardState.source === 'custom') {
-        const { customCategories } = wizardState
-
-        let successCount = 0
-        let failCount = 0
-
-        // Loop through all custom categories
-        for (const customCategory of customCategories) {
-          try {
-            // Upload image to ImageKit
-            const uploadResponse = await axios.post('/api/imagekit', {
-              base64Image: customCategory.image,
-              fileName: `category_${Date.now()}.jpg`,
-              folder: '/categories',
-            })
-
-            if (uploadResponse.status === 200 && uploadResponse.data?.url) {
-              const imageUrl = uploadResponse.data.url
-
-              // Create category (with or without template)
-              if (customCategory.saveAsTemplate) {
-                await createCategoryAsTemplateMutation.mutateAsync({
-                  name: customCategory.name,
-                  description: customCategory.description,
-                  img: imageUrl,
-                  rid: selectedRid,
-                  cuisine_type: customCategory.cuisine_type,
-                  saveAsTemplate: customCategory.saveAsTemplate,
-                })
-              } else {
-                await createCategoryMutation.mutateAsync({
-                  name: customCategory.name,
-                  description: customCategory.description,
-                  img: imageUrl,
-                  rid: selectedRid,
-                })
-              }
-
-              successCount++
-            } else {
-              failCount++
-            }
-          } catch (error) {
-            console.error(
-              `Failed to create category ${customCategory.name}:`,
-              error,
-            )
-            failCount++
-          }
-        }
-
-        // Show result summary
-        if (successCount > 0) {
-          showSuccess(
-            'Success!',
-            `${successCount} categor${successCount === 1 ? 'y' : 'ies'} created successfully!` +
-              (failCount > 0 ? ` ${failCount} failed.` : ''),
-          )
-          onComplete()
-        } else {
-          showError(
-            'Error',
-            'Failed to create custom categories. Please try again.',
-          )
-        }
-      }
-    } catch (error: any) {
-      console.error('Failed to create categories:', error)
-      showError(
-        'Error',
-        error?.response?.data?.message ||
-          'Failed to create categories. Please try again.',
-      )
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
   const totalItems =
     wizardState.source === 'templates'
       ? wizardState.selectedTemplates.size
@@ -179,17 +48,14 @@ export default function ReviewConfirm({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+        <div className="w-8 h-8 rounded-full border-4 border-orange-500 border-t-transparent animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="py-6">
+    <div className="py-2">
       <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Check className="w-8 h-8 text-green-600" />
-        </div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
           Review & Confirm
         </h2>
@@ -213,7 +79,7 @@ export default function ReviewConfirm({
               </Badge>
             </div>
 
-            <ScrollArea className="h-[300px] border rounded-lg p-4">
+            <div className="border rounded-lg p-4">
               <div className="space-y-3">
                 {templates.map((template) => (
                   <Card key={template.id} className="p-4">
@@ -242,7 +108,7 @@ export default function ReviewConfirm({
                         variant="ghost"
                         size="icon"
                         onClick={() => onRemoveTemplate(template.id)}
-                        className="text-gray-400 hover:text-red-500"
+                        className="text-gray-400 hover:text-red-500 shrink-0"
                       >
                         <X className="w-4 h-4" />
                       </Button>
@@ -250,7 +116,7 @@ export default function ReviewConfirm({
                   </Card>
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           </div>
         )}
 
@@ -267,8 +133,8 @@ export default function ReviewConfirm({
                 </h3>
               </div>
 
-              <ScrollArea className="h-[400px]">
-                <div className="space-y-4 pr-4">
+              <div>
+                <div className="space-y-4">
                   {wizardState.customCategories.map((category, index) => {
                     // Convert base64 to proper data URL if needed
                     const imageUrl = category.image.startsWith('data:')
@@ -282,7 +148,7 @@ export default function ReviewConfirm({
                             <img
                               src={imageUrl}
                               alt={category.name}
-                              className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
+                              className="w-20 h-20 rounded-lg object-cover shrink-0"
                             />
                           )}
                           <div className="flex-1 min-w-0">
@@ -302,7 +168,7 @@ export default function ReviewConfirm({
                                   wizardState.source === 'custom' &&
                                   onRemoveCustomCategory(category.id!)
                                 }
-                                className="text-gray-400 hover:text-red-500 flex-shrink-0"
+                                className="text-gray-400 hover:text-red-500 shrink-0"
                               >
                                 <X className="w-4 h-4" />
                               </Button>
@@ -325,31 +191,9 @@ export default function ReviewConfirm({
                     )
                   })}
                 </div>
-              </ScrollArea>
+              </div>
             </div>
           )}
-
-        {/* Submit Button */}
-        <div className="flex justify-center pt-6">
-          <Button
-            onClick={handleSubmit}
-            disabled={submitting || totalItems === 0}
-            size="lg"
-            className="bg-green-500 hover:bg-green-600 text-white px-8"
-          >
-            {submitting ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Creating...
-              </>
-            ) : (
-              <>
-                <Check className="w-4 h-4 mr-2" />
-                Add {totalItems} Categor{totalItems === 1 ? 'y' : 'ies'}
-              </>
-            )}
-          </Button>
-        </div>
       </div>
     </div>
   )

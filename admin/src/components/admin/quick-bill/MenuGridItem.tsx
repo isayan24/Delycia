@@ -38,6 +38,13 @@ export default function MenuGridItem({
   const hasVariants = variants.length > 0
   const isDesktop = useMediaQuery('(min-width: 768px)')
 
+  // Check if stock is explicitly 0.
+  // Assuming stock might be undefined/null effectively means in-stock unless strictly 0?
+  // Or is it the other way? For now, we'll treat strictly 0 or less as OOS to be safe.
+  // If stock property doesn't exist, we assume in stock for legacy items.
+  const isOutOfStock =
+    item.stock !== undefined && item.stock !== null && item.stock <= 0
+
   const itemQuantity = (cart || [])
     .filter(
       (c) => c.id === String(item.id) || c.id.startsWith(String(item.id) + '_'),
@@ -58,17 +65,27 @@ export default function MenuGridItem({
   // Reusable Card Presentation
   const ItemCard = ({ onClick }: { onClick?: () => void }) => (
     <Card
-      onClick={onClick}
+      onClick={(e) => {
+        if (isOutOfStock) {
+          e.stopPropagation()
+          return
+        }
+        onClick?.()
+      }}
       className={cn(
-        'group relative flex flex-col overflow-hidden shadow-sm transition-all duration-200 hover:shadow-md cursor-pointer bg-gray-100',
+        'group relative flex flex-col overflow-hidden shadow-sm transition-all duration-200',
         'border-2',
-        isCustomizing || itemQuantity > 0
+        isOutOfStock
+          ? 'cursor-not-allowed opacity-60 grayscale bg-gray-50 border-gray-100' // OOS Styles
+          : 'hover:shadow-md cursor-pointer bg-gray-100', // Normal Styles
+        !isOutOfStock && (isCustomizing || itemQuantity > 0)
           ? 'border-primary bg-primary/5 ring-0'
-          : 'border-transparent ring-1 ring-slate-100 hover:ring-primary/20',
-        isCustomizing && 'ring-0',
+          : !isOutOfStock &&
+              'border-transparent ring-1 ring-slate-100 hover:ring-primary/20',
+        isCustomizing && !isOutOfStock && 'ring-0',
       )}
     >
-      {itemQuantity > 0 && (
+      {itemQuantity > 0 && !isOutOfStock && (
         <div className="absolute top-2 right-2 z-10 bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
           {itemQuantity}
         </div>
@@ -102,6 +119,15 @@ export default function MenuGridItem({
             </div>
           ) : null}
         </div>
+
+        {/* Out of Stock Standard Badge */}
+        {isOutOfStock && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/10 backdrop-blur-[1px]">
+            <span className="px-3 py-1 bg-gray-900/80 text-white text-xs font-bold rounded shadow-sm">
+              Out of Stock
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Content Area */}
@@ -128,7 +154,10 @@ export default function MenuGridItem({
 
   if (!hasVariants) {
     return (
-      <div onClick={() => onAddItem(item)}>
+      <div
+        onClick={() => !isOutOfStock && onAddItem(item)}
+        className={isOutOfStock ? 'cursor-not-allowed' : ''}
+      >
         <ItemCard />
       </div>
     )

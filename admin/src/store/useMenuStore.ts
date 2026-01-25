@@ -57,6 +57,7 @@ interface MenuActions {
   navigateToItem: (
     itemId: string,
     type: 'category' | 'inventory',
+    categories?: Category[],
   ) => Promise<void>
 
   // Generic actions
@@ -234,18 +235,23 @@ export const useMenuStore = create<MenuStore>()(
           highlightedItemType: null,
         }),
 
-      navigateToItem: async (itemId, type) => {
+      navigateToItem: async (itemId, type, categoriesParam) => {
         const { selectCategory, highlightItem } = get()
 
-        // Fetch categories dynamically - don't rely on Zustand store
-        // This function is rarely called, so fetching is fine
         try {
           const axiosInstance = (await import('@/lib/axios')).default
-          // No need to pass rid - axios automatically includes httpOnly cookies
-          const categoriesResponse = await axiosInstance.get('/api/category')
+          let categories: Category[] = categoriesParam || []
 
-          const categories: Category[] =
-            categoriesResponse.data?.categories || []
+          if (categories.length === 0) {
+            try {
+              // Fallback: try to fetch categories (might fail without rid)
+              const categoriesResponse = await axiosInstance.get('/categories')
+
+              categories = categoriesResponse.data?.categories || []
+            } catch (error) {
+              logger.debug('Failed to fetch categories fallback', { error })
+            }
+          }
 
           if (type === 'category') {
             const category = categories.find(

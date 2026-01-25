@@ -12,7 +12,7 @@ import {
   Edit3,
   Trash2,
   Plus,
-  Minus
+  Minus,
 } from 'lucide-react'
 import { useTableStore } from '@/store/useTableStore'
 
@@ -29,24 +29,29 @@ interface OrderItem {
   totalPrice: number
 }
 
-
 export default function PreviewOrder() {
-
-  const { table, orderItems, clearAllItems, changeState, updateQuantity, getTotalAmount } = useTableStore();
+  const {
+    table,
+    orderItems,
+    clearAllItems,
+    changeState,
+    updateQuantity,
+    getTotalAmount,
+  } = useTableStore()
 
   const onCancelOrder = () => {
-    changeState(0);
-    clearAllItems();
+    changeState(0)
+    clearAllItems()
   }
   const onEditOrder = () => {
-    changeState(1);
+    changeState(1)
   }
   const onConfirmOrder = () => {
-    changeState(3);
+    changeState(3)
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 relative">
+    <div className="h-full bg-gray-50 dark:bg-gray-900 relative">
       {/* Fixed Top Action Buttons */}
       <div className="fixed top-0 left-0 right-0 z-10 bg-white dark:bg-gray-900  p-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between flex-wrap gap-2">
@@ -57,19 +62,11 @@ export default function PreviewOrder() {
             </h1>
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onCancelOrder}
-            >
+            <Button variant="outline" size="sm" onClick={onCancelOrder}>
               <Trash2 className="h-4 w-4 mr-2" />
               Cancel
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onEditOrder}
-            >
+            <Button variant="outline" size="sm" onClick={onEditOrder}>
               <Edit3 className="h-4 w-4 mr-2" />
               Edit
             </Button>
@@ -78,8 +75,8 @@ export default function PreviewOrder() {
       </div>
 
       {/* Main Content with padding for fixed elements */}
-      <div className="pt-20 pb-24 p-4 overflow-auto">
-        <div className="max-w-4xl mx-auto space-y-3 overflow-auto max-[700px]:h-[calc(100vh-20rem)] h-[calc(100vh-15rem)]">
+      <div className="pt-20 pb-24 p-4 h-full overflow-hidden">
+        <div className="max-w-4xl mx-auto space-y-3 overflow-auto h-full">
           {/* Table Information */}
           <Card>
             <CardContent className="p-2">
@@ -89,8 +86,12 @@ export default function PreviewOrder() {
                     <MapPin className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold">Table {table?.table_number || "#"}</h3>
-                    <p className="text-sm text-muted-foreground">Ground Floor</p>
+                    <h3 className="text-lg font-semibold">
+                      Table {table?.table_number || '#'}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Ground Floor
+                    </p>
                   </div>
                 </div>
                 <div className="text-right">
@@ -118,7 +119,9 @@ export default function PreviewOrder() {
                     <div className="p-4 flex items-center gap-4">
                       {/* Item Details */}
                       <div className="flex-1 min-w-0">
-                        <h4 className=" text-lg max-[768px]:text-md">{orderItem.quantity} x {orderItem.name}</h4>
+                        <h4 className=" text-lg max-[768px]:text-md">
+                          {orderItem.quantity} x {orderItem.name}
+                        </h4>
 
                         <div className="flex items-center gap-2 mt-2">
                           <Badge variant="secondary">
@@ -146,7 +149,9 @@ export default function PreviewOrder() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-medium">₹{getTotalAmount().toFixed(2)}</span>
+                  <span className="font-medium">
+                    ₹{getTotalAmount().toFixed(2)}
+                  </span>
                 </div>
                 {/* Todo: add gst/tax as needed */}
                 {/* <div className="flex justify-between items-center">
@@ -156,21 +161,18 @@ export default function PreviewOrder() {
                 <Separator />
                 <div className="flex justify-between items-center text-lg font-bold">
                   <span>Total Amount</span>
-                  <span>₹{(getTotalAmount().toFixed(2)  )}</span>
+                  <span>₹{getTotalAmount().toFixed(2)}</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-
-
           {/* Order Summary Stats */}
-
         </div>
       </div>
 
       {/* Fixed Bottom Confirm Button */}
-      <div className="fixed bottom-[1rem] max-[700px]:bottom-[3rem] left-0 right-0 z-10 bg-white dark:bg-gray-900 border-t p-4">
+      <div className="absolute bottom-0 left-0 right-0 z-10 bg-white dark:bg-gray-900 border-t p-2">
         <div className="max-w-4xl mx-auto">
           <Button
             className="w-full bg-green-600 hover:bg-green-700 text-white"
@@ -178,7 +180,7 @@ export default function PreviewOrder() {
             onClick={onConfirmOrder}
           >
             <CheckCircle className="h-5 w-5 mr-2" />
-            Confirm Order  ₹{(getTotalAmount().toFixed(2))}
+            Confirm Order ₹{getTotalAmount().toFixed(2)}
           </Button>
         </div>
       </div>
