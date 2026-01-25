@@ -11,7 +11,6 @@ import {
   fetchAddonsByInventoryId,
 } from '@/api/endpoints/addons.api'
 import type { Addon } from '@/api/types/addons.types'
-import Image from 'next/image'
 import { OptimizeImageLoader } from '@/components/smallComponents/OptimizeImageLoader'
 
 interface LinkedItem {
@@ -40,22 +39,33 @@ export function LinkedItemsView({
 
   // Fetch linked items when addon is selected
   useEffect(() => {
+    let isMounted = true
+
     const fetchLinkedItems = async () => {
       if (!selectedAddon) {
-        setLinkedItems([])
+        if (isMounted) setLinkedItems([])
         return
       }
 
       // Check cache first
       if (itemsCache[selectedAddon.id]) {
-        setLinkedItems(itemsCache[selectedAddon.id])
-        return
+        if (isMounted) {
+          setLinkedItems(itemsCache[selectedAddon.id] || [])
+          // Even if we have cache, we might want to refresh if it's stale or empty
+          if (itemsCache[selectedAddon.id]?.length === 0) {
+            // Optional: decide if we want to refetch even if empty cached
+          } else {
+            return
+          }
+        }
       }
 
-      setLoading(true)
+      if (isMounted) setLoading(true)
       try {
+        // Skip auth check here if handled by global interceptor or parent
+        // but keeping it if needed.
         if (!isAuthenticated) {
-          setLoading(false)
+          if (isMounted) setLoading(false)
           return
         }
 
@@ -73,23 +83,30 @@ export function LinkedItemsView({
           image: item.inventory_item_images[0] || '',
         }))
 
-        setLinkedItems(formattedItems)
+        if (isMounted) {
+          setLinkedItems(formattedItems)
 
-        // Update cache
-        setItemsCache((prev) => ({
-          ...prev,
-          [selectedAddon.id]: formattedItems,
-        }))
+          // Update cache
+          setItemsCache((prev) => ({
+            ...prev,
+            [selectedAddon.id]: formattedItems,
+          }))
+        }
       } catch (error) {
         console.error('Error fetching linked items:', error)
-        setLinkedItems([])
+        if (isMounted) setLinkedItems([])
       } finally {
-        setLoading(false)
+        if (isMounted) setLoading(false)
       }
     }
 
     fetchLinkedItems()
-  }, [selectedAddon, itemsCache])
+
+    return () => {
+      isMounted = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedAddon, isAuthenticated])
 
   if (!selectedAddon) {
     return (
@@ -122,7 +139,7 @@ export function LinkedItemsView({
 
       {/* Linked Items List */}
       <ScrollArea className="flex-1">
-        <div className="p-4 space-y-2">
+        <div className="p-1 py-4 space-y-2">
           {loading ? (
             // Loading skeletons
             Array.from({ length: 3 }).map((_, i) => (
@@ -171,7 +188,10 @@ export function LinkedItemsView({
                       <div className="flex items-center gap-2">
                         <h4 className="font-medium truncate">{item.name}</h4>
                         {item.category && (
-                          <Badge variant="outline" className="text-xs">
+                          <Badge
+                            variant="outline"
+                            className="text-xs text-nowrap"
+                          >
                             {item.category}
                           </Badge>
                         )}

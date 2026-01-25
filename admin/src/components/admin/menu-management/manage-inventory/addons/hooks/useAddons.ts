@@ -74,7 +74,7 @@ export function useAddons() {
   const updateAddon = useCallback(
     async (
       id: string,
-      rid: string,
+      rid: string | undefined,
       updates: Omit<UpdateAddonParams, 'id' | 'rid'>,
     ) => {
       try {
@@ -102,7 +102,7 @@ export function useAddons() {
    * Delete an addon
    */
   const deleteAddon = useCallback(
-    async (addonId: string, rid: string) => {
+    async (addonId: string, rid: string | undefined) => {
       try {
         await addonsApi.deleteAddon({ id: addonId, rid })
         setAddons((prev) => prev.filter((addon) => addon.id !== addonId))
@@ -121,7 +121,7 @@ export function useAddons() {
    * Processes deletions sequentially with error handling
    */
   const bulkDelete = useCallback(
-    async (addonIds: string[], rid: string) => {
+    async (addonIds: string[], rid: string | undefined) => {
       const results = {
         success: [] as string[],
         failed: [] as string[],
@@ -168,7 +168,7 @@ export function useAddons() {
   const bulkUpdate = useCallback(
     async (
       addonIds: string[],
-      rid: string,
+      rid: string | undefined,
       updates: Partial<Omit<UpdateAddonParams, 'addon_id'>>,
     ) => {
       const results = {

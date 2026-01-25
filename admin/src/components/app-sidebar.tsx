@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/sidebar'
 import { useAuth } from '@/hooks/useAuth'
 import { RestaurantDropdown } from '@/components/admin/header/RestaurantDropdown'
+import { NetworkStatusIcon } from '@/components/common/NetworkStatusIcon'
 
 // Delycia Navigation Data
 const navMain = [
@@ -152,6 +153,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
+        <div className="flex justify-end px-2">
+          <NetworkStatusIcon />
+        </div>
         <NavUser user={userData} />
       </SidebarFooter>
     </Sidebar>

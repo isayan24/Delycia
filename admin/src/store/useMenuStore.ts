@@ -265,12 +265,6 @@ export const useMenuStore = create<MenuStore>()(
 
             for (const category of categories) {
               try {
-                logger.debug('Checking category for inventory item', {
-                  categoryId: category.id,
-                  categoryName: category.name,
-                  itemId,
-                })
-
                 const response = await axiosInstance.get(
                   `/inventory?category_id=${category.id}`,
                 )

@@ -129,6 +129,8 @@ const fuzzySearch = (
   return allResults.sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, 10)
 }
 
+const EMPTY_CATEGORIES: any[] = []
+
 export const TopButtons = React.memo<TopButtonsProps>(
   ({ onSearch, onSubmit, onHighlightItem, onNavigateToItem }) => {
     const [searchQuery, setSearchQuery] = useState('')
@@ -146,7 +148,7 @@ export const TopButtons = React.memo<TopButtonsProps>(
     )
     const categories = Array.isArray(categoriesData?.categories)
       ? categoriesData.categories
-      : []
+      : EMPTY_CATEGORIES
 
     // Memoized fuzzy search results
     const memoizedSearchResults = useMemo(() => {

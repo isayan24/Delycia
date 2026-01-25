@@ -18,8 +18,6 @@ import { SoundProvider } from '../context/SoundContext'
 import { GlobalOrderPopupManager } from '@/components/admin/orders/GlobalOrderPopupManager'
 import NetworkOfflineNotification from '@/components/common/NetworkOfflineNotification'
 import SessionExpiredNotification from '@/components/common/SessionExpiredNotification'
-// Import axios interceptor to set up global 401 error detection
-import '@/lib/axiosInterceptor'
 // Import QueryClient factory for cleaner code organization
 import { createQueryClient } from '@/lib/queryClient'
 import appCss from '../styles.css?url'

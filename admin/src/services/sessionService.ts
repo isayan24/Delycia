@@ -1,3 +1,4 @@
+import axios from 'axios'
 // Simplified user data interface (no tokens)
 export interface UserData {
   _id: string
@@ -100,12 +101,12 @@ class SessionService {
    */
   async isSessionValid(): Promise<boolean> {
     try {
-      const response = await fetch('/api/auth/session', {
-        credentials: 'include', // Send httpOnly cookies
+      const response = await axios.get('/api/auth/session', {
+        withCredentials: true, // Send httpOnly cookies
       })
 
-      if (response.ok) {
-        const data = await response.json()
+      if (response.status === 200) {
+        const data = response.data
         return data.isAuthenticated === true
       }
 

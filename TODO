@@ -1,8 +1,8 @@
 
 Todo:
-   Priority Fix:    
-    ✔ In quick bill & table-book, when searching for customers.. the staff names are also got visible there, fix it @done(26-01-23 15:46)
-    ✔ In the history or other print bill, the customer phn. number -> showing the id @done(26-01-23 15:46)
+   Priority Fix: 
+    ☐ Out of stock items are also showing in the quick-bill and book-table, fix it
+    ✔ In quick bill and book-table, the ui for add order into cart is not looking good, fix it @done(26-01-25 01:41)
     ☐ Fix when site is in sleep, add a btn to refresh the site for latest token flow and user detection
 
   Inventory:
@@ -15,9 +15,9 @@ Todo:
 
 Features: 
   Quick Bill:
-    ☐ Add an option to add discount to the bill
-    ☐ Inventory variants are not there when adding new quick bill - add it
-    ☐ Make the ui compact and ease to access 
+    ✔ Add an option to add discount to the bill @done(26-01-24 16:55)
+    ✔ Inventory variants are not there when adding new quick bill - add it @done(26-01-24 16:55)
+    ✔ Make the ui compact and ease to access @done(26-01-24 16:55)
  
   Add staffs Page:
     ✔ Add a page to add staffs for admin @started(26-01-21 23:54) @done(26-01-23 14:45) @lasted(1d14h51m55s)

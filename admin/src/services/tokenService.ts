@@ -3,6 +3,7 @@ import axios from 'axios'
 class TokenService {
   private static instance: TokenService
   private refreshPromise: Promise<boolean> | null = null
+  private onLogoutCallback: (() => void) | null = null
 
   private constructor() {}
 
@@ -11,6 +12,59 @@ class TokenService {
       TokenService.instance = new TokenService()
     }
     return TokenService.instance
+  }
+
+  /**
+   * Register a callback to be called when refresh fails completely
+   */
+  setOnLogout(callback: () => void) {
+    this.onLogoutCallback = callback
+  }
+
+  /**
+   * Setup Axios interceptors to handle 401s
+   */
+  setupInterceptors() {
+    // Response interceptor
+    axios.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        const originalRequest = error.config
+
+        // If error is 401 and we haven't retried yet
+        if (
+          error.response?.status === 401 &&
+          !originalRequest._retry &&
+          !originalRequest.url?.includes('/api/auth/login') && // Don't retry login
+          !originalRequest.url?.includes('/api/auth/refresh') // Don't retry refresh itself
+        ) {
+          originalRequest._retry = true
+
+          try {
+            const refreshSuccess = await this.refreshTokens()
+
+            if (refreshSuccess) {
+              // Retry the original request
+              return axios(originalRequest)
+            } else {
+              // Refresh failed, trigger logout
+              if (this.onLogoutCallback) {
+                this.onLogoutCallback()
+              }
+              return Promise.reject(error)
+            }
+          } catch (refreshError) {
+            // Refresh process error, trigger logout
+            if (this.onLogoutCallback) {
+              this.onLogoutCallback()
+            }
+            return Promise.reject(refreshError)
+          }
+        }
+
+        return Promise.reject(error)
+      },
+    )
   }
 
   /**

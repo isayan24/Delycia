@@ -4,6 +4,7 @@ import sessionService, {
   UserUpdateData,
 } from '@/services/sessionService'
 import sessionCleanupService from '@/services/sessionCleanupService'
+import tokenService from '@/services/tokenService'
 import axios from 'axios'
 
 export interface LoginCredentials {
@@ -284,6 +285,14 @@ export function useAuth(): UseAuthReturn {
     window.addEventListener('storage', handleStorageChange)
     return () => window.removeEventListener('storage', handleStorageChange)
   }, [initializeAuth])
+
+  // Setup Axios interceptors and logout callback
+  useEffect(() => {
+    tokenService.setupInterceptors()
+    tokenService.setOnLogout(() => {
+      logout()
+    })
+  }, [logout])
 
   // Periodic session validation
   useEffect(() => {

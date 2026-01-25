@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useEffect } from 'react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -9,21 +8,23 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { useRestaurantSelector } from "@/hooks/useRestaurantSelector";
-import { useAddons } from "../hooks/useAddons";
-import { AddonList } from "./AddonList";
-import { LinkedItemsView } from "./LinkedItemsView";
-import { AddonDialog } from "./AddonDialog";
-import { LinkInventoryDialog } from "./LinkInventoryDialog";
-import { AddonActionBar } from "./AddonActionBar";
-import useInventoryStore from "../../inventory/main-file/UseInventoryStates";
-import type { Addon, UpdateAddonParams } from "@/api/types/addons.types";
-import type { AddonFormData } from "@/schemas/addonSchema";
-import { useInventoryItems } from "@/hooks/useInventoryItems";
+} from '@/components/ui/alert-dialog'
+import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
+import { useAddons } from '../hooks/useAddons'
+import { AddonDialog } from './AddonDialog'
+import { LinkInventoryDialog } from './LinkInventoryDialog'
+import { AddonActionBar } from './AddonActionBar'
+import useInventoryStore from '../../inventory/main-file/UseInventoryStates'
+import type { UpdateAddonParams } from '@/api/types/addons.types'
+import type { AddonFormData } from '@/schemas/addonSchema'
+import { useInventoryItems } from '@/hooks/useInventoryItems'
+import { useMediaQuery } from '@/hooks/use-media-query'
+import { useAddonManagementUI } from '../hooks/useAddonManagementUI'
+import { AddonDesktopLayout } from './layouts/AddonDesktopLayout'
+import { AddonMobileLayout } from './layouts/AddonMobileLayout'
 
 export function AddonManagement() {
-  const { selectedRid } = useRestaurantSelector();
+  const { selectedRid } = useRestaurantSelector()
   const {
     addons,
     loading,
@@ -35,29 +36,53 @@ export function AddonManagement() {
     bulkUpdate,
     linkToItem,
     unlinkFromItem,
-  } = useAddons();
+  } = useAddons()
 
-  const { allItems } = useInventoryItems();
+  const { allItems } = useInventoryItems()
 
-  const [selectedAddon, setSelectedAddon] = useState<Addon | null>(null);
-  const [selectedAddons, setSelectedAddons] = useState<Set<string>>(new Set());
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
-  const [currentAddon, setCurrentAddon] = useState<Addon | null>(null);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [addonToDelete, setAddonToDelete] = useState<Addon | null>(null);
-  const [refreshLinkedItems, setRefreshLinkedItems] = useState(0);
+  // Ensure addons is always an array
+  const addonsList = Array.isArray(addons) ? addons : []
+
+  // Initialize UI state hook
+  const {
+    // State
+    selectedAddon,
+    selectedAddons,
+    dialogOpen,
+    linkDialogOpen,
+    currentAddon,
+    deleteConfirmOpen,
+    addonToDelete,
+    refreshLinkedItems,
+
+    // Setters
+    setSelectedAddon,
+    setDialogOpen,
+    setLinkDialogOpen,
+    setDeleteConfirmOpen,
+
+    // Handlers
+    handleToggleSelection,
+    handleSelectAll,
+    handleClearSelection,
+    handleCreate,
+    handleEdit,
+    handleDeleteClick,
+    handleOpenLinkDialog,
+    triggerLinkedItemsRefresh,
+    closeDeleteConfirm,
+    closeDialog,
+  } = useAddonManagementUI(addonsList)
+
+  const isDesktop = useMediaQuery('(min-width: 768px)')
 
   // Fetch addons on mount and when restaurant changes
   useEffect(() => {
     if (selectedRid) {
-      fetchAddons({ rid: selectedRid });
+      fetchAddons({ rid: selectedRid })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedRid]);
-
-  // Ensure addons is always an array
-  const addonsList = Array.isArray(addons) ? addons : [];
+  }, [selectedRid])
 
   // Get all inventory items from the store
   const allInventoryItems = Object.values(allItems)
@@ -68,44 +93,28 @@ export function AddonManagement() {
       price: item.price,
       category_id: item.category_id,
       category_name: item.category_name,
-    }));
-
-  const handleCreate = () => {
-    setCurrentAddon(null);
-    setDialogOpen(true);
-  };
-
-  const handleEdit = (addon: Addon) => {
-    setCurrentAddon(addon);
-    setDialogOpen(true);
-  };
-
-  const handleDeleteClick = (addon: Addon) => {
-    setAddonToDelete(addon);
-    setDeleteConfirmOpen(true);
-  };
+    }))
 
   const handleDeleteConfirm = async () => {
     if (addonToDelete) {
-      await deleteAddon(addonToDelete.id, selectedRid);
+      await deleteAddon(addonToDelete.id, selectedRid)
 
       // Clear selection if deleting selected addon
       if (selectedAddon?.id === addonToDelete.id) {
-        setSelectedAddon(null);
+        setSelectedAddon(null)
       }
 
-      setDeleteConfirmOpen(false);
-      setAddonToDelete(null);
+      closeDeleteConfirm()
     }
-  };
+  }
 
   // mark create addon
   const handleFormSubmit = async (
-    data: AddonFormData | UpdateAddonParams | any
+    data: AddonFormData | UpdateAddonParams | any,
   ) => {
     if (currentAddon) {
       // Edit existing
-      await updateAddon(currentAddon.id, selectedRid, data);
+      await updateAddon(currentAddon.id, selectedRid, data)
     } else {
       // Create new
       await createAddon({
@@ -113,112 +122,87 @@ export function AddonManagement() {
         name: data.name,
         price: data.price,
         is_active: data.is_active,
-      });
+      })
     }
-  };
-
-  const handleOpenLinkDialog = () => {
-    setLinkDialogOpen(true);
-  };
+  }
 
   // mark Link addon to multiple inventory items
   const handleLinkItems = async (addonId: string, inventoryIds: string[]) => {
-    await linkToItem(inventoryIds, addonId);
+    await linkToItem(inventoryIds, addonId)
 
     // Refresh linked items view
-    setRefreshLinkedItems((prev) => prev + 1);
-  };
+    triggerLinkedItemsRefresh()
+  }
 
   const handleUnlinkItem = async (inventoryId: string) => {
-    if (!selectedAddon) return;
+    if (!selectedAddon) return
 
     try {
-      await unlinkFromItem(inventoryId, [selectedAddon.id]);
+      await unlinkFromItem(inventoryId, [selectedAddon.id])
       // Refresh linked items view
-      setRefreshLinkedItems((prev) => prev + 1);
+      triggerLinkedItemsRefresh()
     } catch (error) {
-      console.error("Error unlinking item:", error);
+      console.error('Error unlinking item:', error)
     }
-  };
+  }
 
   // Bulk operation handlers
   const handleBulkActivate = async () => {
-    const addonIds = Array.from(selectedAddons);
-    await bulkUpdate(addonIds, selectedRid, { is_active: 1 });
-    setSelectedAddons(new Set());
-  };
+    const addonIds = Array.from(selectedAddons)
+    await bulkUpdate(addonIds, selectedRid, { is_active: 1 })
+    handleClearSelection()
+  }
 
   const handleBulkDeactivate = async () => {
-    const addonIds = Array.from(selectedAddons);
-    await bulkUpdate(addonIds, selectedRid, { is_active: 0 });
-    setSelectedAddons(new Set());
-  };
+    const addonIds = Array.from(selectedAddons)
+    await bulkUpdate(addonIds, selectedRid, { is_active: 0 })
+    handleClearSelection()
+  }
 
   const handleBulkDelete = async () => {
-    const addonIds = Array.from(selectedAddons);
-    await bulkDelete(addonIds, selectedRid);
-    setSelectedAddons(new Set());
+    const addonIds = Array.from(selectedAddons)
+    await bulkDelete(addonIds, selectedRid)
+    handleClearSelection()
 
     // Clear selection if deleting selected addon
     if (selectedAddon && selectedAddons.has(selectedAddon.id)) {
-      setSelectedAddon(null);
+      setSelectedAddon(null)
     }
-  };
-
-  // Selection handlers
-  const handleToggleSelection = (addonId: string) => {
-    setSelectedAddons((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(addonId)) {
-        newSet.delete(addonId);
-      } else {
-        newSet.add(addonId);
-      }
-      return newSet;
-    });
-  };
-
-  const handleSelectAll = (selected: boolean) => {
-    if (selected) {
-      setSelectedAddons(new Set(addonsList.map((addon) => addon.id)));
-    } else {
-      setSelectedAddons(new Set());
-    }
-  };
-
-  const handleClearSelection = () => {
-    setSelectedAddons(new Set());
-  };
+  }
 
   return (
-    <div className="w-full h-[calc(100vh-5rem)] p-3  ">
-      {/* Two Column Layout */}
-      <div className="flex gap-5 h-[calc(100vh-13rem)] ">
-        {/* Left Column - Addon List */}
-        <div className="border rounded-lg bg-card overflow-auto h-full w-[40%]">
-          <AddonList
-            addons={addonsList}
-            selectedAddon={selectedAddon}
-            selectedAddons={selectedAddons}
-            onSelectAddon={setSelectedAddon}
-            onToggleSelection={handleToggleSelection}
-            onSelectAll={handleSelectAll}
-            onAddNew={handleCreate}
-            onEdit={handleEdit}
-            onDelete={handleDeleteClick}
-          />
-        </div>
-
-        {/* Right Column - Linked Items */}
-        <div className="border rounded-lg bg-card overflow-auto w-[60%]">
-          <LinkedItemsView
-            key={refreshLinkedItems}
-            selectedAddon={selectedAddon}
-            onUnlinkItem={handleUnlinkItem}
-            onOpenLinkDialog={handleOpenLinkDialog}
-          />
-        </div>
-      </div>
+    <div className="w-full h-[calc(100vh-5rem)] p-3">
+      {isDesktop ? (
+        <AddonDesktopLayout
+          addons={addonsList}
+          selectedAddon={selectedAddon}
+          selectedAddons={selectedAddons}
+          refreshLinkedItemsKey={refreshLinkedItems}
+          onSelectAddon={setSelectedAddon}
+          onToggleSelection={handleToggleSelection}
+          onSelectAll={handleSelectAll}
+          onCreate={handleCreate}
+          onEdit={handleEdit}
+          onDelete={handleDeleteClick}
+          onUnlinkItem={handleUnlinkItem}
+          onOpenLinkDialog={handleOpenLinkDialog}
+        />
+      ) : (
+        <AddonMobileLayout
+          addons={addonsList}
+          selectedAddon={selectedAddon}
+          selectedAddons={selectedAddons}
+          refreshLinkedItemsKey={refreshLinkedItems}
+          onSelectAddon={setSelectedAddon}
+          onToggleSelection={handleToggleSelection}
+          onSelectAll={handleSelectAll}
+          onCreate={handleCreate}
+          onEdit={handleEdit}
+          onDelete={handleDeleteClick}
+          onUnlinkItem={handleUnlinkItem}
+          onOpenLinkDialog={handleOpenLinkDialog}
+        />
+      )}
 
       {/* Dialogs */}
       <AddonDialog
@@ -226,7 +210,6 @@ export function AddonManagement() {
         onOpenChange={setDialogOpen}
         addon={currentAddon}
         onSubmit={handleFormSubmit}
-        rid={selectedRid}
       />
 
       <LinkInventoryDialog
@@ -267,5 +250,5 @@ export function AddonManagement() {
         onClearSelection={handleClearSelection}
       />
     </div>
-  );
+  )
 }
