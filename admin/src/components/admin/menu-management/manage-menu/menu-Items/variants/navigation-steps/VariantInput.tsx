@@ -1,7 +1,7 @@
 // components/VariantInput.tsx
-import React from "react";
-import { Trash2, Tag, DollarSign, IndianRupee, Loader2 } from "lucide-react";
-import { VariantInputProps } from "../types/variant.types";
+import React from 'react'
+import { Trash2, Tag, DollarSign, IndianRupee, Loader2 } from 'lucide-react'
+import { VariantInputProps } from '../types/variant.types'
 
 const VariantInput: React.FC<VariantInputProps> = ({
   variant,
@@ -53,7 +53,7 @@ const VariantInput: React.FC<VariantInputProps> = ({
           <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
           <input
             type="number"
-            value={variant.price}
+            value={variant.price || 0}
             onChange={(e) => onPriceChange(variant.id, e.target.value)}
             className="w-full pl-9 pr-4 py-3 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
             placeholder="0.00"
@@ -64,6 +64,6 @@ const VariantInput: React.FC<VariantInputProps> = ({
       </div>
     </div>
   </div>
-);
+)
 
-export default VariantInput;
+export default VariantInput

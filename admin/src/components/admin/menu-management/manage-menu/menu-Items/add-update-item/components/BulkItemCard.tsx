@@ -6,6 +6,7 @@ import ItemNameInput from '../../item-inputs/ItemNameInput'
 import ItemDescriptionInput from '../../item-inputs/ItemDescriptionInput'
 import ImageUploadSection from '../../item-inputs/ImageUploadSection'
 import VariantManagerMain from '../../variants/VariantManagerMain'
+import PricingSection from '../../item-inputs/PricingSection'
 
 interface ItemImage {
   id: string
@@ -37,6 +38,13 @@ export const BulkItemCard: React.FC<BulkItemCardProps> = ({
   onChange,
   isImageLoading,
 }) => {
+  const handleSaveVariants = React.useCallback(
+    (variants: any[]) => {
+      onChange(item.id, 'variants', variants)
+    },
+    [item.id, onChange],
+  )
+
   return (
     <div className="border-2 border-gray-200 rounded-lg p-5 bg-gray-50 relative">
       {/* Item Header */}
@@ -86,41 +94,18 @@ export const BulkItemCard: React.FC<BulkItemCardProps> = ({
           hasError={errors?.image}
         />
 
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Cost (₹) <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              value={item.cost || ''}
-              onChange={(e) =>
-                onChange(item.id, 'cost', parseInt(e.target.value) || 0)
-              }
-              className={`w-full px-3 py-2 border rounded-md ${
-                errors?.cost ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="0"
-              min="0"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Price (₹) <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              value={item.price || ''}
-              onChange={(e) =>
-                onChange(item.id, 'price', parseInt(e.target.value) || 0)
-              }
-              className={`w-full px-3 py-2 border rounded-md ${
-                errors?.price ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="0"
-              min="0"
-            />
-          </div>
+        <div className="grid grid-cols-1 gap-6">
+          <PricingSection
+            cost={item.cost?.toString() || ''}
+            price={item.price?.toString() || ''}
+            onCostChange={(val) =>
+              onChange(item.id, 'cost', parseFloat(val) || 0)
+            }
+            onPriceChange={(val) =>
+              onChange(item.id, 'price', parseFloat(val) || 0)
+            }
+            hasError={errors?.price || errors?.cost}
+          />
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -132,7 +117,7 @@ export const BulkItemCard: React.FC<BulkItemCardProps> = ({
               onChange={(e) =>
                 onChange(item.id, 'stock', parseInt(e.target.value) || 0)
               }
-              className={`w-full px-3 py-2 border rounded-md ${
+              className={`w-full max-w-xs px-3 py-2 border rounded-md ${
                 errors?.stock ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="100"
@@ -145,7 +130,7 @@ export const BulkItemCard: React.FC<BulkItemCardProps> = ({
         <div className="pt-2">
           <VariantManagerMain
             initialVariants={item.variants || []}
-            onSave={(variants) => onChange(item.id, 'variants', variants)}
+            onSave={handleSaveVariants}
           />
         </div>
       </div>

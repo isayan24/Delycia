@@ -1,72 +1,103 @@
-import { cn } from "@/lib/utils";
-import React from "react";
-import { motion, AnimatePresence, useAnimate } from "motion/react";
+import { cn } from '@/lib/utils'
+import React from 'react'
+import { motion, useAnimate } from 'motion/react'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  className?: string;
-  children: React.ReactNode;
+  className?: string
+  children: React.ReactNode
+  loading?: boolean
 }
 
-export const Button = ({ className, children, ...props }: ButtonProps) => {
-  const [scope, animate] = useAnimate();
+export const Button = ({
+  className,
+  children,
+  loading,
+  ...props
+}: ButtonProps) => {
+  const [scope, animate] = useAnimate()
+  const prevLoading = React.useRef(loading)
 
   const animateLoading = async () => {
     await animate(
-      ".loader",
+      '.loader',
       {
-        width: "20px",
+        width: '20px',
         scale: 1,
-        display: "block",
+        display: 'block',
       },
       {
         duration: 0.2,
       },
-    );
-  };
+    )
+  }
 
   const animateSuccess = async () => {
     await animate(
-      ".loader",
+      '.loader',
       {
-        width: "0px",
+        width: '0px',
         scale: 0,
-        display: "none",
+        display: 'none',
       },
       {
         duration: 0.2,
       },
-    );
+    )
     await animate(
-      ".check",
+      '.check',
       {
-        width: "20px",
+        width: '20px',
         scale: 1,
-        display: "block",
+        display: 'block',
       },
       {
         duration: 0.2,
       },
-    );
+    )
 
     await animate(
-      ".check",
+      '.check',
       {
-        width: "0px",
+        width: '0px',
         scale: 0,
-        display: "none",
+        display: 'none',
       },
       {
         delay: 2,
         duration: 0.2,
       },
-    );
-  };
+    )
+  }
+
+  React.useEffect(() => {
+    const handleStateChange = async () => {
+      // Transition to loading
+      if (loading && !prevLoading.current) {
+        await animateLoading()
+      }
+      // Transition from loading to success (not loading)
+      else if (!loading && prevLoading.current) {
+        await animateSuccess()
+      }
+      prevLoading.current = loading
+    }
+
+    if (loading !== undefined) {
+      handleStateChange()
+    }
+  }, [loading])
 
   const handleClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
-    await animateLoading();
-    await props.onClick?.(event);
-    await animateSuccess();
-  };
+    if (loading === undefined) {
+      // Legacy uncontrolled mode
+      await animateLoading()
+      await props.onClick?.(event)
+      await animateSuccess()
+    } else {
+      // Controlled mode
+      props.onClick?.(event)
+    }
+  }
 
   const {
     onClick,
@@ -76,7 +107,7 @@ export const Button = ({ className, children, ...props }: ButtonProps) => {
     onAnimationStart,
     onAnimationEnd,
     ...buttonProps
-  } = props;
+  } = props
 
   return (
     <motion.button
@@ -84,7 +115,7 @@ export const Button = ({ className, children, ...props }: ButtonProps) => {
       layoutId="button"
       ref={scope}
       className={cn(
-        "flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-full bg-green-500 px-4 py-2 font-medium text-white ring-offset-2 transition duration-200 hover:ring-2 hover:ring-green-500 dark:ring-offset-black",
+        'flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-full bg-green-500 px-4 py-2 font-medium text-white ring-offset-2 transition duration-200 hover:ring-2 hover:ring-green-500 dark:ring-offset-black',
         className,
       )}
       {...buttonProps}
@@ -96,8 +127,8 @@ export const Button = ({ className, children, ...props }: ButtonProps) => {
         <motion.span layout>{children}</motion.span>
       </motion.div>
     </motion.button>
-  );
-};
+  )
+}
 
 const Loader = () => {
   return (
@@ -108,16 +139,16 @@ const Loader = () => {
       initial={{
         scale: 0,
         width: 0,
-        display: "none",
+        display: 'none',
       }}
       style={{
         scale: 0.5,
-        display: "none",
+        display: 'none',
       }}
       transition={{
         duration: 0.3,
         repeat: Infinity,
-        ease: "linear",
+        ease: 'linear',
       }}
       xmlns="http://www.w3.org/2000/svg"
       width="24"
@@ -133,8 +164,8 @@ const Loader = () => {
       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
       <path d="M12 3a9 9 0 1 0 9 9" />
     </motion.svg>
-  );
-};
+  )
+}
 
 const CheckIcon = () => {
   return (
@@ -142,11 +173,11 @@ const CheckIcon = () => {
       initial={{
         scale: 0,
         width: 0,
-        display: "none",
+        display: 'none',
       }}
       style={{
         scale: 0.5,
-        display: "none",
+        display: 'none',
       }}
       xmlns="http://www.w3.org/2000/svg"
       width="24"
@@ -163,5 +194,5 @@ const CheckIcon = () => {
       <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
       <path d="M9 12l2 2l4 -4" />
     </motion.svg>
-  );
-};
+  )
+}

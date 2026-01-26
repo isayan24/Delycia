@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useChangeTracking } from '@/hooks/useChangeTracking'
 import axiosInstance from '@/lib/axios'
-import type { FormData, ItemImage, Errors } from '../../types/addItemModal'
+import type { FormData, ItemImage } from '../../types/addItemModal'
 import type { Variant } from '../../variants/types/variant.types'
 
 interface CurrentFoodItem {
@@ -59,6 +59,7 @@ export const useUpdateItemForm = (
     formData,
     itemImages,
     itemVariants,
+    existingVariants,
   )
 
   // Fetch existing variants when modal opens

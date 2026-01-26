@@ -1,6 +1,4 @@
-// components/VariantManagerMain.tsx
 import React, { useState, useEffect, useTransition } from 'react'
-import { Settings, ChevronRight } from 'lucide-react'
 import { Variant, VariantManagerProps } from './types/variant.types'
 import VariantManagerContent from './VariantManagerContent'
 import {
@@ -11,7 +9,6 @@ import {
 } from '@/components/ui/accordion'
 import axiosInstance from '@/lib/axios'
 import useToast from '@/hooks/UseToast'
-import { useAuth } from '@/hooks/useAuth'
 
 interface ExtendedVariantManagerProps extends VariantManagerProps {
   initialVariants?: Variant[]
@@ -32,12 +29,15 @@ const VariantManagerMain: React.FC<ExtendedVariantManagerProps> = ({
     }
   }, [initialVariants])
 
-  const handleSaveVariants = (variants: Variant[]) => {
-    setSavedVariants(variants)
-    if (onSave) {
-      onSave(variants)
-    }
-  }
+  const handleSaveVariants = React.useCallback(
+    (variants: Variant[]) => {
+      setSavedVariants(variants)
+      if (onSave) {
+        onSave(variants)
+      }
+    },
+    [onSave],
+  )
 
   const onVariantDeleting = (
     variantId: string | number,
@@ -67,8 +67,6 @@ const VariantManagerMain: React.FC<ExtendedVariantManagerProps> = ({
           })
 
           if (response.status === 200) {
-            console.log('Variant deleted successfully from database')
-
             // Update savedVariants state
             const updatedVariants = savedVariants.filter(
               (variant) => variant.id.toString() !== variantIdStr,

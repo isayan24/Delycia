@@ -91,8 +91,8 @@ export function SingleItemForm({
       />
 
       <PricingSection
-        cost={formData.cost}
-        price={formData.price}
+        cost={formData.cost?.toString() || ''}
+        price={formData.price?.toString() || ''}
         onPriceChange={handlePriceChange}
         onCostChange={handleCostChange}
         hasError={errors.price}

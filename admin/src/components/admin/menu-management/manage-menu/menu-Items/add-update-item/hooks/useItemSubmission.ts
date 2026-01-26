@@ -15,7 +15,8 @@ interface SubmitSingleItemParams {
     cost: number
     stock: number
   }
-  imageLinks: string[]
+  itemImages: any[]
+  uploadImages: (images: any[]) => Promise<string[]>
   itemVariants: Variant[]
   rid?: number
 }
@@ -46,10 +47,18 @@ export const useItemSubmission = (
    * Submit a single item
    */
   const submitSingleItem = async (params: SubmitSingleItemParams) => {
-    const { formData, imageLinks, itemVariants, rid } = params
-
+    const { formData, itemImages, uploadImages, itemVariants, rid } = params
+    console.log('Call submitSingleItem')
     startTransition(async () => {
       try {
+        console.log('Call submitSingleItem try')
+
+        // Upload images first inside the transition
+        const imageLinks = await uploadImages(itemImages)
+
+        // Even if empty, we might proceed, but typically we want at least one image if required
+        // adapting logic to allow empty if original allowed it, or check length
+
         const data = {
           rid: rid || user?.selected_rid,
           name: formData.name,
@@ -116,7 +125,6 @@ export const useItemSubmission = (
           is_veg: formData.is_veg,
           items: itemsWithImages,
         }
-        console.log(data, 'data to be sent \n\n\n\n\n')
         const response = await axios.post(`/api/inventory/bulk`, data)
 
         const { inserted = 0, failed = 0 } = response.data

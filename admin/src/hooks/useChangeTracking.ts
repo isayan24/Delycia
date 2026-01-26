@@ -213,6 +213,7 @@ export const useChangeTracking = (
   formData: FormData,
   itemImages: ItemImage[],
   itemVariants: Variant[],
+  existingVariants: Variant[] = [], // New argument default to empty
 ) => {
   const [initialState, setInitialState] = useState<InitialItemState | null>(
     null,
@@ -252,21 +253,23 @@ export const useChangeTracking = (
 
   // Update initial variants when they're loaded
   useEffect(() => {
+    // Only update initial state if we have existing variants from DB
+    // and we haven't set them yet
     if (
       initialState &&
-      itemVariants.length > 0 &&
+      existingVariants.length > 0 &&
       initialState.variants.length === 0
     ) {
       setInitialState((prev) =>
         prev
           ? {
               ...prev,
-              variants: [...itemVariants],
+              variants: [...existingVariants],
             }
           : null,
       )
     }
-  }, [itemVariants, initialState])
+  }, [existingVariants, initialState])
 
   // Detect changes with comprehensive logging
   const detectChanges = useCallback((): ChangeDetectionResult | null => {
@@ -358,11 +361,11 @@ export const useChangeTracking = (
 
         // Add variants only if changed
         if (changes.hasVariantChanges) {
-          payload.variants = itemVariants.map((variant, index) => {
-            // Try to match with existing variant by ID first, then by position
-            const existingVariant =
-              initialState.variants.find((v) => v.id === variant.id) ||
-              initialState.variants[index]
+          payload.variants = itemVariants.map((variant) => {
+            // Try to match with existing variant by ID strictly
+            const existingVariant = initialState.variants.find(
+              (v) => v.id.toString() === variant.id.toString(),
+            )
             return {
               id: existingVariant?.id,
               name: variant.name,

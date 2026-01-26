@@ -1,8 +1,7 @@
 // components/ReviewSection.tsx
-import React from 'react';
-import { ReviewSectionProps } from '@/types/variant.types';
+import React from 'react'
 
-const ReviewSection: React.FC<ReviewSectionProps> = ({ variants }) => (
+const ReviewSection = ({ variants }: { variants: any[] }) => (
   <div className="space-y-4">
     <h3 className="text-lg font-medium mb-4">Review Your Variants</h3>
     <div className="border rounded-lg">
@@ -15,13 +14,15 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({ variants }) => (
       <div className="divide-y">
         {variants.map((variant) => (
           <div key={variant.id} className="p-4 grid grid-cols-2 gap-4">
-            <span className="text-base">{variant.name || 'Unnamed Variant'}</span>
-            <span className="text-base">${variant.price || '0.00'}</span>
+            <span className="text-base">
+              {variant.name || 'Unnamed Variant'}
+            </span>
+            <span className="text-base">₹{variant.price || '0.00'}</span>
           </div>
         ))}
       </div>
     </div>
   </div>
-);
+)
 
-export default ReviewSection;
+export default ReviewSection

@@ -29,7 +29,6 @@ import StockAvailability from '../item-inputs/StockAvailability'
 import VariantManagerMain from '../variants/VariantManagerMain'
 
 // Import hooks
-import { useAuth } from '@/hooks/useAuth'
 import { useUpdateItemForm } from './hooks/useUpdateItemForm'
 import { useImageUpload } from './hooks/useImageUpload'
 
@@ -48,7 +47,6 @@ export default function UpdateItemDetailsModal({
   refetch,
   currentFoodItem,
 }: UpdateItemDetailsModalProps) {
-  const [isImageLoading, setIsImageLoading] = useState<boolean>(false)
   const [errors, setErrors] = useState<any>({})
   const [showWarning, setShowWarning] = useState<boolean>(false)
   const [isPending, setIsPending] = useState<boolean>(false)
@@ -68,7 +66,6 @@ export default function UpdateItemDetailsModal({
     setItemVariants,
     existingVariants,
     isLoadingVariants,
-    initialState,
     detectChanges,
     buildSelectivePayload,
     hasInitialState,
@@ -238,10 +235,13 @@ export default function UpdateItemDetailsModal({
           cost: formData.cost,
           status: 'available',
           currentStatus: currentFoodItem?.status,
-          variants: itemVariants.map((variant, index) => {
-            const existingVariant = existingVariants[index]
+          variants: itemVariants.map((variant) => {
+            // Check if this variant exists in the original list (by ID match)
+            const isExisting = existingVariants.some(
+              (ev) => ev.id.toString() === variant.id.toString(),
+            )
             return {
-              id: existingVariant?.id || undefined,
+              id: isExisting ? variant.id : undefined,
               name: variant.name,
               price: parseInt(variant.price as any) || 0,
             }
@@ -305,10 +305,13 @@ export default function UpdateItemDetailsModal({
           cost: formData.cost,
           status: 'available',
           currentStatus: currentFoodItem?.status,
-          variants: itemVariants.map((variant, index) => {
-            const existingVariant = existingVariants[index]
+          variants: itemVariants.map((variant) => {
+            // Check if this variant exists in the original list (by ID match)
+            const isExisting = existingVariants.some(
+              (ev) => ev.id.toString() === variant.id.toString(),
+            )
             return {
-              id: existingVariant?.id || undefined,
+              id: isExisting ? variant.id : undefined,
               name: variant.name,
               price: parseInt(variant.price as any) || 0,
             }
@@ -399,7 +402,7 @@ export default function UpdateItemDetailsModal({
         <div className="w-full py-0 overflow-y-auto relative">
           <header
             style={{ boxShadow: '0px -4px 8px black' }}
-            className="sticky top-0 bg-white z-[52] p-5 pb-0 left-0 mb-8d w-full"
+            className="sticky top-0 bg-white z-52 p-5 pb-0 left-0 mb-8d w-full"
           >
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold text-black">
@@ -435,7 +438,7 @@ export default function UpdateItemDetailsModal({
               hasError={errors.description}
             />
 
-            <section className="flex justify-betweens gap-[1rem] flex-wrap py-5">
+            <section className="flex justify-betweens gap-4 flex-wrap py-5">
               <FoodTypeSelector
                 selectedType={formData.foodType}
                 onTypeChange={handleFoodTypeChange}
@@ -461,7 +464,7 @@ export default function UpdateItemDetailsModal({
               itemImages={itemImages}
               onImageUpload={handleImageUpload}
               onRemoveImage={handleRemoveImage}
-              isImageLoading={isImageLoading}
+              isImageLoading={false}
               hasError={errors.image}
             />
 

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react'
-import { X, Loader2 } from 'lucide-react'
+import { X } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 
 // Import types
@@ -59,8 +59,8 @@ export default function AddItemDetailsModal({
   const [showWarning, setShowWarning] = useState<boolean>(false)
 
   // Single item state
+  // Single item state
   const [itemImages, setItemImages] = useState<ItemImage[]>([])
-  const [isImageLoading, setIsImageLoading] = useState<boolean>(false)
   const [errors, setErrors] = useState<Errors>({})
   const [itemVariants, setItemVariants] = useState<Variant[]>([])
   const [formData, setFormData] = useState<FormData>({
@@ -201,9 +201,9 @@ export default function AddItemDetailsModal({
     [errors.cost, showWarning],
   )
 
-  const savedVariant = (variants: Variant[]) => {
+  const savedVariant = useCallback((variants: Variant[]) => {
     setItemVariants(variants)
-  }
+  }, [])
 
   // Mode toggle with confirmation
   const handleModeToggle = () => {
@@ -274,7 +274,7 @@ export default function AddItemDetailsModal({
           is_veg: formData.is_veg,
         },
         uploadBulkItemImages,
-        rid: selectedRid,
+        rid: selectedRid ? Number(selectedRid) : 0,
       })
     } else {
       // Validate single form
@@ -287,28 +287,21 @@ export default function AddItemDetailsModal({
       }
 
       // Upload images and submit
-      try {
-        const imageLinks = await uploadImages(itemImages)
-        if (imageLinks.length === 0) {
-          return
-        }
-
-        await submitSingleItem({
-          formData,
-          imageLinks,
-          itemVariants,
-          rid: selectedRid,
-        })
-      } catch (err) {
-        console.error('Error uploading images:', err)
-      }
+      // logic moved to useItemSubmission hook for better loading state handling
+      await submitSingleItem({
+        formData,
+        itemImages,
+        uploadImages,
+        itemVariants,
+        rid: selectedRid ? Number(selectedRid) : 0,
+      })
     }
 
     setShowWarning(false)
   }
 
   // Preview data for mobile preview
-  const previewData: PreviewData = useMemo(
+  const singlePreviewData: PreviewData = useMemo(
     () => ({
       name: formData.name,
       description: formData.description,
@@ -327,18 +320,40 @@ export default function AddItemDetailsModal({
     [formData, itemImages],
   )
 
+  const bulkPreviewData: PreviewData[] = useMemo(() => {
+    return bulkItems.map((item) => ({
+      name: item.name,
+      description: item.description,
+      foodType: formData.foodType, // Bulk items share food type settings currently
+      price: item.price,
+      cost: item.cost,
+      image:
+        item.images.length > 0
+          ? item.images[item.images.length - 1].previewImage ||
+            item.images[item.images.length - 1].image
+          : null,
+      images: item.images
+        .map((img) => img.previewImage || img.image)
+        .filter(Boolean) as string[],
+    }))
+  }, [bulkItems, formData.foodType])
+
   if (!open) return null
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg w-full max-w-7xl h-[90vh] flex overflow-hidden">
-        {/* Preview Section - Only visible in Single Mode or when not in Bulk Mode (can be adjusted per design) */}
-        {!isBulkMode && <ItemPreviewSection previewData={previewData} />}
+        {/* Preview Section */}
+        <ItemPreviewSection
+          previewData={
+            isBulkMode ? (bulkPreviewData as any) : singlePreviewData
+          }
+        />
 
         <div className="w-full py-0 overflow-y-auto relative">
           <header
             style={{ boxShadow: '0px -4px 8px black' }}
-            className="sticky top-0 bg-white z-[52] p-5 pb-0 left-0 mb-8 w-full"
+            className="sticky top-0 bg-white z-52 p-5 pb-0 left-0 mb-8 w-full"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -396,7 +411,7 @@ export default function AddItemDetailsModal({
                 handleRemoveBulkItem={handleRemoveBulkItem}
                 handleBulkItemChange={handleBulkItemChange}
                 handleAddBulkItem={handleAddBulkItem}
-                isImageLoading={isImageLoading}
+                isImageLoading={false}
               />
             ) : (
               <SingleItemForm
@@ -409,7 +424,7 @@ export default function AddItemDetailsModal({
                 setItemImages={setItemImages}
                 handleImageUpload={handleImageUpload}
                 handleRemoveImage={handleRemoveImage}
-                isImageLoading={isImageLoading}
+                isImageLoading={false}
                 handlePriceChange={handlePriceChange}
                 handleCostChange={handleCostChange}
                 setItemVariants={savedVariant}
@@ -427,6 +442,7 @@ export default function AddItemDetailsModal({
                 onClick={onSubmit}
                 className="bg-green-500 text-white text-lg px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
                 disabled={isPending}
+                loading={isPending}
               >
                 {isBulkMode
                   ? `Save ${bulkItems.length} Item${bulkItems.length > 1 ? 's' : ''}`

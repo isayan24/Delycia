@@ -1,5 +1,4 @@
-import React from "react";
-import { HelpCircle, DollarSign, TrendingUp, Calculator } from "lucide-react";
+import { HelpCircle, DollarSign, TrendingUp, Calculator } from 'lucide-react'
 
 export default function PricingSection({
   cost,
@@ -8,17 +7,17 @@ export default function PricingSection({
   onPriceChange,
   hasError,
 }: {
-  cost: string;
-  price: string;
-  onCostChange: (value: string) => void;
-  onPriceChange: (value: string) => void;
-  hasError?: boolean;
+  cost: string
+  price: string
+  onCostChange: (value: string) => void
+  onPriceChange: (value: string) => void
+  hasError?: boolean
 }) {
-  const costNum = parseFloat(cost) || 0;
-  const priceNum = parseFloat(price) || 0;
-  const profit = priceNum - costNum;
+  const costNum = parseFloat(cost) || 0
+  const priceNum = parseFloat(price) || 0
+  const profit = priceNum - costNum
   const profitMargin: any =
-    priceNum > 0 ? ((profit / priceNum) * 100).toFixed(1) : 0;
+    priceNum > 0 ? ((profit / priceNum) * 100).toFixed(1) : 0
 
   return (
     <div className="space-y-6">
@@ -49,7 +48,7 @@ export default function PricingSection({
               </span>
               <input
                 type="number"
-                value={cost || ""}
+                value={cost || ''}
                 onChange={(e) => onCostChange(e.target.value)}
                 className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 text-lg"
                 placeholder="0"
@@ -82,10 +81,10 @@ export default function PricingSection({
               </span>
               <input
                 type="number"
-                value={price || ""}
+                value={price || ''}
                 onChange={(e) => onPriceChange(e.target.value)}
                 className={`w-full pl-8 pr-4 py-3 text-lg border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 ${
-                  hasError ? "border-red-500 bg-red-50" : "border-gray-300"
+                  hasError ? 'border-red-500 bg-red-50' : 'border-gray-300'
                 }`}
                 placeholder="0"
                 min="0"
@@ -107,7 +106,7 @@ export default function PricingSection({
                   Profit per Item
                 </div>
                 <div
-                  className={`text-lg font-semibold ${profit >= 0 ? "text-green-600" : "text-red-600"}`}
+                  className={`text-lg font-semibold ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}
                 >
                   ₹ {profit.toFixed(2)}
                 </div>
@@ -116,7 +115,7 @@ export default function PricingSection({
               <div className="bg-white p-4 rounded-lg border border-orange-100">
                 <div className="text-xs text-gray-500 mb-1">Profit Margin</div>
                 <div
-                  className={`text-lg font-semibold ${profit >= 0 ? "text-green-600" : "text-red-600"}`}
+                  className={`text-lg font-semibold ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}
                 >
                   {profitMargin}%
                 </div>
@@ -127,7 +126,7 @@ export default function PricingSection({
                 <div className="text-lg font-semibold text-gray-700">
                   {costNum > 0
                     ? `${((priceNum / costNum - 1) * 100).toFixed(1)}%`
-                    : "0%"}
+                    : '0%'}
                 </div>
               </div>
             </div>
@@ -159,5 +158,5 @@ export default function PricingSection({
         )}
       </div>
     </div>
-  );
+  )
 }
