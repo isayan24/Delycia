@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react'
 import { X, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 
 // Import types
@@ -16,20 +15,12 @@ import type {
 import type { Variant } from '../variants/types/variant.types'
 
 // Import components
-import MobilePreview from '../mobilePreview/MobilePreview'
 import ErrorWarning from '../item-inputs/ErrorWarning'
-import ItemNameInput from '../item-inputs/ItemNameInput'
-import ItemDescriptionInput from '../item-inputs/ItemDescriptionInput'
-import CategorySelector from '../selectors/CategorySelector'
-import FoodTypeSelector from '../selectors/FoodTypeSelector'
-import ImageUploadSection from '../item-inputs/ImageUploadSection'
-import PricingSection from '../item-inputs/PricingSection'
-import VariantManagerMain from '../variants/VariantManagerMain'
-import StockAvailability from '../item-inputs/StockAvailability'
-import { BulkItemCard } from './components/BulkItemCard'
+import { SingleItemForm } from './components/SingleItemForm'
+import { BulkItemForm } from './components/BulkItemForm'
+import { ItemPreviewSection } from './components/ItemPreviewSection'
 
 // Import hooks
-import { useMenuStore } from '@/store/useMenuStore'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import { useItemFormState } from './hooks/useItemFormState'
 import { useImageUpload } from './hooks/useImageUpload'
@@ -41,6 +32,8 @@ import {
   validateBulkForm,
   getErrorFields,
 } from './utils/formValidation'
+import { Button as StatefulButton } from '@/components/ui/stateful-button'
+import { Button } from '@/components/ui/button'
 
 // Types
 interface ItemImage {
@@ -339,12 +332,13 @@ export default function AddItemDetailsModal({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg w-full max-w-7xl h-[90vh] flex overflow-hidden">
-        <MobilePreview previewData={previewData} />
+        {/* Preview Section - Only visible in Single Mode or when not in Bulk Mode (can be adjusted per design) */}
+        {!isBulkMode && <ItemPreviewSection previewData={previewData} />}
 
         <div className="w-full py-0 overflow-y-auto relative">
           <header
             style={{ boxShadow: '0px -4px 8px black' }}
-            className="sticky top-0 bg-white z-[52] p-5 pb-0 left-0 mb-8d w-full"
+            className="sticky top-0 bg-white z-[52] p-5 pb-0 left-0 mb-8 w-full"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -390,155 +384,54 @@ export default function AddItemDetailsModal({
           />
 
           <div className="p-5 space-y-5 relative text-lg">
-            {/* Single Item Mode */}
-            {!isBulkMode && (
-              <>
-                <ItemNameInput
-                  value={formData.name}
-                  onChange={(value: string) => handleInputChange('name', value)}
-                  hasError={errors.name}
-                />
-
-                <ItemDescriptionInput
-                  value={formData.description}
-                  onChange={(value: string) =>
-                    handleInputChange('description', value)
-                  }
-                  hasError={errors.description}
-                />
-
-                <section className="flex justify-betweens gap-[1rem] flex-wrap py-5">
-                  <FoodTypeSelector
-                    selectedType={formData.foodType}
-                    onTypeChange={handleFoodTypeChange}
-                  />
-
-                  <CategorySelector
-                    selectedCategoryId={formData.category_id}
-                    categories={categories}
-                    onChange={(value: number) =>
-                      handleInputChange('category_id', value)
-                    }
-                    hasError={errors.category_id}
-                  />
-                  <StockAvailability
-                    value={formData.stock}
-                    onChange={(value: number) =>
-                      handleInputChange('stock', value)
-                    }
-                    hasError={errors.stock}
-                  />
-                </section>
-
-                <ImageUploadSection
-                  setItemImages={setItemImages}
-                  itemImages={itemImages}
-                  onImageUpload={handleImageUpload}
-                  onRemoveImage={handleRemoveImage}
-                  isImageLoading={isImageLoading}
-                  hasError={errors.image}
-                />
-
-                <PricingSection
-                  cost={formData.cost}
-                  price={formData.price}
-                  onPriceChange={handlePriceChange}
-                  onCostChange={handleCostChange}
-                  hasError={errors.price}
-                />
-
-                <VariantManagerMain onSave={savedVariant} />
-              </>
+            {isBulkMode ? (
+              <BulkItemForm
+                formData={formData}
+                errors={errors}
+                handleInputChange={handleInputChange}
+                handleFoodTypeChange={handleFoodTypeChange}
+                categories={categories}
+                bulkItems={bulkItems}
+                bulkErrors={bulkErrors}
+                handleRemoveBulkItem={handleRemoveBulkItem}
+                handleBulkItemChange={handleBulkItemChange}
+                handleAddBulkItem={handleAddBulkItem}
+                isImageLoading={isImageLoading}
+              />
+            ) : (
+              <SingleItemForm
+                formData={formData}
+                errors={errors}
+                handleInputChange={handleInputChange}
+                handleFoodTypeChange={handleFoodTypeChange}
+                categories={categories}
+                itemImages={itemImages}
+                setItemImages={setItemImages}
+                handleImageUpload={handleImageUpload}
+                handleRemoveImage={handleRemoveImage}
+                isImageLoading={isImageLoading}
+                handlePriceChange={handlePriceChange}
+                handleCostChange={handleCostChange}
+                setItemVariants={savedVariant}
+              />
             )}
 
-            {/* Bulk Mode */}
-            {isBulkMode && (
-              <>
-                {/* Shared Fields */}
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
-                  <h3 className="text-lg font-semibold text-orange-800 mb-3">
-                    Shared Settings (applies to all items)
-                  </h3>
-                  <section className="flex gap-4 flex-wrap">
-                    <FoodTypeSelector
-                      selectedType={formData.foodType}
-                      onTypeChange={handleFoodTypeChange}
-                    />
-
-                    <CategorySelector
-                      selectedCategoryId={formData.category_id}
-                      categories={categories}
-                      onChange={(value: number) =>
-                        handleInputChange('category_id', value)
-                      }
-                      hasError={errors.category_id}
-                    />
-                  </section>
-                </div>
-
-                {/* Bulk Items List */}
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">
-                      Items ({bulkItems.length})
-                    </h3>
-                    {bulkItems.length >= 100 && (
-                      <span className="text-sm text-red-600">
-                        Maximum 100 items allowed
-                      </span>
-                    )}
-                  </div>
-
-                  {bulkItems.map((item, index) => (
-                    <BulkItemCard
-                      key={item.id}
-                      item={item}
-                      index={index}
-                      totalItems={bulkItems.length}
-                      errors={bulkErrors[item.id] || {}}
-                      onRemove={handleRemoveBulkItem}
-                      onChange={handleBulkItemChange}
-                      isImageLoading={isImageLoading}
-                    />
-                  ))}
-
-                  {/* Add Another Item Button */}
-                  {bulkItems.length < 100 && (
-                    <button
-                      onClick={handleAddBulkItem}
-                      type="button"
-                      className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-orange-500 hover:text-orange-600 transition-colors font-medium"
-                    >
-                      + Add Another Item
-                    </button>
-                  )}
-                </div>
-              </>
-            )}
-
-            <div className="flex justify-between pt-4 sticky -bottom-2 left-0 right-0 w-full bg-white p-5">
+            <div className="flex justify-between pt-4 sticky -bottom-2 left-0 right-0 w-full bg-white p-5 border-t mt-auto">
               <Button
                 onClick={() => onOpenChange(false)}
-                className="bg-red-200 text-red-600 border border-red-500 px-6 py-4 rounded-md hover:bg-red-300 transition-colors"
+                className="bg-red-200 text-red-600 border border-red-500 px-6 py-4 rounded-lg hover:bg-red-300 transition-colors"
               >
                 Discard
               </Button>
-              <Button
+              <StatefulButton
                 onClick={onSubmit}
-                className="bg-orange-500 text-white text-lg px-6 py-4 rounded-md hover:bg-orange-600 transition-colors"
+                className="bg-green-500 text-white text-lg px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
                 disabled={isPending}
               >
-                {isPending ? (
-                  <span className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Saving...
-                  </span>
-                ) : isBulkMode ? (
-                  `Save ${bulkItems.length} Item${bulkItems.length > 1 ? 's' : ''}`
-                ) : (
-                  'Save Item'
-                )}
-              </Button>
+                {isBulkMode
+                  ? `Save ${bulkItems.length} Item${bulkItems.length > 1 ? 's' : ''}`
+                  : 'Save Item'}
+              </StatefulButton>
             </div>
           </div>
         </div>

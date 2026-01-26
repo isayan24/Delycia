@@ -39,6 +39,7 @@ export interface BulkItem {
   price: number
   cost: number
   stock: number
+  variants?: Array<{ name: string; price: number }>
 }
 
 export interface BulkInventoryRequest {
@@ -47,4 +48,5 @@ export interface BulkInventoryRequest {
   is_veg: number
   items: BulkItem[]
   token: string
+  variants: Array<{ name: string; price: number }>
 }

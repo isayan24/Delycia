@@ -76,12 +76,9 @@ export const useItemSubmission = (
         refetch()
         onSuccess()
         // ✅ Removed refreshCategories call - cache auto-updates
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error submitting single item:', err)
-        showError(
-          'Error',
-          'Error uploading images, saving item, or creating variants',
-        )
+        showError('Error', err.response?.data?.message || 'Error saving item')
       }
     })
   }
@@ -98,7 +95,6 @@ export const useItemSubmission = (
         const itemsWithImages = await Promise.all(
           bulkItems.map(async (item) => {
             const imageLinks = await uploadBulkItemImages(item.images)
-
             return {
               name: item.name,
               description: item.description,
@@ -106,6 +102,10 @@ export const useItemSubmission = (
               price: item.price,
               cost: item.cost,
               stock: item.stock,
+              variants: item.variants.map((variant) => ({
+                name: variant.name,
+                price: parseInt(variant.price as any) || 0,
+              })),
             }
           }),
         )
@@ -116,7 +116,7 @@ export const useItemSubmission = (
           is_veg: formData.is_veg,
           items: itemsWithImages,
         }
-
+        console.log(data, 'data to be sent \n\n\n\n\n')
         const response = await axios.post(`/api/inventory/bulk`, data)
 
         const { inserted = 0, failed = 0 } = response.data
@@ -132,9 +132,9 @@ export const useItemSubmission = (
         } else {
           showError('Error', 'All items failed to add. Please try again.')
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error submitting bulk items:', err)
-        showError('Error', 'Error uploading images or saving items')
+        showError('Error', err.response?.data?.message || 'Error saving items')
       }
     })
   }

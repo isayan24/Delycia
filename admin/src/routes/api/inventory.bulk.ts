@@ -4,6 +4,7 @@ import { handleApiError } from '@/helpers/handleApiError'
 import { formatImageToArrayString } from '@/helpers/image/formatImage'
 import { BulkInventoryRequest } from '@/helpers/inventory/types'
 import { getAccessTokenFromCookie } from '@/lib/server-cookies'
+import { createVariants } from '@/helpers/inventory/variants/operations'
 
 export const Route = createFileRoute('/api/inventory/bulk')({
   server: {
@@ -90,7 +91,6 @@ export const Route = createFileRoute('/api/inventory/bulk')({
           const inserted = response.data?.inserted
           const failed = response.data?.failed
           const errors = response.data?.errors
-
           // Determine success message
           let message = 'Bulk operation completed'
           if (inserted > 0 && failed === 0) {
@@ -99,6 +99,40 @@ export const Route = createFileRoute('/api/inventory/bulk')({
             message = `Added ${inserted} item${inserted > 1 ? 's' : ''}, ${failed} failed`
           } else if (failed > 0 && inserted === 0) {
             message = `All ${failed} items failed to add`
+          }
+
+          // Process variants for successfully inserted items
+          if (inserted > 0 && items && items.length > 0) {
+            const firstId = response.data?.first_id
+
+            if (firstId) {
+              const variantPromises = []
+
+              const countToProcess = Math.min(items.length, inserted)
+
+              for (let i = 0; i < countToProcess; i++) {
+                const currentId = firstId + i
+                const originalItem = items[i]
+
+                if (
+                  originalItem &&
+                  originalItem.variants &&
+                  originalItem.variants.length > 0
+                ) {
+                  variantPromises.push(
+                    createVariants(
+                      currentId,
+                      originalItem.variants,
+                      accessToken,
+                    ),
+                  )
+                }
+              }
+
+              if (variantPromises.length > 0) {
+                await Promise.allSettled(variantPromises)
+              }
+            }
           }
 
           return new Response(

@@ -392,7 +392,7 @@ export default function CategoryWizard({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl w-full h-full md:h-auto md:max-h-[90vh] p-0 overflow-hidden flex flex-col gap-0 md:rounded-lg rounded-none">
+      <DialogContent className="sm:max-w-4xl w-full h-full md:h-auto md:max-h-[90vh] p-0 overflow-hidden flex flex-col gap-0 md:rounded-lg rounded-none">
         <DialogHeader className="p-4 border-b shrink-0 bg-white">
           <DialogTitle className="text-lg md:text-xl font-bold">
             Add Categories
@@ -400,7 +400,7 @@ export default function CategoryWizard({
         </DialogHeader>
 
         {/* Stepper */}
-        <div className="shrink-0 bg-gray-50/50 border-b">
+        <div className="shrink-0 bg-gray-50/50 border-b ">
           <WizardStepper steps={STEPS} currentStep={wizardState.currentStep} />
         </div>
 
@@ -424,7 +424,7 @@ export default function CategoryWizard({
             )}
           </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar ">
             <Button
               variant="ghost"
               size="icon"

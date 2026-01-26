@@ -1,26 +1,27 @@
-import React from "react";
-import { X } from "lucide-react";
-import type { BulkItemEntry } from "../hooks/useItemFormState";
-import type { Errors } from "../../types/addItemModal";
-import ItemNameInput from "../../item-inputs/ItemNameInput";
-import ItemDescriptionInput from "../../item-inputs/ItemDescriptionInput";
-import ImageUploadSection from "../../item-inputs/ImageUploadSection";
+import React from 'react'
+import { X } from 'lucide-react'
+import type { BulkItemEntry } from '../hooks/useItemFormState'
+import type { Errors } from '../../types/addItemModal'
+import ItemNameInput from '../../item-inputs/ItemNameInput'
+import ItemDescriptionInput from '../../item-inputs/ItemDescriptionInput'
+import ImageUploadSection from '../../item-inputs/ImageUploadSection'
+import VariantManagerMain from '../../variants/VariantManagerMain'
 
 interface ItemImage {
-  id: string;
-  image: string | null;
-  previewImage: string | null;
-  base64Data: string | null;
+  id: string
+  image: string | null
+  previewImage: string | null
+  base64Data: string | null
 }
 
 interface BulkItemCardProps {
-  item: BulkItemEntry;
-  index: number;
-  totalItems: number;
-  errors: Errors;
-  onRemove: (itemId: string) => void;
-  onChange: (itemId: string, field: keyof BulkItemEntry, value: any) => void;
-  isImageLoading: boolean;
+  item: BulkItemEntry
+  index: number
+  totalItems: number
+  errors: Errors
+  onRemove: (itemId: string) => void
+  onChange: (itemId: string, field: keyof BulkItemEntry, value: any) => void
+  isImageLoading: boolean
 }
 
 /**
@@ -57,29 +58,29 @@ export const BulkItemCard: React.FC<BulkItemCardProps> = ({
       <div className="space-y-4">
         <ItemNameInput
           value={item.name}
-          onChange={(value: string) => onChange(item.id, "name", value)}
+          onChange={(value: string) => onChange(item.id, 'name', value)}
           hasError={errors?.name}
         />
 
         <ItemDescriptionInput
           value={item.description}
-          onChange={(value: string) => onChange(item.id, "description", value)}
+          onChange={(value: string) => onChange(item.id, 'description', value)}
           hasError={errors?.description}
         />
 
         <ImageUploadSection
           setItemImages={(newImages: ItemImage[]) =>
-            onChange(item.id, "images", newImages)
+            onChange(item.id, 'images', newImages)
           }
           itemImages={item.images}
           onImageUpload={(newImages: ItemImage[]) =>
-            onChange(item.id, "images", newImages)
+            onChange(item.id, 'images', newImages)
           }
           onRemoveImage={(imageId) => {
             const updatedImages = item.images.filter(
-              (img) => img.id !== imageId
-            );
-            onChange(item.id, "images", updatedImages);
+              (img) => img.id !== imageId,
+            )
+            onChange(item.id, 'images', updatedImages)
           }}
           isImageLoading={isImageLoading}
           hasError={errors?.image}
@@ -92,12 +93,12 @@ export const BulkItemCard: React.FC<BulkItemCardProps> = ({
             </label>
             <input
               type="number"
-              value={item.cost || ""}
+              value={item.cost || ''}
               onChange={(e) =>
-                onChange(item.id, "cost", parseInt(e.target.value) || 0)
+                onChange(item.id, 'cost', parseInt(e.target.value) || 0)
               }
               className={`w-full px-3 py-2 border rounded-md ${
-                errors?.cost ? "border-red-500" : "border-gray-300"
+                errors?.cost ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="0"
               min="0"
@@ -109,12 +110,12 @@ export const BulkItemCard: React.FC<BulkItemCardProps> = ({
             </label>
             <input
               type="number"
-              value={item.price || ""}
+              value={item.price || ''}
               onChange={(e) =>
-                onChange(item.id, "price", parseInt(e.target.value) || 0)
+                onChange(item.id, 'price', parseInt(e.target.value) || 0)
               }
               className={`w-full px-3 py-2 border rounded-md ${
-                errors?.price ? "border-red-500" : "border-gray-300"
+                errors?.price ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="0"
               min="0"
@@ -127,19 +128,27 @@ export const BulkItemCard: React.FC<BulkItemCardProps> = ({
             </label>
             <input
               type="number"
-              value={item.stock || ""}
+              value={item.stock || ''}
               onChange={(e) =>
-                onChange(item.id, "stock", parseInt(e.target.value) || 0)
+                onChange(item.id, 'stock', parseInt(e.target.value) || 0)
               }
               className={`w-full px-3 py-2 border rounded-md ${
-                errors?.stock ? "border-red-500" : "border-gray-300"
+                errors?.stock ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="100"
               min="0"
             />
           </div>
         </div>
+
+        {/* Variants Section */}
+        <div className="pt-2">
+          <VariantManagerMain
+            initialVariants={item.variants || []}
+            onSave={(variants) => onChange(item.id, 'variants', variants)}
+          />
+        </div>
       </div>
     </div>
-  );
-};
+  )
+}
