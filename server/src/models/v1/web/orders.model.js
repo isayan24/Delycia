@@ -358,6 +358,49 @@ const getOrderByTable = async (data) => {
   }
 };
 
+const merge_orders = async (req) => {
+  try {
+    const { cart_ids, target_cart_id } = req.body;
+
+    if (!cart_ids || !Array.isArray(cart_ids) || cart_ids.length < 2) {
+      return apiResponse.error(400, "At least two cart IDs are required to merge.");
+    }
+
+    if (!target_cart_id) {
+      return apiResponse.error(400, "Target cart ID is required.");
+    }
+
+    // 1. Verify all carts belong to the same customer (Optional safety check)
+    // For now, we assume the admin knows what they are doing, but let's at least check they exist.
+
+    // 2. Get the latest created_at time among the orders to be merged
+    const placeholder = cart_ids.map(() => "?").join(",");
+    const timeQuery = `SELECT MAX(created_at) as latest_time FROM orders WHERE cart_id IN (${placeholder})`;
+    const [timeResult] = await pool.query(timeQuery, cart_ids);
+
+    const latestTime = timeResult[0].latest_time;
+
+    if (!latestTime) {
+      return apiResponse.error(404, "No orders found for the provided cart IDs.");
+    }
+
+    // 3. Update all orders to the target_cart_id and the latest time
+    const updateQuery = `UPDATE orders SET cart_id = ?, created_at = ? WHERE cart_id IN (${placeholder})`;
+    const [updateResult] = await pool.query(updateQuery, [target_cart_id, latestTime, ...cart_ids]);
+
+    if (updateResult.changedRows > 0) {
+      app.io.of("/orders").emit("orders_refresh");
+      return apiResponse.success(200, "Orders merged successfully.");
+    } else {
+      return apiResponse.success(200, "No orders were updated (IDs might be incorrect or already merged).");
+    }
+
+  } catch (error) {
+    console.error("Merge orders error:", error);
+    return apiResponse.error(500, error.message);
+  }
+};
+
 const get_paginated_orders = async (req) => {
   const {
     rid,
@@ -466,14 +509,13 @@ const get_paginated_orders = async (req) => {
       LEFT JOIN inventories i ON o.item_id = i.id
       LEFT JOIN variants v ON o.variant_id = v.id
       WHERE ${whereClause}
-      GROUP BY o.cart_id, o.customer_id, o.table_no, o.payment_method, 
-               o.payment_status, o.order_status, o.delivery_type, 
-               o.created_at, o.updated_at,
+      GROUP BY o.cart_id, o.customer_id,  o.payment_method, 
+               o.payment_status, o.order_status, 
                u.name, u.phone_number, u.email, u.username, u.profile_pic
       ORDER BY o.created_at DESC
       LIMIT ? OFFSET ?
     `;
-
+    // o.created_at, o.updated_at,o.table_no, o.delivery_type, 
     const [orders] = await pool.query(ordersQuery, [...params, limitNum, offset]);
 
     return apiResponse.success(200, "success", {
@@ -500,4 +542,5 @@ export default {
   getOrderByTable,
   get_all_orders,
   get_paginated_orders,
+  merge_orders,
 };

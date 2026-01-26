@@ -6,7 +6,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { Search, Calendar as CalendarIcon, X, Filter } from 'lucide-react'
+import {
+  Search,
+  Calendar as CalendarIcon,
+  X,
+  Filter,
+  Merge,
+} from 'lucide-react'
 import { format } from 'date-fns'
 import { useState } from 'react'
 
@@ -15,7 +21,12 @@ interface TableFiltersProps {
   onSearchChange: (search: string) => void
   onDateRangeChange: (start_date?: string, end_date?: string) => void
   onClearFilters: () => void
-  totalOrders?: number
+  // Merge Props
+  isSelectionMode: boolean
+  toggleSelectionMode: () => void
+  selectedCount: number
+  onMerge: () => void
+  isMergePending: boolean
 }
 
 export function TableFilters({
@@ -23,7 +34,11 @@ export function TableFilters({
   onSearchChange,
   onDateRangeChange,
   onClearFilters,
-  totalOrders,
+  isSelectionMode,
+  toggleSelectionMode,
+  selectedCount,
+  onMerge,
+  isMergePending,
 }: TableFiltersProps) {
   const [showFilters, setShowFilters] = useState(false)
   const [startDate, setStartDate] = useState<Date | undefined>(undefined)
@@ -45,104 +60,154 @@ export function TableFilters({
   }
 
   return (
-    <div className="space-y-3">
-      {/* Search Bar */}
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input
-            placeholder="Search by customer, phone, or item..."
-            value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10"
-          />
-          {search && (
-            <button
-              onClick={() => onSearchChange('')}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-
-        <Button
-          variant="outline"
-          onClick={() => setShowFilters(!showFilters)}
-          className="gap-2"
-        >
-          <Filter className="w-4 h-4" />
-          {showFilters ? 'Hide' : 'Filters'}
-        </Button>
+    <div className="flex items-center gap-2 w-full">
+      {/* Search Bar - Takes available space */}
+      <div className="relative flex-1">
+        <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+        <Input
+          placeholder="Search orders by item name, customer name..."
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          className="pl-8 h-8 text-xs w-full"
+        />
+        {search && (
+          <button
+            onClick={() => onSearchChange('')}
+            className="absolute right-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
 
-      {/* Collapsible Date Filters */}
+      {/* Toggle Filters Button */}
+      <Button
+        variant={showFilters ? 'secondary' : 'outline'}
+        onClick={() => setShowFilters(!showFilters)}
+        className="gap-1.5 h-8 text-xs px-2.5 shrink-0"
+      >
+        <Filter className="w-3.5 h-3.5" />
+        <span className="hidden sm:inline">
+          {showFilters ? 'Hide' : 'Filter'}
+        </span>
+      </Button>
+
+      {/* Expanded Filters - Absolute/Popover or expanded row? 
+          User asked for "make these btns compact". 
+          Let's make them show in a compact row if expanded, or just integrate them if space allows.
+          Given typical table layouts, a popover or a second tight row is best. 
+          Let's try a tight second row first, or if "compact" means "small buttons", let's adjust sizes.
+          The user pointed to the whole file, including date pickers.
+       */}
+
       {showFilters && (
-        <div className="p-4 border rounded-lg bg-gray-50 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            {/* Start Date */}
-            <Popover open={isStartDateOpen} onOpenChange={setIsStartDateOpen}>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="justify-start">
-                  <CalendarIcon className="w-4 h-4 mr-2" />
-                  {startDate ? format(startDate, 'PPP') : 'Start Date'}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={startDate}
-                  onSelect={(date) => {
-                    setStartDate(date)
-                    setIsStartDateOpen(false)
-                  }}
-                  autoFocus
-                />
-              </PopoverContent>
-            </Popover>
+        <div className="absolute top-full left-0 right-0 z-10 mt-1 p-2 bg-white border rounded-lg shadow-lg flex flex-col gap-2 sm:flex-row sm:items-center sm:static sm:w-auto sm:border-0 sm:shadow-none sm:p-0 sm:mt-0 sm:bg-transparent animate-in fade-in zoom-in-95 duration-200">
+          {/* Start Date */}
+          <Popover open={isStartDateOpen} onOpenChange={setIsStartDateOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="justify-start h-8 text-xs px-2.5 font-normal"
+              >
+                <CalendarIcon className="w-3.5 h-3.5 mr-1.5" />
+                {startDate ? format(startDate, 'MMM d') : 'Start'}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                mode="single"
+                selected={startDate}
+                onSelect={(date) => {
+                  setStartDate(date)
+                  setIsStartDateOpen(false)
+                }}
+                autoFocus
+              />
+            </PopoverContent>
+          </Popover>
 
-            {/* End Date */}
-            <Popover open={isEndDateOpen} onOpenChange={setIsEndDateOpen}>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="justify-start">
-                  <CalendarIcon className="w-4 h-4 mr-2" />
-                  {endDate ? format(endDate, 'PPP') : 'End Date'}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={endDate}
-                  onSelect={(date) => {
-                    setEndDate(date)
-                    setIsEndDateOpen(false)
-                  }}
-                  autoFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
+          {/* End Date */}
+          <Popover open={isEndDateOpen} onOpenChange={setIsEndDateOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="justify-start h-8 text-xs px-2.5 font-normal"
+              >
+                <CalendarIcon className="w-3.5 h-3.5 mr-1.5" />
+                {endDate ? format(endDate, 'MMM d') : 'End'}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                mode="single"
+                selected={endDate}
+                onSelect={(date) => {
+                  setEndDate(date)
+                  setIsEndDateOpen(false)
+                }}
+                autoFocus
+              />
+            </PopoverContent>
+          </Popover>
 
-          <div className="flex gap-2">
-            <Button onClick={handleApplyDateRange} className="flex-1">
-              Apply Filters
-            </Button>
+          <Button
+            onClick={handleApplyDateRange}
+            size="sm"
+            className="h-8 text-xs px-3"
+          >
+            Apply
+          </Button>
+
+          {(startDate || endDate || search) && (
             <Button
-              variant="outline"
+              variant="ghost"
               onClick={handleClearAll}
-              className="flex-1"
+              className="h-8 w-8 p-0 text-gray-500 hover:text-red-600"
+              title="Clear all filters"
             >
-              Clear All
+              <X className="w-3.5 h-3.5" />
             </Button>
-          </div>
-
-          {totalOrders !== undefined && (
-            <div className="text-sm text-gray-600 text-center">
-              Showing {totalOrders} order{totalOrders !== 1 ? 's' : ''}
-            </div>
           )}
         </div>
       )}
+
+      {/* Merge Actions - Integrated */}
+      <div className="flex items-center border-l pl-2 ml-1">
+        {!isSelectionMode ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleSelectionMode}
+            className="gap-1.5 h-8 text-xs px-2.5"
+          >
+            <Merge className="w-3.5 h-3.5" />
+            Merge
+          </Button>
+        ) : (
+          <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-2 duration-300">
+            <span className="text-xs text-gray-500 font-medium whitespace-nowrap hidden sm:inline">
+              {selectedCount > 0 ? `${selectedCount} selected` : 'Select'}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleSelectionMode}
+              className="h-8 px-2 text-xs text-gray-600 hover:text-gray-900"
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={onMerge}
+              disabled={isMergePending || selectedCount < 2}
+              className="gap-1.5 h-8 text-xs px-2.5"
+            >
+              <Merge className="w-3.5 h-3.5" />
+              {isMergePending ? 'Merging...' : 'Merge'}
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

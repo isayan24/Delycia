@@ -109,6 +109,62 @@ export const Route = createFileRoute('/api/orders')({
           })
         }
       },
+
+      POST: async ({ request }) => {
+        try {
+          const accessToken = getAccessTokenFromCookie(request)
+
+          if (!accessToken) {
+            return new Response(
+              JSON.stringify({
+                status: 401,
+                message: 'Not authenticated',
+                error: true,
+              }),
+              { status: 401, headers: { 'Content-Type': 'application/json' } },
+            )
+          }
+
+          const data: any = await request.json()
+          const { action } = data
+
+          if (action === 'merge') {
+            const { cart_ids, target_cart_id } = data
+            const response = await axiosInstance.post(
+              '/admin/orders/merge',
+              { cart_ids, target_cart_id },
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                },
+              },
+            )
+
+            return new Response(JSON.stringify(response.data), {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' },
+            })
+          }
+
+          return new Response(
+            JSON.stringify({
+              status: 400,
+              message: 'Invalid action',
+              error: true,
+            }),
+            { status: 400, headers: { 'Content-Type': 'application/json' } },
+          )
+        } catch (error) {
+          const errorResponse = handleApiError(
+            error,
+            'Error processing request',
+          )
+          return new Response(JSON.stringify(errorResponse), {
+            status: (errorResponse as any).status || 500,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        }
+      },
     },
   },
 })

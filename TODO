@@ -1,17 +1,19 @@
 
 Todo:
    Priority Fix: 
-    ☐ Out of stock items are also showing in the quick-bill and book-table, fix it
+    ✔ Out of stock items are also showing in the quick-bill and book-table, fix it @done(26-01-26 00:29)
     ✔ In quick bill and book-table, the ui for add order into cart is not looking good, fix it @done(26-01-25 01:41)
-    ☐ Fix when site is in sleep, add a btn to refresh the site for latest token flow and user detection
+    ✔ Fix when site is in sleep, add a btn to refresh the site for latest token flow and user detection @done(26-01-26 00:29)
 
   Inventory:
-    ☐ Fix variants are not there when adding new bulk item
-    ☐ Fix the tab switch in bulk inventory adding: that working reverse
+    ✔ Fix variants are not there when adding new bulk item @done(26-01-26 14:58)
+    ✔ Fix the tab switch in bulk inventory adding: that working reverse @done(26-01-26 14:58)
      
   Cart:
     ☐ Create rid column in the cart table
     ☐ Sync cart when user has logged in: sync with the redux
+ 
+
 
 Features: 
   Quick Bill:

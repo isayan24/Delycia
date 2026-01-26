@@ -190,17 +190,17 @@ const OrderInfoList = memo(function OrderInfoList({
   }
 
   return (
-    <div className="w-[40%] h-full flex flex-col border">
+    <div className="w-[40%] h-full flex flex-col">
       {/* Compact Header with Search and Filters */}
-      <div className="p-3 border-b space-y-2">
+      <div className="p-3 py-0 pb-2 border-b flex gap-1">
         {/* Search */}
-        <div className="relative">
+        <div className="relative flex-1 ">
           <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
             placeholder="Search orders..."
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-8 h-9 text-sm"
+            className="pl-8 h-8 text-sm"
           />
           {search && (
             <button
@@ -212,8 +212,7 @@ const OrderInfoList = memo(function OrderInfoList({
           )}
         </div>
 
-        {/* Filter Toggle */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -223,15 +222,9 @@ const OrderInfoList = memo(function OrderInfoList({
             <Filter className="w-3 h-3 mr-1" />
             {showFilters ? 'Hide' : 'Show'} Filters
           </Button>
-          <span className="text-xs text-gray-600">
-            {totalOrders} order{totalOrders !== 1 ? 's' : ''}
-          </span>
-        </div>
 
-        {/* Date Filters (Collapsible) */}
-        {showFilters && (
-          <div className="space-y-2 pt-2 border-t">
-            <div className="grid grid-cols-2 gap-2">
+          {showFilters && (
+            <div className="flex gap-2">
               {/* Start Date */}
               <Popover open={isStartDateOpen} onOpenChange={setIsStartDateOpen}>
                 <PopoverTrigger asChild>
@@ -279,13 +272,11 @@ const OrderInfoList = memo(function OrderInfoList({
                   />
                 </PopoverContent>
               </Popover>
-            </div>
 
-            <div className="flex gap-2">
               <Button
                 size="sm"
                 onClick={handleApplyDateRange}
-                className="h-7 text-xs flex-1"
+                className=" text-xs "
               >
                 Apply
               </Button>
@@ -293,13 +284,15 @@ const OrderInfoList = memo(function OrderInfoList({
                 size="sm"
                 variant="outline"
                 onClick={handleClearAll}
-                className="h-7 text-xs flex-1"
+                className=" text-xs "
               >
                 Clear
               </Button>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* Date Filters (Collapsible) */}
       </div>
 
       {/* Order List */}

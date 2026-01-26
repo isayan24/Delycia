@@ -74,9 +74,9 @@ export default function OrderHistoryMain() {
 
   return (
     <ErrorBoundary>
-      <div className="h-full flex flex-col gap-4">
+      <div className="h-full flex flex-col gap-2">
         <Tabs defaultValue="table" className="flex-1 flex flex-col min-h-0">
-          <div className="flex-none bg-white border rounded-xl shadow-sm mb-4 p-2 flex items-center justify-between">
+          <div className="flex-none bg-white   shadow-sm mb-2 p-2 flex items-center justify-between">
             <TabsList className="grid w-[200px] grid-cols-2">
               <TabsTrigger value="table">Table</TabsTrigger>
               <TabsTrigger value="grid">Grid</TabsTrigger>
@@ -91,9 +91,9 @@ export default function OrderHistoryMain() {
           {/* Grid View */}
           <TabsContent
             value="grid"
-            className="flex-1 min-h-0 mt-0 border rounded-xl shadow-sm bg-white overflow-hidden data-[state=inactive]:hidden"
+            className="flex-1 min-h-0 mt-0 shadow-sm bg-white overflow-hidden data-[state=inactive]:hidden"
           >
-            <div className="hidden md:block h-full w-full">
+            <div className="hidden md:block w-full h-[calc(100vh-10rem)]">
               <div className="h-full w-full flex overflow-hidden">
                 <ErrorBoundary fallback={<div>Error</div>}>
                   <OrderHistoryInfoList
@@ -136,7 +136,7 @@ export default function OrderHistoryMain() {
           {/* Table View */}
           <TabsContent
             value="table"
-            className="flex-1 min-h-0 mt-0 border rounded-xl shadow-sm bg-white overflow-hidden flex flex-col data-[state=inactive]:hidden"
+            className="flex-1 min-h-0 mt-0 shadow-sm bg-white overflow-hidden flex flex-col data-[state=inactive]:hidden"
           >
             <OrderHistoryTablePaginated
               items={orderHistory}
@@ -151,6 +151,7 @@ export default function OrderHistoryMain() {
               onSearchChange={setSearch}
               onDateRangeChange={setDateRange}
               onClearFilters={clearFilters}
+              onRefresh={refreshHistory}
             />
           </TabsContent>
         </Tabs>

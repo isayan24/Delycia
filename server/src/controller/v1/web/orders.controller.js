@@ -33,6 +33,11 @@ const getOrderByTable = async (data) => {
   return response;
 };
 
+const merge_orders = async (req, res) => {
+  const response = await ordersModel.merge_orders(req);
+  res.status(response.statusCode).json(response);
+};
+
 const get_paginated_orders = async (req, res) => {
   const response = await ordersModel.get_paginated_orders(req);
   res.status(response.statusCode).json(response);
@@ -47,4 +52,5 @@ export default {
   getOrderByTable,
   get_all_orders,
   get_paginated_orders,
+  merge_orders,
 };
