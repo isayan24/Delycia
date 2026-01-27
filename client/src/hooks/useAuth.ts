@@ -5,7 +5,7 @@ import sessionService, { UserData } from '@/services/sessionService'
 import tokenService from '@/services/tokenService'
 import sessionCleanupService from '@/services/sessionCleanupService'
 import { submitCodeAutomatically } from '@/helpers/submitCodeAutomatically'
-import axiosInstance from '@/lib/server-axios'
+import axiosInstance from '@/lib/axios'
 
 export interface LoginCredentials {
   country_code: string

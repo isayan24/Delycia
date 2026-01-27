@@ -1,49 +1,33 @@
-"use client";
-import React, { useEffect, useLayoutEffect, useState, useCallback } from "react";
+'use client'
+import React, { useEffect, useLayoutEffect, useState, useCallback } from 'react'
 import {
   Breadcrumb,
   BreadcrumbSeparator,
   BreadcrumbLink,
   BreadcrumbItem,
   BreadcrumbList,
-} from "../ui/breadcrumb";
-import { usePathname } from "@/lib/next-compat";
-import Link from "@/lib/next-compat";
+} from '../ui/breadcrumb'
+import { usePathname } from '@/lib/next-compat'
+import Link from '@/lib/next-compat'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import { ChevronDown } from "lucide-react";
-import { fetchCategory } from "@/helpers/fetchCategory";
-import { useRestaurantId } from "@/hooks/useRestaurantId";
+} from '../ui/dropdown-menu'
+import { ChevronDown } from 'lucide-react'
+import { useCategoriesQuery } from '@/hooks/queries/useCategoriesQuery'
 
 export default function BreadCrumbComponent() {
-  const pathname = usePathname();
-  const [pathArray, setPathArray] = useState<string[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
-  const rid = useRestaurantId();
+  const pathname = usePathname()
+  const [pathArray, setPathArray] = useState<string[]>([])
+  const { categories } = useCategoriesQuery()
 
-  const refreshCategories = useCallback(async () => {
-    try {
-      const data = await fetchCategory(rid);
-      setCategories(data.categories);
-    } catch (err) {
-      console.log("error in fetching category", err);
-    }
-  }, [rid]);
-
-  useLayoutEffect(() => {
-    if (rid !== null) {
-      refreshCategories();
-    }
-  }, [rid, refreshCategories]);
+  // Removed manual fetch
 
   useEffect(() => {
-    setPathArray(pathname.split("/").slice(1));
-  }, [pathname]);
- 
+    setPathArray(pathname.split('/').slice(1))
+  }, [pathname])
 
   return (
     <Breadcrumb className="text-nowrap">
@@ -51,23 +35,23 @@ export default function BreadCrumbComponent() {
         <BreadcrumbItem>
           <Link href="/" passHref legacyBehavior>
             <BreadcrumbLink
-              className={`${pathname === "/" ? "text-primary" : ""}`}
+              className={`${pathname === '/' ? 'text-primary' : ''}`}
             >
               Home
             </BreadcrumbLink>
           </Link>
         </BreadcrumbItem>
         {pathArray.map((path, index) => {
-          const currentPath = `/${pathArray.slice(0, index + 1).join("/")}`;
+          const currentPath = `/${pathArray.slice(0, index + 1).join('/')}`
           return (
             <React.Fragment key={index}>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                {path === "category" ? (
+                {path === 'category' ? (
                   <DropdownMenu>
                     <Link href="/category" passHref legacyBehavior>
                       <BreadcrumbLink
-                        className={`${pathname === "/category" ? "text-primary" : ""}`}
+                        className={`${pathname === '/category' ? 'text-primary' : ''}`}
                       >
                         Category
                       </BreadcrumbLink>
@@ -78,7 +62,11 @@ export default function BreadCrumbComponent() {
                     <DropdownMenuContent align="start">
                       {categories.map((item) => (
                         <DropdownMenuItem key={item?.name}>
-                          <Link href={"/category/" + item?.name.toLowerCase()} passHref legacyBehavior>
+                          <Link
+                            href={'/category/' + item?.name.toLowerCase()}
+                            passHref
+                            legacyBehavior
+                          >
                             <BreadcrumbLink>{item?.name}</BreadcrumbLink>
                           </Link>
                         </DropdownMenuItem>
@@ -88,7 +76,7 @@ export default function BreadCrumbComponent() {
                 ) : (
                   <Link href={currentPath} passHref legacyBehavior>
                     <BreadcrumbLink
-                      className={`${pathname === currentPath ? "text-primary" : ""}`}
+                      className={`${pathname === currentPath ? 'text-primary' : ''}`}
                     >
                       <>{path.charAt(0).toUpperCase() + path.slice(1)}</>
                     </BreadcrumbLink>
@@ -96,9 +84,9 @@ export default function BreadCrumbComponent() {
                 )}
               </BreadcrumbItem>
             </React.Fragment>
-          );
+          )
         })}
       </BreadcrumbList>
     </Breadcrumb>
-  );
+  )
 }

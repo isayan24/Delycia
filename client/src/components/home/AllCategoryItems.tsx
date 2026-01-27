@@ -1,13 +1,13 @@
 'use client'
 
 import FoodItemCard from '@/components/restaurant/foodItem/FoodItemCard'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useItemStore } from '@/store/order-store'
 import { useAllInventoryQuery } from '@/hooks/queries/useInventoryQuery'
 import { AlertTriangle } from 'lucide-react'
 import FoodSkeleton from '../smallComponents/FoodSkeleton'
 import NoFoodBox from './NoFoodBox'
-import { fetchCategory } from '@/helpers/fetchCategory'
+import { useCategoriesQuery } from '@/hooks/queries/useCategoriesQuery'
 import { useRestaurantId } from '@/hooks/useRestaurantId'
 import { ImageLoader } from '../image-loader'
 
@@ -16,39 +16,26 @@ export default function AllCategoryItems({
 }: {
   itemCategoryId?: string
 }) {
-  const [allItemsLoading, setAllItemsLoading] = useState(true)
-  const [categories, setCategories] = useState<any[]>([])
+  const { categories, loading: categoriesLoading } = useCategoriesQuery()
   const {
     allItems,
     fetchAllItems,
     error,
-    loading: queryLoading,
+    loading: inventoryLoading,
   } = useAllInventoryQuery()
+
   const cartItems = useItemStore((state) => state.items)
   const rid = useRestaurantId()
+
+  const isLoading = inventoryLoading || categoriesLoading
 
   useEffect(() => {
     useItemStore.persist.rehydrate()
   }, [])
 
   useEffect(() => {
-    const loadData = async () => {
-      setAllItemsLoading(true)
-      await fetchAllItems()
-
-      // Fetch categories for grouping
-      try {
-        const categoryData = await fetchCategory(rid)
-        setCategories(categoryData.categories || [])
-      } catch (err) {
-        console.error('Error fetching categories:', err)
-      }
-
-      setAllItemsLoading(false)
-    }
-
     if (rid !== null) {
-      loadData()
+      fetchAllItems()
     }
   }, [rid, fetchAllItems])
 
@@ -92,12 +79,12 @@ export default function AllCategoryItems({
   }
 
   // Empty state
-  if (!allItemsLoading && allItems.length === 0) {
+  if (!isLoading && allItems.length === 0) {
     return <NoFoodBox refetch={fetchAllItems} />
   }
 
   // Loading state
-  if (allItemsLoading) {
+  if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-[700px]:flex max-[700px]:flex-col max-[700px]:gap-3 max-[700px]:px-0">

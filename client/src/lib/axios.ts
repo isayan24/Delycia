@@ -1,14 +1,24 @@
 import axios from 'axios'
+import qs from 'qs'
 
 const axiosInstance = axios.create({
-  baseURL: '/api',
-  withCredentials: true,
+  // baseURL: 'https://api.delycia.com/api/v1',
+  baseURL: 'http://localhost:8020/api/v1',
+  withCredentials: true, // ensures cookies are sent automatically
 })
 
 axiosInstance.interceptors.request.use(
   (config) => {
+    // For POST requests, transform JSON data to x-www-form-urlencoded format
+    if (config.method === 'post' && !config.headers['Content-Type']) {
+      config.headers['Content-Type'] = 'application/x-www-form-urlencoded'
+      if (config.data) {
+        config.data = qs.stringify(config.data)
+      }
+    }
+
+    // Set Accept header for all requests
     config.headers['Accept'] = 'application/json'
-    config.headers['Content-Type'] = 'application/json'
     return config
   },
   (error) => {

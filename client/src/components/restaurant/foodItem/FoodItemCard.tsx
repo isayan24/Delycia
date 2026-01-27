@@ -17,7 +17,7 @@ import HoverInfo from '../../smallComponents/HoverInfo'
 import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer'
 import FoodItemInfo from './FoodItemInfo'
 import { ImageCarousel } from '@/hooks/useImageCarousel'
-import axiosInstance from '@/lib/server-axios'
+import axiosInstance from '@/lib/axios'
 
 interface FoodItemCardProps {
   id: string

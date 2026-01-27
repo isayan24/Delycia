@@ -1,8 +1,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, useCallback } from 'react'
-import { Order } from '@/types/Order'
 import tokenService from '@/services/tokenService'
-import { fetchOrders } from '@/services/orderService'
+import axiosInstance from '@/lib/axios'
+import { Order } from '@/types/Order'
 
 interface UseOrdersQueryOptions {
   customerId?: string
@@ -34,7 +34,25 @@ export const useOrdersQuery = ({
       if (!customerId) return []
       const token = await tokenService.getValidAccessToken()
       if (!token) throw new Error('No access token available')
-      return fetchOrders(customerId, token)
+
+      try {
+        const response = await axiosInstance.get('/orders', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          params: {
+            customer_id: customerId,
+          },
+        })
+
+        if (response.data?.statusCode === 200 && response.data?.orders) {
+          return response.data.orders
+        }
+        return []
+      } catch (error) {
+        console.error('Error fetching orders:', error)
+        throw error
+      }
     },
     enabled: !!customerId,
     // Only refresh if active and interval is set
@@ -46,7 +64,7 @@ export const useOrdersQuery = ({
 
   // Derived state: filtered orders
   const orders = rid
-    ? allOrders.filter((order) => String(order.rid) === String(rid))
+    ? allOrders.filter((order: Order) => String(order.rid) === String(rid))
     : allOrders
 
   // Derived status string (mimicking UseFetchOrders behavior)

@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { DrawerContent } from "@/components/ui/drawer";
-import { DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import React, { useEffect, useState } from 'react'
+import { DrawerContent } from '@/components/ui/drawer'
+import { DialogDescription, DialogTitle } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 import {
   AlertTriangle,
   Check,
@@ -15,12 +15,12 @@ import {
   ChefHat,
   Award,
   ShoppingBag,
-} from "lucide-react";
-import { toast } from "sonner";
-import Link from "@/lib/next-compat";
-import { useItemStore } from "@/store/order-store";
-import { ImageCarousel } from "@/hooks/useImageCarousel";
-import axiosInstance from "@/lib/axios";
+} from 'lucide-react'
+import { toast } from 'sonner'
+import Link from '@/lib/next-compat'
+import { useItemStore } from '@/store/order-store'
+import { ImageCarousel } from '@/hooks/useImageCarousel'
+import axiosInstance from '@/lib/axios'
 
 export default function FoodItemInfo({
   id,
@@ -41,116 +41,115 @@ export default function FoodItemInfo({
   stock,
   variants,
 }: any) {
-  const showCartItems = useItemStore((state) => state.items);
-  const [selectedVariant, setSelectedVariant] = useState<any>(null); 
+  const showCartItems = useItemStore((state) => state.items)
+  const [selectedVariant, setSelectedVariant] = useState<any>(null)
 
   // Initialize with no variant selected (original item selected by default)
   useEffect(() => {
     // Don't auto-select any variant - let user choose between original and variants
     if (variants && variants.length > 0) {
-      setSelectedVariant(null); // Start with original item selected
+      setSelectedVariant(null) // Start with original item selected
     }
-  }, [variants]);
+  }, [variants])
 
   // Status options for display
   const statusOptions = [
     {
-      value: "available",
-      label: "Available",
+      value: 'available',
+      label: 'Available',
       icon: <Check className="h-5 w-5" />,
-      color: "text-green-600 bg-green-100",
+      color: 'text-green-600 bg-green-100',
     },
     {
-      value: "out_of_stock",
-      label: "Out of Stock",
+      value: 'out_of_stock',
+      label: 'Out of Stock',
       icon: <AlertTriangle className="h-5 w-5" />,
-      color: "text-red-600 bg-red-100",
+      color: 'text-red-600 bg-red-100',
     },
     {
-      value: "low_stock",
-      label: "Low Stock",
+      value: 'low_stock',
+      label: 'Low Stock',
       icon: <AlertTriangle className="h-5 w-5" />,
-      color: "text-yellow-600 bg-yellow-100",
+      color: 'text-yellow-600 bg-yellow-100',
     },
-  ];
+  ]
 
   // Get current status display info
   const currentStatus =
-    statusOptions.find((option) => option.value === status) || statusOptions[0];
+    statusOptions.find((option) => option.value === status) || statusOptions[0]
 
   // Calculate discounted price
   const discountedPrice =
-    discount > 0 ? price - (price * discount) / 100 : price;
+    discount > 0 ? price - (price * discount) / 100 : price
 
   // Get current price (variant price or base price)
   const getCurrentPrice = () => {
-    return selectedVariant ? selectedVariant.price : price;
-  };
+    return selectedVariant ? selectedVariant.price : price
+  }
 
   // Get current name (with variant if selected)
   const getCurrentName = () => {
-    return selectedVariant ? `${name} - ${selectedVariant.name}` : name;
-  };
+    return selectedVariant ? `${name} - ${selectedVariant.name}` : name
+  }
 
   // Modified cart handlers to use variant data
   const handleAddToCartWithVariant = () => {
-    const currentPrice = getCurrentPrice();
-    const currentName = getCurrentName();
-    const variantId = selectedVariant ? selectedVariant.id : null;
+    const currentPrice = getCurrentPrice()
+    const currentName = getCurrentName()
+    const variantId = selectedVariant ? selectedVariant.id : null
     // Call the original onAddToCart but with variant data
-    onAddToCart(currentName, currentPrice, variantId);
-  };
+    onAddToCart(currentName, currentPrice, variantId)
+  }
 
   const handleQuantityIncreaseWithVariant = () => {
-    const currentPrice = getCurrentPrice();
-    const currentName = getCurrentName();
-    const variantId = selectedVariant ? selectedVariant.id : null;
+    const currentPrice = getCurrentPrice()
+    const currentName = getCurrentName()
+    const variantId = selectedVariant ? selectedVariant.id : null
 
-    onQuantityIncrease(currentName, currentPrice, variantId);
-  };
+    onQuantityIncrease(currentName, currentPrice, variantId)
+  }
 
   const handleQuantityDecreaseWithVariant = () => {
-    const currentPrice = getCurrentPrice();
-    const currentName = getCurrentName();
+    const currentPrice = getCurrentPrice()
+    const currentName = getCurrentName()
 
-    onQuantityDecrease(currentName, currentPrice);
-  }; 
+    onQuantityDecrease(currentName, currentPrice)
+  }
 
   const updateCartItemVariant = (variant: any) => {
     if (quantity > 0) {
       // Check if the clicked variant is different from currently selected
-      const isSelectingDifferentVariant = selectedVariant?.id !== variant?.id;
-      const isSelectingOriginalFromVariant = selectedVariant && !variant;
-      const isSelectingVariantFromOriginal = !selectedVariant && variant;
+      const isSelectingDifferentVariant = selectedVariant?.id !== variant?.id
+      const isSelectingOriginalFromVariant = selectedVariant && !variant
+      const isSelectingVariantFromOriginal = !selectedVariant && variant
 
       // Only update if we're actually switching to a different option
       if (
         isSelectingDifferentVariant ||
         isSelectingOriginalFromVariant ||
         isSelectingVariantFromOriginal
-      ) {  
-        onRemoveAllQuantity(); 
+      ) {
+        onRemoveAllQuantity()
       }
     }
-  };
+  }
 
   // Also update your handleVariantClick function:
   const handleVariantClick = (variant: any) => {
     // Only update selectedVariant if we're switching to something different
-    const isDifferentVariant = selectedVariant?.id !== variant?.id;
-    const isSelectingOriginalFromVariant = selectedVariant && !variant;
-    const isSelectingVariantFromOriginal = !selectedVariant && variant;
+    const isDifferentVariant = selectedVariant?.id !== variant?.id
+    const isSelectingOriginalFromVariant = selectedVariant && !variant
+    const isSelectingVariantFromOriginal = !selectedVariant && variant
 
     if (
       isDifferentVariant ||
       isSelectingOriginalFromVariant ||
       isSelectingVariantFromOriginal
     ) {
-      setSelectedVariant(variant);
-      updateCartItemVariant(variant);
-    } 
-  };
- 
+      setSelectedVariant(variant)
+      updateCartItemVariant(variant)
+    }
+  }
 
   return (
     <DrawerContent className="max-[768px]:mx-4 p-0 max-w-[65rem] mx-auto overflow-hidden max-h-[90vh]">
@@ -216,23 +215,23 @@ export default function FoodItemInfo({
 
               <div className="space-y-3">
                 {/* Original item option */}
-                <div 
+                <div
                   onClick={() => {
                     if (selectedVariant !== null) {
-                      setSelectedVariant(null);
-                      updateCartItemVariant(null);
+                      setSelectedVariant(null)
+                      updateCartItemVariant(null)
                     }
                   }}
                   className={`flex items-center justify-between cursor-pointer p-3 border rounded-lg ${
-                    !selectedVariant ? "border-btnColor" : "border-gray-300"
+                    !selectedVariant ? 'border-btnColor' : 'border-gray-300'
                   } hover:border-btnColor transition-colors`}
                 >
                   <div className="flex items-center gap-3">
                     <div
                       className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
                         !selectedVariant
-                          ? "border-btnColor bg-btnColor"
-                          : "border-gray-300"
+                          ? 'border-btnColor bg-btnColor'
+                          : 'border-gray-300'
                       }`}
                     >
                       {!selectedVariant && (
@@ -255,16 +254,16 @@ export default function FoodItemInfo({
                     onClick={() => handleVariantClick(variant)}
                     className={`flex items-center justify-between cursor-pointer p-3 border rounded-lg ${
                       selectedVariant?.id === variant.id
-                        ? "border-btnColor"
-                        : "border-gray-300"
+                        ? 'border-btnColor'
+                        : 'border-gray-300'
                     } hover:border-btnColor transition-colors`}
                   >
                     <div className="flex items-center gap-3">
                       <div
                         className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
                           selectedVariant?.id === variant.id
-                            ? "border-btnColor bg-btnColor"
-                            : "border-gray-300"
+                            ? 'border-btnColor bg-btnColor'
+                            : 'border-gray-300'
                         }`}
                       >
                         {selectedVariant?.id === variant.id && (
@@ -287,7 +286,9 @@ export default function FoodItemInfo({
           {/* Description */}
           <div className="mb-6">
             <h3 className="text-lg font-semibold mb-2">Description</h3>
-            <DialogDescription className="text-gray-700">{description}</DialogDescription>
+            <DialogDescription className="text-gray-700">
+              {description}
+            </DialogDescription>
           </div>
 
           {/* Desktop Highlighted Features */}
@@ -303,16 +304,14 @@ export default function FoodItemInfo({
                     <Triangle className="text-red-500 h-2 w-2 fill-current" />
                   </div>
                 )}
-              </div>  
+              </div>
               <div>
                 <p className="text-sm text-gray-500">Type</p>
                 <p className="font-medium">
-                  {isVeg ? "Vegetarian" : "Non-Vegetarian"}
+                  {isVeg ? 'Vegetarian' : 'Non-Vegetarian'}
                 </p>
               </div>
             </div>
-
-             
 
             <div className="bg-btnColor/5 p-3 rounded-lg flex items-center gap-3 border border-btnColor/20">
               <div className="bg-btnColor/10 p-2 rounded-full">
@@ -344,8 +343,8 @@ export default function FoodItemInfo({
               {quantity === 0 ? (
                 <Button
                   onClick={handleAddToCartWithVariant}
-                  disabled={isPending || status === "out_of_stock"}
-                  className={`w-full bg-btnColor hover:bg-btnColor/90 text-white rounded-xl text-[1rem] h-12 ${status === "out_of_stock" ? "opacity-50 cursor-not-allowed" : ""}`}
+                  disabled={isPending || status === 'out_of_stock'}
+                  className={`w-full bg-btnColor hover:bg-btnColor/90 text-white rounded-xl text-[1rem] h-12 ${status === 'out_of_stock' ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {isPending ? (
                     <Loader2 className="!h-5 !w-5 animate-spin mr-2" />
@@ -450,7 +449,7 @@ export default function FoodItemInfo({
                   </div>
                 )}
                 <span className="text-sm font-medium">
-                  {isVeg ? "Veg" : "Non-Veg"}
+                  {isVeg ? 'Veg' : 'Non-Veg'}
                 </span>
               </div>
             </div>
@@ -486,20 +485,20 @@ export default function FoodItemInfo({
                 <div
                   onClick={() => {
                     if (selectedVariant !== null) {
-                      setSelectedVariant(null);
-                      updateCartItemVariant(null);
+                      setSelectedVariant(null)
+                      updateCartItemVariant(null)
                     }
                   }}
                   className={`flex items-center justify-between cursor-pointer p-3 border rounded-lg ${
-                    !selectedVariant ? "border-btnColor" : "border-gray-300"
+                    !selectedVariant ? 'border-btnColor' : 'border-gray-300'
                   } transition-colors`}
                 >
                   <div className="flex items-center gap-3">
                     <div
                       className={`w-5 h-5 rounded-full border-2 flex items-center justify-center  transition-colors ${
                         !selectedVariant
-                          ? "border-btnColor bg-btnColor"
-                          : "border-gray-300"
+                          ? 'border-btnColor bg-btnColor'
+                          : 'border-gray-300'
                       }`}
                     >
                       {!selectedVariant && (
@@ -522,16 +521,16 @@ export default function FoodItemInfo({
                     key={variant.id}
                     className={`flex items-center justify-between cursor-pointer p-3 border rounded-lg ${
                       selectedVariant?.id === variant.id
-                        ? "border-btnColor"
-                        : "border-gray-300"
+                        ? 'border-btnColor'
+                        : 'border-gray-300'
                     } transition-colors`}
                   >
                     <div className="flex items-center gap-3">
                       <div
                         className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
                           selectedVariant?.id === variant.id
-                            ? "border-btnColor bg-btnColor"
-                            : "border-gray-300"
+                            ? 'border-btnColor bg-btnColor'
+                            : 'border-gray-300'
                         }`}
                       >
                         {selectedVariant?.id === variant.id && (
@@ -578,8 +577,8 @@ export default function FoodItemInfo({
               {quantity === 0 ? (
                 <Button
                   onClick={handleAddToCartWithVariant}
-                  disabled={isPending || status === "out_of_stock"}
-                  className={`w-full bg-btnColor hover:bg-btnColor/90 text-white rounded-xl text-[1rem] h-12 ${status === "out_of_stock" ? "opacity-50 cursor-not-allowed" : ""}`}
+                  disabled={isPending || status === 'out_of_stock'}
+                  className={`w-full bg-btnColor hover:bg-btnColor/90 text-white rounded-xl text-[1rem] h-12 ${status === 'out_of_stock' ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {isPending ? (
                     <Loader2 className="!h-5 !w-5 animate-spin mr-2" />
@@ -633,5 +632,5 @@ export default function FoodItemInfo({
         </div>
       </div>
     </DrawerContent>
-  );
+  )
 }

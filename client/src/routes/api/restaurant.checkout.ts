@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import axiosInstance from '@/lib/server-axios'
+import axiosInstance from '@/lib/axios'
 import cryptoConfig from '@/lib/crypto/config'
 import signatureService from '@/lib/crypto/signatureService'
 

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import axiosInstance from '@/lib/server-axios'
+import axiosInstance from '@/lib/axios'
 import { Restaurant } from '@/types/Restaurant'
 
 // Fetcher functions

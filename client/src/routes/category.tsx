@@ -1,9 +1,8 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import React, { useEffect, useCallback } from 'react'
-import { fetchCategory } from '@/helpers/fetchCategory'
+import { useCategoriesQuery } from '@/hooks/queries/useCategoriesQuery'
 import UseOptimizeImage from '@/hooks/UseOptimizeImage'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useRestaurantId } from '@/hooks/useRestaurantId'
 
 interface Category {
   id: string
@@ -17,27 +16,10 @@ export const Route = createFileRoute('/category')({
 })
 
 function CategoryItem() {
-  const [categoryItems, setCategoryItems] = React.useState<Category[]>([])
-  const [isLoading, setIsLoading] = React.useState(true)
-  const rid = useRestaurantId()
+  // Use hook for data
+  const { categories: categoryItems, loading: isLoading } = useCategoriesQuery()
 
-  const refreshCategories = useCallback(async () => {
-    try {
-      setIsLoading(true)
-      const data = await fetchCategory(rid)
-      setCategoryItems(data.categories)
-    } catch (err) {
-      console.log('error in fetching category', err)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [rid])
-
-  useEffect(() => {
-    if (rid !== null) {
-      refreshCategories()
-    }
-  }, [rid, refreshCategories])
+  // Removed manual fetch logic
 
   // Skeleton placeholders array - adjust count as needed
   const skeletonPlaceholders = Array.from({ length: 12 }, (_, index) => index)

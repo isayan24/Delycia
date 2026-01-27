@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchCategory } from '@/helpers/fetchCategory'
 import { useRestaurantId } from '@/hooks/useRestaurantId'
+import axiosInstance from '@/lib/axios'
 
 export const useCategoriesQuery = () => {
   const rid = useRestaurantId()
@@ -13,8 +13,9 @@ export const useCategoriesQuery = () => {
   } = useQuery({
     queryKey: ['categories', { rid }],
     queryFn: async () => {
-      const data = await fetchCategory(rid)
-      return data.categories || []
+      const url = rid ? `/categories?rid=${rid}` : '/categories'
+      const response = await axiosInstance.get(url)
+      return response.data.categories || []
     },
     enabled: !!rid,
   })

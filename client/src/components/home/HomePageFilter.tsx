@@ -1,39 +1,26 @@
 /* eslint-disable @next/next/no-img-element */
 'use client'
-import React, { useLayoutEffect, useCallback, useState, useMemo } from 'react'
+import React, { useCallback, useState, useMemo } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import HomeCategoryItems from './HomeCategoryItems'
-import { fetchCategory } from '@/helpers/fetchCategory'
 import AllCategoryItems from './AllCategoryItems'
 import HeaderHero from '../header/HeaderHero'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
-import { useRestaurantId } from '@/hooks/useRestaurantId'
+import { useCategoriesQuery } from '@/hooks/queries/useCategoriesQuery'
 import UseOptimizeImage from '@/hooks/UseOptimizeImage'
-import allFood from '../../../public/allFood.png'
-import Image from '@/lib/next-compat'
+// import allFood from '../../../public/allFood.png'
+// import Image from '@/lib/next-compat'
 import HeaderSearch from '../header/HeaderSearch'
 
 export default function HomePageFilter() {
-  const [category, setCategory] = React.useState([])
+  const { categories: category, loading: isLoading } = useCategoriesQuery()
   const isMobile = useMediaQuery('(max-width: 700px)', false)
   const isLargeScreen = useMediaQuery('(min-width: 1151px)', false)
-  const rid = useRestaurantId()
+  // const rid = useRestaurantId() // handled inside hook
   const [activeTab, setActiveTab] = useState('All') // Add active tab state
 
-  const refreshCategories = useCallback(async () => {
-    try {
-      const data = await fetchCategory(rid)
-      setCategory(data.categories || [])
-    } catch (err) {
-      console.error('Error fetching categories:', err)
-    }
-  }, [rid])
-
-  useLayoutEffect(() => {
-    if (rid !== null) {
-      refreshCategories()
-    }
-  }, [rid, refreshCategories])
+  // Removed manual fetch logic (refreshCategories, useLayoutEffect)
+  // useCategoriesQuery handles it.
 
   const handleTabSwitch = useCallback(
     (categoryName: string) => {

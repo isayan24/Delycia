@@ -1,24 +1,24 @@
-import axiosInstance from "@/lib/axios";
-import axios from "axios";
+import axiosInstance from '@/lib/axios'
+import axios from 'axios'
 
 export interface UserCheckResponse {
-  statusCode: number;
-  message: string;
+  statusCode: number
+  message: string
   user?: {
-    id: number;
-    name?: string;
-    phone_number: string;
-    countryCode: string;
-  };
+    id: number
+    name?: string
+    phone_number: string
+    countryCode: string
+  }
 }
 
 export interface UserExistenceResult {
-  exists: boolean;
+  exists: boolean
   userData?: {
-    id: string;
-    name?: string;
-    phone_number: string;
-  };
+    id: string
+    name?: string
+    phone_number: string
+  }
 }
 
 /**
@@ -27,18 +27,18 @@ export interface UserExistenceResult {
  * @returns Promise<UserExistenceResult>
  */
 export const checkUserExists = async (
-  phoneNumber: string
+  phoneNumber: string,
 ): Promise<UserExistenceResult> => {
   try {
-    const phoneNumberFix = phoneNumber.replace("+", "");
+    const phoneNumberFix = phoneNumber.replace('+', '')
     const response = await axiosInstance.get(
       `/users/check?phone_number=${phoneNumberFix}`,
       {
         timeout: 5000, // 5 second timeout
-      }
-    );
+      },
+    )
 
-    const data: UserCheckResponse = response.data;
+    const data: UserCheckResponse = response.data
 
     if (data.statusCode === 200 && data.user) {
       return {
@@ -48,23 +48,23 @@ export const checkUserExists = async (
           name: data.user.name,
           phone_number: data.user.phone_number,
         },
-      };
+      }
     } else {
       return {
         exists: false,
-      };
+      }
     }
   } catch (error) {
-    console.error("Error checking user existence:", error);
+    console.error('Error checking user existence:', error)
 
     // If it's a 400 status (user not found), treat as new user
     if (axios.isAxiosError(error) && error.response?.status === 400) {
       return {
         exists: false,
-      };
+      }
     }
 
     // For other errors, throw to trigger fallback behavior
-    throw new Error("Failed to check user existence");
+    throw new Error('Failed to check user existence')
   }
-};
+}
