@@ -39,13 +39,13 @@ export default function Checkout() {
   const selectedItems = useItemStore((state) => state.selectedItems)
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false)
   const router = useRouter()
-  const rid = getCookie('rid')
-  const table = getCookie('table')
+  const rid = (getCookie('rid') as string) || null
+  const table = (getCookie('table') as string) || null
   const { showSuccess, showError } = useToast()
   const [userDetails, setUserDetails] = useState<any>({})
   const { openLoginDialog, openLoginDialogWithCheckout } = useLoginDialogStore()
 
-  const { user, getValidAccessToken, isLoading } = useAuthContext()
+  const { user, isLoading } = useAuthContext()
 
   console.log(user, 'user \n\n\n\n\n\n')
 
@@ -56,15 +56,18 @@ export default function Checkout() {
   useEffect(() => {
     if (user) {
       const getUserDetails = async () => {
-        const accessToken = await getValidAccessToken()
-        if (accessToken) {
-          const userData = await getUser(accessToken)
-          setUserDetails(userData?.user)
+        try {
+          const userData = await getUser()
+          if (userData?.user) {
+            setUserDetails(userData.user)
+          }
+        } catch (error) {
+          console.error(error)
         }
       }
       getUserDetails()
     }
-  }, [user, getValidAccessToken])
+  }, [user])
 
   const form = useForm<z.infer<typeof checkoutSchema>>({
     resolver: zodResolver(checkoutSchema),
@@ -90,7 +93,6 @@ export default function Checkout() {
 
   const handleCheckoutComplete = async (userData: any) => {
     try {
-      const accessToken = await getValidAccessToken()
       if (!user?._id) return
 
       await updateUserMutation.mutateAsync({
@@ -99,7 +101,6 @@ export default function Checkout() {
         username:
           userData.fullName.toLowerCase().replace(/\s+/g, '') +
           user?.phone_number?.slice(-2),
-        accessToken: accessToken || '',
       })
 
       setUserDetails((prev: any) => ({ ...prev, name: userData.fullName }))
@@ -114,8 +115,8 @@ export default function Checkout() {
   const processCheckout = async (values: any) => {
     setIsCheckoutLoading(true)
     try {
-      const accessToken = await getValidAccessToken()
-      if (!accessToken) {
+      const uid = user?._id
+      if (!uid) {
         showError('Authentication Error', 'Please login again to continue')
         return
       }
@@ -127,8 +128,7 @@ export default function Checkout() {
         special_instruction: values.special_instruction,
         orderItems: filteredCartItems,
         totalPrice: totalPrice,
-        customer_id: user?.id,
-        accessToken,
+        customer_id: uid,
       })
 
       showSuccess('Success', 'Order placed successfully')

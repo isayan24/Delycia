@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import axiosInstance from '@/lib/axios'
 
+import { getAccessTokenFromCookie } from '@/lib/server-cookies'
+
 export const Route = createFileRoute('/api/orders')({
   server: {
     handlers: {
@@ -8,9 +10,11 @@ export const Route = createFileRoute('/api/orders')({
         try {
           const url = new URL(request.url)
           const endpoint = `/orders${url.search}`
-          // Forward Authorization header if present
-          const authHeader = request.headers.get('Authorization')
-          const headers = authHeader ? { Authorization: authHeader } : {}
+
+          console.log(endpoint, 'endpoint')
+
+          const token = getAccessTokenFromCookie(request)
+          const headers = token ? { Authorization: `Bearer ${token}` } : {}
 
           const response = await axiosInstance.get(endpoint, { headers })
           return Response.json(response.data)

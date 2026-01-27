@@ -18,8 +18,7 @@ export default function Header() {
   const is800px = useMediaQuery('(max-width: 800px)', false)
   const searchParams = useSearchParams()
 
-  const { user, getValidAccessToken, logout, isAuthenticated } =
-    useAuthContext()
+  const { user, logout, isAuthenticated } = useAuthContext()
   const { openLoginDialog } = useLoginDialogStore()
 
   const [userData, setUserData] = React.useState<{
@@ -30,21 +29,20 @@ export default function Header() {
 
   React.useEffect(() => {
     const fetchUserData = async () => {
-      const accessToken = await getValidAccessToken()
-      if (accessToken) {
-        try {
-          const data = await getUser(accessToken)
-          setUserData(data?.user)
-        } catch (err) {
-          console.error(err)
+      try {
+        const data = await getUser()
+        if (data?.user) {
+          setUserData(data.user)
         }
+      } catch (err) {
+        console.error(err)
       }
     }
 
     if (user) {
       fetchUserData()
     }
-  }, [user, getValidAccessToken])
+  }, [user])
 
   // Don't show header on category pages
   // if (
@@ -170,7 +168,7 @@ export default function Header() {
                   />
                 ) : (
                   <span className="text-white font-semibold text-sm w-8 h-8 flex justify-center items-center">
-                    {userData?.name[0] ? userData?.name[0] : 'G'}
+                    {userData?.name?.[0] ? userData?.name?.[0] : 'G'}
                   </span>
                 )}
               </div>

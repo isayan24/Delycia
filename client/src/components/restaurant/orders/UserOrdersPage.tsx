@@ -7,23 +7,13 @@ import { Loader2, RefreshCw, Play, Pause } from 'lucide-react'
 import UserOrdersList from '@/components/restaurant/orders/UserOrdersList'
 import { Button } from '@/components/ui/button'
 import { useRouter } from '@/lib/next-compat'
-import { getUser } from '@/helpers/getUser'
-// import UseFetchOrders from '@/hooks/UseFetchOrders'
 import { useOrdersQuery } from '@/hooks/queries/useOrdersQuery'
 import { useRestaurantId } from '@/hooks/useRestaurantId'
 import { useLoginDialogStore } from '@/store/useLoginDialogStore'
 
 export default function UserOrdersPage() {
-  const {
-    user,
-    getValidAccessToken,
-    isLoading: isAuthLoading,
-    isAuthenticated,
-  } = useAuthContext()
-  const [userIdFromAPI, setUserIdFromAPI] = useState<string | null>(null)
+  const { user, isLoading: isAuthLoading, isAuthenticated } = useAuthContext()
   const rid = useRestaurantId()
-
-  const userId: any = user?.id || userIdFromAPI // First try user, then API result
   const { openLoginDialog } = useLoginDialogStore()
 
   // Use the updated hook with RID filtering and auto-refresh
@@ -36,28 +26,11 @@ export default function UserOrdersPage() {
     toggleAutoRefresh,
     isAutoRefreshActive,
   } = useOrdersQuery({
-    customerId: userId,
+    customerId: user?.id,
     rid,
     autoRefreshInterval: 20000,
     enableAutoRefresh: true,
   })
-
-  // Get access token and user ID from API if not available in user data
-  useEffect(() => {
-    const fetchData = async () => {
-      const token = await getValidAccessToken()
-
-      if (token && !user?.id) {
-        try {
-          const userData = await getUser(token)
-          setUserIdFromAPI(userData.user.id)
-        } catch (error) {
-          console.error('Error fetching user data:', error)
-        }
-      }
-    }
-    fetchData()
-  }, [getValidAccessToken, user?.id])
 
   const handleSignInClick = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })

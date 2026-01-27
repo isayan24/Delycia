@@ -1,48 +1,45 @@
-"use client";
-import React, { useEffect, useState } from "react";
-import { z } from "zod";
-import {
-  updateNameSchema, 
-} from "@/schemas/updateProfileSchema";
-import ProfileImage from "./ProfileImage"; 
-import UpdateName from "./UpdateName";
-import { useAuthContext } from "@/context/AuthProvider";
-import { getUser } from "@/helpers/getUser";
-import { Flame, Headset } from "lucide-react";
-import ProfileHeader from "../../home/AboutUs";
-import Signout from "@/components/smallComponents/Signout";
+'use client'
+import React, { useEffect, useState } from 'react'
+import { z } from 'zod'
+import { updateNameSchema } from '@/schemas/updateProfileSchema'
+import ProfileImage from './ProfileImage'
+import UpdateName from './UpdateName'
+import { useAuthContext } from '@/context/AuthProvider'
+import { getUser } from '@/helpers/getUser'
+import { Flame, Headset } from 'lucide-react'
+import ProfileHeader from '../../home/AboutUs'
+import Signout from '@/components/smallComponents/Signout'
 
-interface UpdateDetailsProps { 
-  onNameSubmit: (value: z.infer<typeof updateNameSchema>) => void;
-  isNameSubmit: any; 
-  onProfilePictureUpload: any;
+interface UpdateDetailsProps {
+  onNameSubmit: (value: z.infer<typeof updateNameSchema>) => void
+  isNameSubmit: any
+  onProfilePictureUpload: any
 }
 
 export default function UpdateDetails({
   onNameSubmit,
   onProfilePictureUpload,
-  isNameSubmit, 
+  isNameSubmit,
 }: UpdateDetailsProps) {
-  const { user, getValidAccessToken } = useAuthContext();
-  const [userData, setUserData] = useState<any | null>(null);
+  const { user } = useAuthContext()
+  const [userData, setUserData] = useState<any | null>(null)
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const accessToken = await getValidAccessToken();
-      if (accessToken) {
-        try {
-          const data = await getUser(accessToken);
-          setUserData(data.user);
-        } catch (err) {
-          console.error(err);
+      try {
+        const data = await getUser()
+        if (data?.user) {
+          setUserData(data.user)
         }
+      } catch (err) {
+        console.error(err)
       }
-    };
+    }
 
     if (user) {
-      fetchUserData();
+      fetchUserData()
     }
-  }, [user, getValidAccessToken]);
+  }, [user])
 
   return (
     <main>
@@ -66,7 +63,7 @@ export default function UpdateDetails({
                   onNameSubmit={onNameSubmit}
                   userData={userData}
                   isNameSubmit={isNameSubmit}
-                /> 
+                />
               </div>
             </div>
             <Signout />
@@ -74,5 +71,5 @@ export default function UpdateDetails({
         </div>
       </div>
     </main>
-  );
+  )
 }

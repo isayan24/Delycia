@@ -18,6 +18,7 @@ import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer'
 import FoodItemInfo from './FoodItemInfo'
 import { ImageCarousel } from '@/hooks/useImageCarousel'
 import axiosInstance from '@/lib/axios'
+import axios from 'axios'
 
 interface FoodItemCardProps {
   id: string
@@ -55,19 +56,37 @@ export default function FoodItemCard({
 
   const [isPending, setIsPending] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [variants, setVariants] = useState<any>({})
+  const [variants, setVariants] = useState<any[]>([])
 
   useEffect(() => {
+    // Basic validation
+    if (!id) return
+
+    const controller = new AbortController()
+
     async function fetchVariants() {
       try {
-        await axiosInstance.get(`/variants?inventory_id=${id}`).then((res) => {
-          setVariants(res?.data?.variants)
+        const res = await axiosInstance.get(`/variants?inventory_id=${id}`, {
+          signal: controller.signal,
         })
-      } catch (error) {
+
+        if (res?.data?.variants) {
+          setVariants(res.data.variants)
+        }
+      } catch (error: any) {
+        if (axios.isCancel(error) || error.name === 'CanceledError') {
+          // Request canceled, do nothing
+          return
+        }
         console.error('Failed to fetch variants from db', error)
       }
     }
+
     fetchVariants()
+
+    return () => {
+      controller.abort()
+    }
   }, [id])
 
   const handleCartClick = (

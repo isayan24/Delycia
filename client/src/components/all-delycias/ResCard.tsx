@@ -12,7 +12,7 @@ import { Link } from '@tanstack/react-router'
 export default function ResCard({ restaurant }: { restaurant: Restaurant }) {
   const [isClicked, setIsClicked] = useState(false)
   const [isLiked, setIsLiked] = useState(false)
-  const { isAuthenticated, getValidAccessToken } = useAuth()
+  const { isAuthenticated } = useAuth()
   const router = useRouter()
 
   // Load like state from localStorage on component mount
@@ -62,11 +62,7 @@ export default function ResCard({ restaurant }: { restaurant: Restaurant }) {
     setTimeout(() => setIsClicked(false), 300)
 
     if (isAuthenticated) {
-      try {
-        await getValidAccessToken()
-      } catch (error) {
-        console.error('Failed to validate session before navigation:', error)
-      }
+      // Session check if needed
     }
   }
 

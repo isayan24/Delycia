@@ -32,6 +32,9 @@ import { Route as DemoStartApiRequestRouteImport } from './routes/demo/start.api
 import { Route as DemoApiNamesRouteImport } from './routes/demo/api.names'
 import { Route as ApiUserUpdateRouteImport } from './routes/api/user.update'
 import { Route as ApiRestaurantCheckoutRouteImport } from './routes/api/restaurant.checkout'
+import { Route as ApiAuthSessionRouteImport } from './routes/api/auth/session'
+import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
+import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
 import { Route as ApiAppTempSessionRouteImport } from './routes/api/app.temp-session'
 import { Route as DemoStartSsrIndexRouteImport } from './routes/demo/start.ssr.index'
 import { Route as DemoStartSsrSpaModeRouteImport } from './routes/demo/start.ssr.spa-mode'
@@ -155,6 +158,21 @@ const ApiRestaurantCheckoutRoute = ApiRestaurantCheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => ApiRestaurantRoute,
 } as any)
+const ApiAuthSessionRoute = ApiAuthSessionRouteImport.update({
+  id: '/api/auth/session',
+  path: '/api/auth/session',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthLogoutRoute = ApiAuthLogoutRouteImport.update({
+  id: '/api/auth/logout',
+  path: '/api/auth/logout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
+  id: '/api/auth/login',
+  path: '/api/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAppTempSessionRoute = ApiAppTempSessionRouteImport.update({
   id: '/api/app/temp-session',
   path: '/api/app/temp-session',
@@ -211,6 +229,9 @@ export interface FileRoutesByFullPath {
   '/user/loginlocal': typeof UserLoginlocalRoute
   '/user/p': typeof UserPRoute
   '/api/app/temp-session': typeof ApiAppTempSessionRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/restaurant/checkout': typeof ApiRestaurantCheckoutRoute
   '/api/user/update': typeof ApiUserUpdateRoute
   '/demo/api/names': typeof DemoApiNamesRoute
@@ -243,6 +264,9 @@ export interface FileRoutesByTo {
   '/user/loginlocal': typeof UserLoginlocalRoute
   '/user/p': typeof UserPRoute
   '/api/app/temp-session': typeof ApiAppTempSessionRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/restaurant/checkout': typeof ApiRestaurantCheckoutRoute
   '/api/user/update': typeof ApiUserUpdateRoute
   '/demo/api/names': typeof DemoApiNamesRoute
@@ -276,6 +300,9 @@ export interface FileRoutesById {
   '/user/loginlocal': typeof UserLoginlocalRoute
   '/user/p': typeof UserPRoute
   '/api/app/temp-session': typeof ApiAppTempSessionRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/restaurant/checkout': typeof ApiRestaurantCheckoutRoute
   '/api/user/update': typeof ApiUserUpdateRoute
   '/demo/api/names': typeof DemoApiNamesRoute
@@ -310,6 +337,9 @@ export interface FileRouteTypes {
     | '/user/loginlocal'
     | '/user/p'
     | '/api/app/temp-session'
+    | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/auth/session'
     | '/api/restaurant/checkout'
     | '/api/user/update'
     | '/demo/api/names'
@@ -342,6 +372,9 @@ export interface FileRouteTypes {
     | '/user/loginlocal'
     | '/user/p'
     | '/api/app/temp-session'
+    | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/auth/session'
     | '/api/restaurant/checkout'
     | '/api/user/update'
     | '/demo/api/names'
@@ -374,6 +407,9 @@ export interface FileRouteTypes {
     | '/user/loginlocal'
     | '/user/p'
     | '/api/app/temp-session'
+    | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/auth/session'
     | '/api/restaurant/checkout'
     | '/api/user/update'
     | '/demo/api/names'
@@ -407,6 +443,9 @@ export interface RootRouteChildren {
   UserLoginlocalRoute: typeof UserLoginlocalRoute
   UserPRoute: typeof UserPRoute
   ApiAppTempSessionRoute: typeof ApiAppTempSessionRoute
+  ApiAuthLoginRoute: typeof ApiAuthLoginRoute
+  ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
+  ApiAuthSessionRoute: typeof ApiAuthSessionRoute
   ApiUserUpdateRoute: typeof ApiUserUpdateRoute
   DemoApiNamesRoute: typeof DemoApiNamesRoute
   DemoStartApiRequestRoute: typeof DemoStartApiRequestRoute
@@ -580,6 +619,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRestaurantCheckoutRouteImport
       parentRoute: typeof ApiRestaurantRoute
     }
+    '/api/auth/session': {
+      id: '/api/auth/session'
+      path: '/api/auth/session'
+      fullPath: '/api/auth/session'
+      preLoaderRoute: typeof ApiAuthSessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/logout': {
+      id: '/api/auth/logout'
+      path: '/api/auth/logout'
+      fullPath: '/api/auth/logout'
+      preLoaderRoute: typeof ApiAuthLogoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/login': {
+      id: '/api/auth/login'
+      path: '/api/auth/login'
+      fullPath: '/api/auth/login'
+      preLoaderRoute: typeof ApiAuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/app/temp-session': {
       id: '/api/app/temp-session'
       path: '/api/app/temp-session'
@@ -678,6 +738,9 @@ const rootRouteChildren: RootRouteChildren = {
   UserLoginlocalRoute: UserLoginlocalRoute,
   UserPRoute: UserPRoute,
   ApiAppTempSessionRoute: ApiAppTempSessionRoute,
+  ApiAuthLoginRoute: ApiAuthLoginRoute,
+  ApiAuthLogoutRoute: ApiAuthLogoutRoute,
+  ApiAuthSessionRoute: ApiAuthSessionRoute,
   ApiUserUpdateRoute: ApiUserUpdateRoute,
   DemoApiNamesRoute: DemoApiNamesRoute,
   DemoStartApiRequestRoute: DemoStartApiRequestRoute,

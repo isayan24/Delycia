@@ -30,6 +30,11 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Ignore canceled requests
+    if (axios.isCancel(error) || error.name === 'CanceledError') {
+      return Promise.reject(error)
+    }
+
     try {
       console.error(
         'API Response Error:',

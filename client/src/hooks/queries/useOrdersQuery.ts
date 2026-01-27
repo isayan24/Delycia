@@ -1,11 +1,11 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { useState, useCallback } from 'react'
-import tokenService from '@/services/tokenService'
-import axiosInstance from '@/lib/axios'
+
 import { Order } from '@/types/Order'
+import axios from 'axios'
 
 interface UseOrdersQueryOptions {
-  customerId?: string
+  customerId?: string | null | number
   rid?: string | null
   autoRefreshInterval?: number
   enableAutoRefresh?: boolean
@@ -17,7 +17,6 @@ export const useOrdersQuery = ({
   autoRefreshInterval = 30000,
   enableAutoRefresh = true,
 }: UseOrdersQueryOptions) => {
-  const queryClient = useQueryClient()
   const [isAutoRefreshActive, setIsAutoRefreshActive] =
     useState(enableAutoRefresh)
 
@@ -32,14 +31,8 @@ export const useOrdersQuery = ({
     queryKey: ['orders', { customerId }],
     queryFn: async () => {
       if (!customerId) return []
-      const token = await tokenService.getValidAccessToken()
-      if (!token) throw new Error('No access token available')
-
       try {
-        const response = await axiosInstance.get('/orders', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const response = await axios.get('/api/orders', {
           params: {
             customer_id: customerId,
           },

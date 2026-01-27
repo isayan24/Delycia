@@ -1,243 +1,99 @@
-"use client";
-
-import { getCookie, setCookie, deleteCookie } from "cookies-next";
-import errorHandlingService from "./errorHandlingService";
-
-export interface SessionData {
-  _id: string;
-  id: string;
-  country_code: string;
-  phone_number: string;
-  role: number;
-  accessToken: string;
-  refreshToken: string;
-  expiresAt: number;
-  createdAt: number;
-}
+'use client'
 
 export interface UserData {
-  _id: string;
-  id: string;
-  country_code: string;
-  phone_number: string;
-  role: number;
+  _id: string
+  id: number | string
+  country_code: string
+  phone_number: string
+  role: number
+  name?: string
+  username?: string
+  email?: string
+  profile_pic?: string
+  restaurant_rids?: number[]
 }
 
-const COOKIE_CONFIG = {
-  name: "session",
-  maxAge: 14 * 24 * 60 * 60, // 14 days in seconds (1,209,600 seconds)
-  httpOnly: false, // Set to false for client-side access
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "strict" as const,
-  path: "/",
-};
+const USER_DATA_KEY = 'user_data'
 
 class SessionService {
-  private static instance: SessionService;
-  private sessionCache: SessionData | null = null;
+  private static instance: SessionService
+  private userDataCache: UserData | null = null
 
   private constructor() {}
 
   static getInstance(): SessionService {
     if (!SessionService.instance) {
-      SessionService.instance = new SessionService();
+      SessionService.instance = new SessionService()
     }
-    return SessionService.instance;
+    return SessionService.instance
   }
 
   /**
-   * Set session data in cookies
+   * Set user data in memory and cookie (for persistence across reloads)
    */
-  setSession(sessionData: Omit<SessionData, "expiresAt" | "createdAt">): void {
+  setUserData(userData: UserData): void {
     try {
-      const now = Date.now();
-      const fullSessionData: SessionData = {
-        ...sessionData,
-        expiresAt: now + COOKIE_CONFIG.maxAge * 1000, // Convert to milliseconds
-        createdAt: now,
-      };
+      // Check if data is same as cache to avoid infinite loops
+      if (
+        this.userDataCache &&
+        JSON.stringify(this.userDataCache) === JSON.stringify(userData)
+      ) {
+        return
+      }
 
-      // Store in cookie
-      setCookie(COOKIE_CONFIG.name, JSON.stringify(fullSessionData), {
-        maxAge: COOKIE_CONFIG.maxAge,
-        httpOnly: COOKIE_CONFIG.httpOnly,
-        secure: COOKIE_CONFIG.secure,
-        sameSite: COOKIE_CONFIG.sameSite,
-        path: COOKIE_CONFIG.path,
-      });
+      this.userDataCache = userData
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(USER_DATA_KEY, JSON.stringify(userData))
+      }
 
-      // Update cache
-      this.sessionCache = fullSessionData;
+      // Dispatch event for other tabs/components
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('userDataChanged', { detail: userData }),
+        )
+      }
     } catch (error) {
-      console.error("Failed to set session:", error);
-      const authError = errorHandlingService.createAuthError(
-        "CORRUPTED_COOKIE",
-        "Failed to store session data",
-        error,
-        false
-      );
-      errorHandlingService.handleAuthError(authError);
-      this.clearSession();
+      console.error('Failed to set user data:', error)
     }
   }
 
   /**
-   * Get session data from cookies
+   * Get user data from memory or localStorage
    */
-  getSession(): SessionData | null {
+  getUserData(): UserData | null {
     try {
-      // Return cached session if valid
-      if (this.sessionCache && this.isSessionDataValid(this.sessionCache)) {
-        return this.sessionCache;
+      if (this.userDataCache) {
+        return this.userDataCache
       }
 
-      // Get from cookie
-      const cookieValue = getCookie(COOKIE_CONFIG.name);
-      if (!cookieValue || typeof cookieValue !== "string") {
-        this.sessionCache = null;
-        return null;
+      if (typeof window !== 'undefined') {
+        const storedValue = localStorage.getItem(USER_DATA_KEY)
+        if (storedValue) {
+          this.userDataCache = JSON.parse(storedValue)
+          return this.userDataCache
+        }
       }
 
-      const sessionData: SessionData = JSON.parse(cookieValue);
-
-      // Validate session data
-      if (!this.isSessionDataValid(sessionData)) {
-        this.clearSession();
-        return null;
-      }
-
-      // Update cache
-      this.sessionCache = sessionData;
-      return sessionData;
+      return null
     } catch (error) {
-      console.error("Failed to get session:", error);
-      const authError = errorHandlingService.createAuthError(
-        "CORRUPTED_COOKIE",
-        "Failed to read session data",
-        error,
-        false
-      );
-      errorHandlingService.handleAuthError(authError);
-      this.clearSession();
-      return null;
+      console.error('Failed to get user data:', error)
+      return null
     }
   }
 
   /**
-   * Clear session data from cookies and cache
+   * Clear user data
    */
   clearSession(): void {
     try {
-      deleteCookie(COOKIE_CONFIG.name, {
-        path: COOKIE_CONFIG.path,
-      });
-      this.sessionCache = null;
-    } catch (error) {
-      console.error("Failed to clear session:", error);
-    }
-  }
-
-  /**
-   * Check if session is valid and not expired
-   */
-  isSessionValid(): boolean {
-    const session = this.getSession();
-    return session !== null;
-  }
-
-  /**
-   * Get access token from session
-   */
-  getAccessToken(): string | null {
-    const session = this.getSession();
-    return session?.accessToken || null;
-  }
-
-  /**
-   * Get user data without tokens
-   */
-  getUserData(): UserData | null {
-    const session = this.getSession();
-    if (!session) return null;
-
-    return {
-      _id: session._id,
-      id: session.id,
-      country_code: session.country_code,
-      phone_number: session.phone_number,
-      role: session.role,
-    };
-  }
-
-  /**
-   * Update session with new token data
-   */
-  updateTokens(accessToken: string, refreshToken: string): void {
-    const currentSession = this.getSession();
-    if (!currentSession) return;
-
-    const updatedSession = {
-      ...currentSession,
-      accessToken,
-      refreshToken,
-      expiresAt: Date.now() + COOKIE_CONFIG.maxAge * 1000, // Extend expiration
-    };
-
-    this.setSession(updatedSession);
-  }
-
-  /**
-   * Check if session data has all required fields and is not expired
-   */
-  private isSessionDataValid(sessionData: any): sessionData is SessionData {
-    if (!sessionData || typeof sessionData !== "object") {
-      return false;
-    }
-
-    // Check required fields
-    const requiredFields = [
-      "_id",
-      "id",
-      "country_code",
-      "phone_number",
-      "role",
-      "accessToken",
-      "refreshToken",
-      "expiresAt",
-      "createdAt",
-    ];
-    for (const field of requiredFields) {
-      if (!(field in sessionData)) {
-        return false;
+      this.userDataCache = null
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(USER_DATA_KEY)
       }
+    } catch (error) {
+      console.error('Failed to clear session:', error)
     }
-
-    // Check if session is expired
-    if (Date.now() > sessionData.expiresAt) {
-      return false;
-    }
-
-    return true;
-  }
-
-  /**
-   * Get session expiration time
-   */
-  getExpirationTime(): number | null {
-    const session = this.getSession();
-    return session?.expiresAt || null;
-  }
-
-  /**
-   * Check if session will expire soon (within 5 minutes)
-   */
-  isSessionExpiringSoon(): boolean {
-    const session = this.getSession();
-    if (!session) return false;
-
-    const oneDayFromNow = Date.now() + 24 * 60 * 60 * 1000; // 1 day instead of 5 minutes
-    return session.expiresAt <= oneDayFromNow;
   }
 }
 
-export default SessionService.getInstance();
+export default SessionService.getInstance()

@@ -19,7 +19,7 @@ export const Route = createFileRoute('/user/p')({
 })
 
 function UserProfileLayout() {
-  const { user, getValidAccessToken } = useAuthContext()
+  const { user } = useAuthContext()
   const [isNameSubmit, setIsNameSubmit] = useState(false)
   const searchParams = Route.useSearch()
   const { showError, showSuccess } = useToast()
@@ -39,15 +39,14 @@ function UserProfileLayout() {
     setIsNameSubmit(true)
     console.log(values, 'values')
     try {
-      const accessToken = await getValidAccessToken()
-      if (!user?._id) throw new Error('User not found')
+      const uid = user?._id
+      if (!uid) throw new Error('User not found')
 
       await updateUserMutation.mutateAsync({
         username: values.username,
         name: values.name,
         phone_number: values?.phone_number,
-        uid: user._id,
-        accessToken: accessToken || '',
+        uid: uid,
       })
 
       showSuccess('Updated', 'User details updated successfully')
@@ -76,13 +75,9 @@ function UserProfileLayout() {
       }
 
       // 2. Update User Profile
-      const accessToken = await getValidAccessToken()
-      if (!user?._id) throw new Error('User not found')
-
       await updateUserMutation.mutateAsync({
         uid: user._id,
         profile_pic: downloadLink,
-        accessToken: accessToken || '',
       })
 
       toast.success('Profile picture uploaded successfully')

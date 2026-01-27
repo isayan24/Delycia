@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import axiosInstance from '@/lib/axios'
+import { getAccessTokenFromCookie } from '@/lib/server-cookies'
 
 export const Route = createFileRoute('/api/user/update')({
   server: {
@@ -11,10 +12,11 @@ export const Route = createFileRoute('/api/user/update')({
             uid,
             username,
             name,
-            accessToken,
             profile_pic,
             // phone_number,
           } = body
+
+          const accessToken = getAccessTokenFromCookie(request)
 
           if (username || name) {
             await axiosInstance.patch(

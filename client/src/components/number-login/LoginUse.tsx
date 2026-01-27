@@ -26,7 +26,7 @@ function LoginUse() {
 
   const setNotification = useNotificationStore.getState().setNotification
 
-  const { user, login, getValidAccessToken } = useAuthContext()
+  const { user, login } = useAuthContext()
 
   const onWhatsAppSubmit: OnWhatsAppSubmit = async (
     fullPhoneNumber,
@@ -188,12 +188,10 @@ function LoginUse() {
       const lastTwoDigits = mobileNumber.slice(-2)
       const username = fullName + lastTwoDigits
 
-      const accessToken = await getValidAccessToken()
       await updateUserData({
         uid: user._id,
         name: userData.fullName,
         username: username,
-        accessToken: accessToken,
       })
     }
   }

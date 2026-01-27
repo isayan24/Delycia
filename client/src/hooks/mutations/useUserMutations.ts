@@ -3,7 +3,6 @@ import axiosInstance from '@/lib/axios'
 
 interface UpdateUserVariables {
   uid: string
-  accessToken: string
   name?: string
   username?: string
   profile_pic?: string

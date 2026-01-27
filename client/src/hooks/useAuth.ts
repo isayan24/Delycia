@@ -1,11 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import axios from 'axios'
 import sessionService, { UserData } from '@/services/sessionService'
-import tokenService from '@/services/tokenService'
-import sessionCleanupService from '@/services/sessionCleanupService'
-import { submitCodeAutomatically } from '@/helpers/submitCodeAutomatically'
-import axiosInstance from '@/lib/axios'
 
 export interface LoginCredentials {
   country_code: string
@@ -16,14 +13,11 @@ export interface AuthState {
   user: UserData | null
   isLoading: boolean
   isAuthenticated: boolean
-  accessToken: string | null
 }
 
 export interface UseAuthReturn extends AuthState {
   login: (credentials: LoginCredentials) => Promise<boolean>
-  logout: () => void
-  refreshSession: () => Promise<void>
-  getValidAccessToken: () => Promise<string | null>
+  logout: () => Promise<void>
 }
 
 export function useAuth(): UseAuthReturn {
@@ -31,41 +25,48 @@ export function useAuth(): UseAuthReturn {
     user: null,
     isLoading: true,
     isAuthenticated: false,
-    accessToken: null,
   })
 
-  // Initialize auth state from cookies
-  const initializeAuth = useCallback(() => {
+  // Initialize auth state
+  const initializeAuth = useCallback(async () => {
     try {
-      const session = sessionService.getSession()
-      if (session) {
-        setAuthState({
-          user: sessionService.getUserData(),
-          isLoading: false,
-          isAuthenticated: true,
-          accessToken: session.accessToken,
-        })
+      // Verification endpoint - Proxy route that checks httpOnly cookie
+      // Use direct axios for relative path
+      const response = await axios.get('/api/auth/session')
 
-        // Schedule token refresh and session cleanup
-        tokenService.scheduleTokenRefresh()
-        sessionCleanupService.initialize()
-        sessionCleanupService.trackActivity()
-        sessionCleanupService.scheduleSessionRenewal()
+      if (response.data?.isAuthenticated && response.data?.data?.user) {
+        const userData = response.data.data.user
+
+        // Only update if changed
+        if (JSON.stringify(authState.user) !== JSON.stringify(userData)) {
+          sessionService.setUserData(userData)
+
+          setAuthState({
+            user: userData,
+            isLoading: false,
+            isAuthenticated: true,
+          })
+        } else if (!authState.isAuthenticated || authState.isLoading) {
+          // Just update flags if data is same but flags are wrong
+          setAuthState((prev) => ({
+            ...prev,
+            isLoading: false,
+            isAuthenticated: true,
+          }))
+        }
       } else {
         setAuthState({
           user: null,
           isLoading: false,
           isAuthenticated: false,
-          accessToken: null,
         })
       }
     } catch (error) {
-      console.error('Failed to initialize auth:', error)
+      // Silently handle error for not logged in state
       setAuthState({
         user: null,
         isLoading: false,
         isAuthenticated: false,
-        accessToken: null,
       })
     }
   }, [])
@@ -76,61 +77,26 @@ export function useAuth(): UseAuthReturn {
       try {
         setAuthState((prev) => ({ ...prev, isLoading: true }))
 
-        const response = await axiosInstance.post(
-          '/users/auth/handleAuth',
-          credentials,
-        )
+        // Call proxy login endpoint using axios (direct import for relative URL)
+        const response = await axios.post('/api/auth/login', credentials)
 
-        if (response.data?.data) {
-          const userData = response.data.data
+        // Proxy returns cookie headers and user data
+        if (response.status === 200 && response.data?.data?.user) {
+          const userData = response.data.data.user
 
-          // Create session data
-          const sessionData = {
-            _id: userData.uid,
-            id: userData.id,
-            country_code: userData.country_code,
-            phone_number: userData.phone_number,
-            role: 0,
-            accessToken: userData.access_token,
-            refreshToken: userData.refresh_token,
-          }
+          sessionService.setUserData(userData)
 
-          // Store in session service
-          sessionService.setSession(sessionData)
-
-          // Update auth state
           setAuthState({
-            user: sessionService.getUserData(),
+            user: userData,
             isLoading: false,
             isAuthenticated: true,
-            accessToken: userData.access_token,
           })
 
-          // Schedule token refresh and session cleanup
-          tokenService.scheduleTokenRefresh()
-          sessionCleanupService.scheduleSessionRenewal()
-
-          // Attempt automatic code submission after successful login
-          try {
-            const codeResult = await submitCodeAutomatically(
-              sessionService.getUserData(),
-            )
-
-            if (codeResult.success) {
-              console.log('Login: Code automatically submitted successfully')
-            }
-          } catch (codeError) {
-            console.error(
-              'Login: Unhandled error during automatic code submission:',
-              codeError,
-            )
-          }
-
           return true
-        } else {
-          setAuthState((prev) => ({ ...prev, isLoading: false }))
-          return false
         }
+
+        setAuthState((prev) => ({ ...prev, isLoading: false }))
+        return false
       } catch (error: any) {
         console.error('Login failed:', error.message)
         setAuthState((prev) => ({ ...prev, isLoading: false }))
@@ -141,112 +107,49 @@ export function useAuth(): UseAuthReturn {
   )
 
   // Logout function
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
     try {
-      // Clear session and cleanup services
-      sessionService.clearSession()
-      sessionCleanupService.cleanup()
+      // Call proxy logout endpoint to clear cookies
+      await axios.post('/api/auth/logout')
 
-      // Update auth state
+      sessionService.clearSession()
+
       setAuthState({
         user: null,
         isLoading: false,
         isAuthenticated: false,
-        accessToken: null,
       })
 
-      // Redirect to home page
       window.location.href = '/'
     } catch (error) {
       console.error('Logout failed:', error)
     }
   }, [])
 
-  // Refresh session function
-  const refreshSession = useCallback(async () => {
-    try {
-      const success = await tokenService.refreshTokens()
-      if (success) {
-        const session = sessionService.getSession()
-        if (session) {
-          setAuthState({
-            user: sessionService.getUserData(),
-            isLoading: false,
-            isAuthenticated: true,
-            accessToken: session.accessToken,
-          })
-        }
-      } else {
-        // Refresh failed, logout user
-        logout()
-      }
-    } catch (error) {
-      console.error('Session refresh failed:', error)
-      logout()
-    }
-  }, [logout])
-
-  // Get valid access token (with automatic refresh)
-  const getValidAccessToken = useCallback(async (): Promise<string | null> => {
-    try {
-      const token = await tokenService.getValidAccessToken()
-
-      // Update auth state if token was refreshed
-      if (token && token !== authState.accessToken) {
-        const session = sessionService.getSession()
-        if (session) {
-          setAuthState((prev) => ({
-            ...prev,
-            accessToken: token,
-          }))
-        }
-      }
-
-      return token
-    } catch (error) {
-      console.error('Failed to get valid access token:', error)
-      return null
-    }
-  }, [authState.accessToken])
-
-  // Initialize auth on mount
+  // Mount
   useEffect(() => {
+    // skip public routes check if needed?
     initializeAuth()
   }, [initializeAuth])
 
-  // Listen for session changes (e.g., from other tabs)
+  // Storage listener
   useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'session') {
+    const handleChange = (e: any) => {
+      if (e.type === 'userDataChanged' || e.key === 'user_data') {
         initializeAuth()
       }
     }
-
-    window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
+    window.addEventListener('storage', handleChange)
+    window.addEventListener('userDataChanged', handleChange)
+    return () => {
+      window.removeEventListener('storage', handleChange)
+      window.removeEventListener('userDataChanged', handleChange)
+    }
   }, [initializeAuth])
-
-  // Periodic session validation
-  useEffect(() => {
-    if (!authState.isAuthenticated) return
-
-    const interval = setInterval(
-      () => {
-        if (!sessionService.isSessionValid()) {
-          logout()
-        }
-      },
-      5 * 60 * 1000,
-    ) // Check every 5 minutes
-
-    return () => clearInterval(interval)
-  }, [authState.isAuthenticated, logout])
 
   return {
     ...authState,
     login,
     logout,
-    refreshSession,
-    getValidAccessToken,
   }
 }

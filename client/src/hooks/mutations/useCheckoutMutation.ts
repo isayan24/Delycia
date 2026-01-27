@@ -9,7 +9,6 @@ interface CheckoutVariables {
   orderItems: any[]
   totalPrice: number
   customer_id: string
-  accessToken: string
 }
 
 export const useCheckoutMutation = () => {

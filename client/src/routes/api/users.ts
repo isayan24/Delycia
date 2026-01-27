@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { getAccessTokenFromCookie } from '@/lib/server-cookies'
 import axiosInstance from '@/lib/axios'
 
 export const Route = createFileRoute('/api/users')({
@@ -6,10 +7,10 @@ export const Route = createFileRoute('/api/users')({
     handlers: {
       GET: async ({ request }) => {
         try {
-          const authHeader = request.headers.get('Authorization')
+          const token = getAccessTokenFromCookie(request)
           const response = await axiosInstance.get('/users', {
             headers: {
-              ...(authHeader ? { Authorization: authHeader } : {}),
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
           })
           return Response.json(response.data)

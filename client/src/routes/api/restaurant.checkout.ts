@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import axiosInstance from '@/lib/axios'
 import cryptoConfig from '@/lib/crypto/config'
 import signatureService from '@/lib/crypto/signatureService'
+import { getAccessTokenFromCookie } from '@/lib/server-cookies'
 
 export const Route = createFileRoute('/api/restaurant/checkout')({
   server: {
@@ -15,11 +16,10 @@ export const Route = createFileRoute('/api/restaurant/checkout')({
             special_instruction,
             orderItems,
             // totalPrice,
-            accessToken,
             customer_id,
           } = data
 
-          console.log(data, 'data')
+          const accessToken = getAccessTokenFromCookie(request)
 
           // Validate that we have an access token
           if (!accessToken) {
