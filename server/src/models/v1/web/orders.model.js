@@ -93,6 +93,7 @@ const get_orders = async (req) => {
     const [result] = await pool.query(
       `SELECT o.*, 
               i.name as item_name, 
+              i.images as item_images,
               v.name as variant_name,
               (
                 SELECT JSON_ARRAYAGG(
@@ -114,39 +115,9 @@ const get_orders = async (req) => {
       [customer_id]
     );
 
-    // Helper to format date to IST
-    const formatDateToIST = (dateString, onlyTimeIfToday = false) => {
-      if (!dateString) return 'N/A';
-      const date = new Date(dateString);
 
-      // Check if valid date
-      if (isNaN(date.getTime())) return 'N/A';
-
-      const options = {
-        timeZone: 'Asia/Kolkata',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
-      };
-
-      if (!onlyTimeIfToday) {
-        options.year = 'numeric';
-        options.month = 'short';
-        options.day = 'numeric';
-      }
-
-      return date.toLocaleString('en-IN', options);
-    };
-
-    const isToday = (dateString) => {
-      const date = new Date(dateString);
-      const now = new Date();
-      return date.toDateString() === now.toDateString();
-    };
 
     const processedOrders = result.map(order => {
-      const today = isToday(order.created_at);
-
       // Construct name: Item Name (Variant Name)
       let displayName = order.item_name || `Item #${order.item_id}`;
       if (order.variant_name) {
@@ -155,18 +126,19 @@ const get_orders = async (req) => {
 
       return {
         ...order,
-        ordered_on_ist: formatDateToIST(order.created_at, today),
-        created_at_ist: formatDateToIST(order.created_at),
-        updated_at_ist: formatDateToIST(order.updated_at),
+        // Remove backend formatted dates per request
+        // ordered_on_ist, created_at_ist, updated_at_ist are removed
         foodDetails: {
           name: displayName,
           preparation_time: order.preparation_time || 0,
-          img: null // Placeholder as image is not yet available in query
+          img: order.item_images // Send raw string to frontend
         },
-        // Ensure addons is an array (JSON_ARRAYAGG might return null if no addons)
+        // Ensure addons is an array
         addons: order.addons || []
       };
     });
+
+    // console.log(processedOrders, 'processedOrders \n\n\n\n\n')
 
     return apiResponse.success(200, "success", { orders: processedOrders });
   } catch (error) {
