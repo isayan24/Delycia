@@ -12,11 +12,11 @@ import {
   CheckCircle,
 } from 'lucide-react'
 import { ImageLoader } from '../image-loader'
-import { useRestaurants } from '@/hooks/useRestaurants'
+import { useRestaurantQuery } from '@/hooks/queries/useRestaurantsQuery'
 import { Link } from '@tanstack/react-router'
 
 export default function ResLanding({ rid }: any) {
-  const { restaurant, loading, error } = useRestaurants({ rid })
+  const { restaurant, loading, error } = useRestaurantQuery(rid)
 
   if (loading) {
     return (

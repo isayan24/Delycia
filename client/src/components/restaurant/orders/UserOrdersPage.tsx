@@ -8,7 +8,8 @@ import UserOrdersList from '@/components/restaurant/orders/UserOrdersList'
 import { Button } from '@/components/ui/button'
 import { useRouter } from '@/lib/next-compat'
 import { getUser } from '@/helpers/getUser'
-import UseFetchOrders from '@/hooks/UseFetchOrders'
+// import UseFetchOrders from '@/hooks/UseFetchOrders'
+import { useOrdersQuery } from '@/hooks/queries/useOrdersQuery'
 import { useRestaurantId } from '@/hooks/useRestaurantId'
 import { useLoginDialogStore } from '@/store/useLoginDialogStore'
 
@@ -25,8 +26,6 @@ export default function UserOrdersPage() {
   const userId: any = user?.id || userIdFromAPI // First try user, then API result
   const { openLoginDialog } = useLoginDialogStore()
 
-  console.log(userId, rid, 'userId')
-
   // Use the updated hook with RID filtering and auto-refresh
   const {
     orders,
@@ -36,14 +35,12 @@ export default function UserOrdersPage() {
     refreshOrders,
     toggleAutoRefresh,
     isAutoRefreshActive,
-  } = UseFetchOrders(
-    userId,
-    rid, // Filter by restaurant ID
-    20000, // Auto-refresh every 30 seconds
-    true, // Enable auto-refresh
-  )
-
-  console.log(orders, 'orders')
+  } = useOrdersQuery({
+    customerId: userId,
+    rid,
+    autoRefreshInterval: 20000,
+    enableAutoRefresh: true,
+  })
 
   // Get access token and user ID from API if not available in user data
   useEffect(() => {

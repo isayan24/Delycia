@@ -64,29 +64,40 @@ export const Route = createRootRoute({
   component: RootComponent,
 })
 
+// ... imports
+import { QueryClientProvider } from '@tanstack/react-query'
+import { createQueryClient } from '../router'
+import { useState } from 'react'
+
+// ... existing code
+
 function RootComponent() {
+  const [queryClient] = useState(() => createQueryClient())
+
   return (
     <html lang="en" className="darks scroll-smooth">
       <head>
         <HeadContent />
       </head>
       <body className="font-jost antialiased bg-[#fcfeff] dark:bg-[#1f1f1f]d">
-        <AuthProvider>
-          <StoreProvider>
-            <HeaderWrapper />
-            <div className="relative min-h-screen flex flex-col">
-              <Toaster position="top-center" />
-              <LoginWrapper />
-              <div className="flex-grow">
-                <Outlet />
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <StoreProvider>
+              <HeaderWrapper />
+              <div className="relative min-h-screen flex flex-col">
+                <Toaster position="top-center" />
+                <LoginWrapper />
+                <div className="flex-grow">
+                  <Outlet />
+                </div>
               </div>
-            </div>
-            <div className="mt-[6rem]">
-              <CartWrapper />
-            </div>
-            <MobileNav />
-          </StoreProvider>
-        </AuthProvider>
+              <div className="mt-[6rem]">
+                <CartWrapper />
+              </div>
+              <MobileNav />
+            </StoreProvider>
+          </AuthProvider>
+        </QueryClientProvider>
         <TanStackDevtools
           config={{
             position: 'bottom-right',

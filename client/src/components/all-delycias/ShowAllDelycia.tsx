@@ -2,16 +2,16 @@
 'use client'
 import React, { useEffect, useRef } from 'react'
 import ResCard from './ResCard'
-import { useRestaurants } from '@/hooks/useRestaurants'
+import { useRestaurantsQuery } from '@/hooks/queries/useRestaurantsQuery'
 import { useItemStore } from '@/store/order-store'
 import { Utensils, Search, MapPin, Star } from 'lucide-react'
 import { usePathname } from '@/lib/next-compat'
 
 export default function ShowAllDelycia() {
-  const { restaurants, loading, error } = useRestaurants()
+  const { restaurants, loading, error } = useRestaurantsQuery()
   const { clearAll } = useItemStore()
 
-  console.log(loading, restaurants, 'restaurants')
+  // console.log(loading, restaurants, 'restaurants')
 
   const pathname = usePathname()
 

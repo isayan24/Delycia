@@ -13,8 +13,9 @@ import { z } from 'zod'
 import { useRouter } from '@/lib/next-compat'
 import { useItemStore } from '@/store/order-store'
 import CheckoutSidebar from './CheckoutSIdebar'
-import axios from 'axios'
 import PaymentButtons from './PaymentButtons'
+import { useCheckoutMutation } from '@/hooks/mutations/useCheckoutMutation'
+import { useUpdateUserMutation } from '@/hooks/mutations/useUserMutations'
 import EmptyCheckout from './EmptyCheckout'
 import { useAuthContext } from '@/context/AuthProvider'
 import SpecialInstructionArea from './SpecialInstructionArea'
@@ -84,23 +85,26 @@ export default function Checkout() {
     return { totalPrice, filteredCartItems }
   }, [showCartItems, selectedItems])
 
+  const checkoutMutation = useCheckoutMutation()
+  const updateUserMutation = useUpdateUserMutation()
+
   const handleCheckoutComplete = async (userData: any) => {
     try {
       const accessToken = await getValidAccessToken()
-      const response = await axios.post('/api/user/update', {
-        uid: user?._id,
+      if (!user?._id) return
+
+      await updateUserMutation.mutateAsync({
+        uid: user._id,
         name: userData.fullName,
         username:
           userData.fullName.toLowerCase().replace(/\s+/g, '') +
           user?.phone_number?.slice(-2),
-        accessToken: accessToken,
+        accessToken: accessToken || '',
       })
 
-      if (response.status === 200) {
-        setUserDetails((prev: any) => ({ ...prev, name: userData.fullName }))
-        const currentValues = form.getValues()
-        await processCheckout(currentValues)
-      }
+      setUserDetails((prev: any) => ({ ...prev, name: userData.fullName }))
+      const currentValues = form.getValues()
+      await processCheckout(currentValues)
     } catch (error) {
       console.error('Error updating user data:', error)
       showError('Error', 'Failed to update user data. Please try again.')
@@ -115,32 +119,27 @@ export default function Checkout() {
         showError('Authentication Error', 'Please login again to continue')
         return
       }
-      console.log(values, 'values checkout \n\n\n')
-      await axios
-        .post('/api/restaurant/checkout', {
-          rid,
-          table,
-          paymentMethod: values.paymentMethod,
-          special_instruction: values.special_instruction,
-          orderItems: filteredCartItems,
-          totalPrice: totalPrice,
-          customer_id: user?.id,
-          accessToken,
-        })
-        .then(() => {
-          showSuccess('Success', 'Order placed successfully')
-          useItemStore.setState({
-            items: showCartItems.filter(
-              (item) => !selectedItems.includes(item.id),
-            ),
-            selectedItems: [],
-          })
-          router.push('/orders')
-        })
-        .catch((err) => {
-          showError('Error in order', 'Failed to place order, please try again')
-          console.log(err)
-        })
+
+      await checkoutMutation.mutateAsync({
+        rid,
+        table,
+        paymentMethod: values.paymentMethod,
+        special_instruction: values.special_instruction,
+        orderItems: filteredCartItems,
+        totalPrice: totalPrice,
+        customer_id: user?.id,
+        accessToken,
+      })
+
+      showSuccess('Success', 'Order placed successfully')
+      useItemStore.setState({
+        items: showCartItems.filter((item) => !selectedItems.includes(item.id)),
+        selectedItems: [],
+      })
+      router.push('/orders')
+    } catch (err) {
+      showError('Error in order', 'Failed to place order, please try again')
+      console.log(err)
     } finally {
       setIsCheckoutLoading(false)
     }

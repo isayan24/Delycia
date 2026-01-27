@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 'use client'
-import { Restaurant } from '@/hooks/useRestaurants'
+import { Restaurant } from '@/types/Restaurant'
 import { MapPin, ChefHat, Heart } from 'lucide-react'
 import React, { useState, useEffect } from 'react'
 import { ImageLoader } from '../image-loader'

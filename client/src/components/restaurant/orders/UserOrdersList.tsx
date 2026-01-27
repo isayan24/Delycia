@@ -1,109 +1,112 @@
-"use client";
+'use client'
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import React from "react";
-import CustomizedSteppers from "./OrderStepper";
-import {
-  CookingPot,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  User,
-  Cookie,
-} from "lucide-react";
-import { Order } from "@/types/Order";
-import UseOptimizeImage from "@/hooks/UseOptimizeImage";
-import FoodSkeleton from "@/components/smallComponents/FoodSkeleton";
-
-import deliveredImg from "@/../public/order-states/delivered.svg";
-import pendingImg from "@/../public/order-states/pending.svg";
-import processingImg from "@/../public/order-states/processing.svg";
-import readyImg from "@/../public/order-states/ready.svg";
-import cancelledImg from "@/../public/order-states/cancelled.svg";
-import Image from "@/lib/next-compat";
+} from '@/components/ui/accordion'
+import CustomizedSteppers from './OrderStepper'
+import { CookingPot, CheckCircle2, XCircle, Clock } from 'lucide-react'
+import { Order } from '@/types/Order'
+import UseOptimizeImage from '@/hooks/UseOptimizeImage'
 
 interface UserOrdersListProps {
-  orders: Order[];
+  orders: Order[]
 }
+
+import { parseImageString } from '@/helpers/imageParser'
 
 export default function UserOrdersList({ orders }: UserOrdersListProps) {
   // Helper function to get status display properties
   const getStatusDisplay = (status: string) => {
-    const statusLower = status.toLowerCase();
+    const statusLower = status.toLowerCase()
 
     switch (statusLower) {
-      case "pending":
+      case 'pending':
         return {
-          text: "Pending",
+          text: 'Pending',
           statusNumber: 0,
-          statusDescription: "Waiting for restaurant confirmation",
-          statusColor: "#FFD700", // Gold
-          bgColor: "bg-yellow-500/10",
-          textColor: "text-yellow-600",
+          statusDescription: 'Waiting for restaurant confirmation',
+          statusColor: '#FFD700', // Gold
+          bgColor: 'bg-yellow-500/10',
+          textColor: 'text-yellow-600',
           icon: <Clock className="h-4 w-4" />,
-          statusImage: pendingImg,
-        };
-      case "processing":
+        }
+      case 'processing':
         return {
-          text: "Processing",
+          text: 'Processing',
           statusNumber: 2,
-          statusDescription: "Your order is being prepared",
-          statusColor: "#ff921d", // Orange
-          bgColor: "bg-yellow-300/10",
-          textColor: "text-orange-600",
+          statusDescription: 'Your order is being prepared',
+          statusColor: '#ff921d', // Orange
+          bgColor: 'bg-yellow-300/10',
+          textColor: 'text-orange-600',
           icon: <CookingPot className="h-4 w-4" />,
-          statusImage: processingImg,
-        };
-      case "ready":
+        }
+      case 'ready':
         return {
-          text: "Ready",
+          text: 'Ready',
           statusNumber: 3,
-          statusDescription: "Your order is ready",
-          statusColor: "#26a4ff", // Blue
-          bgColor: "bg-blue-300/10",
-          textColor: "text-blue-600",
+          statusDescription: 'Your order is ready',
+          statusColor: '#26a4ff', // Blue
+          bgColor: 'bg-blue-300/10',
+          textColor: 'text-blue-600',
           icon: <CheckCircle2 className="h-4 w-4" />,
-          statusImage: readyImg,
-        };
-      case "completed":
+        }
+      case 'completed':
         return {
-          text: "Completed",
+          text: 'Completed',
           statusNumber: 4,
-          statusDescription: "Your order has been delivered",
-          statusColor: "#10B981", // Green
-          bgColor: "bg-green-300/10",
-          textColor: "text-green-600",
+          statusDescription: 'Your order has been delivered',
+          statusColor: '#10B981', // Green
+          bgColor: 'bg-green-300/10',
+          textColor: 'text-green-600',
           icon: <CheckCircle2 className="h-4 w-4" />,
-          statusImage: deliveredImg,
-        };
-      case "cancelled":
+        }
+      case 'cancelled':
         return {
-          text: "Cancelled",
+          text: 'Cancelled',
           statusNumber: 5,
-          statusDescription: "Your order has been cancelled",
-          statusColor: "#FF0000", // Red
-          bgColor: "bg-red-300/10",
-          textColor: "text-red-600",
+          statusDescription: 'Your order has been cancelled',
+          statusColor: '#FF0000', // Red
+          bgColor: 'bg-red-300/10',
+          textColor: 'text-red-600',
           icon: <XCircle className="h-4 w-4" />,
-          statusImage: cancelledImg,
-        };
+        }
       default:
         return {
-          text: status || "Unknown",
+          text: status || 'Unknown',
           statusNumber: 0,
-          statusDescription: "Status unknown",
-          statusColor: "#6B7280", // Gray
-          bgColor: "bg-gray-300/10",
-          textColor: "text-gray-600",
+          statusDescription: 'Status unknown',
+          statusColor: '#6B7280', // Gray
+          bgColor: 'bg-gray-300/10',
+          textColor: 'text-gray-600',
           icon: <Clock className="h-4 w-4" />,
-          statusImage: pendingImg,
-        };
+        }
     }
-  };
+  }
+
+  // Helper to format date
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A'
+    const date = new Date(dateString)
+    const now = new Date()
+    const isToday = date.toDateString() === now.toDateString()
+
+    return date.toLocaleString('en-IN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      // Only show date if not today, or always show?
+      // User prompt said "keep these time based logic to the frontend only" implies matching previous behavior.
+      ...(isToday
+        ? {}
+        : {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+          }),
+    })
+  }
 
   return (
     <div className="flex flex-col gap-5 mt-4">
@@ -116,10 +119,15 @@ export default function UserOrdersList({ orders }: UserOrdersListProps) {
           bgColor,
           textColor,
           icon: statusIcon,
-          statusImage,
-        } = getStatusDisplay(order.order_status);
+        } = getStatusDisplay(order.order_status)
 
-        const foodDetails = order.foodDetails;
+        // ...
+
+        // inside loop
+        const foodDetails = order.foodDetails
+        // Parse image string to get array, then take the first one
+        const images = parseImageString(foodDetails?.img)
+        const displayImage = images.length > 0 ? images[0] : null
 
         return (
           <Accordion key={order.id} type="single" collapsible className="">
@@ -132,7 +140,7 @@ export default function UserOrdersList({ orders }: UserOrdersListProps) {
                 <p className="text-xs text-gray-500 ml-2">Prep time: 0 min</p>
               )}
               <p className="text-xs text-gray-500 mr-2">
-                Ordered: {order.ordered_on_ist}
+                Ordered: {formatDate(order.created_at)}
               </p>
             </div>
 
@@ -144,22 +152,13 @@ export default function UserOrdersList({ orders }: UserOrdersListProps) {
               <main className="flex gap-5 max-[600px]:gap-2 justify-between rounded-xl p-2">
                 <section className="flex gap-5 max-[600px]:gap-2">
                   <div className="rounded-xl overflow-hidden h-[5rem] w-[5rem] border shrink-0 max-[350px]:w-[4rem] max-[350px]:h-[4rem] bg-gray-100 flex items-center justify-center">
-                    {foodDetails?.img ? (
+                    {displayImage && (
                       <UseOptimizeImage
-                        src={foodDetails?.img}
+                        src={displayImage}
                         alt={foodDetails?.name}
                         width={100}
                         height={100}
                         className="object-cover w-full h-full"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <Image
-                        src={statusImage}
-                        alt={`${statusText} status`}
-                        width={100}
-                        height={100}
-                        className="object-contain w-full h-full"
                         loading="lazy"
                       />
                     )}
@@ -224,8 +223,8 @@ export default function UserOrdersList({ orders }: UserOrdersListProps) {
               <AccordionTrigger className="mx-auto p-0 min-[800px]:hidden my-2"></AccordionTrigger>
             </AccordionItem>
           </Accordion>
-        );
+        )
       })}
     </div>
-  );
+  )
 }

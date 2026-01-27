@@ -12,7 +12,6 @@ export const Route = createFileRoute('/api/orders')({
           const authHeader = request.headers.get('Authorization')
           const headers = authHeader ? { Authorization: authHeader } : {}
 
-          console.log(endpoint, headers, 'endpoint, headers')
           const response = await axiosInstance.get(endpoint, { headers })
           return Response.json(response.data)
         } catch (error: any) {

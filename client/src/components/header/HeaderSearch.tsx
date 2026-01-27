@@ -1,335 +1,338 @@
-"use client";
-import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { Search, X, Package, Triangle, Clock, TrendingUp } from "lucide-react";
-import { Input } from "../ui/input";
-import { useSearch } from "@/hooks/useSearch";
-import { useItemHighlight } from "@/hooks/useItemHighlight";
-import { SearchResult } from "@/helpers/fuzzySearch";
-import { ImageLoader } from "../image-loader";
-import { usePathname } from "@/lib/next-compat";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
-import UseOptimizeImage from "@/hooks/UseOptimizeImage";
+'use client'
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import { Search, X, Package, Triangle, Clock, TrendingUp } from 'lucide-react'
+import { Input } from '../ui/input'
+import { useSearchQuery } from '@/hooks/queries/useSearchQuery'
+import { useItemHighlight } from '@/hooks/useItemHighlight'
+import { SearchResult } from '@/helpers/fuzzySearch'
+import { ImageLoader } from '../image-loader'
+import { usePathname } from '@/lib/next-compat'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
+import UseOptimizeImage from '@/hooks/UseOptimizeImage'
 
 interface HeaderSearchProps {
   onItemSelect?: (
     itemId: string,
     categoryId?: string,
-    categoryName?: string
-  ) => void;
+    categoryName?: string,
+  ) => void
 }
 
-export default function HeaderSearch({
-  onItemSelect,
-}: HeaderSearchProps) {
-  const [searchValue, setSearchValue] = useState("");
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [searchHistory, setSearchHistory] = useState<string[]>([]);
-  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+export default function HeaderSearch({ onItemSelect }: HeaderSearchProps) {
+  const [searchValue, setSearchValue] = useState('')
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [selectedIndex, setSelectedIndex] = useState(-1)
+  const [searchHistory, setSearchHistory] = useState<string[]>([])
+  const [recentSearches, setRecentSearches] = useState<string[]>([])
 
   const { searchResults, isLoading, performSearch, clearSearch, isCacheReady } =
-    useSearch();
-  const { highlightItem } = useItemHighlight();
+    useSearchQuery()
+  const { highlightItem } = useItemHighlight()
 
-  const searchRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const debounceTimer = useRef<NodeJS.Timeout>(null);
+  const searchRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const debounceTimer = useRef<NodeJS.Timeout>(null)
 
-  const pathname = usePathname();
-  const isSmallScreen = useMediaQuery("(max-width: 700px)", false);
-  const home = pathname === "/";
-  const isDeliciasPage = pathname === "/delycias";
+  const pathname = usePathname()
+  const isSmallScreen = useMediaQuery('(max-width: 700px)', false)
+  const home = pathname === '/'
+  const isDeliciasPage = pathname === '/delycias'
 
   // Load search history from localStorage on mount
   useEffect(() => {
     // If on delycias page, clear everything and don't load from localStorage
     if (isDeliciasPage) {
-      setSearchHistory([]);
-      setRecentSearches([]);
+      setSearchHistory([])
+      setRecentSearches([])
       try {
-        localStorage.removeItem("food-search-history");
-        localStorage.removeItem("food-recent-searches");
+        localStorage.removeItem('food-search-history')
+        localStorage.removeItem('food-recent-searches')
       } catch (error) {
-        console.warn("Failed to clear search history on delycias page:", error);
+        console.warn('Failed to clear search history on delycias page:', error)
       }
-      return;
+      return
     }
 
     try {
-      const saved = localStorage.getItem("food-search-history");
+      const saved = localStorage.getItem('food-search-history')
       if (saved) {
-        const history = JSON.parse(saved);
-        setSearchHistory(history.slice(0, 2)); // Keep only last 10
+        const history = JSON.parse(saved)
+        setSearchHistory(history.slice(0, 2)) // Keep only last 10
       }
 
-      const savedRecent = localStorage.getItem("food-recent-searches");
+      const savedRecent = localStorage.getItem('food-recent-searches')
       if (savedRecent) {
-        const recent = JSON.parse(savedRecent);
-        setRecentSearches(recent.slice(0, 2)); // Keep only last 5
+        const recent = JSON.parse(savedRecent)
+        setRecentSearches(recent.slice(0, 2)) // Keep only last 5
       }
     } catch (error) {
-      console.warn("Failed to load search history:", error);
+      console.warn('Failed to load search history:', error)
     }
-  }, [isDeliciasPage]);
+  }, [isDeliciasPage])
 
   // Save to localStorage
-  const saveToHistory = useCallback((query: string) => {
-    // Don't save to history if on delycias page
-    if (isDeliciasPage) return;
+  const saveToHistory = useCallback(
+    (query: string) => {
+      // Don't save to history if on delycias page
+      if (isDeliciasPage) return
 
-    try {
-      const newHistory = [
-        query,
-        ...searchHistory.filter((h) => h !== query),
-      ].slice(0, 10);
-      setSearchHistory(newHistory);
-      localStorage.setItem("food-search-history", JSON.stringify(newHistory));
+      try {
+        const newHistory = [
+          query,
+          ...searchHistory.filter((h) => h !== query),
+        ].slice(0, 10)
+        setSearchHistory(newHistory)
+        localStorage.setItem('food-search-history', JSON.stringify(newHistory))
 
-      const newRecent = [
-        query,
-        ...recentSearches.filter((r) => r !== query),
-      ].slice(0, 5);
-      setRecentSearches(newRecent);
-      localStorage.setItem("food-recent-searches", JSON.stringify(newRecent));
-    } catch (error) {
-      console.warn("Failed to save search history:", error);
-    }
-  }, [isDeliciasPage, searchHistory, recentSearches]);
+        const newRecent = [
+          query,
+          ...recentSearches.filter((r) => r !== query),
+        ].slice(0, 5)
+        setRecentSearches(newRecent)
+        localStorage.setItem('food-recent-searches', JSON.stringify(newRecent))
+      } catch (error) {
+        console.warn('Failed to save search history:', error)
+      }
+    },
+    [isDeliciasPage, searchHistory, recentSearches],
+  )
 
   // Close suggestions when clicking outside or on escape
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
-      const target = event.target as Node;
+      const target = event.target as Node
       if (
         searchRef.current &&
         !searchRef.current.contains(target) &&
         showSuggestions
       ) {
-        setShowSuggestions(false);
-        setSelectedIndex(-1);
+        setShowSuggestions(false)
+        setSelectedIndex(-1)
       }
-    };
+    }
 
     const handleEscapeKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && showSuggestions) {
-        setShowSuggestions(false);
-        setSelectedIndex(-1);
+      if (event.key === 'Escape' && showSuggestions) {
+        setShowSuggestions(false)
+        setSelectedIndex(-1)
         if (inputRef.current) {
-          inputRef.current.blur();
+          inputRef.current.blur()
         }
       }
-    };
+    }
 
     // Only add listeners when suggestions are shown
     if (showSuggestions) {
-      document.addEventListener("mousedown", handleClickOutside, true);
-      document.addEventListener("touchstart", handleClickOutside, true);
-      document.addEventListener("keydown", handleEscapeKey);
+      document.addEventListener('mousedown', handleClickOutside, true)
+      document.addEventListener('touchstart', handleClickOutside, true)
+      document.addEventListener('keydown', handleEscapeKey)
     }
-    
+
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside, true);
-      document.removeEventListener("touchstart", handleClickOutside, true);
-      document.removeEventListener("keydown", handleEscapeKey);
-    };
-  }, [showSuggestions]);
+      document.removeEventListener('mousedown', handleClickOutside, true)
+      document.removeEventListener('touchstart', handleClickOutside, true)
+      document.removeEventListener('keydown', handleEscapeKey)
+    }
+  }, [showSuggestions])
 
   // Optimized debounced search for local data
   useEffect(() => {
     if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
+      clearTimeout(debounceTimer.current)
     }
 
     debounceTimer.current = setTimeout(
       () => {
-        const trimmedValue = searchValue.trim();
+        const trimmedValue = searchValue.trim()
 
         if (trimmedValue.length >= 2) {
           try {
-            performSearch(trimmedValue);
-            setShowSuggestions(true);
+            performSearch(trimmedValue)
+            setShowSuggestions(true)
           } catch (error) {
-            console.error("Search failed:", error);
+            console.error('Search failed:', error)
           }
         } else {
-          clearSearch();
-          setShowSuggestions(false);
+          clearSearch()
+          setShowSuggestions(false)
         }
       },
-      searchValue.length < 3 ? 500 : 300
-    ); // Optimized delays: 500ms for short queries, 300ms for longer ones
+      searchValue.length < 3 ? 500 : 300,
+    ) // Optimized delays: 500ms for short queries, 300ms for longer ones
 
     return () => {
       if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current);
+        clearTimeout(debounceTimer.current)
       }
-    };
-  }, [searchValue, performSearch, clearSearch]);
+    }
+  }, [searchValue, performSearch, clearSearch])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
-    
+    let value = e.target.value
+
     // Limit input length to prevent performance issues
     if (value.length > 100) {
-      value = value.substring(0, 100);
+      value = value.substring(0, 100)
     }
-    
-    setSearchValue(value);
-    setSelectedIndex(-1);
-  };
+
+    setSearchValue(value)
+    setSelectedIndex(-1)
+  }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     const totalSuggestions = showSuggestions
       ? searchResults.length +
         (searchValue.length < 2 ? recentSearches.length : 0)
-      : 0;
+      : 0
 
     if (!showSuggestions || totalSuggestions === 0) {
-      if (e.key === "Enter" && searchValue.trim()) {
-        handleSearchSubmit();
+      if (e.key === 'Enter' && searchValue.trim()) {
+        handleSearchSubmit()
       }
-      return;
+      return
     }
 
     switch (e.key) {
-      case "ArrowDown":
-        e.preventDefault();
-        setSelectedIndex((prev) =>
-          prev < totalSuggestions - 1 ? prev + 1 : 0
-        );
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        setSelectedIndex((prev) =>
-          prev > 0 ? prev - 1 : totalSuggestions - 1
-        );
-        break;
-      case "Enter":
-        e.preventDefault();
+      case 'ArrowDown':
+        e.preventDefault()
+        setSelectedIndex((prev) => (prev < totalSuggestions - 1 ? prev + 1 : 0))
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : totalSuggestions - 1))
+        break
+      case 'Enter':
+        e.preventDefault()
         if (selectedIndex >= 0) {
           if (searchValue.length < 2 && selectedIndex < recentSearches.length) {
             // Recent search selected
-            const recentQuery = recentSearches[selectedIndex];
-            setSearchValue(recentQuery);
-            performSearch(recentQuery);
+            const recentQuery = recentSearches[selectedIndex]
+            setSearchValue(recentQuery)
+            performSearch(recentQuery)
           } else {
             // Search result selected
             const resultIndex =
               searchValue.length < 2
                 ? selectedIndex - recentSearches.length
-                : selectedIndex;
+                : selectedIndex
             if (resultIndex >= 0 && resultIndex < searchResults.length) {
-              handleResultClick(searchResults[resultIndex]);
+              handleResultClick(searchResults[resultIndex])
             }
           }
         } else if (searchValue.trim()) {
-          handleSearchSubmit();
+          handleSearchSubmit()
         }
-        break;
-      case "Escape":
-        setShowSuggestions(false);
-        setSelectedIndex(-1);
-        inputRef.current?.blur();
-        break;
+        break
+      case 'Escape':
+        setShowSuggestions(false)
+        setSelectedIndex(-1)
+        inputRef.current?.blur()
+        break
     }
-  };
+  }
 
   const handleSearchSubmit = () => {
-    const trimmedValue = searchValue.trim();
+    const trimmedValue = searchValue.trim()
     if (trimmedValue && trimmedValue.length >= 2) {
-      saveToHistory(trimmedValue);
-      performSearch(trimmedValue);
-      
+      saveToHistory(trimmedValue)
+      performSearch(trimmedValue)
+
       // Close suggestions after search submit
-      setShowSuggestions(false);
-      setSelectedIndex(-1);
-      
+      setShowSuggestions(false)
+      setSelectedIndex(-1)
+
       // Blur input to remove focus
       if (inputRef.current) {
-        inputRef.current.blur();
+        inputRef.current.blur()
       }
     }
-  };
+  }
 
-  const handleResultClick = useCallback(async (result: SearchResult) => {
-    // Immediately close suggestions and reset state
-    setShowSuggestions(false);
-    setSelectedIndex(-1);
+  const handleResultClick = useCallback(
+    async (result: SearchResult) => {
+      // Immediately close suggestions and reset state
+      setShowSuggestions(false)
+      setSelectedIndex(-1)
 
-    // Save successful search to history
-    saveToHistory(searchValue.trim());
+      // Save successful search to history
+      saveToHistory(searchValue.trim())
 
-    // Blur the input to remove focus and prevent reopening suggestions
-    if (inputRef.current) {
-      inputRef.current.blur();
-    }
+      // Blur the input to remove focus and prevent reopening suggestions
+      if (inputRef.current) {
+        inputRef.current.blur()
+      }
 
-    // Highlight the item in its category
-    try {
-      await highlightItem(result.id, result.category_id, result.category_name);
-    } catch (error) {
-      console.error("Failed to highlight item:", error);
-    }
+      // Highlight the item in its category
+      try {
+        await highlightItem(result.id, result.category_id, result.category_name)
+      } catch (error) {
+        console.error('Failed to highlight item:', error)
+      }
 
-    // Call optional callback
-    onItemSelect?.(result.id, result.category_id, result.category_name);
-  }, [searchValue, saveToHistory, highlightItem, onItemSelect]);
+      // Call optional callback
+      onItemSelect?.(result.id, result.category_id, result.category_name)
+    },
+    [searchValue, saveToHistory, highlightItem, onItemSelect],
+  )
 
-  const handleRecentSearchClick = useCallback((recentQuery: string) => {
-    setSearchValue(recentQuery);
-    setShowSuggestions(false);
-    setSelectedIndex(-1);
-    
-    // Blur the input to remove focus
-    if (inputRef.current) {
-      inputRef.current.blur();
-    }
-    
-    performSearch(recentQuery);
-  }, [performSearch]);
+  const handleRecentSearchClick = useCallback(
+    (recentQuery: string) => {
+      setSearchValue(recentQuery)
+      setShowSuggestions(false)
+      setSelectedIndex(-1)
+
+      // Blur the input to remove focus
+      if (inputRef.current) {
+        inputRef.current.blur()
+      }
+
+      performSearch(recentQuery)
+    },
+    [performSearch],
+  )
 
   const handleClearSearch = () => {
-    setSearchValue("");
-    clearSearch();
-    setShowSuggestions(false);
-    setSelectedIndex(-1);
-    inputRef.current?.focus();
-  };
+    setSearchValue('')
+    clearSearch()
+    setShowSuggestions(false)
+    setSelectedIndex(-1)
+    inputRef.current?.focus()
+  }
 
   const clearSearchHistory = () => {
     try {
-      setSearchHistory([]);
-      setRecentSearches([]);
-      localStorage.removeItem("food-search-history");
-      localStorage.removeItem("food-recent-searches");
+      setSearchHistory([])
+      setRecentSearches([])
+      localStorage.removeItem('food-search-history')
+      localStorage.removeItem('food-recent-searches')
     } catch (error) {
-      console.warn("Failed to clear search history:", error);
+      console.warn('Failed to clear search history:', error)
     }
-  };
+  }
 
   // Memoize filtered recent searches with better validation
   const filteredRecentSearches = useMemo(() => {
-    if (searchValue.length >= 2 || isDeliciasPage) return [];
-    
+    if (searchValue.length >= 2 || isDeliciasPage) return []
+
     // Only show recent searches if we have a valid, short query
-    const trimmedValue = searchValue.trim();
+    const trimmedValue = searchValue.trim()
     if (trimmedValue.length === 0) {
-      return recentSearches.slice(0, 5); // Show all recent searches when empty
+      return recentSearches.slice(0, 5) // Show all recent searches when empty
     }
-    
+
     return recentSearches.filter((search) =>
-      search.toLowerCase().includes(trimmedValue.toLowerCase())
-    );
-  }, [recentSearches, searchValue, isDeliciasPage]);
+      search.toLowerCase().includes(trimmedValue.toLowerCase()),
+    )
+  }, [recentSearches, searchValue, isDeliciasPage])
 
   // Show recent searches when input is focused and empty/short
   const shouldShowRecentSearches =
     showSuggestions &&
     searchValue.length < 2 &&
     filteredRecentSearches.length > 0 &&
-    !isDeliciasPage;
+    !isDeliciasPage
   const shouldShowSearchResults =
-    showSuggestions && searchResults.length > 0 && searchValue.length >= 2;
+    showSuggestions && searchResults.length > 0 && searchValue.length >= 2
 
   return (
     <div className="relative max-w-2xl mx-auto pt-10 pb-5 px-4" ref={searchRef}>
@@ -357,11 +360,13 @@ export default function HeaderSearch({
                     filteredRecentSearches.length > 0 ||
                     searchValue.trim().length >= 2
                   ) {
-                    setShowSuggestions(true);
+                    setShowSuggestions(true)
                   }
                 }}
-                className={`w-full p-0  bg-transparent !border-none !outline-none focus:outline-none focus:!border-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 shadow-none rounded-none ${home && !isSmallScreen ? "text-green-600 placeholder:text-green-600" : "text-orange-400 placeholder:text-gray-400"} ${isSmallScreen ? "!placeholder:text-sm" : "!placeholder:text-lg !text-lg"}`}
-                placeholder={isCacheReady ? "Search your favorite food" : "Loading menu..."}
+                className={`w-full p-0  bg-transparent !border-none !outline-none focus:outline-none focus:!border-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 shadow-none rounded-none ${home && !isSmallScreen ? 'text-green-600 placeholder:text-green-600' : 'text-orange-400 placeholder:text-gray-400'} ${isSmallScreen ? '!placeholder:text-sm' : '!placeholder:text-lg !text-lg'}`}
+                placeholder={
+                  isCacheReady ? 'Search your favorite food' : 'Loading menu...'
+                }
                 disabled={!isCacheReady}
               />
             </div>
@@ -398,9 +403,9 @@ export default function HeaderSearch({
                   {recentSearches.length > 0 && (
                     <button
                       onMouseDown={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        clearSearchHistory();
+                        e.preventDefault()
+                        e.stopPropagation()
+                        clearSearchHistory()
                       }}
                       className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
                     >
@@ -413,14 +418,14 @@ export default function HeaderSearch({
                 <div
                   key={`recent-${index}`}
                   onMouseDown={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleRecentSearchClick(recentQuery);
+                    e.preventDefault()
+                    e.stopPropagation()
+                    handleRecentSearchClick(recentQuery)
                   }}
                   className={`px-4 py-3 cursor-pointer border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors ${
                     index === selectedIndex
-                      ? "bg-emerald-50 border-emerald-200"
-                      : ""
+                      ? 'bg-emerald-50 border-emerald-200'
+                      : ''
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -438,19 +443,19 @@ export default function HeaderSearch({
               {searchResults.map((result, index) => {
                 const adjustedIndex = shouldShowRecentSearches
                   ? index + filteredRecentSearches.length
-                  : index;
+                  : index
                 return (
                   <div
                     key={result.id}
                     onMouseDown={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleResultClick(result);
+                      e.preventDefault()
+                      e.stopPropagation()
+                      handleResultClick(result)
                     }}
                     className={`px-4 py-4 cursor-pointer border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors ${
                       adjustedIndex === selectedIndex
-                        ? "bg-emerald-50 border-emerald-200"
-                        : ""
+                        ? 'bg-emerald-50 border-emerald-200'
+                        : ''
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -473,7 +478,9 @@ export default function HeaderSearch({
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className={`${isSmallScreen ? "!text-sm" : "!text-md"} font-medium text-gray-900 truncate`}>
+                          <h4
+                            className={`${isSmallScreen ? '!text-sm' : '!text-md'} font-medium text-gray-900 truncate`}
+                          >
                             {result.name}
                           </h4>
 
@@ -517,7 +524,7 @@ export default function HeaderSearch({
                       </div>
                     </div>
                   </div>
-                );
+                )
               })}
             </div>
           )}
@@ -536,10 +543,9 @@ export default function HeaderSearch({
                     No food items found for &quot;{searchValue.trim()}&quot;
                   </p>
                   <p className="text-xs text-gray-400 mt-1">
-                    {searchValue.trim().length < 3 
-                      ? "Try typing at least 3 characters for better results"
-                      : "Try different keywords or check spelling"
-                    }
+                    {searchValue.trim().length < 3
+                      ? 'Try typing at least 3 characters for better results'
+                      : 'Try different keywords or check spelling'}
                   </p>
                   {searchHistory.length > 0 && !isDeliciasPage && (
                     <div className="mt-3">
@@ -551,9 +557,9 @@ export default function HeaderSearch({
                           <button
                             key={index}
                             onMouseDown={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              handleRecentSearchClick(historyItem);
+                              e.preventDefault()
+                              e.stopPropagation()
+                              handleRecentSearchClick(historyItem)
                             }}
                             className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-1 rounded transition-colors"
                           >
@@ -584,5 +590,5 @@ export default function HeaderSearch({
         </div>
       </div>
     </div>
-  );
+  )
 }

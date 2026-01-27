@@ -1,73 +1,78 @@
-"use client";
+'use client'
 
-import FoodItemCard from "@/components/restaurant/foodItem/FoodItemCard";
-import React, { useEffect, useState } from "react";
-import { useItemStore } from "@/store/order-store";
-import { useInventoryItems } from "@/hooks/useInventoryItems";
-import { AlertTriangle } from "lucide-react";
-import FoodSkeleton from "../smallComponents/FoodSkeleton";
-import NoFoodBox from "./NoFoodBox";
-import { fetchCategory } from "@/helpers/fetchCategory";
-import { useRestaurantId } from "@/hooks/useRestaurantId";
-import { ImageLoader } from "../image-loader";
+import FoodItemCard from '@/components/restaurant/foodItem/FoodItemCard'
+import React, { useEffect, useState } from 'react'
+import { useItemStore } from '@/store/order-store'
+import { useAllInventoryQuery } from '@/hooks/queries/useInventoryQuery'
+import { AlertTriangle } from 'lucide-react'
+import FoodSkeleton from '../smallComponents/FoodSkeleton'
+import NoFoodBox from './NoFoodBox'
+import { fetchCategory } from '@/helpers/fetchCategory'
+import { useRestaurantId } from '@/hooks/useRestaurantId'
+import { ImageLoader } from '../image-loader'
 
 export default function AllCategoryItems({
   itemCategoryId,
 }: {
-  itemCategoryId?: string;
+  itemCategoryId?: string
 }) {
-  const [allItemsLoading, setAllItemsLoading] = useState(true);
-  const [categories, setCategories] = useState<any[]>([]);
-  const { allItems, fetchAllItems, error } = useInventoryItems(itemCategoryId);
-  const cartItems = useItemStore((state) => state.items);
-  const rid = useRestaurantId();
+  const [allItemsLoading, setAllItemsLoading] = useState(true)
+  const [categories, setCategories] = useState<any[]>([])
+  const {
+    allItems,
+    fetchAllItems,
+    error,
+    loading: queryLoading,
+  } = useAllInventoryQuery()
+  const cartItems = useItemStore((state) => state.items)
+  const rid = useRestaurantId()
 
   useEffect(() => {
-    useItemStore.persist.rehydrate();
-  }, []);
+    useItemStore.persist.rehydrate()
+  }, [])
 
   useEffect(() => {
     const loadData = async () => {
-      setAllItemsLoading(true);
-      await fetchAllItems();
+      setAllItemsLoading(true)
+      await fetchAllItems()
 
       // Fetch categories for grouping
       try {
-        const categoryData = await fetchCategory(rid);
-        setCategories(categoryData.categories || []);
+        const categoryData = await fetchCategory(rid)
+        setCategories(categoryData.categories || [])
       } catch (err) {
-        console.error("Error fetching categories:", err);
+        console.error('Error fetching categories:', err)
       }
 
-      setAllItemsLoading(false);
-    };
+      setAllItemsLoading(false)
+    }
 
     if (rid !== null) {
-      loadData();
+      loadData()
     }
-  }, [rid, fetchAllItems]);
+  }, [rid, fetchAllItems])
 
   // Group items by category
   const groupedItems = React.useMemo(() => {
-    if (!allItems.length || !categories.length) return {};
+    if (!allItems.length || !categories.length) return {}
 
-    const grouped: { [key: string]: any } = {};
+    const grouped: { [key: string]: any } = {}
 
     categories.forEach((category) => {
       const categoryItems = allItems.filter(
         (item: any) =>
-          item.category_id === category.id && item.status !== "out_of_stock"
-      );
+          item.category_id === category.id && item.status !== 'out_of_stock',
+      )
       if (categoryItems.length > 0) {
         grouped[category.id] = {
           category,
           items: categoryItems,
-        };
+        }
       }
-    });
+    })
 
-    return grouped;
-  }, [allItems, categories]);
+    return grouped
+  }, [allItems, categories])
 
   // Error state
   if (error) {
@@ -83,12 +88,12 @@ export default function AllCategoryItems({
           Try Again
         </button>
       </div>
-    );
+    )
   }
 
   // Empty state
   if (!allItemsLoading && allItems.length === 0) {
-    return <NoFoodBox refetch={fetchAllItems} />;
+    return <NoFoodBox refetch={fetchAllItems} />
   }
 
   // Loading state
@@ -103,7 +108,7 @@ export default function AllCategoryItems({
           ))}
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -151,8 +156,8 @@ export default function AllCategoryItems({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-[700px]:flex max-[700px]:flex-col max-[700px]:gap-3">
             {items.slice(0, 8).map((item: any) => {
               const cartItem = cartItems.find(
-                (cartItem) => cartItem.id === item.id
-              );
+                (cartItem) => cartItem.id === item.id,
+              )
               return (
                 <FoodItemCard
                   key={item.id}
@@ -167,7 +172,7 @@ export default function AllCategoryItems({
                   status={item.status}
                   stock={item.stock}
                 />
-              );
+              )
             })}
           </div>
         </div>
@@ -188,8 +193,8 @@ export default function AllCategoryItems({
               .slice(0, 4)
               .map((item: any) => {
                 const cartItem = cartItems.find(
-                  (cartItem) => cartItem.id === item.id
-                );
+                  (cartItem) => cartItem.id === item.id,
+                )
                 return (
                   <FoodItemCard
                     key={`suggested-${item.id}`}
@@ -204,11 +209,11 @@ export default function AllCategoryItems({
                     status={item.status}
                     stock={item.stock}
                   />
-                );
+                )
               })}
           </div>
         </div>
       )}
     </div>
-  );
+  )
 }

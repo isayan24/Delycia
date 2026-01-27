@@ -21,6 +21,7 @@ import { Route as UserLoginlocalRouteImport } from './routes/user/loginlocal'
 import { Route as UserDashboardRouteImport } from './routes/user/dashboard'
 import { Route as ResUsernameRouteImport } from './routes/res.$username'
 import { Route as ApiVerifyRouteImport } from './routes/api/verify'
+import { Route as ApiUsersRouteImport } from './routes/api/users'
 import { Route as ApiReverificationCodeRouteImport } from './routes/api/reverification-code'
 import { Route as ApiRestaurantRouteImport } from './routes/api/restaurant'
 import { Route as ApiOrdersRouteImport } from './routes/api/orders'
@@ -99,6 +100,11 @@ const ApiVerifyRoute = ApiVerifyRouteImport.update({
   path: '/api/verify',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiUsersRoute = ApiUsersRouteImport.update({
+  id: '/api/users',
+  path: '/api/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiReverificationCodeRoute = ApiReverificationCodeRouteImport.update({
   id: '/api/reverification-code',
   path: '/api/reverification-code',
@@ -175,14 +181,14 @@ const DemoStartSsrDataOnlyRoute = DemoStartSsrDataOnlyRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiUsersAuthRefreshRoute = ApiUsersAuthRefreshRouteImport.update({
-  id: '/api/users/auth/refresh',
-  path: '/api/users/auth/refresh',
-  getParentRoute: () => rootRouteImport,
+  id: '/auth/refresh',
+  path: '/auth/refresh',
+  getParentRoute: () => ApiUsersRoute,
 } as any)
 const ApiUsersAuthHandleAuthRoute = ApiUsersAuthHandleAuthRouteImport.update({
-  id: '/api/users/auth/handleAuth',
-  path: '/api/users/auth/handleAuth',
-  getParentRoute: () => rootRouteImport,
+  id: '/auth/handleAuth',
+  path: '/auth/handleAuth',
+  getParentRoute: () => ApiUsersRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -198,6 +204,7 @@ export interface FileRoutesByFullPath {
   '/api/orders': typeof ApiOrdersRoute
   '/api/restaurant': typeof ApiRestaurantRouteWithChildren
   '/api/reverification-code': typeof ApiReverificationCodeRoute
+  '/api/users': typeof ApiUsersRouteWithChildren
   '/api/verify': typeof ApiVerifyRoute
   '/res/$username': typeof ResUsernameRoute
   '/user/dashboard': typeof UserDashboardRoute
@@ -229,6 +236,7 @@ export interface FileRoutesByTo {
   '/api/orders': typeof ApiOrdersRoute
   '/api/restaurant': typeof ApiRestaurantRouteWithChildren
   '/api/reverification-code': typeof ApiReverificationCodeRoute
+  '/api/users': typeof ApiUsersRouteWithChildren
   '/api/verify': typeof ApiVerifyRoute
   '/res/$username': typeof ResUsernameRoute
   '/user/dashboard': typeof UserDashboardRoute
@@ -261,6 +269,7 @@ export interface FileRoutesById {
   '/api/orders': typeof ApiOrdersRoute
   '/api/restaurant': typeof ApiRestaurantRouteWithChildren
   '/api/reverification-code': typeof ApiReverificationCodeRoute
+  '/api/users': typeof ApiUsersRouteWithChildren
   '/api/verify': typeof ApiVerifyRoute
   '/res/$username': typeof ResUsernameRoute
   '/user/dashboard': typeof UserDashboardRoute
@@ -294,6 +303,7 @@ export interface FileRouteTypes {
     | '/api/orders'
     | '/api/restaurant'
     | '/api/reverification-code'
+    | '/api/users'
     | '/api/verify'
     | '/res/$username'
     | '/user/dashboard'
@@ -325,6 +335,7 @@ export interface FileRouteTypes {
     | '/api/orders'
     | '/api/restaurant'
     | '/api/reverification-code'
+    | '/api/users'
     | '/api/verify'
     | '/res/$username'
     | '/user/dashboard'
@@ -356,6 +367,7 @@ export interface FileRouteTypes {
     | '/api/orders'
     | '/api/restaurant'
     | '/api/reverification-code'
+    | '/api/users'
     | '/api/verify'
     | '/res/$username'
     | '/user/dashboard'
@@ -388,6 +400,7 @@ export interface RootRouteChildren {
   ApiOrdersRoute: typeof ApiOrdersRoute
   ApiRestaurantRoute: typeof ApiRestaurantRouteWithChildren
   ApiReverificationCodeRoute: typeof ApiReverificationCodeRoute
+  ApiUsersRoute: typeof ApiUsersRouteWithChildren
   ApiVerifyRoute: typeof ApiVerifyRoute
   ResUsernameRoute: typeof ResUsernameRoute
   UserDashboardRoute: typeof UserDashboardRoute
@@ -398,8 +411,6 @@ export interface RootRouteChildren {
   DemoApiNamesRoute: typeof DemoApiNamesRoute
   DemoStartApiRequestRoute: typeof DemoStartApiRequestRoute
   DemoStartServerFuncsRoute: typeof DemoStartServerFuncsRoute
-  ApiUsersAuthHandleAuthRoute: typeof ApiUsersAuthHandleAuthRoute
-  ApiUsersAuthRefreshRoute: typeof ApiUsersAuthRefreshRoute
   DemoStartSsrDataOnlyRoute: typeof DemoStartSsrDataOnlyRoute
   DemoStartSsrFullSsrRoute: typeof DemoStartSsrFullSsrRoute
   DemoStartSsrSpaModeRoute: typeof DemoStartSsrSpaModeRoute
@@ -490,6 +501,13 @@ declare module '@tanstack/react-router' {
       path: '/api/verify'
       fullPath: '/api/verify'
       preLoaderRoute: typeof ApiVerifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/users': {
+      id: '/api/users'
+      path: '/api/users'
+      fullPath: '/api/users'
+      preLoaderRoute: typeof ApiUsersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/reverification-code': {
@@ -599,17 +617,17 @@ declare module '@tanstack/react-router' {
     }
     '/api/users/auth/refresh': {
       id: '/api/users/auth/refresh'
-      path: '/api/users/auth/refresh'
+      path: '/auth/refresh'
       fullPath: '/api/users/auth/refresh'
       preLoaderRoute: typeof ApiUsersAuthRefreshRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiUsersRoute
     }
     '/api/users/auth/handleAuth': {
       id: '/api/users/auth/handleAuth'
-      path: '/api/users/auth/handleAuth'
+      path: '/auth/handleAuth'
       fullPath: '/api/users/auth/handleAuth'
       preLoaderRoute: typeof ApiUsersAuthHandleAuthRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiUsersRoute
     }
   }
 }
@@ -626,6 +644,20 @@ const ApiRestaurantRouteWithChildren = ApiRestaurantRoute._addFileChildren(
   ApiRestaurantRouteChildren,
 )
 
+interface ApiUsersRouteChildren {
+  ApiUsersAuthHandleAuthRoute: typeof ApiUsersAuthHandleAuthRoute
+  ApiUsersAuthRefreshRoute: typeof ApiUsersAuthRefreshRoute
+}
+
+const ApiUsersRouteChildren: ApiUsersRouteChildren = {
+  ApiUsersAuthHandleAuthRoute: ApiUsersAuthHandleAuthRoute,
+  ApiUsersAuthRefreshRoute: ApiUsersAuthRefreshRoute,
+}
+
+const ApiUsersRouteWithChildren = ApiUsersRoute._addFileChildren(
+  ApiUsersRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CartRoute: CartRoute,
@@ -639,6 +671,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiOrdersRoute: ApiOrdersRoute,
   ApiRestaurantRoute: ApiRestaurantRouteWithChildren,
   ApiReverificationCodeRoute: ApiReverificationCodeRoute,
+  ApiUsersRoute: ApiUsersRouteWithChildren,
   ApiVerifyRoute: ApiVerifyRoute,
   ResUsernameRoute: ResUsernameRoute,
   UserDashboardRoute: UserDashboardRoute,
@@ -649,8 +682,6 @@ const rootRouteChildren: RootRouteChildren = {
   DemoApiNamesRoute: DemoApiNamesRoute,
   DemoStartApiRequestRoute: DemoStartApiRequestRoute,
   DemoStartServerFuncsRoute: DemoStartServerFuncsRoute,
-  ApiUsersAuthHandleAuthRoute: ApiUsersAuthHandleAuthRoute,
-  ApiUsersAuthRefreshRoute: ApiUsersAuthRefreshRoute,
   DemoStartSsrDataOnlyRoute: DemoStartSsrDataOnlyRoute,
   DemoStartSsrFullSsrRoute: DemoStartSsrFullSsrRoute,
   DemoStartSsrSpaModeRoute: DemoStartSsrSpaModeRoute,

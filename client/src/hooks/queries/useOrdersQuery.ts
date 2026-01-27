@@ -1,0 +1,79 @@
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState, useCallback } from 'react'
+import { Order } from '@/types/Order'
+import tokenService from '@/services/tokenService'
+import { fetchOrders } from '@/services/orderService'
+
+interface UseOrdersQueryOptions {
+  customerId?: string
+  rid?: string | null
+  autoRefreshInterval?: number
+  enableAutoRefresh?: boolean
+}
+
+export const useOrdersQuery = ({
+  customerId,
+  rid,
+  autoRefreshInterval = 30000,
+  enableAutoRefresh = true,
+}: UseOrdersQueryOptions) => {
+  const queryClient = useQueryClient()
+  const [isAutoRefreshActive, setIsAutoRefreshActive] =
+    useState(enableAutoRefresh)
+
+  const {
+    data: allOrders = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+    status: queryStatus,
+  } = useQuery({
+    queryKey: ['orders', { customerId }],
+    queryFn: async () => {
+      if (!customerId) return []
+      const token = await tokenService.getValidAccessToken()
+      if (!token) throw new Error('No access token available')
+      return fetchOrders(customerId, token)
+    },
+    enabled: !!customerId,
+    // Only refresh if active and interval is set
+    refetchInterval:
+      isAutoRefreshActive && autoRefreshInterval > 0
+        ? autoRefreshInterval
+        : false,
+  })
+
+  // Derived state: filtered orders
+  const orders = rid
+    ? allOrders.filter((order) => String(order.rid) === String(rid))
+    : allOrders
+
+  // Derived status string (mimicking UseFetchOrders behavior)
+  let status = 'Loading...'
+  if (queryStatus === 'pending') {
+    status = 'Loading orders...'
+  } else if (queryStatus === 'error') {
+    status = 'Error loading orders'
+  } else if (queryStatus === 'success') {
+    const totalOrdersText = rid
+      ? `${orders.length} orders for restaurant (${allOrders.length} total)`
+      : `${allOrders.length} orders`
+    status = `Loaded ${totalOrdersText} successfully ✅`
+  }
+
+  const toggleAutoRefresh = useCallback(() => {
+    setIsAutoRefreshActive((prev) => !prev)
+  }, [])
+
+  return {
+    orders,
+    allOrders,
+    status,
+    isLoading,
+    error: isError ? (error as Error).message : null,
+    refreshOrders: refetch,
+    toggleAutoRefresh,
+    isAutoRefreshActive,
+  }
+}
