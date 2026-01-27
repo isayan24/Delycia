@@ -1,0 +1,80 @@
+
+> build
+> vite build
+
+vite v7.3.1 building client environment for production...
+transforming...
+
+[@tanstack/devtools-vite] Removed devtools code from: /src/routes/__root.tsx
+
+✓ 13822 modules transformed.
+rendering chunks...
+[plugin vite:reporter] 
+(!) /mnt/SharedFolders/Documents/Coding/Tanstack-Start/Delycia/client/src/services/tokenService.ts is dynamically imported by /mnt/SharedFolders/Documents/Coding/Tanstack-Start/Delycia/client/src/services/errorHandlingService.ts but also statically imported by /mnt/SharedFolders/Documents/Coding/Tanstack-Start/Delycia/client/src/helpers/getUser.ts, /mnt/SharedFolders/Documents/Coding/Tanstack-Start/Delycia/client/src/hooks/UseFetchOrders.tsx, /mnt/SharedFolders/Documents/Coding/Tanstack-Start/Delycia/client/src/hooks/useAuth.ts, dynamic import will not move module into another chunk.
+
+computing gzip size...
+.output/public/assets/allFood-B5XXkPxg.png               177.76 kB
+.output/public/assets/homesvg1-BylDqpkX.svg              543.33 kB │ gzip:   146.97 kB
+.output/public/assets/cancelled--9ULQJz5.svg           1,368.48 kB │ gzip: 1,030.58 kB
+.output/public/assets/pending-CtrHdklU.svg             1,533.53 kB │ gzip: 1,154.91 kB
+.output/public/assets/ready-BkpfOR_U.svg               1,701.12 kB │ gzip: 1,281.03 kB
+.output/public/assets/processing-DHv3F7UQ.svg          1,925.63 kB │ gzip: 1,450.18 kB
+.output/public/assets/delivered-D7yO8Jhh.svg           1,947.51 kB │ gzip: 1,466.69 kB
+.output/public/assets/main-C3BObcgf.css                  145.54 kB │ gzip:    21.79 kB
+.output/public/assets/useRestaurantId-CvSN5EoE.js          0.16 kB │ gzip:     0.16 kB
+.output/public/assets/clock-BZMyGG0j.js                    0.16 kB │ gzip:     0.16 kB
+.output/public/assets/delycias-BNNnvqdN.js                 0.18 kB │ gzip:     0.17 kB
+.output/public/assets/circle-check-big-DlhOaYpg.js         0.19 kB │ gzip:     0.18 kB
+.output/public/assets/plus-JKqH6suk.js                     0.22 kB │ gzip:     0.17 kB
+.output/public/assets/award-O5VsPm48.js                    0.27 kB │ gzip:     0.22 kB
+.output/public/assets/shopping-cart-BEpFfmrL.js            0.29 kB │ gzip:     0.23 kB
+.output/public/assets/skeleton-aPo8RG2g.js                 0.34 kB │ gzip:     0.26 kB
+.output/public/assets/order-placed-BLzx4Naw.js             0.45 kB │ gzip:     0.30 kB
+.output/public/assets/useRestaurants-BwUmklM0.js           0.79 kB │ gzip:     0.50 kB
+.output/public/assets/start.api-request-BYQdEudn.js        0.89 kB │ gzip:     0.53 kB
+.output/public/assets/start.ssr.full-ssr-C8D7wjPT.js       0.91 kB │ gzip:     0.51 kB
+.output/public/assets/start.ssr.data-only-Bfgi95xA.js      0.91 kB │ gzip:     0.52 kB
+.output/public/assets/start.ssr.spa-mode-BpZ5lMGn.js       0.95 kB │ gzip:     0.54 kB
+.output/public/assets/start.ssr.index-EYyTV3pT.js          1.67 kB │ gzip:     0.64 kB
+.output/public/assets/start.server-funcs-CcCsllUi.js       1.70 kB │ gzip:     0.93 kB
+.output/public/assets/category-zHWV3ekV.js                 2.96 kB │ gzip:     1.10 kB
+.output/public/assets/tabs-D-en8B5E.js                     3.33 kB │ gzip:     1.44 kB
+.output/public/assets/button-51nWBWUE.js                   4.03 kB │ gzip:     1.84 kB
+.output/public/assets/res._username-BwN27uCe.js            8.27 kB │ gzip:     2.37 kB
+.output/public/assets/cart-BOBy6vYC.js                    10.76 kB │ gzip:     3.72 kB
+.output/public/assets/index-64dQzFb2.js                   11.12 kB │ gzip:     4.32 kB
+.output/public/assets/ShowAllDelycia-Q1o40_R3.js          15.70 kB │ gzip:     4.30 kB
+.output/public/assets/dialog-DoKDXGRr.js                  28.25 kB │ gzip:    10.06 kB
+.output/public/assets/empty-cart-alt-D5Z6tkCe.js          37.75 kB │ gzip:    13.51 kB
+.output/public/assets/orders-Shdd9ON7.js                  39.70 kB │ gzip:    13.05 kB
+.output/public/assets/index-DZRor-OL.js                  146.90 kB │ gzip:    44.98 kB
+.output/public/assets/checkout-DCjTO800.js               359.61 kB │ gzip:   109.28 kB
+.output/public/assets/main-CfXrBEyj.js                   749.52 kB │ gzip:   241.17 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 1m 7s
+vite v7.3.1 building ssr environment for production...
+transforming...
+
+[@tanstack/devtools-vite] Removed devtools code from: /src/routes/__root.tsx
+
+✓ 200 modules transformed.
+✗ Build failed in 2.72s
+error during build:
+[vite]: Rollup failed to resolve import "qs" from "/mnt/SharedFolders/Documents/Coding/Tanstack-Start/Delycia/client/src/lib/server-axios.ts".
+This is most likely unintended because it can break your application at runtime.
+If you do want to externalize this module explicitly add it to
+`build.rollupOptions.external`
+    at viteLog (file:///mnt/SharedFolders/Documents/Coding/Tanstack-Start/Delycia/client/node_modules/.pnpm/vite@7.3.1_@types+node@22.19.7_jiti@2.6.1_lightningcss@1.30.2_tsx@4.21.0/node_modules/vite/dist/node/chunks/config.js:33635:57)
+    at file:///mnt/SharedFolders/Documents/Coding/Tanstack-Start/Delycia/client/node_modules/.pnpm/vite@7.3.1_@types+node@22.19.7_jiti@2.6.1_lightningcss@1.30.2_tsx@4.21.0/node_modules/vite/dist/node/chunks/config.js:33669:73
+    at onwarn (file:///mnt/SharedFolders/Documents/Coding/Tanstack-Start/Delycia/client/node_modules/.pnpm/@vitejs+plugin-react@5.1.2_vite@7.3.1_@types+node@22.19.7_jiti@2.6.1_lightningcss@1.30.2_tsx@4.21.0_/node_modules/@vitejs/plugin-react/dist/index.js:76:7)
+    at file:///mnt/SharedFolders/Documents/Coding/Tanstack-Start/Delycia/client/node_modules/.pnpm/vite@7.3.1_@types+node@22.19.7_jiti@2.6.1_lightningcss@1.30.2_tsx@4.21.0/node_modules/vite/dist/node/chunks/config.js:33669:28
+    at onRollupLog (file:///mnt/SharedFolders/Documents/Coding/Tanstack-Start/Delycia/client/node_modules/.pnpm/vite@7.3.1_@types+node@22.19.7_jiti@2.6.1_lightningcss@1.30.2_tsx@4.21.0/node_modules/vite/dist/node/chunks/config.js:33664:63)
+    at onLog (file:///mnt/SharedFolders/Documents/Coding/Tanstack-Start/Delycia/client/node_modules/.pnpm/vite@7.3.1_@types+node@22.19.7_jiti@2.6.1_lightningcss@1.30.2_tsx@4.21.0/node_modules/vite/dist/node/chunks/config.js:33467:4)
+    at file:///mnt/SharedFolders/Documents/Coding/Tanstack-Start/Delycia/client/node_modules/.pnpm/rollup@4.56.0/node_modules/rollup/dist/es/shared/node-entry.js:21037:32
+    at Object.logger [as onLog] (file:///mnt/SharedFolders/Documents/Coding/Tanstack-Start/Delycia/client/node_modules/.pnpm/rollup@4.56.0/node_modules/rollup/dist/es/shared/node-entry.js:22924:9)
+    at ModuleLoader.handleInvalidResolvedId (file:///mnt/SharedFolders/Documents/Coding/Tanstack-Start/Delycia/client/node_modules/.pnpm/rollup@4.56.0/node_modules/rollup/dist/es/shared/node-entry.js:21668:26)
+    at file:///mnt/SharedFolders/Documents/Coding/Tanstack-Start/Delycia/client/node_modules/.pnpm/rollup@4.56.0/node_modules/rollup/dist/es/shared/node-entry.js:21626:26

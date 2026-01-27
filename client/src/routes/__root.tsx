@@ -1,0 +1,105 @@
+import {
+  HeadContent,
+  Scripts,
+  createRootRoute,
+  Outlet,
+} from '@tanstack/react-router'
+import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
+import { TanStackDevtools } from '@tanstack/react-devtools'
+import * as React from 'react'
+
+// Providers
+import AuthProvider from '@/context/AuthProvider'
+import StoreProvider from '@/context/StoreProvider'
+
+// Components
+import { Toaster } from '@/components/ui/sonner'
+import CartWrapper from '@/components/restaurant/cart/CartWrapper'
+import MobileNav from '@/components/navigation/MobileNav'
+import LoginWrapper from '@/components/smallComponents/LoginWrapper'
+import HeaderWrapper from '@/components/header/HeaderWrapper'
+
+// Global Styles
+import '../styles.css'
+
+export const Route = createRootRoute({
+  head: () => ({
+    meta: [
+      {
+        charSet: 'utf-8',
+      },
+      {
+        name: 'viewport',
+        content: 'width=device-width, initial-scale=1',
+      },
+      {
+        title: 'Delycia',
+      },
+      {
+        name: 'description',
+        content: 'Delycia is a restaurant management system',
+      },
+    ],
+    links: [
+      {
+        rel: 'stylesheet',
+        href: '/styles.css', // Ensure this matches vite output or import
+      },
+      {
+        rel: 'preconnect',
+        href: 'https://fonts.googleapis.com',
+      },
+      {
+        rel: 'preconnect',
+        href: 'https://fonts.gstatic.com',
+        crossOrigin: 'anonymous',
+      },
+      {
+        rel: 'stylesheet',
+        href: 'https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap',
+      },
+    ],
+  }),
+
+  component: RootComponent,
+})
+
+function RootComponent() {
+  return (
+    <html lang="en" className="darks scroll-smooth">
+      <head>
+        <HeadContent />
+      </head>
+      <body className="font-jost antialiased bg-[#fcfeff] dark:bg-[#1f1f1f]d">
+        <AuthProvider>
+          <StoreProvider>
+            <HeaderWrapper />
+            <div className="relative min-h-screen flex flex-col">
+              <Toaster position="top-center" />
+              <LoginWrapper />
+              <div className="flex-grow">
+                <Outlet />
+              </div>
+            </div>
+            <div className="mt-[6rem]">
+              <CartWrapper />
+            </div>
+            <MobileNav />
+          </StoreProvider>
+        </AuthProvider>
+        <TanStackDevtools
+          config={{
+            position: 'bottom-right',
+          }}
+          plugins={[
+            {
+              name: 'Tanstack Router',
+              render: <TanStackRouterDevtoolsPanel />,
+            },
+          ]}
+        />
+        <Scripts />
+      </body>
+    </html>
+  )
+}

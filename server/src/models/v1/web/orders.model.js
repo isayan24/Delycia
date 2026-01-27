@@ -90,26 +90,85 @@ const get_orders = async (req) => {
   if (!customer_id) return apiResponse.error(400, "Customer ID is missing!");
 
   try {
-    [result] = await pool.query(
-      `SELECT o.*, v.name as variant_name,
-        (
-          SELECT JSON_ARRAYAGG(
-            JSON_OBJECT(
-              'name', a.name,
-              'price', oa.price,
-              'quantity', oa.quantity
-            )
-          )
-          FROM order_addons oa
-          JOIN addons a ON oa.addon_id = a.id
-          WHERE oa.order_id = o.id
-        ) AS addons
+    const [result] = await pool.query(
+      `SELECT o.*, 
+              i.name as item_name, 
+              v.name as variant_name,
+              (
+                SELECT JSON_ARRAYAGG(
+                  JSON_OBJECT(
+                    'name', a.name,
+                    'price', oa.price,
+                    'quantity', oa.quantity
+                  )
+                )
+                FROM order_addons oa
+                JOIN addons a ON oa.addon_id = a.id
+                WHERE oa.order_id = o.id
+              ) AS addons
        FROM orders o 
+       LEFT JOIN inventories i ON o.item_id = i.id
        LEFT JOIN variants v ON o.variant_id = v.id
-       WHERE o.customer_id = ?`,
-      customer_id
+       WHERE o.customer_id = ?
+       ORDER BY o.created_at DESC`,
+      [customer_id]
     );
-    return apiResponse.success(200, "success", { orders: result });
+
+    // Helper to format date to IST
+    const formatDateToIST = (dateString, onlyTimeIfToday = false) => {
+      if (!dateString) return 'N/A';
+      const date = new Date(dateString);
+
+      // Check if valid date
+      if (isNaN(date.getTime())) return 'N/A';
+
+      const options = {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      };
+
+      if (!onlyTimeIfToday) {
+        options.year = 'numeric';
+        options.month = 'short';
+        options.day = 'numeric';
+      }
+
+      return date.toLocaleString('en-IN', options);
+    };
+
+    const isToday = (dateString) => {
+      const date = new Date(dateString);
+      const now = new Date();
+      return date.toDateString() === now.toDateString();
+    };
+
+    const processedOrders = result.map(order => {
+      const today = isToday(order.created_at);
+
+      // Construct name: Item Name (Variant Name)
+      let displayName = order.item_name || `Item #${order.item_id}`;
+      if (order.variant_name) {
+        displayName += ` (${order.variant_name})`;
+      }
+
+      return {
+        ...order,
+        ordered_on_ist: formatDateToIST(order.created_at, today),
+        created_at_ist: formatDateToIST(order.created_at),
+        updated_at_ist: formatDateToIST(order.updated_at),
+        foodDetails: {
+          name: displayName,
+          preparation_time: order.preparation_time || 0,
+          img: null // Placeholder as image is not yet available in query
+        },
+        // Ensure addons is an array (JSON_ARRAYAGG might return null if no addons)
+        addons: order.addons || []
+      };
+    });
+
+    return apiResponse.success(200, "success", { orders: processedOrders });
   } catch (error) {
     return apiResponse.error(500, error.message);
   }
