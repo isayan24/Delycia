@@ -12,13 +12,13 @@ export const Route = createFileRoute('/api/auth/logout')({
           // Clear access token cookie
           headers.append(
             'Set-Cookie',
-            'access_token=; Max-Age=0; HttpOnly; SameSite=strict; Path=/',
+            'admin_access_token=; Max-Age=0; HttpOnly; SameSite=strict; Path=/',
           )
 
           // Clear refresh token cookie
           headers.append(
             'Set-Cookie',
-            'refresh_token=; Max-Age=0; HttpOnly; SameSite=strict; Path=/',
+            'admin_refresh_token=; Max-Age=0; HttpOnly; SameSite=strict; Path=/',
           )
 
           return new Response(

@@ -17,5 +17,5 @@ export function parseCookies(
 export function getAccessTokenFromCookie(request: Request): string | null {
   const cookieHeader = request.headers.get('cookie')
   const cookies = parseCookies(cookieHeader)
-  return cookies['access_token'] || null
+  return cookies['admin_access_token'] || null
 }

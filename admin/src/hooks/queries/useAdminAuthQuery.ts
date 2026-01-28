@@ -257,7 +257,7 @@ export function useAdminAuthQuery() {
 
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'user_data') {
+      if (e.key === 'admin_user_data') {
         refetchSession()
       }
     }

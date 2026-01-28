@@ -43,7 +43,7 @@ axiosInstance.interceptors.response.use(
 
       // Clear any client-side session data
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('user_data')
+        localStorage.removeItem('admin_user_data')
         window.location.href = '/login'
       }
 

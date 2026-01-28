@@ -52,7 +52,7 @@ export function requireAuth({
     // by seeing if the sessionService has been initialized
     const hasLocalStorage = typeof localStorage !== 'undefined'
     const userDataString = hasLocalStorage
-      ? localStorage.getItem('user_data')
+      ? localStorage.getItem('admin_user_data')
       : null
 
     // If localStorage has data, trust it and let the page load

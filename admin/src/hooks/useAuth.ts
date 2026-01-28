@@ -276,7 +276,7 @@ export function useAuth(): UseAuthReturn {
   // Listen for session changes from localStorage (e.g., from other tabs)
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'user_data') {
+      if (e.key === 'admin_user_data') {
         // User data changed, re-validate session
         initializeAuth()
       }

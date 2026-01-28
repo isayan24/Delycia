@@ -41,7 +41,7 @@ export function useUserRole() {
   // Listen for user data changes in localStorage (e.g., after login)
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'user_data') {
+      if (e.key === 'admin_user_data') {
         // User data changed in another tab, re-fetch role
         fetchUserRole()
       }

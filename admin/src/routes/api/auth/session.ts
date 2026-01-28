@@ -25,7 +25,7 @@ export const Route = createFileRoute('/api/auth/session')({
           // Get access token from httpOnly cookie
           const cookieHeader = request.headers.get('cookie')
           const cookies = parseCookies(cookieHeader)
-          const accessToken = cookies['access_token']
+          const accessToken = cookies['admin_access_token']
 
           if (!accessToken) {
             return new Response(

@@ -44,7 +44,7 @@ class SessionService {
       // Optionally persist to localStorage for non-sensitive data only
       if (typeof window !== 'undefined') {
         const stringified = JSON.stringify(userData)
-        localStorage.setItem('user_data', stringified)
+        localStorage.setItem('admin_user_data', stringified)
 
         // Dispatch custom event to notify listeners in the same tab
         window.dispatchEvent(
@@ -68,7 +68,7 @@ class SessionService {
 
       // Try to get from localStorage
       if (typeof window !== 'undefined') {
-        const stored = localStorage.getItem('user_data')
+        const stored = localStorage.getItem('admin_user_data')
         if (stored) {
           this.userDataCache = JSON.parse(stored)
           return this.userDataCache
@@ -89,7 +89,7 @@ class SessionService {
     try {
       this.userDataCache = null
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('user_data')
+        localStorage.removeItem('admin_user_data')
       }
     } catch (error) {
       console.error('Failed to clear session:', error)
