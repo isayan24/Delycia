@@ -22,7 +22,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 
 export function NavUser({
   user,
@@ -34,7 +34,7 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
-  const { logout } = useAuth()
+  const { logout } = useAdminAuthQuery()
 
   const initials = user.name
     ? user.name

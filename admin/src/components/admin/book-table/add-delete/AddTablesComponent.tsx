@@ -23,7 +23,7 @@ import {
 } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import axiosInstance from '@/lib/axios'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import axios from 'axios'
 import useToast from '@/hooks/UseToast'
 import { useFetchTable } from '../hooks/useFetchTable'
@@ -44,7 +44,7 @@ const AddTablesComponent = ({
   onTablesAdded,
   clickedBackToTables,
 }: AddTablesComponentProps) => {
-  const { user } = useAuth()
+  const { user } = useAdminAuthQuery()
   const {
     zones,
     tables,

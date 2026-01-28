@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { CartItem, Customer } from './QuickBillMain'
 import { Plus, Minus, Tag } from 'lucide-react'
 import ThermalBill from '@/components/admin/order-history/ThermalBill'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import useToast from '@/hooks/UseToast'
 
 interface BillSummaryProps {
@@ -26,7 +26,7 @@ export default function BillSummary({
   discount,
   setDiscount,
 }: BillSummaryProps) {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated } = useAdminAuthQuery()
   const [isPlacingOrder, setIsPlacingOrder] = useState(false)
   const [showBillDialog, setShowBillDialog] = useState(false)
   const [completedOrderData, setCompletedOrderData] = useState<any>(null)

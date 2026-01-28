@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import useToast from '@/hooks/UseToast'
 
 export interface StaffMember {
@@ -17,7 +17,7 @@ export interface StaffMember {
 
 // Fetch staff for a specific restaurant
 export const useStaffQuery = () => {
-  const { user } = useAuth()
+  const { user } = useAdminAuthQuery()
   const rid = user?.selected_rid
 
   return useQuery({
@@ -43,7 +43,7 @@ export const useStaffQuery = () => {
 export const useCreateStaffMutation = () => {
   const queryClient = useQueryClient()
   const { showError, showSuccess } = useToast()
-  const { user } = useAuth()
+  const { user } = useAdminAuthQuery()
   const rid = user?.selected_rid
 
   return useMutation({
@@ -72,7 +72,7 @@ export const useCreateStaffMutation = () => {
 export const useUpdateStaffMutation = () => {
   const queryClient = useQueryClient()
   const { showError, showSuccess } = useToast()
-  const { user } = useAuth()
+  const { user } = useAdminAuthQuery()
   const rid = user?.selected_rid
 
   return useMutation({
@@ -97,7 +97,7 @@ export const useUpdateStaffMutation = () => {
 export const useDeleteStaffMutation = () => {
   const queryClient = useQueryClient()
   const { showError, showSuccess } = useToast()
-  const { user } = useAuth()
+  const { user } = useAdminAuthQuery()
   const rid = user?.selected_rid
 
   return useMutation({

@@ -5,14 +5,14 @@ import MobileOrderHistory from './mobile/MobileOrderHistory'
 import ErrorBoundary from './ErrorBoundary'
 import { UseAdminOrderHistory } from './hooks/UseAdminOrderHistory'
 import OrderHistoryHeader from './OrderHistoryHeader'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import OrderHistoryTablePaginated from './OrderHistoryTablePaginated'
 import LoadingScreen from '@/components/common/LoadingScreen'
 
 export default function OrderHistoryMain() {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null)
-  const { user } = useAuth()
+  const { user } = useAdminAuthQuery()
 
   const rid = user?.selected_rid || ''
 

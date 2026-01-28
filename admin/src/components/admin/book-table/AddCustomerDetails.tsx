@@ -15,7 +15,7 @@ import {
 import { useTableStore } from '@/store/useTableStore'
 import axios from 'axios'
 import useToast from '@/hooks/UseToast'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { useFetchTable } from './hooks/useFetchTable'
 import { useCustomerSearch, UserSearchResult } from './hooks/useCustomerSearch'
 import { CustomerSearchDropdown } from './CustomerSearchDropdown'

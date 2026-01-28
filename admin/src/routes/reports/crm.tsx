@@ -4,7 +4,7 @@ import CustomerList from '@/components/admin/crm/CustomerList'
 import CRMStats from '@/components/admin/crm/CRMStats'
 import CustomerDetailsSheet from '@/components/admin/crm/CustomerDetailsSheet'
 import { Users } from 'lucide-react'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { useState } from 'react'
 import {
   Select,
@@ -26,7 +26,7 @@ export const Route = createFileRoute('/reports/crm')({
 })
 
 function CRMPage() {
-  const { user } = useAuth()
+  const { user } = useAdminAuthQuery()
   const rid = user?.selected_rid
   const search = Route.useSearch()
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(

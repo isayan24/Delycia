@@ -1,6 +1,6 @@
 import React from 'react'
 import { Button } from '@/components/ui/button'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { LogOut } from 'lucide-react'
 import {
   Dialog,
@@ -14,7 +14,7 @@ import {
 
 export default function Signout() {
   const [open, setOpen] = React.useState(false)
-  const { logout } = useAuth()
+  const { logout } = useAdminAuthQuery()
 
   const handleSignOut = async () => {
     logout()

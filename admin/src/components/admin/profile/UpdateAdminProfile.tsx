@@ -8,7 +8,7 @@ import Signout from '@/components/smallComponents/Signout'
 import ProfileImage from './ProfileImage'
 import UpdateName from './UpdateName'
 import UpdatePassword from './UpdatePassword'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 
 interface UpdateDetailsProps {
   onPasswordSubmit: (
@@ -27,7 +27,7 @@ export default function UpdateAdminProfile({
   isNameSubmit,
   isPasswordSubmit,
 }: UpdateDetailsProps) {
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated } = useAdminAuthQuery()
 
   return (
     <main>

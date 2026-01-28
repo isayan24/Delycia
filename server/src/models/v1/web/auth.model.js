@@ -156,8 +156,9 @@ const admin_login = async (req) => {
     if (!phone_number && !username)
       return apiResponse.error(400, "Phone number or Username is required!");
 
+    // Select full user details including name, email, phone_number, profile_pic
     let query =
-      "SELECT id, role, uid, username FROM users WHERE role != 0 AND password = ?";
+      "SELECT id, uid, role, name, username, email, phone_number, profile_pic FROM users WHERE role != 0 AND password = ?";
     const params = [password];
 
     if (phone_number) {
@@ -193,6 +194,11 @@ const admin_login = async (req) => {
         id: userData.id,
         uid: userData.uid,
         role: userData.role,
+        name: userData.name,
+        username: userData.username,
+        email: userData.email,
+        phone_number: userData.phone_number,
+        profile_pic: userData.profile_pic,
         access_token,
         refresh_token,
         restaurant_rids,
@@ -202,6 +208,7 @@ const admin_login = async (req) => {
     return apiResponse.error(500, error.message);
   }
 };
+
 
 const waiter_auth = async (req, res) => {
   const { name, username, phone_number } = req.body;

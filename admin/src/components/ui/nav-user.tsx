@@ -16,7 +16,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { Link } from '@tanstack/react-router'
 
 export function NavUser({
@@ -28,7 +28,7 @@ export function NavUser({
     avatar: string
   }
 }) {
-  const { isAuthenticated, logout } = useAuth()
+  const { isAuthenticated, logout } = useAdminAuthQuery()
 
   const { isMobile } = useSidebar()
 

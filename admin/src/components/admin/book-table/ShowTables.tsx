@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Menu, User, Users, Trash2, Plus } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useFetchTable } from './hooks/useFetchTable'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,7 +23,7 @@ export default function ShowTables({
   handleShowAddTables,
   handleShowDeleteTables,
 }: ShowTablesProps) {
-  const { user } = useAuth()
+  const { user } = useAdminAuthQuery()
   const [activeZone, setActiveZone] = useState<string>('')
 
   const { setRefetchTablesFunction } = useTableStore()

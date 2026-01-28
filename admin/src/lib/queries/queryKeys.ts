@@ -2,6 +2,12 @@
 // Organized query keys for cache management and invalidation
 
 export const queryKeys = {
+  // Auth
+  auth: {
+    all: ['auth'] as const,
+    session: () => [...queryKeys.auth.all, 'session'] as const,
+  },
+
   // Categories
   categories: {
     all: ['categories'] as const,

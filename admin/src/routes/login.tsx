@@ -16,7 +16,7 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import useToast from '@/hooks/UseToast'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { DEFAULT_ROUTES } from '@/components/user-roles/roleBasedAccess'
 import { requireGuest } from '@/middleware/auth'
 
@@ -30,7 +30,7 @@ function LoginPage() {
   const { showError, showSuccess } = useToast()
   const navigate = useNavigate()
 
-  const { login, isAuthenticated, user, isLoading } = useAuth()
+  const { login, isAuthenticated, user, isLoading } = useAdminAuthQuery()
 
   // Redirect authenticated users to their default route
   useEffect(() => {

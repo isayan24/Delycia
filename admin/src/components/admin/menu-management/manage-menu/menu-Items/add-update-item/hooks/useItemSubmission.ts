@@ -1,7 +1,7 @@
 import { useTransition } from 'react'
 import axios from 'axios'
 import useToast from '@/hooks/UseToast'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import type { BulkItemEntry } from './useItemFormState'
 import type { Variant } from '../../variants/types/variant.types'
 
@@ -41,7 +41,7 @@ export const useItemSubmission = (
 ) => {
   const [isPending, startTransition] = useTransition()
   const { showError, showSuccess } = useToast()
-  const { user } = useAuth()
+  const { user } = useAdminAuthQuery()
 
   /**
    * Submit a single item

@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { useSessionStatus } from '@/hooks/useSessionStatus'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { LogOut, RotateCcw, ShieldAlert } from 'lucide-react'
 
 export const SessionExpiredNotification: React.FC = () => {
   const { sessionError, clearSessionError } = useSessionStatus()
-  const { logout } = useAuth()
+  const { logout } = useAdminAuthQuery()
   const [show, setShow] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)

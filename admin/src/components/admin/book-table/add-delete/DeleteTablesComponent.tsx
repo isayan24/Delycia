@@ -25,7 +25,7 @@ import {
   AlertCircle,
 } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import axios from 'axios'
 import useToast from '@/hooks/UseToast'
 import {
@@ -52,7 +52,7 @@ const DeleteTablesComponent = ({
   onTablesDeleted,
   clickedBackToTables,
 }: DeleteTablesComponentProps) => {
-  const { user } = useAuth()
+  const { user } = useAdminAuthQuery()
   const {
     zones,
     tables,

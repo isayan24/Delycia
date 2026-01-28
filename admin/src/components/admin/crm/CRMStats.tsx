@@ -1,5 +1,5 @@
 import { useCRMStatsQuery } from '@/hooks/queries/useCRMQueries'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Users, UserPlus, UserCheck, TrendingUp } from 'lucide-react'
 import {
@@ -17,7 +17,7 @@ interface CRMStatsProps {
 }
 
 export default function CRMStats({ timeRange }: CRMStatsProps) {
-  const { user } = useAuth()
+  const { user } = useAdminAuthQuery()
   const rid = user?.selected_rid
 
   const { data: stats, isLoading } = useCRMStatsQuery({

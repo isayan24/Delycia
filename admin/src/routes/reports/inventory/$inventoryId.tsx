@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { useInventoryItemStats } from '@/hooks/queries/useInventoryQueries'
 import LoadingScreen from '@/components/common/LoadingScreen'
 import {
@@ -35,7 +35,7 @@ export const Route = createFileRoute('/reports/inventory/$inventoryId')({
 function InventoryItemDetailPage() {
   const { inventoryId } = Route.useParams()
   const navigate = Route.useNavigate()
-  const { user } = useAuth()
+  const { user } = useAdminAuthQuery()
   const [page, setPage] = useState(1)
   const limit = 10
 

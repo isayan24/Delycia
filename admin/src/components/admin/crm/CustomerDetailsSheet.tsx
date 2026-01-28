@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/sheet'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useCustomerDetailsQuery } from '@/hooks/queries/useCRMQueries'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
@@ -31,7 +31,7 @@ export default function CustomerDetailsSheet({
   isOpen,
   onClose,
 }: CustomerDetailsSheetProps) {
-  const { user } = useAuth()
+  const { user } = useAdminAuthQuery()
   const rid = user?.selected_rid
 
   const { data: details, isLoading } = useCustomerDetailsQuery({

@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { useStaffOrdersQuery } from '@/hooks/queries/useStaffReportsQueries'
 import { useDateFilterStore } from '@/store/useDateFilterStore'
 import { useMemo, useState } from 'react'
@@ -22,7 +22,7 @@ export const Route = createFileRoute('/reports/staff/$staffId')({
 
 function StaffOrdersPage() {
   const { staffId } = Route.useParams()
-  const { user } = useAuth()
+  const { user } = useAdminAuthQuery()
   const rid = user?.selected_rid?.toString() || ''
   const { currentDateRange } = useDateFilterStore()
   const [page, setPage] = useState(1)

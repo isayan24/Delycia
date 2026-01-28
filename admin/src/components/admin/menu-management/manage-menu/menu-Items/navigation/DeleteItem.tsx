@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/dialog'
 import axios from 'axios'
 import useToast from '@/hooks/UseToast'
-import { useAuth } from '@/hooks/useAuth'
 
 export default function DeleteItem({
   onOpenChange,

@@ -21,7 +21,7 @@ import useToast from '@/hooks/UseToast'
 import FormFieldEasy from '@/components/smallComponents/FormFieldEasy'
 import AddImage from '@/components/smallComponents/AddImage'
 import DeleteCategory from './DeleteCategory'
-import { useAuth } from '@/hooks/useAuth'
+
 import { extractFileIdFromUrl } from '@/helpers/image/imagekitHelpers'
 import { useUpdateCategoryMutation } from '@/hooks/queries' // NEW - TanStack Query
 

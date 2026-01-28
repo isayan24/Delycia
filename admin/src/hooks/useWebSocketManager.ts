@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import WebSocketManager from '@/services/WebSocketManager'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { Order } from '@/types/webSocket.types'
 
 interface ConnectionState {
@@ -45,7 +45,7 @@ interface UseWebSocketManagerReturn extends ConnectionState {
  * ```
  */
 export function useWebSocketManager(): UseWebSocketManagerReturn {
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated } = useAdminAuthQuery()
   const manager = WebSocketManager.getInstance()
 
   // Local state for connection status

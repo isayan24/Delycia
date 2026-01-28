@@ -7,7 +7,7 @@ import {
   UseOrdersWebSocketConfig,
   UseOrdersWebSocketReturn,
 } from '@/types/webSocket.types.ts'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import axios from 'axios'
 // Custom hook for managing orders WebSocket connection with network resilience
 export const useOrdersWebSocket = (
@@ -28,7 +28,7 @@ export const useOrdersWebSocket = (
     onReconnectFailed,
   } = config
 
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated } = useAdminAuthQuery()
 
   const [orders, setOrders] = useState<Order[]>([])
   const [status, setStatus] = useState<string>('Disconnected')

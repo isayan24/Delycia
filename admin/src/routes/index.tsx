@@ -1,12 +1,12 @@
 import { createFileRoute, Navigate } from '@tanstack/react-router'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 
 export const Route = createFileRoute('/')({
   component: IndexPage,
 })
 
 function IndexPage() {
-  const { isAuthenticated, isLoading } = useAuth()
+  const { isAuthenticated, isLoading } = useAdminAuthQuery()
 
   if (isLoading) {
     return (

@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { DashboardWrapper } from '@/components/admin/dashboard'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { requireAuth } from '@/middleware/auth'
 import LoadingScreen from '@/components/common/LoadingScreen'
 
@@ -10,7 +10,7 @@ export const Route = createFileRoute('/dashboard')({
 })
 
 function DashboardPage() {
-  const { user } = useAuth()
+  const { user } = useAdminAuthQuery()
 
   // Middleware ensures we're authenticated, so just check for user data
   if (!user || !user.selected_rid) {

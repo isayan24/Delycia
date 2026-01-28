@@ -1,7 +1,7 @@
 import { useSearch, createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useInventoryLevelsQuery } from '@/hooks/queries/useDashboardQueries'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import {
   Table,
   TableBody,
@@ -39,7 +39,7 @@ export const Route = createFileRoute('/reports/inventory/')({
 })
 
 function InventoryReportPage() {
-  const { user } = useAuth()
+  const { user } = useAdminAuthQuery()
   const navigate = Route.useNavigate()
   const search = useSearch({ from: '/reports/inventory/' })
 

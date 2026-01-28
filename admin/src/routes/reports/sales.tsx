@@ -17,7 +17,7 @@ import RevenueByCategoryChart from '@/components/admin/dashboard/RevenueByCatego
 import DeliveryTypeChart from '@/components/admin/dashboard/DeliveryTypeChart'
 import CustomerActivityTable from '@/components/admin/dashboard/CustomerInsights'
 import LoadingScreen from '@/components/common/LoadingScreen'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { useMemo } from 'react'
 import DateFilterComponent from '@/components/admin/dashboard/DateFilterComponent'
 import DateRangeDisplay from '@/components/admin/dashboard/DateRangeDisplay'
@@ -29,7 +29,7 @@ export const Route = createFileRoute('/reports/sales')({
 })
 
 function SalesReportPage() {
-  const { user } = useAuth()
+  const { user } = useAdminAuthQuery()
   const rid = user?.selected_rid?.toString() || ''
   const { currentDateRange } = useDateFilterStore()
   const refreshDashboard = useRefreshDashboard()

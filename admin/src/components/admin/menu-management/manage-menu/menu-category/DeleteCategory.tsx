@@ -13,7 +13,7 @@ import {
 import useToast from '@/hooks/UseToast'
 import { useMenuStore } from '@/store/useMenuStore'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
-import { useAuth } from '@/hooks/useAuth'
+
 import { useDeleteCategoryMutation } from '@/hooks/queries' // NEW - TanStack Query
 
 interface DeleteCategoryProps {

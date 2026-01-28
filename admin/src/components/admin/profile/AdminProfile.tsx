@@ -7,13 +7,13 @@ import { toast } from 'sonner'
 import { useState } from 'react'
 import axios from 'axios'
 import UpdateAdminProfile from './UpdateAdminProfile'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import useToast from '@/hooks/UseToast'
 
 export default function AdminProfile() {
   const [isNameSubmit, setIsNameSubmit] = useState(false)
   const [isPasswordSubmit, setIsPasswordSubmit] = useState(false)
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated } = useAdminAuthQuery()
   const { showError, showSuccess } = useToast()
 
   if (!isAuthenticated) {

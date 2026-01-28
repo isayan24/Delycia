@@ -1,4 +1,4 @@
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import React, { useState, useEffect } from 'react'
 import { User, LogOut, Settings, Bell, ShieldCheck } from 'lucide-react'
 import {
@@ -25,7 +25,7 @@ import { getUser } from '@/helpers/user/getUser'
 import { Link } from '@tanstack/react-router'
 
 export default function WaiterHeader() {
-  const { logout, user } = useAuth()
+  const { logout, user } = useAdminAuthQuery()
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [userData, setUserData] = useState<any>(null)
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Mail, User, Phone, Calendar, CheckCircle, XCircle } from 'lucide-react'
 import axiosInstance from '@/lib/axios'
 import UseOptimizeImage from '@/hooks/UseOptimizeImage'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 
 interface User {
   uid: string
@@ -19,7 +19,7 @@ export default function AllUsers() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated } = useAdminAuthQuery()
 
   useEffect(() => {
     const fetchUsers = async () => {

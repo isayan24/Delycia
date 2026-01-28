@@ -1,5 +1,12 @@
 
 Todo:
+  Stock:
+    ☐ If user ordered, and if the order is canceled, then the stock should be the same as before 
+
+    Quick-Bill:
+      ☐ When searching users for checkout, all the users are showing. even if they are not in this restaurant
+        - Fix: Make a user-restaurant relationship table in the database, to get the correct user, the table can have same users with multiple restaurants
+
    Priority Fix: 
     ✔ Out of stock items are also showing in the quick-bill and book-table, fix it @done(26-01-26 00:29)
     ✔ In quick bill and book-table, the ui for add order into cart is not looking good, fix it @done(26-01-25 01:41)

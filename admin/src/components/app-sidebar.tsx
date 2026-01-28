@@ -22,7 +22,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { RestaurantDropdown } from '@/components/admin/header/RestaurantDropdown'
 import { NetworkStatusIcon } from '@/components/common/NetworkStatusIcon'
 
@@ -127,7 +127,7 @@ const navSecondary = [
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user } = useAuth()
+  const { user } = useAdminAuthQuery()
 
   // Format user data for NavUser
   const userData = {

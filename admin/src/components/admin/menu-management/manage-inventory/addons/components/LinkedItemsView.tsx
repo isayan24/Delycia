@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Link2, Unlink, Plus } from 'lucide-react'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import {
   fetchAddons,
   fetchAddonsByInventoryId,
@@ -32,7 +32,7 @@ export function LinkedItemsView({
   onUnlinkItem,
   onOpenLinkDialog,
 }: LinkedItemsViewProps) {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated } = useAdminAuthQuery()
   const [linkedItems, setLinkedItems] = useState<LinkedItem[]>([])
   const [itemsCache, setItemsCache] = useState<Record<string, LinkedItem[]>>({})
   const [loading, setLoading] = useState(false)
