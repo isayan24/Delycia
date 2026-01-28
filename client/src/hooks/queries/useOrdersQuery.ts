@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState, useCallback } from 'react'
+import axios from 'axios'
 
 import { Order } from '@/types/Order'
-import axios from 'axios'
+import { queryKeys } from '@/lib/queryKeys'
 
 interface UseOrdersQueryOptions {
   customerId?: string | null | number
@@ -28,7 +29,7 @@ export const useOrdersQuery = ({
     refetch,
     status: queryStatus,
   } = useQuery({
-    queryKey: ['orders', { customerId }],
+    queryKey: queryKeys.orders.byCustomer(customerId),
     queryFn: async () => {
       if (!customerId) return []
       try {

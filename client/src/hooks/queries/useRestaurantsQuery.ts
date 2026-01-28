@@ -1,17 +1,18 @@
 import { useQuery } from '@tanstack/react-query'
-import axiosInstance from '@/lib/axios'
+import axios from 'axios'
 import { Restaurant } from '@/types/Restaurant'
+import { queryKeys } from '@/lib/queryKeys'
 
-// Fetcher functions
+// Fetcher functions - use local API routes which proxy to backend
 export const fetchRestaurants = async (): Promise<Restaurant[]> => {
-  const response = await axiosInstance.get('/restaurant')
+  const response = await axios.get('/api/restaurant')
   return response.data?.restaurants || []
 }
 
 export const fetchRestaurant = async (
   rid: string | number,
 ): Promise<Restaurant | null> => {
-  const response = await axiosInstance.get(`/restaurant/?rid=${rid}`)
+  const response = await axios.get(`/api/restaurant?rid=${rid}`)
   return response.data?.restaurant_info || response.data || null
 }
 
@@ -23,7 +24,7 @@ export const useRestaurantsQuery = () => {
     error,
     refetch,
   } = useQuery({
-    queryKey: ['restaurants'],
+    queryKey: queryKeys.restaurants.all,
     queryFn: fetchRestaurants,
   })
 
@@ -43,7 +44,7 @@ export const useRestaurantQuery = (rid?: string | number | null) => {
     error,
     refetch,
   } = useQuery({
-    queryKey: ['restaurant', { rid }],
+    queryKey: queryKeys.restaurants.detail(rid),
     queryFn: () => {
       if (!rid) throw new Error('Restaurant ID is required')
       return fetchRestaurant(rid)

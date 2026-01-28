@@ -81,9 +81,9 @@ export default function BottomCart({ className }: { className: string }) {
       </section>
 
       <Link to="/cart" className="shrink-0 block ml-auto">
-        <div className="rounded-xl bg-[#ea580c] px-4 py-1 text-white flex flex-col items-center">
-          <span className="text-sm">View Cart</span>
-          <span className="text-xs text-[#fed9c5] leading-1">
+        <div className="rounded-xl bg-[#ea580c] px-4 py-2 text-white flex flex-col items-center">
+          <span className="text-[12px]">View Cart</span>
+          <span className="text-[10px] text-[#fed9c5] leading-3">
             <span
               key={showCartItems[showCartItems.length - 1]?.id || Date.now()}
               className={`animate-slide-up duration-300`}

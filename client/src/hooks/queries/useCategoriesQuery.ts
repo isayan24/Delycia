@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useRestaurantId } from '@/hooks/useRestaurantId'
-import axiosInstance from '@/lib/axios'
+import axios from 'axios'
+import { queryKeys } from '@/lib/queryKeys'
 
 export const useCategoriesQuery = () => {
   const rid = useRestaurantId()
@@ -11,10 +12,11 @@ export const useCategoriesQuery = () => {
     error,
     refetch,
   } = useQuery({
-    queryKey: ['categories', { rid }],
+    queryKey: queryKeys.categories.byRid(rid),
     queryFn: async () => {
-      const url = rid ? `/categories?rid=${rid}` : '/categories'
-      const response = await axiosInstance.get(url)
+      // Use local API route which proxies to backend
+      const url = rid ? `/api/categories?rid=${rid}` : '/api/categories'
+      const response = await axios.get(url)
       return response.data.categories || []
     },
     enabled: !!rid,

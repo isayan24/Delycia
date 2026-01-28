@@ -1,25 +1,20 @@
 import { useQuery } from '@tanstack/react-query'
-import axiosInstance from '@/lib/axios'
+import axios from 'axios'
 import { useRestaurantId } from '@/hooks/useRestaurantId'
+import { queryKeys } from '@/lib/queryKeys'
 
-// Fetcher functions
+// Fetcher functions - use local API routes which proxy to backend
 export const fetchInventoryItems = async (
   rid: string | null,
   categoryId?: string,
 ) => {
-  let url = '/inventory'
   const params: Record<string, string> = {}
 
   if (rid) params.rid = rid
   if (categoryId) params.category_id = categoryId
 
-  // Construct URL with params manually or use axios params
-  // Legacy used template strings, so let's stick to axios params for cleaner code
-  // BUT legacy logic:
-  // url = rid ? `/inventory?rid=${rid}` : "/inventory";
-  // url = rid ? `/inventory?category_id=${categoryId}&rid=${rid}` : ...
-
-  const response = await axiosInstance.get(url, { params })
+  // Use local API route which proxies to backend
+  const response = await axios.get('/api/inventory', { params })
   if (response.data && response.data.inventory) {
     return response.data.inventory
   }
@@ -36,7 +31,7 @@ export const useInventoryQuery = (categoryId?: string) => {
     error,
     refetch,
   } = useQuery({
-    queryKey: ['inventory', { rid, categoryId }],
+    queryKey: queryKeys.inventory.byCategory(rid, categoryId),
     queryFn: () => fetchInventoryItems(rid, categoryId),
     enabled: !!categoryId, // Only fetch if categoryId is provided (matching legacy behavior)
   })
@@ -59,7 +54,7 @@ export const useAllInventoryQuery = () => {
     error,
     refetch: fetchAllItems,
   } = useQuery({
-    queryKey: ['inventory', { rid, type: 'all' }],
+    queryKey: queryKeys.inventory.allItems(rid),
     queryFn: () => fetchInventoryItems(rid),
     // Always enabled if we are calling this hook, or legacy relied on rid!=null?
     // Legacy: useEffect checks if rid !== null.

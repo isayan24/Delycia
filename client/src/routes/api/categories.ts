@@ -8,6 +8,7 @@ export const Route = createFileRoute('/api/categories')({
         try {
           const url = new URL(request.url)
           const endpoint = `/categories${url.search}`
+
           const response = await axiosInstance.get(endpoint)
           return Response.json(response.data)
         } catch (error: any) {

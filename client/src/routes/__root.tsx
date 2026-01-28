@@ -64,15 +64,19 @@ export const Route = createRootRoute({
   component: RootComponent,
 })
 
-// ... imports
+// Query imports
 import { QueryClientProvider } from '@tanstack/react-query'
-import { createQueryClient } from '../router'
-import { useState } from 'react'
+import { useRouteContext } from '@tanstack/react-router'
+import { createQueryClient, RouterContext } from '../router'
+import { useRef } from 'react'
 
 // ... existing code
 
 function RootComponent() {
-  const [queryClient] = useState(() => createQueryClient())
+  // Use router's queryClient if available, otherwise create one (SSR fallback)
+  const context = useRouteContext({ from: '__root__' }) as RouterContext
+  const fallbackQueryClient = useRef(createQueryClient())
+  const queryClient = context?.queryClient ?? fallbackQueryClient.current
 
   return (
     <html lang="en" className="darks scroll-smooth">

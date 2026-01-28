@@ -1,5 +1,6 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import axiosInstance from '@/lib/axios' // Using client axios instance
+import { queryKeys } from '@/lib/queryKeys'
 
 interface CheckoutVariables {
   rid: string | null
@@ -12,6 +13,8 @@ interface CheckoutVariables {
 }
 
 export const useCheckoutMutation = () => {
+  const queryClient = useQueryClient()
+
   return useMutation({
     mutationFn: async (variables: CheckoutVariables) => {
       const response = await axiosInstance.post(
@@ -19,6 +22,16 @@ export const useCheckoutMutation = () => {
         variables,
       )
       return response.data
+    },
+    onSuccess: (_data, variables) => {
+      // Invalidate orders cache to refetch updated order list
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all })
+      // Also invalidate the specific customer's orders
+      if (variables.customer_id) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.orders.byCustomer(variables.customer_id),
+        })
+      }
     },
   })
 }

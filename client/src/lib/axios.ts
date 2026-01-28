@@ -2,8 +2,8 @@ import axios from 'axios'
 import qs from 'qs'
 
 const axiosInstance = axios.create({
-  // baseURL: 'https://api.delycia.com/api/v1',
-  baseURL: 'http://localhost:8020/api/v1',
+  // Use environment variable for API base URL (production vs development)
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8020/api/v1',
   withCredentials: true, // ensures cookies are sent automatically
 })
 
