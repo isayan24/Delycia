@@ -1,31 +1,19 @@
-"use client";
+'use client'
 
-import React, { createContext, useContext, ReactNode } from "react";
-import { useAuth, UseAuthReturn } from "@/hooks/useAuth";
+import { ReactNode } from 'react'
 
-// Create Auth Context
-const AuthContext = createContext<UseAuthReturn | undefined>(undefined);
-
-// Auth Provider Component
-export default function AuthProvider({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  const auth = useAuth();
-
-  return (
-    <AuthContext.Provider value={auth}>
-      {children}
-    </AuthContext.Provider>
-  );
+/**
+ * AuthProvider Component
+ *
+ * This is now a simple wrapper that just passes through children.
+ * The actual auth logic is in useAuthQuery hook which components use directly.
+ *
+ * This component is kept for backward compatibility with __root.tsx layout.
+ * You can safely remove this wrapper if you prefer.
+ */
+export default function AuthProvider({ children }: { children: ReactNode }) {
+  return <>{children}</>
 }
 
-// Hook to use auth context
-export function useAuthContext(): UseAuthReturn {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuthContext must be used within an AuthProvider');
-  }
-  return context;
-}
+// Re-export the hook for convenience
+export { useAuthQuery } from '@/hooks/queries/useAuthQuery'

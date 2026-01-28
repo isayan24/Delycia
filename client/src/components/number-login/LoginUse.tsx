@@ -8,7 +8,7 @@ import {
   OnWhatsAppSubmit,
 } from '@/types/loginTypes'
 import axios from 'axios'
-import { useAuthContext } from '@/context/AuthProvider'
+import { useAuthQuery } from '@/hooks/queries/useAuthQuery'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import {
@@ -26,7 +26,7 @@ function LoginUse() {
 
   const setNotification = useNotificationStore.getState().setNotification
 
-  const { user, login } = useAuthContext()
+  const { user, login } = useAuthQuery()
 
   const onWhatsAppSubmit: OnWhatsAppSubmit = async (
     fullPhoneNumber,

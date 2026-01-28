@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import axiosInstance from '@/lib/axios' // Using client axios instance
 import { queryKeys } from '@/lib/queryKeys'
+import axios from 'axios'
 
 interface CheckoutVariables {
   rid: string | null
@@ -9,7 +10,7 @@ interface CheckoutVariables {
   special_instruction: string
   orderItems: any[]
   totalPrice: number
-  customer_id: string
+  customer_id: string | number
 }
 
 export const useCheckoutMutation = () => {
@@ -17,10 +18,7 @@ export const useCheckoutMutation = () => {
 
   return useMutation({
     mutationFn: async (variables: CheckoutVariables) => {
-      const response = await axiosInstance.post(
-        '/restaurant/checkout',
-        variables,
-      )
+      const response = await axios.post('/api/restaurant/checkout', variables)
       return response.data
     },
     onSuccess: (_data, variables) => {

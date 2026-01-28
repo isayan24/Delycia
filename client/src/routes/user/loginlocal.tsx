@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Loader2, Phone } from 'lucide-react'
-import { useAuthContext } from '@/context/AuthProvider'
+import { useAuthQuery } from '@/hooks/queries/useAuthQuery'
 import useToast from '@/hooks/UseToast'
 
 const loginSchema = z.object({
@@ -32,7 +32,7 @@ function LocalLogin() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const { login } = useAuthContext()
+  const { login } = useAuthQuery()
   const navigate = useNavigate()
   const { showSuccess } = useToast()
 

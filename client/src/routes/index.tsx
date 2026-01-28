@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { setCookie, getCookie } from 'cookies-next'
 import HomePage from '@/components/home/HomePage'
 import ShowAllDelycia from '@/components/all-delycias/ShowAllDelycia'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuthQuery } from '@/hooks/queries/useAuthQuery'
 import { submitCodeAutomatically } from '@/helpers/submitCodeAutomatically'
 
 const searchSchema = z.object({
@@ -23,7 +23,7 @@ function Home() {
   const navigate = useNavigate()
   const [currentRid, setCurrentRid] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const { isAuthenticated, user } = useAuth()
+  const { isAuthenticated, user } = useAuthQuery()
   const codeSubmissionAttempted = useRef(false)
 
   useEffect(() => {

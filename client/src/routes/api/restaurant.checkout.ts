@@ -19,6 +19,8 @@ export const Route = createFileRoute('/api/restaurant/checkout')({
             customer_id,
           } = data
 
+          console.log(data, 'data in checkout \n\n\n')
+
           const accessToken = getAccessTokenFromCookie(request)
 
           // Validate that we have an access token
@@ -50,7 +52,7 @@ export const Route = createFileRoute('/api/restaurant/checkout')({
           }
           if (customer_id && rid) {
             const transformedOrderItems = orderItems.map((item: any) => ({
-              rid: rid,
+              rid,
               customer_id, //parseInt(customer_id!),
               item_id: item.id,
               variant_id: item?.variantId || 0,
@@ -60,7 +62,7 @@ export const Route = createFileRoute('/api/restaurant/checkout')({
               discount_amount: 0,
               special_instructions: special_instruction,
               total_amount: item.price || 0,
-              table_no: table || null, // Add table number to each order item
+              table_no: table || null, // Add table number to each order item,
             }))
 
             const signature = signatureService.generateOrderSignature(

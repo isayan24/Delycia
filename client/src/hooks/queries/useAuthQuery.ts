@@ -1,0 +1,158 @@
+/**
+ * Auth Query Hook - TanStack Query based authentication
+ *
+ * Replaces useState/useEffect based auth with TanStack Query for:
+ * - Automatic caching and deduplication
+ * - Background session refresh
+ * - Better loading/error states
+ * - Consistent API across the app
+ */
+
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import axios from 'axios'
+import { queryKeys } from '@/lib/queryKeys'
+import sessionService, { UserData } from '@/services/sessionService'
+
+export interface LoginCredentials {
+  country_code: string
+  phone_number: string
+}
+
+/**
+ * Fetch current session from server
+ * Uses localStorage as initial data for instant hydration
+ */
+const fetchSession = async (): Promise<UserData | null> => {
+  try {
+    const response = await axios.get('/api/auth/session')
+
+    if (response.data?.isAuthenticated && response.data?.data?.user) {
+      const userData = response.data.data.user
+      // Sync to localStorage for persistence across refreshes
+      sessionService.setUserData(userData)
+      return userData
+    }
+
+    // Clear localStorage if server says not authenticated
+    sessionService.clearSession()
+    return null
+  } catch (error) {
+    // On error, clear session and return null
+    sessionService.clearSession()
+    return null
+  }
+}
+
+/**
+ * Main auth hook using TanStack Query
+ */
+export function useAuthQuery() {
+  const queryClient = useQueryClient()
+
+  // Session query - fetches and caches user data
+  const {
+    data: user = null,
+    isLoading,
+    isError,
+    error,
+    refetch: refreshSession,
+  } = useQuery({
+    queryKey: queryKeys.auth.user(),
+    queryFn: fetchSession,
+    // Use localStorage data as initial value for instant hydration
+    initialData: () => sessionService.getUserData(),
+    // Keep data fresh but don't refetch too aggressively
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    // Background refetch to keep session alive
+    refetchInterval: 10 * 60 * 1000, // 10 minutes
+    // Don't refetch on window focus to reduce API calls
+    refetchOnWindowFocus: false,
+    // Retry on network errors
+    retry: 1,
+  })
+
+  // Login mutation
+  const loginMutation = useMutation({
+    mutationFn: async (
+      credentials: LoginCredentials,
+    ): Promise<UserData | null> => {
+      const response = await axios.post('/api/auth/login', credentials)
+
+      if (response.status === 200 && response.data?.data?.user) {
+        const userData = response.data.data.user
+        sessionService.setUserData(userData)
+        return userData
+      }
+
+      throw new Error(response.data?.message || 'Login failed')
+    },
+    onSuccess: (userData) => {
+      // Update the auth query cache directly
+      queryClient.setQueryData(queryKeys.auth.user(), userData)
+    },
+    onError: (error) => {
+      console.error('Login failed:', error)
+    },
+  })
+
+  // Logout mutation
+  const logoutMutation = useMutation({
+    mutationFn: async (): Promise<void> => {
+      await axios.post('/api/auth/logout')
+    },
+    onSuccess: () => {
+      // Clear session service
+      sessionService.clearSession()
+      // Clear auth cache
+      queryClient.setQueryData(queryKeys.auth.user(), null)
+      // Clear all cached data (orders, etc.) for security
+      queryClient.clear()
+      // Redirect to home
+      if (typeof window !== 'undefined') {
+        window.location.href = '/'
+      }
+    },
+    onError: (error) => {
+      console.error('Logout failed:', error)
+      // Even on error, clear local state
+      sessionService.clearSession()
+      queryClient.setQueryData(queryKeys.auth.user(), null)
+    },
+  })
+
+  // Login wrapper that returns boolean for compatibility
+  const login = async (credentials: LoginCredentials): Promise<boolean> => {
+    try {
+      await loginMutation.mutateAsync(credentials)
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  // Logout wrapper
+  const logout = async (): Promise<void> => {
+    await logoutMutation.mutateAsync()
+  }
+
+  return {
+    // User data
+    user,
+    isLoading: isLoading || loginMutation.isPending,
+    isAuthenticated: !!user,
+    isError,
+    error: error ? (error as Error).message : null,
+
+    // Actions
+    login,
+    logout,
+    refreshSession,
+
+    // For advanced use cases
+    loginMutation,
+    logoutMutation,
+  }
+}
+
+// Re-export types for convenience
+export type { UserData }

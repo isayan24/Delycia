@@ -1,7 +1,7 @@
 import React from 'react'
-import { Button } from "@/components/ui/button"
-import { useAuthContext } from "@/context/AuthProvider"
-import { LogOut } from "lucide-react"
+import { Button } from '@/components/ui/button'
+import { useAuthQuery } from '@/hooks/queries/useAuthQuery'
+import { LogOut } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -10,11 +10,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from '@/components/ui/dialog'
 
 export default function Signout() {
   const [open, setOpen] = React.useState(false)
-  const { logout } = useAuthContext()
+  const { logout } = useAuthQuery()
 
   const handleSignOut = async () => {
     logout()
@@ -24,9 +24,9 @@ export default function Signout() {
     <div className="mt-6 flex ml-2">
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             className="flex items-center gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30"
           >
             <LogOut size={16} />
@@ -44,7 +44,11 @@ export default function Signout() {
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" className='bg-red-500 hover:bg-red-600 text-white' onClick={handleSignOut}>
+            <Button
+              variant="destructive"
+              className="bg-red-500 hover:bg-red-600 text-white"
+              onClick={handleSignOut}
+            >
               Yes, Sign Out
             </Button>
           </DialogFooter>

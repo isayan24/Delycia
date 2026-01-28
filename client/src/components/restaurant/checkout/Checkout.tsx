@@ -17,7 +17,7 @@ import PaymentButtons from './PaymentButtons'
 import { useCheckoutMutation } from '@/hooks/mutations/useCheckoutMutation'
 import { useUpdateUserMutation } from '@/hooks/mutations/useUserMutations'
 import EmptyCheckout from './EmptyCheckout'
-import { useAuthContext } from '@/context/AuthProvider'
+import { useAuthQuery } from '@/hooks/queries/useAuthQuery'
 import SpecialInstructionArea from './SpecialInstructionArea'
 import { getCookie, setCookie } from 'cookies-next'
 import useToast from '@/hooks/UseToast'
@@ -45,7 +45,7 @@ export default function Checkout() {
   const [userDetails, setUserDetails] = useState<any>({})
   const { openLoginDialog, openLoginDialogWithCheckout } = useLoginDialogStore()
 
-  const { user, isLoading } = useAuthContext()
+  const { user, isLoading } = useAuthQuery()
 
   console.log(user, 'user \n\n\n\n\n\n')
 
@@ -115,12 +115,11 @@ export default function Checkout() {
   const processCheckout = async (values: any) => {
     setIsCheckoutLoading(true)
     try {
-      const uid = user?._id
+      const uid = user?.id
       if (!uid) {
         showError('Authentication Error', 'Please login again to continue')
         return
       }
-
       await checkoutMutation.mutateAsync({
         rid,
         table,

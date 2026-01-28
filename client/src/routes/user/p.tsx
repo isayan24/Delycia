@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { updateNameSchema } from '@/schemas/updateProfileSchema'
 import UpdateDetails from '@/components/user/profile/UpdateDetails'
 import { toast } from 'sonner'
-import { useAuthContext } from '@/context/AuthProvider'
+import { useAuthQuery } from '@/hooks/queries/useAuthQuery'
 import { useState, useEffect } from 'react'
 import useToast from '@/hooks/UseToast'
 import { useUpdateUserMutation } from '@/hooks/mutations/useUserMutations'
@@ -19,7 +19,7 @@ export const Route = createFileRoute('/user/p')({
 })
 
 function UserProfileLayout() {
-  const { user } = useAuthContext()
+  const { user } = useAuthQuery()
   const [isNameSubmit, setIsNameSubmit] = useState(false)
   const searchParams = Route.useSearch()
   const { showError, showSuccess } = useToast()

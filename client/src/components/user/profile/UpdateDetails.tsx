@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { updateNameSchema } from '@/schemas/updateProfileSchema'
 import ProfileImage from './ProfileImage'
 import UpdateName from './UpdateName'
-import { useAuthContext } from '@/context/AuthProvider'
+import { useAuthQuery } from '@/hooks/queries/useAuthQuery'
 import { getUser } from '@/helpers/getUser'
 import { Flame, Headset } from 'lucide-react'
 import ProfileHeader from '../../home/AboutUs'
@@ -21,7 +21,7 @@ export default function UpdateDetails({
   onProfilePictureUpload,
   isNameSubmit,
 }: UpdateDetailsProps) {
-  const { user } = useAuthContext()
+  const { user } = useAuthQuery()
   const [userData, setUserData] = useState<any | null>(null)
 
   useEffect(() => {

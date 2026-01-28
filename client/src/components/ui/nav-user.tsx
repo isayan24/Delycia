@@ -1,8 +1,8 @@
-"use client";
+'use client'
 
-import { BadgeCheck, ChevronsUpDown, LogOut, LogIn } from "lucide-react";
+import { BadgeCheck, ChevronsUpDown, LogOut, LogIn } from 'lucide-react'
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,30 +10,30 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu'
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar";
-import Link from "@/lib/next-compat";
-import { useAuthContext } from "@/context/AuthProvider";
-import { useLoginDialogStore } from "@/store/useLoginDialogStore";
+} from '@/components/ui/sidebar'
+import Link from '@/lib/next-compat'
+import { useAuthQuery } from '@/hooks/queries/useAuthQuery'
+import { useLoginDialogStore } from '@/store/useLoginDialogStore'
 
 export function NavUser({
   user: navUser,
 }: {
   user: {
-    name: string;
+    name: string
     // email: string;
-    avatar: string;
-  };
+    avatar: string
+  }
 }) {
-  const { user: authUser, logout, isAuthenticated } = useAuthContext();
-  const { openLoginDialog } = useLoginDialogStore();
+  const { user: authUser, logout, isAuthenticated } = useAuthQuery()
+  const { openLoginDialog } = useLoginDialogStore()
 
-  const { isMobile } = useSidebar();
+  const { isMobile } = useSidebar()
 
   return (
     <SidebarMenu>
@@ -48,9 +48,9 @@ export function NavUser({
                 <AvatarImage src={navUser.avatar} alt={navUser.name} />
                 <AvatarFallback className="rounded-lg">
                   {navUser.name
-                    .split(" ")
+                    .split(' ')
                     .map((word) => word[0])
-                    .join("")
+                    .join('')
                     .slice(0, 2)
                     .toUpperCase()}
                 </AvatarFallback>
@@ -64,7 +64,7 @@ export function NavUser({
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-            side={isMobile ? "bottom" : "right"}
+            side={isMobile ? 'bottom' : 'right'}
             align="end"
             sideOffset={4}
           >
@@ -74,9 +74,9 @@ export function NavUser({
                   <AvatarImage src={navUser.avatar} alt={navUser.name} />
                   <AvatarFallback className="rounded-lg">
                     {navUser.name
-                      .split(" ")
+                      .split(' ')
                       .map((word) => word[0])
-                      .join("")
+                      .join('')
                       .slice(0, 2)
                       .toUpperCase()}
                   </AvatarFallback>
@@ -92,9 +92,9 @@ export function NavUser({
             <DropdownMenuGroup>
               <Link
                 onClick={() => {
-                  if (!isAuthenticated) openLoginDialog();
+                  if (!isAuthenticated) openLoginDialog()
                 }}
-                href={isAuthenticated ? "/user/p" : "#"}
+                href={isAuthenticated ? '/user/p' : '#'}
               >
                 <div className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground">
                   <BadgeCheck className="w-4 h-4" />
@@ -112,7 +112,7 @@ export function NavUser({
               <div
                 className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer"
                 onClick={() => {
-                  logout();
+                  logout()
                 }}
               >
                 <LogOut className="w-4 h-4" />
@@ -131,5 +131,5 @@ export function NavUser({
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  );
+  )
 }

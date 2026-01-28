@@ -4,7 +4,7 @@ import { Restaurant } from '@/types/Restaurant'
 import { MapPin, ChefHat, Heart } from 'lucide-react'
 import React, { useState, useEffect } from 'react'
 import { ImageLoader } from '../image-loader'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuthQuery } from '@/hooks/queries/useAuthQuery'
 import { useRouter } from '@/lib/next-compat'
 import { Link } from '@tanstack/react-router'
 // import Banner from "../../../public/";
@@ -12,7 +12,7 @@ import { Link } from '@tanstack/react-router'
 export default function ResCard({ restaurant }: { restaurant: Restaurant }) {
   const [isClicked, setIsClicked] = useState(false)
   const [isLiked, setIsLiked] = useState(false)
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated } = useAuthQuery()
   const router = useRouter()
 
   // Load like state from localStorage on component mount

@@ -15,7 +15,7 @@ import {
 } from '@mui/icons-material'
 import { controlNavbarScroll, useNavVisibility } from '@/utils/scrollUtils'
 import { getUser } from '@/helpers/getUser'
-import { useAuthContext } from '@/context/AuthProvider'
+import { useAuthQuery } from '@/hooks/queries/useAuthQuery'
 import { useLoginDialogStore } from '@/store/useLoginDialogStore'
 
 type UserData = { profile_pic?: string }
@@ -28,7 +28,7 @@ export default function MobileNav() {
   const setNavVisible = useNavVisibility((state) => state.setNavVisible)
   const [userData, setUserData] = useState<UserData | null>(null)
 
-  const { user } = useAuthContext()
+  const { user } = useAuthQuery()
 
   const { openLoginDialog } = useLoginDialogStore()
 

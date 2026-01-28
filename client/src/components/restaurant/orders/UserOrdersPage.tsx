@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import { TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tabs } from '@/components/ui/tabs'
-import { useAuthContext } from '@/context/AuthProvider'
+import { useAuthQuery } from '@/hooks/queries/useAuthQuery'
 import { Loader2, RefreshCw, Play, Pause } from 'lucide-react'
 import UserOrdersList from '@/components/restaurant/orders/UserOrdersList'
 import { Button } from '@/components/ui/button'
@@ -12,7 +12,7 @@ import { useRestaurantId } from '@/hooks/useRestaurantId'
 import { useLoginDialogStore } from '@/store/useLoginDialogStore'
 
 export default function UserOrdersPage() {
-  const { user, isLoading: isAuthLoading, isAuthenticated } = useAuthContext()
+  const { user, isLoading: isAuthLoading, isAuthenticated } = useAuthQuery()
   const rid = useRestaurantId()
   const { openLoginDialog } = useLoginDialogStore()
 

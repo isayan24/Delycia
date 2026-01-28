@@ -1,11 +1,11 @@
-import React, { useState, useCallback, useEffect } from "react";
-import { LoginCallbacks, LoginMethod, UserData } from "@/types/loginTypes";
-import { LoginDialog } from "./LoginDialog";
-import { useOtpTimer } from "@/hooks/useOtpTimer";
-import { getThemeColors } from "@/utils/themeUtils";
-import { useNotificationStore } from "@/store/notificationStore";
-import { useAuthContext } from "@/context/AuthProvider";
-import { useLoginDialogStore } from "@/store/useLoginDialogStore";
+import React, { useState, useCallback, useEffect } from 'react'
+import { LoginCallbacks, LoginMethod, UserData } from '@/types/loginTypes'
+import { LoginDialog } from './LoginDialog'
+import { useOtpTimer } from '@/hooks/useOtpTimer'
+import { getThemeColors } from '@/utils/themeUtils'
+import { useNotificationStore } from '@/store/notificationStore'
+import { useAuthQuery } from '@/hooks/queries/useAuthQuery'
+import { useLoginDialogStore } from '@/store/useLoginDialogStore'
 
 const NumberLoginWithName = ({
   onWhatsAppSubmit,
@@ -13,18 +13,18 @@ const NumberLoginWithName = ({
   onOtpVerify,
   onFinalSubmit,
 }: LoginCallbacks) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [loginMethod, setLoginMethod] = useState<LoginMethod>("whatsapp");
-  const [countryCode, setCountryCode] = useState("+91");
-  const [mobileNumber, setMobileNumber] = useState("");
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [fullName, setFullName] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [isOpen, setIsOpen] = useState(false)
+  const [loginMethod, setLoginMethod] = useState<LoginMethod>('whatsapp')
+  const [countryCode, setCountryCode] = useState('+91')
+  const [mobileNumber, setMobileNumber] = useState('')
+  const [otp, setOtp] = useState(['', '', '', '', '', ''])
+  const [fullName, setFullName] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false)
 
-  const { user } = useAuthContext();
+  const { user } = useAuthQuery()
 
-  const { message, type } = useNotificationStore();
+  const { message, type } = useNotificationStore()
   const {
     isOpen: openDialog,
     closeLoginDialog,
@@ -32,49 +32,49 @@ const NumberLoginWithName = ({
     setCurrentStep,
     resetLoginDialog,
     checkoutContext,
-  } = useLoginDialogStore();
+  } = useLoginDialogStore()
 
-  const { otpTimer, canResend, resetTimer } = useOtpTimer(currentStep);
-  const theme = getThemeColors(loginMethod);
+  const { otpTimer, canResend, resetTimer } = useOtpTimer(currentStep)
+  const theme = getThemeColors(loginMethod)
 
   // Handle phone number submission
   const handlePhoneSubmit = useCallback(async () => {
     if (mobileNumber.length >= 10) {
-      setIsLoading(true);
-      const fullPhoneNumber = `${countryCode}${mobileNumber}`;
+      setIsLoading(true)
+      const fullPhoneNumber = `${countryCode}${mobileNumber}`
 
       try {
-        if (loginMethod === "whatsapp" && onWhatsAppSubmit) {
+        if (loginMethod === 'whatsapp' && onWhatsAppSubmit) {
           await onWhatsAppSubmit(
             fullPhoneNumber,
             countryCode,
-            mobileNumber
+            mobileNumber,
           ).then((res) => {
-            if (res === "OTP sent successfully") {
+            if (res === 'OTP sent successfully') {
               // clearNotification();
-              setCurrentStep(1);
-              resetTimer();
+              setCurrentStep(1)
+              resetTimer()
             }
-          });
-        } else if (loginMethod === "sms" && onSMSSubmit) {
-          console.log("onSMSSubmit");
-          console.log("message", message, "type", type);
+          })
+        } else if (loginMethod === 'sms' && onSMSSubmit) {
+          console.log('onSMSSubmit')
+          console.log('message', message, 'type', type)
 
           await onSMSSubmit(fullPhoneNumber, countryCode, mobileNumber).then(
             (res) => {
-              if (res === "OTP sent successfully") {
+              if (res === 'OTP sent successfully') {
                 // clearNotification();
-                setCurrentStep(1);
-                resetTimer();
+                setCurrentStep(1)
+                resetTimer()
               }
-            }
-          );
+            },
+          )
         }
       } catch (error) {
-        console.error("Error submitting phone number:", error);
+        console.error('Error submitting phone number:', error)
         // Don't proceed to next step on error
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -86,88 +86,88 @@ const NumberLoginWithName = ({
     onSMSSubmit,
     message,
     type,
-  ]);
+  ])
 
   //  mark Handle OTP verification with proper error handling
   const handleOtpVerify = useCallback(
     async () => {
-      if (otp.join("").length === 6) {
-        setIsLoading(true);
-        const otpCode = otp.join("");
+      if (otp.join('').length === 6) {
+        setIsLoading(true)
+        const otpCode = otp.join('')
 
         try {
           if (onOtpVerify) {
             await onOtpVerify(
               otpCode,
               `${countryCode}${mobileNumber}`,
-              loginMethod
+              loginMethod,
             ).then((res) => {
-              if (res === "OTP verified successfully") {
+              if (res === 'OTP verified successfully') {
                 // New user - proceed to name entry step
-                setCurrentStep(2);
-                resetTimer();
-              } else if (res === "User exists - login successful") {
+                setCurrentStep(2)
+                resetTimer()
+              } else if (res === 'User exists - login successful') {
                 // Existing user - close dialog and complete login
-                setIsOpen(false);
-                resetLoginDialog();
-                resetForm();
+                setIsOpen(false)
+                resetLoginDialog()
+                resetForm()
               }
-            });
+            })
           }
         } catch (error) {
-          console.error("Error verifying OTP:", error);
+          console.error('Error verifying OTP:', error)
           // Clear OTP on error to allow re-entry
-          setOtp(["", "", "", "", "", ""]);
+          setOtp(['', '', '', '', '', ''])
         } finally {
-          setIsLoading(false);
+          setIsLoading(false)
         }
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [otp, countryCode, mobileNumber, loginMethod, onOtpVerify, message, type]
-  );
+    [otp, countryCode, mobileNumber, loginMethod, onOtpVerify, message, type],
+  )
 
   // mark resend otp
   const handleResendOtp = useCallback(() => {
-    setOtp(["", "", "", "", "", ""]);
-    resetTimer();
+    setOtp(['', '', '', '', '', ''])
+    resetTimer()
     // Trigger resend by calling the phone submit again
-    handlePhoneSubmit();
-  }, [resetTimer, handlePhoneSubmit]);
+    handlePhoneSubmit()
+  }, [resetTimer, handlePhoneSubmit])
 
   const handleEditPhone = useCallback(() => {
-    setCurrentStep(0);
-    setOtp(["", "", "", "", "", ""]);
-    const number = user?.phone_number ?? "";
-    setMobileNumber(number);
-  }, [user?.phone_number, setCurrentStep]);
+    setCurrentStep(0)
+    setOtp(['', '', '', '', '', ''])
+    const number = user?.phone_number ?? ''
+    setMobileNumber(number)
+  }, [user?.phone_number, setCurrentStep])
 
   const handleFinalSubmit = useCallback(
     async () => {
-      setIsLoading(true);
+      setIsLoading(true)
       const userData: UserData = {
         phoneNumber: `${countryCode}${mobileNumber}`,
         countryCode,
         mobileNumber,
-        otp: otp.join(""),
+        otp: otp.join(''),
         fullName,
         loginMethod,
-      };
+      }
       try {
         // If there's a checkout context, use its callback instead of the regular onFinalSubmit
         if (checkoutContext?.onCheckoutComplete) {
-          await checkoutContext.onCheckoutComplete(userData);
+          await checkoutContext.onCheckoutComplete(userData)
         } else if (onFinalSubmit) {
-          await onFinalSubmit(userData);
+          await onFinalSubmit(userData)
         }
 
-        setIsOpen(false);
-        resetLoginDialog();
-        resetForm();
+        setIsOpen(false)
+        resetLoginDialog()
+        resetForm()
       } catch (error) {
-        console.error("Error in final submission:", error);
+        console.error('Error in final submission:', error)
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -179,51 +179,51 @@ const NumberLoginWithName = ({
       loginMethod,
       onFinalSubmit,
       checkoutContext,
-    ]
-  );
+    ],
+  )
 
   const resetForm = useCallback(() => {
-    setCurrentStep(0);
-    setLoginMethod("whatsapp");
-    setCountryCode("+91");
-    setMobileNumber("");
-    setOtp(["", "", "", "", "", ""]);
-    setFullName("");
-  }, [setCurrentStep]);
+    setCurrentStep(0)
+    setLoginMethod('whatsapp')
+    setCountryCode('+91')
+    setMobileNumber('')
+    setOtp(['', '', '', '', '', ''])
+    setFullName('')
+  }, [setCurrentStep])
 
   const handleCancel = useCallback(() => {
-    setIsOpen(false);
-    resetForm();
-    setShowCountryDropdown(false);
-    resetLoginDialog();
-  }, [resetForm, resetLoginDialog]);
+    setIsOpen(false)
+    resetForm()
+    setShowCountryDropdown(false)
+    resetLoginDialog()
+  }, [resetForm, resetLoginDialog])
 
   const selectSMSMethod = useCallback(() => {
-    setLoginMethod("sms");
-    setCurrentStep(0);
-    setOtp(["", "", "", "", "", ""]);
-  }, [setCurrentStep]);
+    setLoginMethod('sms')
+    setCurrentStep(0)
+    setOtp(['', '', '', '', '', ''])
+  }, [setCurrentStep])
 
   const getStepTitle = useCallback(() => {
     switch (currentStep) {
       case 0:
-        return "Enter Mobile Number";
+        return 'Enter Mobile Number'
       case 1:
-        return `Verify ${loginMethod === "whatsapp" ? "WhatsApp" : "SMS"} OTP`;
+        return `Verify ${loginMethod === 'whatsapp' ? 'WhatsApp' : 'SMS'} OTP`
       case 2:
-        return checkoutContext ? "Complete Your Order" : "Complete Profile";
+        return checkoutContext ? 'Complete Your Order' : 'Complete Profile'
       default:
-        return "Login";
+        return 'Login'
     }
-  }, [currentStep, loginMethod, checkoutContext]);
+  }, [currentStep, loginMethod, checkoutContext])
 
   // mark if user exist then show only name input
 
   useEffect(() => {
     if ((isOpen || openDialog) && user) {
-      setCurrentStep(2);
+      setCurrentStep(2)
     }
-  }, [isOpen, openDialog, user, setCurrentStep]);
+  }, [isOpen, openDialog, user, setCurrentStep])
 
   return (
     <div className="px-8">
@@ -264,7 +264,7 @@ const NumberLoginWithName = ({
         getStepTitle={getStepTitle}
       />
     </div>
-  );
-};
+  )
+}
 
-export default NumberLoginWithName;
+export default NumberLoginWithName

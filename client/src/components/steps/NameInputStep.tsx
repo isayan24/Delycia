@@ -1,16 +1,16 @@
-import React from "react";
-import { User, Edit, LogIn } from "lucide-react";
-import { ThemeColors } from "../../types/loginTypes";
-import { LoadingSpinner } from "../smallComponents/LoadingSpinner";
-import { useAuthContext } from "@/context/AuthProvider";
+import React from 'react'
+import { User, Edit, LogIn } from 'lucide-react'
+import { ThemeColors } from '../../types/loginTypes'
+import { LoadingSpinner } from '../smallComponents/LoadingSpinner'
+import { useAuthQuery } from '@/hooks/queries/useAuthQuery'
 
 interface NameInputStepProps {
-  fullName: string;
-  setFullName: (name: string) => void;
-  isLoading: boolean;
-  theme: ThemeColors;
-  onSubmit: () => void;
-  onEditPhone: () => void;
+  fullName: string
+  setFullName: (name: string) => void
+  isLoading: boolean
+  theme: ThemeColors
+  onSubmit: () => void
+  onEditPhone: () => void
 }
 
 export const NameInputStep: React.FC<NameInputStepProps> = ({
@@ -19,17 +19,17 @@ export const NameInputStep: React.FC<NameInputStepProps> = ({
   isLoading,
   theme,
   onSubmit,
-  onEditPhone, 
+  onEditPhone,
 }) => {
-  const { user } = useAuthContext();
+  const { user } = useAuthQuery()
 
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1">
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Full Name{" "}
+          Full Name{' '}
           <span className="text-green-500 text-xs">
-            for number {user?.phone_number ?? ""}
+            for number {user?.phone_number ?? ''}
           </span>
         </label>
         <div className="relative">
@@ -54,7 +54,7 @@ export const NameInputStep: React.FC<NameInputStepProps> = ({
         >
           <Edit className="w-4 h-4" />
           Edit Number
-        </button> 
+        </button>
         <button
           onClick={onSubmit}
           disabled={!fullName.trim() || isLoading}
@@ -71,5 +71,5 @@ export const NameInputStep: React.FC<NameInputStepProps> = ({
         </button>
       </div>
     </div>
-  );
-};
+  )
+}

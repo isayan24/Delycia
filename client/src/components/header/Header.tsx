@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from '@/lib/next-compat'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { useItemStore } from '@/store/order-store'
 import { getUser } from '@/helpers/getUser'
-import { useAuthContext } from '@/context/AuthProvider'
+import { useAuthQuery } from '@/hooks/queries/useAuthQuery'
 import { ImageLoader } from '../image-loader'
 import { useLoginDialogStore } from '@/store/useLoginDialogStore'
 import { LogIn, LogOut, User } from 'lucide-react'
@@ -18,7 +18,7 @@ export default function Header() {
   const is800px = useMediaQuery('(max-width: 800px)', false)
   const searchParams = useSearchParams()
 
-  const { user, logout, isAuthenticated } = useAuthContext()
+  const { user, logout, isAuthenticated } = useAuthQuery()
   const { openLoginDialog } = useLoginDialogStore()
 
   const [userData, setUserData] = React.useState<{
