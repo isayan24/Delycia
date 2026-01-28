@@ -62,6 +62,7 @@ const tableModel = {
   // Update an existing table
   update: async (req) => {
     const { id, capacity, zone, status } = req.body;
+
     if (!id) return apiResponse.error(400, "id is required");
 
     if ((await others.getPower(req)) < 60)

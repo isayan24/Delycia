@@ -9,7 +9,10 @@ const convertToMin = (str) => {
 };
 
 const getUser = (req) => {
-  const access_token = req.headers?.authorization?.split(" ")[1];
+  let access_token = req.headers?.authorization?.split(" ")[1];
+  if (!access_token && req.cookies && req.cookies.access_token) {
+    access_token = req.cookies.access_token;
+  }
   return jwt.verify(access_token, process.env.ACCESS_SECRET);
 };
 

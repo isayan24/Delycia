@@ -293,31 +293,67 @@ const getOrderByTable = async (data) => {
 
     if (
       JSON_DATA.table_no === undefined ||
-      JSON_DATA.customer_ids === undefined ||
       JSON_DATA.rid === undefined
     )
-      return { status: false, error: "Data missing" };
+      return { status: false, error: "Data missing - table_no and rid are required" };
 
-    const q = `
-      SELECT 
-        orders.*, 
-        users.name AS name,
-        users.profile_pic AS profile_pic,
-        inventories.name AS item_name,
-        inventories.images AS item_img
-      FROM orders
-      JOIN users ON orders.customer_id = users.id
-      LEFT JOIN inventories ON orders.item_id = inventories.id
-      WHERE table_no = ?
-        AND orders.rid = ?
-        AND customer_id IN (${JSON_DATA.customer_ids})
-        AND orders.created_at >= NOW() - INTERVAL 3 HOUR
-      ORDER BY orders.created_at DESC
-    `;
+    // Build the query - if customer_ids is provided and not empty, filter by it
+    // Otherwise, get all orders for the table
+    const hasCustomerFilter = JSON_DATA.customer_ids &&
+      Array.isArray(JSON_DATA.customer_ids) &&
+      JSON_DATA.customer_ids.length > 0;
 
-    const [rows] = await pool.query(q, [JSON_DATA.table_no, JSON_DATA.rid]);
+    let q;
+    let queryParams;
+
+    if (hasCustomerFilter) {
+      q = `
+        SELECT 
+          orders.*, 
+          users.name AS name,
+          users.profile_pic AS profile_pic,
+          inventories.name AS item_name,
+          inventories.images AS item_img,
+          variants.name AS variant_name
+        FROM orders
+        JOIN users ON orders.customer_id = users.id
+        LEFT JOIN inventories ON orders.item_id = inventories.id
+        LEFT JOIN variants ON orders.variant_id = variants.id
+        WHERE table_no = ?
+          AND orders.rid = ?
+          AND customer_id IN (${JSON_DATA.customer_ids.map(() => '?').join(',')})
+          AND orders.created_at >= NOW() - INTERVAL 1 HOUR
+          AND orders.order_status NOT IN ('completed', 'cancelled')
+        ORDER BY orders.created_at DESC
+      `;
+      queryParams = [JSON_DATA.table_no, JSON_DATA.rid, ...JSON_DATA.customer_ids];
+    } else {
+      // Get all active orders for this table
+      q = `
+        SELECT 
+          orders.*, 
+          users.name AS name,
+          users.profile_pic AS profile_pic,
+          inventories.name AS item_name,
+          inventories.images AS item_img,
+          variants.name AS variant_name
+        FROM orders
+        JOIN users ON orders.customer_id = users.id
+        LEFT JOIN inventories ON orders.item_id = inventories.id
+        LEFT JOIN variants ON orders.variant_id = variants.id
+        WHERE table_no = ?
+          AND orders.rid = ?
+          AND orders.created_at >= NOW() - INTERVAL 1 HOUR
+          AND orders.order_status NOT IN ('completed', 'cancelled')
+        ORDER BY orders.created_at DESC
+      `;
+      queryParams = [JSON_DATA.table_no, JSON_DATA.rid];
+    }
+
+    const [rows] = await pool.query(q, queryParams);
 
     const userMap = new Map();
+
 
     for (const row of rows) {
       const {

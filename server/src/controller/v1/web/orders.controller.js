@@ -33,6 +33,22 @@ const getOrderByTable = async (data) => {
   return response;
 };
 
+// REST endpoint version for HTTP requests
+const get_orders_by_table = async (req, res) => {
+  const { table_no, rid } = req.body;
+  const response = await ordersModel.getOrderByTable({
+    table_no,
+    rid,
+    customer_ids: [],
+  });
+
+  if (response.status) {
+    res.status(200).json(response);
+  } else {
+    res.status(400).json(response);
+  }
+};
+
 const merge_orders = async (req, res) => {
   const response = await ordersModel.merge_orders(req);
   res.status(response.statusCode).json(response);
@@ -53,4 +69,5 @@ export default {
   get_all_orders,
   get_paginated_orders,
   merge_orders,
+  get_orders_by_table,
 };

@@ -16,7 +16,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { ShowTablesProps } from './types/table.types'
 import { useTableStore } from '@/store/useTableStore'
-import LoadingScreen from '@/components/common/LoadingScreen'
+import TableCard from './TableCard'
+import TableOrdersPopup from './TableOrdersPopup'
 
 export default function ShowTables({
   selectTable,
@@ -25,6 +26,10 @@ export default function ShowTables({
 }: ShowTablesProps) {
   const { user } = useAdminAuthQuery()
   const [activeZone, setActiveZone] = useState<string>('')
+
+  // Popup state
+  const [selectedPopupTable, setSelectedPopupTable] = useState<any>(null)
+  const [isPopupOpen, setIsPopupOpen] = useState(false)
 
   const { setRefetchTablesFunction } = useTableStore()
   const { zones, tables, loading, error, fetchTables } = useFetchTable(
@@ -86,56 +91,24 @@ export default function ShowTables({
       if (!filteredTables || !Array.isArray(filteredTables)) {
         return []
       }
-      return filteredTables.filter(
-        (table) =>
-          table &&
-          typeof table.id !== 'undefined' &&
-          typeof table.table_number === 'string' &&
-          typeof table.status === 'string',
-      )
+      return filteredTables
+        .filter(
+          (table) =>
+            table &&
+            typeof table.id !== 'undefined' &&
+            typeof table.table_number === 'string' &&
+            typeof table.status === 'string',
+        )
+        .sort((a, b) => parseInt(a.table_number) - parseInt(b.table_number))
     } catch (error) {
       console.error('Error processing filtered tables:', error)
       return []
     }
   }, [filteredTables])
 
-  const getTableIcon = (status: string) => {
-    switch (status) {
-      case 'occupied':
-        return '🍽️'
-      case 'reserved':
-        return '🍽️'
-      case 'available':
-        return '🍽️'
-      default:
-        return ''
-    }
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'occupied':
-        return 'border-orange-400 bg-orange-50 dark:bg-orange-950/20'
-      case 'reserved':
-        return 'border-orange-400 bg-orange-50 dark:bg-orange-950/20'
-      case 'available':
-        return 'border-green-400/50 bg-green-50/20 dark:bg-green-950/20'
-      default:
-        return 'border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700'
-    }
-  }
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'occupied':
-        return 'Occupied'
-      case 'reserved':
-        return 'Reserved'
-      case 'available':
-        return 'Available'
-      default:
-        return 'Empty'
-    }
+  const handleTableLongPress = (table: any) => {
+    setSelectedPopupTable(table)
+    setIsPopupOpen(true)
   }
 
   return (
@@ -251,47 +224,24 @@ export default function ShowTables({
           {safeFilteredTables.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
               {safeFilteredTables.map((table) => (
-                <Card
+                <TableCard
                   key={table.id}
-                  className={`relative cursor-pointer transition-all duration-200 hover:shadow-md ${getStatusColor(table.status)} ${
-                    table.status !== 'available' ? 'border-dashed border-2' : ''
-                  }`}
-                  onClick={() => selectTable(table)}
-                >
-                  <CardContent className="p-4 text-center">
-                    {/* Table Number */}
-                    <div className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-                      {table.table_number}
-                    </div>
-
-                    {/* Table Icon and Status */}
-                    {table.status && (
-                      <div className="space-y-2">
-                        <div className="text-2xl">
-                          {getTableIcon(table.status)}
-                        </div>
-                        <div className="flex items-center justify-center gap-1 text-xs text-gray-600 dark:text-gray-400">
-                          <Users className="h-3 w-3" />
-                        </div>
-                        <div className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                          {getStatusText(table.status)}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Status Indicator for pending tables */}
-                    {table.status === 'pending' && (
-                      <div className="absolute -top-2 -right-2">
-                        <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse"></div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                  table={table}
+                  onSelect={selectTable}
+                  onLongPress={handleTableLongPress}
+                />
               ))}
             </div>
           )}
         </>
       )}
+
+      {/* Table Orders Popup */}
+      <TableOrdersPopup
+        isOpen={isPopupOpen}
+        onClose={() => setIsPopupOpen(false)}
+        tableData={selectedPopupTable}
+      />
     </div>
   )
 }

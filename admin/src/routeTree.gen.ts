@@ -53,6 +53,7 @@ import { Route as DemoApiNamesRouteImport } from './routes/demo/api.names'
 import { Route as ApiUsersSearchRouteImport } from './routes/api/users.search'
 import { Route as ApiStaffReportsStaffIdRouteImport } from './routes/api/staff-reports/$staffId'
 import { Route as ApiOrdersOrderHistoryRouteImport } from './routes/api/orders/order-history'
+import { Route as ApiOrdersByTableRouteImport } from './routes/api/orders/by-table'
 import { Route as ApiOrdersActionsRouteImport } from './routes/api/orders/actions'
 import { Route as ApiInventoryBulkRouteImport } from './routes/api/inventory.bulk'
 import { Route as ApiCrmStatsRouteImport } from './routes/api/crm/stats'
@@ -293,6 +294,11 @@ const ApiOrdersOrderHistoryRoute = ApiOrdersOrderHistoryRouteImport.update({
   path: '/order-history',
   getParentRoute: () => ApiOrdersRoute,
 } as any)
+const ApiOrdersByTableRoute = ApiOrdersByTableRouteImport.update({
+  id: '/by-table',
+  path: '/by-table',
+  getParentRoute: () => ApiOrdersRoute,
+} as any)
 const ApiOrdersActionsRoute = ApiOrdersActionsRouteImport.update({
   id: '/actions',
   path: '/actions',
@@ -433,6 +439,7 @@ export interface FileRoutesByFullPath {
   '/api/crm/stats': typeof ApiCrmStatsRoute
   '/api/inventory/bulk': typeof ApiInventoryBulkRoute
   '/api/orders/actions': typeof ApiOrdersActionsRoute
+  '/api/orders/by-table': typeof ApiOrdersByTableRoute
   '/api/orders/order-history': typeof ApiOrdersOrderHistoryRoute
   '/api/staff-reports/$staffId': typeof ApiStaffReportsStaffIdRoute
   '/api/users/search': typeof ApiUsersSearchRoute
@@ -497,6 +504,7 @@ export interface FileRoutesByTo {
   '/api/crm/stats': typeof ApiCrmStatsRoute
   '/api/inventory/bulk': typeof ApiInventoryBulkRoute
   '/api/orders/actions': typeof ApiOrdersActionsRoute
+  '/api/orders/by-table': typeof ApiOrdersByTableRoute
   '/api/orders/order-history': typeof ApiOrdersOrderHistoryRoute
   '/api/staff-reports/$staffId': typeof ApiStaffReportsStaffIdRoute
   '/api/users/search': typeof ApiUsersSearchRoute
@@ -562,6 +570,7 @@ export interface FileRoutesById {
   '/api/crm/stats': typeof ApiCrmStatsRoute
   '/api/inventory/bulk': typeof ApiInventoryBulkRoute
   '/api/orders/actions': typeof ApiOrdersActionsRoute
+  '/api/orders/by-table': typeof ApiOrdersByTableRoute
   '/api/orders/order-history': typeof ApiOrdersOrderHistoryRoute
   '/api/staff-reports/$staffId': typeof ApiStaffReportsStaffIdRoute
   '/api/users/search': typeof ApiUsersSearchRoute
@@ -628,6 +637,7 @@ export interface FileRouteTypes {
     | '/api/crm/stats'
     | '/api/inventory/bulk'
     | '/api/orders/actions'
+    | '/api/orders/by-table'
     | '/api/orders/order-history'
     | '/api/staff-reports/$staffId'
     | '/api/users/search'
@@ -692,6 +702,7 @@ export interface FileRouteTypes {
     | '/api/crm/stats'
     | '/api/inventory/bulk'
     | '/api/orders/actions'
+    | '/api/orders/by-table'
     | '/api/orders/order-history'
     | '/api/staff-reports/$staffId'
     | '/api/users/search'
@@ -756,6 +767,7 @@ export interface FileRouteTypes {
     | '/api/crm/stats'
     | '/api/inventory/bulk'
     | '/api/orders/actions'
+    | '/api/orders/by-table'
     | '/api/orders/order-history'
     | '/api/staff-reports/$staffId'
     | '/api/users/search'
@@ -1138,6 +1150,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOrdersOrderHistoryRouteImport
       parentRoute: typeof ApiOrdersRoute
     }
+    '/api/orders/by-table': {
+      id: '/api/orders/by-table'
+      path: '/by-table'
+      fullPath: '/api/orders/by-table'
+      preLoaderRoute: typeof ApiOrdersByTableRouteImport
+      parentRoute: typeof ApiOrdersRoute
+    }
     '/api/orders/actions': {
       id: '/api/orders/actions'
       path: '/actions'
@@ -1312,11 +1331,13 @@ const ApiInventoryRouteWithChildren = ApiInventoryRoute._addFileChildren(
 
 interface ApiOrdersRouteChildren {
   ApiOrdersActionsRoute: typeof ApiOrdersActionsRoute
+  ApiOrdersByTableRoute: typeof ApiOrdersByTableRoute
   ApiOrdersOrderHistoryRoute: typeof ApiOrdersOrderHistoryRoute
 }
 
 const ApiOrdersRouteChildren: ApiOrdersRouteChildren = {
   ApiOrdersActionsRoute: ApiOrdersActionsRoute,
+  ApiOrdersByTableRoute: ApiOrdersByTableRoute,
   ApiOrdersOrderHistoryRoute: ApiOrdersOrderHistoryRoute,
 }
 
