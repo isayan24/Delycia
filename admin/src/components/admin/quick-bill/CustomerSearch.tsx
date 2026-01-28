@@ -1,38 +1,44 @@
-import React, { useEffect, useState, useRef } from "react";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Search, UserPlus, X, Check } from "lucide-react";
-import { useCustomerSearch } from "@/components/admin/book-table/hooks/useCustomerSearch";
-import { Customer } from "./QuickBillMain";
-import { toast } from "sonner";
-import { Label } from "@/components/ui/label";
-import { generateUsername } from "@/helpers/user/generateUsername";
+import { useEffect, useState, useRef } from 'react'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Search, UserPlus, X, Check } from 'lucide-react'
+import { useCustomerSearch } from '@/components/admin/book-table/hooks/useCustomerSearch'
+import { useAuth } from '@/hooks/useAuth'
+import { Customer } from './QuickBillMain'
+import { toast } from 'sonner'
+import { Label } from '@/components/ui/label'
+import { generateUsername } from '@/helpers/user/generateUsername'
 
 interface CustomerSearchProps {
-  onSelectCustomer: (customer: Customer | null) => void;
-  selectedCustomer: Customer | null;
+  onSelectCustomer: (customer: Customer | null) => void
+  selectedCustomer: Customer | null
 }
 
 export default function CustomerSearch({
   onSelectCustomer,
   selectedCustomer,
 }: CustomerSearchProps) {
-  const [nameInput, setNameInput] = useState("");
-  const [phoneInput, setPhoneInput] = useState("");
-  const { searchResults, isSearching } = useCustomerSearch(nameInput);
-  const [showResults, setShowResults] = useState(false);
+  const { user } = useAuth()
+  const [nameInput, setNameInput] = useState('')
+  const [phoneInput, setPhoneInput] = useState('')
+  // Filter customer search by current restaurant
+  const { searchResults, isSearching } = useCustomerSearch(
+    nameInput,
+    user?.selected_rid,
+  )
+  const [showResults, setShowResults] = useState(false)
 
-  const searchSectionRef = useRef<HTMLDivElement>(null);
+  const searchSectionRef = useRef<HTMLDivElement>(null)
 
   // Manage visibility of results
   useEffect(() => {
     if (nameInput.length > 1 && !selectedCustomer) {
-      setShowResults(true);
+      setShowResults(true)
     } else {
-      setShowResults(false);
+      setShowResults(false)
     }
-  }, [nameInput, selectedCustomer]);
+  }, [nameInput, selectedCustomer])
 
   // Handle click outside to close dropdown
   useEffect(() => {
@@ -41,15 +47,15 @@ export default function CustomerSearch({
         searchSectionRef.current &&
         !searchSectionRef.current.contains(event.target as Node)
       ) {
-        setShowResults(false);
+        setShowResults(false)
       }
-    };
+    }
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside)
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   const handleSelectExisting = (user: any) => {
     const customer: Customer = {
@@ -57,49 +63,49 @@ export default function CustomerSearch({
       name: user.name,
       phone_number: user.phone_number,
       username: user.username,
-    };
-    onSelectCustomer(customer);
-    setNameInput("");
-    setPhoneInput("");
-    setShowResults(false);
-    toast.success("Customer selected");
-  };
+    }
+    onSelectCustomer(customer)
+    setNameInput('')
+    setPhoneInput('')
+    setShowResults(false)
+    toast.success('Customer selected')
+  }
 
   const handleManualAdd = () => {
     if (!nameInput.trim() || !phoneInput.trim()) {
-      toast.error("Please enter both Name and Phone");
-      return;
+      toast.error('Please enter both Name and Phone')
+      return
     }
     if (!/^[0-9]{10}$/.test(phoneInput)) {
-      toast.error("Invalid phone number (10 digits required)");
-      return;
+      toast.error('Invalid phone number (10 digits required)')
+      return
     }
-    const username = generateUsername(nameInput);
+    const username = generateUsername(nameInput)
 
     const newCustomer: Customer = {
-      id: "", // Empty ID indicates new/unverified user
+      id: '', // Empty ID indicates new/unverified user
       name: nameInput,
       phone_number: phoneInput,
       username,
-    };
+    }
 
-    onSelectCustomer(newCustomer);
-    setNameInput("");
-    setPhoneInput("");
-    toast.success("Customer added locally");
-  };
+    onSelectCustomer(newCustomer)
+    setNameInput('')
+    setPhoneInput('')
+    toast.success('Customer added locally')
+  }
 
   const handleClear = () => {
-    onSelectCustomer(null);
-    setNameInput("");
-    setPhoneInput("");
-  };
+    onSelectCustomer(null)
+    setNameInput('')
+    setPhoneInput('')
+  }
 
   const handleNameInputFocus = () => {
     if (nameInput.length > 1 && !selectedCustomer) {
-      setShowResults(true);
+      setShowResults(true)
     }
-  };
+  }
 
   if (selectedCustomer) {
     return (
@@ -128,7 +134,7 @@ export default function CustomerSearch({
           </Button>
         </CardContent>
       </Card>
-    );
+    )
   }
 
   return (
@@ -215,5 +221,5 @@ export default function CustomerSearch({
         Add Customer
       </Button>
     </div>
-  );
+  )
 }

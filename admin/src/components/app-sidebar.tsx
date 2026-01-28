@@ -128,10 +128,9 @@ const navSecondary = [
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAdminAuthQuery()
-
   // Format user data for NavUser
   const userData = {
-    name: user?.name || user?.username || user?.phone_number || 'Guest',
+    name: user?.name || user?.username || 'Guest',
     email: user?.email || 'guest@example.com',
     avatar: user?.profile_pic || '/delycia-logo.jpg', // Fallback to logo or default
   }

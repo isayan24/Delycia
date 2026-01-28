@@ -10,13 +10,20 @@ export type { UserSearchResult }
  * Hook for customer search with debouncing
  * Wraps useUserSearchQuery with debouncing logic
  * @param searchTerm - Raw search term from input
+ * @param rid - Restaurant ID to filter users by (optional)
  */
-export function useCustomerSearch(searchTerm: string) {
+export function useCustomerSearch(
+  searchTerm: string,
+  rid?: string | number | null,
+) {
   // Debounce the search term to avoid excessive API calls
   const debouncedSearchTerm = useDebounce(searchTerm, 300)
 
   // Use TanStack Query hook for actual data fetching
-  const { data, isLoading, error } = useUserSearchQuery(debouncedSearchTerm)
+  const { data, isLoading, error } = useUserSearchQuery(
+    debouncedSearchTerm,
+    rid,
+  )
 
   const clearResults = () => {
     // Note: Results will automatically clear when searchTerm changes

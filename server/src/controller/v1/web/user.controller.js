@@ -97,7 +97,8 @@ const getUser = async (req, res) => {
 };
 const getUserByName = async (req, res) => {
   try {
-    const response = await userModel.getUserByName(req.query.name);
+    const { name, rid } = req.query;
+    const response = await userModel.getUserByName(name, rid);
     if (!response.status) return res.status(400).json(response);
     res.status(200).json(response);
   } catch (error) {

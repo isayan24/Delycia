@@ -51,14 +51,24 @@ const getUser = async (uid) => {
   return { status: true, user: result };
 };
 
-// Get User By Name
-const getUserByName = async (name) => {
+// Get User By Name (optionally filtered by restaurant)
+const getUserByName = async (name, rid = null) => {
   try {
     let q, result;
     // Use LIKE for prefix matching to support search-as-you-type
     // Filter by role = 0 to only show customers
-    q = "SELECT * FROM users WHERE name LIKE ? AND role = 0";
-    [result] = await pool.query(q, [`${name}%`]);
+    if (rid) {
+      // Filter by users who have visited this restaurant
+      q = `SELECT DISTINCT u.* FROM users u
+           INNER JOIN user_restaurant_visits urv ON u.id = urv.user_id
+           WHERE u.name LIKE ? AND u.role = 0 AND urv.restaurant_id = ?
+           ORDER BY urv.last_visit_at DESC`;
+      [result] = await pool.query(q, [`${name}%`, rid]);
+    } else {
+      // Fallback: return all customers (original behavior)
+      q = "SELECT * FROM users WHERE name LIKE ? AND role = 0";
+      [result] = await pool.query(q, [`${name}%`]);
+    }
 
     if (result.length == 0) {
       return {

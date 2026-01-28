@@ -25,6 +25,7 @@ export const Route = createFileRoute('/api/users/search')({
 
           const url = new URL(request.url)
           const name = url.searchParams.get('name')
+          const rid = url.searchParams.get('rid')
 
           if (!name || name.trim().length < 2) {
             return new Response(
@@ -43,7 +44,7 @@ export const Route = createFileRoute('/api/users/search')({
 
           // Call backend API with authentication
           const response = await axiosInstance.get('/users/search', {
-            params: { name },
+            params: { name, rid },
             headers: {
               Authorization: `Bearer ${accessToken}`,
             },

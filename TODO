@@ -4,7 +4,7 @@ Todo:
     ☐ If user ordered, and if the order is canceled, then the stock should be the same as before 
 
     Quick-Bill:
-      ☐ When searching users for checkout, all the users are showing. even if they are not in this restaurant
+      ☐ When searching users for billing in quick-bill, all the users are showing. even if they are not in this restaurant
         - Fix: Make a user-restaurant relationship table in the database, to get the correct user, the table can have same users with multiple restaurants
 
    Priority Fix: 

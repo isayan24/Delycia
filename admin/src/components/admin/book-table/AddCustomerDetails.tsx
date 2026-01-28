@@ -15,8 +15,7 @@ import {
 import { useTableStore } from '@/store/useTableStore'
 import axios from 'axios'
 import useToast from '@/hooks/UseToast'
-import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
-import { useFetchTable } from './hooks/useFetchTable'
+import { useAuth } from '@/hooks/useAuth'
 import { useCustomerSearch, UserSearchResult } from './hooks/useCustomerSearch'
 import { CustomerSearchDropdown } from './CustomerSearchDropdown'
 import { generateUsername } from '@/helpers/user/generateUsername'
@@ -51,10 +50,11 @@ export default function AddCustomerDetails() {
   } = useTableStore()
 
   const { showError, showSuccess } = useToast()
+  const { user } = useAuth()
 
-  // Use custom search hook
+  // Use custom search hook - filter by current restaurant
   const { searchResults, isSearching, searchError, clearResults } =
-    useCustomerSearch(customerDetails.name)
+    useCustomerSearch(customerDetails.name, user?.selected_rid)
 
   // Close search results when clicking outside
   useEffect(() => {

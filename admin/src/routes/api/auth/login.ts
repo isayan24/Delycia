@@ -58,11 +58,15 @@ export const Route = createFileRoute('/api/auth/login')({
             const refresh_token = backendUser.refresh_token
 
             // Extract user fields from backend response
-            // Use backend's phone_number if available, otherwise fall back to request
+            // Include all user details for localStorage storage
             const userData = {
               _id: backendUser.uid || backendUser._id,
               id: backendUser.id,
+              name: backendUser.name || null,
+              username: backendUser.username || null,
+              email: backendUser.email || null,
               phone_number: backendUser.phone_number || phone_number,
+              profile_pic: backendUser.profile_pic || null,
               role: backendUser.role,
               restaurant_rids: backendUser.restaurant_rids || [],
               selected_rid:

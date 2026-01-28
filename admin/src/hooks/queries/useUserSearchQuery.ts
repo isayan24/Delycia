@@ -20,7 +20,8 @@ interface UserSearchResponse {
 // ============================================
 export const userSearchKeys = {
   all: ['users', 'search'] as const,
-  byTerm: (searchTerm: string) => [...userSearchKeys.all, searchTerm] as const,
+  byTerm: (searchTerm: string, rid?: string | number | null) =>
+    [...userSearchKeys.all, searchTerm, rid] as const,
 }
 
 // ============================================
@@ -30,18 +31,23 @@ export const userSearchKeys = {
 /**
  * TanStack Query hook for searching users
  * @param searchTerm - Search term (minimum 2 characters)
+ * @param rid - Restaurant ID to filter users by (optional)
  * @param enabled - Whether the query should run
  */
-export function useUserSearchQuery(searchTerm: string, enabled = true) {
+export function useUserSearchQuery(
+  searchTerm: string,
+  rid?: string | number | null,
+  enabled = true,
+) {
   return useQuery<UserSearchResponse>({
-    queryKey: userSearchKeys.byTerm(searchTerm),
+    queryKey: userSearchKeys.byTerm(searchTerm, rid),
     queryFn: async () => {
       if (!searchTerm || searchTerm.trim().length < 2) {
         return { status: false, users: [] }
       }
 
       const response = await axios.get('/api/users/search', {
-        params: { name: searchTerm },
+        params: { name: searchTerm, rid },
       })
       return response.data
     },
