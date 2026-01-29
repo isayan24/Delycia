@@ -1,5 +1,5 @@
 'use client'
-import Link from '@/lib/next-compat'
+import { Link } from '@tanstack/react-router'
 import { usePathname } from '@/lib/next-compat'
 import React, { useState, useEffect } from 'react'
 import {
@@ -132,7 +132,7 @@ export default function MobileNav() {
       <section className="flex items-center justify-between gap-5 pt-2">
         {links.map((link) => (
           <Link
-            href={link.href}
+            to={link.href}
             key={link.href}
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             className={`${link.active ? 'border-b-4 border-[#ff8800] rounded-[5px]' : 'border-b-4 border-transparent'} flex max-[450px]:flex-col items-center justify-center gap-1 w-[6rem] h-[3rem]`}
@@ -155,7 +155,7 @@ export default function MobileNav() {
         ))}
 
         <Link
-          href={user ? '/user/p' : '#'}
+          to={user ? '/user/p' : '#'}
           key={'/user/p'}
           onClick={onProfileClick}
           className={`${pathname === '/user/p' ? 'border-b-4 border-[#ff8800] rounded-[5px]' : 'border-b-4 border-transparent'} flex max-[450px]:flex-col items-center justify-center gap-1 w-[6rem] h-[3rem]`}

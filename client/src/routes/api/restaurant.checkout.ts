@@ -63,6 +63,7 @@ export const Route = createFileRoute('/api/restaurant/checkout')({
               special_instructions: special_instruction,
               total_amount: item.price || 0,
               table_no: table || null, // Add table number to each order item,
+              addons: item.addons || [],
             }))
 
             const signature = signatureService.generateOrderSignature(

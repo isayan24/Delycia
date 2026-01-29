@@ -65,6 +65,19 @@ export default function CheckoutSidebar({
                     ({item.quantity}x)
                   </span>
                 </h1>
+                {item.addons && item.addons.length > 0 && (
+                  <div className="flex flex-col">
+                    {item.addons.map((addon: any) => (
+                      <span
+                        key={addon.id}
+                        className="text-xs text-gray-400 ml-1"
+                      >
+                        + {addon.quantity > 1 ? `${addon.quantity} x ` : ''}
+                        {addon.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 <h1 className="font-normal">₹{item.price * item.quantity}</h1>
               </section>
             ))}

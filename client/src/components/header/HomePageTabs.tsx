@@ -1,20 +1,19 @@
-import React, { memo } from "react";
-import { TabsList, TabsTrigger } from "../ui/tabs";
-import UseOptimizeImage from "@/hooks/UseOptimizeImage";
-import allFood from "../../../public/allFood.png";
-import Image from "@/lib/next-compat";
+import React, { memo } from 'react'
+import { TabsList, TabsTrigger } from '../ui/tabs'
+import UseOptimizeImage from '@/hooks/UseOptimizeImage'
+import allFood from '../../../public/allFood.png'
 
 const HomePageTabs = memo(function HomePageTabs({ category, showImage }: any) {
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   return (
     <>
       {/* mark Mobile tabs - existing design */}
       <TabsList
         className={`w-full rounded-none justify-start bg-transparent py-[.2rem] gap-3 px-3 min-[700px]:hidden
-          transition-all duration-300 ease-in-out ${showImage && "text-[#52525b]"}
+          transition-all duration-300 ease-in-out ${showImage && 'text-[#52525b]'}
           `}
       >
         <TabsTrigger
@@ -23,7 +22,7 @@ const HomePageTabs = memo(function HomePageTabs({ category, showImage }: any) {
           onClick={scrollToTop}
         >
           <div className="w-9 h-9 overflow-hidden rounded-full">
-            <Image
+            <img
               src={allFood}
               alt="All Food"
               className="h-full w-full object-cover"
@@ -58,7 +57,7 @@ const HomePageTabs = memo(function HomePageTabs({ category, showImage }: any) {
         ))}
       </TabsList>
     </>
-  );
-});
+  )
+})
 
-export default HomePageTabs;
+export default HomePageTabs

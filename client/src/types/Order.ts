@@ -14,6 +14,7 @@ export interface OrderItem {
 
 export interface Order {
   id: number | string
+  cart_id?: string
   customer_id: number | string
   item_id: number | string
   quantity: number
@@ -40,6 +41,22 @@ export interface Order {
     price: number
     quantity: number
   }[]
+}
+
+/**
+ * Represents a group of orders that share the same cart_id
+ * Used for displaying consolidated orders to users
+ */
+export interface GroupedUserOrder {
+  cart_id: string
+  orders: Order[]
+  totalAmount: number
+  orderCount: number
+  createdAt: Date
+  // The most "urgent" status in the group (pending > processing > ready > completed/cancelled)
+  aggregatedStatus: string
+  // Count of orders by status within this group
+  statusCounts: Record<string, number>
 }
 
 export interface GroupedOrder {

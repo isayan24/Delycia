@@ -1,18 +1,22 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import { useMemo } from 'react'
 import { TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tabs } from '@/components/ui/tabs'
 import { useAuthQuery } from '@/hooks/queries/useAuthQuery'
 import { Loader2, RefreshCw, Play, Pause } from 'lucide-react'
 import UserOrdersList from '@/components/restaurant/orders/UserOrdersList'
 import { Button } from '@/components/ui/button'
-import { useRouter } from '@/lib/next-compat'
 import { useOrdersQuery } from '@/hooks/queries/useOrdersQuery'
 import { useRestaurantId } from '@/hooks/useRestaurantId'
 import { useLoginDialogStore } from '@/store/useLoginDialogStore'
+import { Order } from '@/types/Order'
+import {
+  groupOrdersByCartId,
+  getOrderCountByStatus,
+} from '@/helpers/orderGroupingUtils'
 
 export default function UserOrdersPage() {
-  const { user, isLoading: isAuthLoading, isAuthenticated } = useAuthQuery()
+  const { user, isAuthenticated } = useAuthQuery()
   const rid = useRestaurantId()
   const { openLoginDialog } = useLoginDialogStore()
 
@@ -38,6 +42,64 @@ export default function UserOrdersPage() {
       openLoginDialog()
     }
   }
+
+  // Group orders by cart_id using memoization
+  const groupedOrders = useMemo(() => {
+    return groupOrdersByCartId(orders)
+  }, [orders])
+
+  // Calculate group counts by status for tabs
+  const tabCounts = useMemo(() => {
+    return {
+      all: groupedOrders.length,
+      pending: getOrderCountByStatus(groupedOrders, 'pending'),
+      processing: getOrderCountByStatus(groupedOrders, 'processing'),
+      ready: getOrderCountByStatus(groupedOrders, 'ready'),
+      completed: getOrderCountByStatus(groupedOrders, 'completed'),
+      cancelled: getOrderCountByStatus(groupedOrders, 'cancelled'),
+    }
+  }, [groupedOrders])
+
+  // Filter orders by status for each tab (with proper typing)
+  const pendingOrders = useMemo(
+    () =>
+      orders.filter(
+        (order: Order) => order.order_status.toLowerCase() === 'pending',
+      ),
+    [orders],
+  )
+
+  const processingOrders = useMemo(
+    () =>
+      orders.filter(
+        (order: Order) => order.order_status.toLowerCase() === 'processing',
+      ),
+    [orders],
+  )
+
+  const completedOrders = useMemo(
+    () =>
+      orders.filter(
+        (order: Order) => order.order_status.toLowerCase() === 'completed',
+      ),
+    [orders],
+  )
+
+  const readyOrders = useMemo(
+    () =>
+      orders.filter(
+        (order: Order) => order.order_status.toLowerCase() === 'ready',
+      ),
+    [orders],
+  )
+
+  const cancelledOrders = useMemo(
+    () =>
+      orders.filter(
+        (order: Order) => order.order_status.toLowerCase() === 'cancelled',
+      ),
+    [orders],
+  )
 
   // If loading
   if (isLoading) {
@@ -88,27 +150,6 @@ export default function UserOrdersPage() {
     )
   }
 
-  // Filter orders by status
-  const pendingOrders = orders.filter(
-    (order) => order.order_status.toLowerCase() === 'pending',
-  )
-
-  const processingOrders = orders.filter(
-    (order) => order.order_status.toLowerCase() === 'processing',
-  )
-
-  const completedOrders = orders.filter(
-    (order) => order.order_status.toLowerCase() === 'completed',
-  )
-
-  const readyOrders = orders.filter(
-    (order) => order.order_status.toLowerCase() === 'ready',
-  )
-
-  const cancelledOrders = orders.filter(
-    (order) => order.order_status.toLowerCase() === 'cancelled',
-  )
-
   // No orders found for this user
   if (!isLoading && orders.length === 0) {
     return (
@@ -132,22 +173,22 @@ export default function UserOrdersPage() {
       <div className="flex justify-center w-full  rounded-b-3xl mt-6 left-0 z-[30] max-[700px]:top-[28px]">
         <TabsList className="my-2 rounded-full max-[700px]:w-full max-[700px]:rounded-none max-[700px]:bg-[#ffffffd6] backdrop-blur-sm max-[700px]:justify-start">
           <TabsTrigger value="all" className="rounded-full">
-            All ({orders.length})
+            All ({tabCounts.all})
           </TabsTrigger>
           <TabsTrigger value="pending" className="rounded-full">
-            Pending ({pendingOrders.length})
+            Pending ({tabCounts.pending})
           </TabsTrigger>
           <TabsTrigger value="processing" className="rounded-full">
-            Processing ({processingOrders.length})
+            Processing ({tabCounts.processing})
           </TabsTrigger>
           <TabsTrigger value="ready" className="rounded-full">
-            Ready ({readyOrders.length})
+            Ready ({tabCounts.ready})
           </TabsTrigger>
           <TabsTrigger value="completed" className="rounded-full">
-            Completed ({completedOrders.length})
+            Completed ({tabCounts.completed})
           </TabsTrigger>
           <TabsTrigger value="cancelled" className="rounded-full">
-            Cancelled ({cancelledOrders.length})
+            Cancelled ({tabCounts.cancelled})
           </TabsTrigger>
         </TabsList>
       </div>
@@ -156,7 +197,7 @@ export default function UserOrdersPage() {
       <div className="flex gap-2 items-center justify-between mt-5 mb-4 flex-wrap">
         <div className="flex gap-2">
           <Button
-            onClick={refreshOrders}
+            onClick={() => refreshOrders()}
             variant="outline"
             className="flex items-center gap-2"
           >

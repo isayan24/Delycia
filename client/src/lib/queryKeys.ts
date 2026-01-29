@@ -55,6 +55,12 @@ export const queryKeys = {
     user: () => ['auth', 'user'] as const,
     session: () => ['auth', 'session'] as const,
   },
+
+  // Addons queries
+  addons: {
+    byItem: (itemId: string | number | undefined) =>
+      ['addons', { itemId }] as const,
+  },
 } as const
 
 // Type helpers for query key inference

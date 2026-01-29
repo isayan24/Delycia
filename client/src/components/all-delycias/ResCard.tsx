@@ -1,9 +1,7 @@
-/* eslint-disable @next/next/no-img-element */
 'use client'
 import { Restaurant } from '@/types/Restaurant'
 import { MapPin, ChefHat, Heart } from 'lucide-react'
 import React, { useState, useEffect } from 'react'
-import { ImageLoader } from '../image-loader'
 import { useAuthQuery } from '@/hooks/queries/useAuthQuery'
 import { useRouter } from '@/lib/next-compat'
 import { Link } from '@tanstack/react-router'
@@ -160,14 +158,13 @@ export default function ResCard({ restaurant }: { restaurant: Restaurant }) {
           <div className="relative z-10 h-full flex items-center justify-center">
             {restaurant.logo ? (
               <div className="relative w-24 h-24 rounded-full overflow-hidden shadow-xl border-4 border-white group-hover:border-orange-200 transition-all duration-300">
-                {/* <ImageLoader
-                  objectFit="cover"
+                <img
                   height={100}
                   width={100}
                   src={restaurant.logo}
                   alt={`${restaurant.name} Logo`}
-                  className="transition-transform duration-300 group-hover:scale-110 w-full h-full"
-                /> */}
+                  className="transition-transform duration-300 group-hover:scale-110 w-full h-full object-cover"
+                />
               </div>
             ) : (
               <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-orange-400 to-green-500 flex items-center justify-center shadow-xl border-4 border-white group-hover:border-orange-200 transition-all duration-300">

@@ -11,8 +11,6 @@ export const Route = createFileRoute('/api/orders')({
           const url = new URL(request.url)
           const endpoint = `/orders${url.search}`
 
-          console.log(endpoint, 'endpoint')
-
           const token = getAccessTokenFromCookie(request)
           const headers = token ? { Authorization: `Bearer ${token}` } : {}
 
