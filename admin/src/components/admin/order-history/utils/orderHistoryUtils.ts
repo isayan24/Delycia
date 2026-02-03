@@ -12,7 +12,7 @@ export interface ApiOrder {
   discount_amount: number
   display_name: string
   item_id: number
-  order_status: 'completed' | 'cancelled'
+  order_status: 'completed' | 'cancelled' | 'settled'
   payment_method: string
   payment_status: string
   preparation_time: number
@@ -72,6 +72,8 @@ export const mapOrderStatus = (
 ): 'DELIVERED' | 'CANCELLED' => {
   switch (apiStatus.toLowerCase()) {
     case 'completed':
+      return 'DELIVERED'
+    case 'settled':
       return 'DELIVERED'
     case 'cancelled':
       return 'CANCELLED'

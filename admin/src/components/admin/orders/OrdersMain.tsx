@@ -17,7 +17,13 @@ import useToast from '@/hooks/UseToast'
 import { useGlobalOrderPopupStore } from '@/store/useGlobalOrderPopupStore'
 
 // Order states - matching API
-type OrderState = 'pending' | 'processing' | 'ready' | 'completed' | 'cancelled'
+type OrderState =
+  | 'pending'
+  | 'processing'
+  | 'ready'
+  | 'completed'
+  | 'cancelled'
+  | 'settled'
 
 interface OrderWithState extends ProcessedOrder {
   state: OrderState
@@ -269,9 +275,11 @@ export default function OrdersMain() {
   }, [popupsEnabled, togglePopups, pendingOrders, showPopup])
 
   // Filter completed and cancelled orders to only show past 24 hours
+  // Include both 'completed' and 'settled' orders as delivered
   const completedOrders = ordersWithState.filter(
     (order) =>
-      order.state === 'completed' && isOrderFromPast24Hours(order.created_at),
+      (order.state === 'completed' || order.state === 'settled') &&
+      isOrderFromPast24Hours(order.created_at),
   )
   const cancelledOrders = ordersWithState.filter(
     (order) =>

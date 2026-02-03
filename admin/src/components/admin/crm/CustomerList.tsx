@@ -19,6 +19,8 @@ import {
   Mail,
   Eye,
   TrendingUp,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import { Customer } from '@/hooks/queries/useCRMQueries'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -44,6 +46,8 @@ const CustomerList: React.FC<CustomerListProps> = ({
   onSelectCustomer,
 }) => {
   const [searchTerm, setSearchTerm] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
 
   const filteredData = data.filter(
     (customer) =>
@@ -52,6 +56,20 @@ const CustomerList: React.FC<CustomerListProps> = ({
       (customer.email &&
         customer.email.toLowerCase().includes(searchTerm.toLowerCase())),
   )
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const paginatedData = filteredData.slice(
+    startIndex,
+    startIndex + itemsPerPage,
+  )
+
+  // Reset to page 1 when search changes
+  const handleSearch = (value: string) => {
+    setSearchTerm(value)
+    setCurrentPage(1)
+  }
 
   if (isLoading) {
     return <LoadingScreen message="Loading CRM data..." />
@@ -66,7 +84,7 @@ const CustomerList: React.FC<CustomerListProps> = ({
             placeholder="Search by name, phone, or email..."
             className="pl-9 bg-white border-gray-200 focus-visible:ring-primary"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
           />
         </div>
         <div className="text-sm font-medium text-gray-500 bg-gray-50 px-3 py-1 rounded-full border border-gray-100">
@@ -104,7 +122,7 @@ const CustomerList: React.FC<CustomerListProps> = ({
                 </TableCell>
               </TableRow>
             ) : (
-              filteredData.map((customer) => (
+              paginatedData.map((customer) => (
                 <TableRow
                   key={customer.user_id}
                   className="group cursor-pointer hover:bg-orange-50/30 transition-colors"
@@ -261,6 +279,35 @@ const CustomerList: React.FC<CustomerListProps> = ({
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-between items-center mt-4 px-2">
+          <div className="text-sm text-muted-foreground">
+            Page {currentPage} of {totalPages}
+          </div>
+          <div className="flex gap-1">
+            <Button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

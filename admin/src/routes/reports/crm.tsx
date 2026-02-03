@@ -6,6 +6,7 @@ import CustomerDetailsSheet from '@/components/admin/crm/CustomerDetailsSheet'
 import { Users } from 'lucide-react'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { useState } from 'react'
+import { Button as StatefulButton } from '@/components/ui/stateful-button'
 import {
   Select,
   SelectContent,
@@ -34,10 +35,18 @@ function CRMPage() {
   )
   const [timeRange, setTimeRange] = useState('this_month')
 
-  const { data: customers = [], isLoading } = useCRMListQuery({
+  const {
+    data: customers = [],
+    isLoading,
+    refetch,
+  } = useCRMListQuery({
     rid: rid?.toString() || '',
     timeRange,
   })
+
+  const handleRefresh = async () => {
+    await refetch()
+  }
 
   return (
     <div className="min-h-screen bg-gray-50/50">
@@ -56,7 +65,7 @@ function CRMPage() {
               </p>
             </div>
           </section>
-          <section className="mb-6 flex justify-end">
+          <section className="mb-6 flex items-center gap-2">
             <Select
               value={timeRange}
               onValueChange={(value: any) => setTimeRange(value)}
@@ -74,6 +83,9 @@ function CRMPage() {
                 <SelectItem value="all_time">All Time</SelectItem>
               </SelectContent>
             </Select>
+            <StatefulButton onClick={handleRefresh} className="shadow-sm">
+              Refresh
+            </StatefulButton>
           </section>
         </div>
       </div>

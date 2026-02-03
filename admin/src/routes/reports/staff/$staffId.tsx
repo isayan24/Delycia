@@ -1,15 +1,21 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { useStaffOrdersQuery } from '@/hooks/queries/useStaffReportsQueries'
 import { useDateFilterStore } from '@/store/useDateFilterStore'
 import { useMemo, useState } from 'react'
 import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import DateFilterComponent from '@/components/admin/dashboard/DateFilterComponent'
 import DateRangeDisplay from '@/components/admin/dashboard/DateRangeDisplay'
 import { Button as StatefulButton } from '@/components/ui/stateful-button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { ShoppingCart, DollarSign } from 'lucide-react'
+import {
+  ShoppingCart,
+  DollarSign,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react'
 import { requireAuth } from '@/middleware/auth'
 import { format } from 'date-fns'
 import { parseOrderItems } from '@/components/admin/order-history/utils/orderHistoryUtils'
@@ -132,30 +138,32 @@ function StaffOrdersPage() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+      <div className="bg-white p-4 max-[500px]:p-3 rounded-lg shadow-sm border border-gray-100">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16">
+          {/* Staff Info */}
+          <div className="flex items-center gap-3">
+            <Avatar className="h-12 w-12 max-[500px]:h-10 max-[500px]:w-10">
               <AvatarImage src={data?.staff.profile_pic || undefined} />
-              <AvatarFallback className="text-xl">
+              <AvatarFallback className="text-lg max-[500px]:text-sm">
                 {data?.staff.name.substring(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-xl font-bold tracking-tight text-gray-900">
+              <h1 className="text-lg max-[500px]:text-base font-bold tracking-tight text-gray-900">
                 {data?.staff.name}'s Order History
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 @{data?.staff.username} • Role: {getRoleBadge(data?.staff.role)}
               </p>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+          {/* Filters - Full width on mobile */}
+          <div className="flex items-center gap-2 relative z-50">
             <DateFilterComponent />
             <StatefulButton
               onClick={handleRefresh}
-              className="w-auto shadow-sm"
+              className="w-auto shadow-sm shrink-0"
             >
               Refresh
             </StatefulButton>
@@ -165,51 +173,49 @@ function StaffOrdersPage() {
 
       <DateRangeDisplay />
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-emerald-100 rounded-lg">
-              <DollarSign className="w-5 h-5 text-emerald-600" />
+      {/* KPI Cards - Compact horizontal layout */}
+      <div className="flex flex-wrap gap-2">
+        <Card className="px-3 py-2 flex-1 min-w-[120px]">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-emerald-100 rounded">
+              <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Total Revenue</p>
-              <p className="text-lg font-bold">₹{totalRevenue}</p>
+              <p className="text-[10px] text-muted-foreground">Revenue</p>
+              <p className="text-sm font-bold">₹{totalRevenue}</p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <ShoppingCart className="w-5 h-5 text-blue-600" />
+        <Card className="px-3 py-2 flex-1 min-w-[100px]">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-blue-100 rounded">
+              <ShoppingCart className="w-3.5 h-3.5 text-blue-600" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Total Orders</p>
-              <p className="text-lg font-bold">{totalOrders}</p>
+              <p className="text-[10px] text-muted-foreground">Orders</p>
+              <p className="text-sm font-bold">{totalOrders}</p>
             </div>
           </div>
         </Card>
 
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-amber-100 rounded-lg">
-              <DollarSign className="w-5 h-5 text-amber-600" />
+        <Card className="px-3 py-2 flex-1 min-w-[100px]">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-amber-100 rounded">
+              <DollarSign className="w-3.5 h-3.5 text-amber-600" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Avg Order Value</p>
-              <p className="text-lg font-bold">
-                ₹{avgOrderValue.toFixed(0) || 0}
-              </p>
+              <p className="text-[10px] text-muted-foreground">Avg Value</p>
+              <p className="text-sm font-bold">₹{avgOrderValue.toFixed(0)}</p>
             </div>
           </div>
         </Card>
       </div>
 
       {/* Orders Table */}
-      <Card className="p-6">
+      <Card className="p-4 max-[500px]:p-2 flex flex-col h-[calc(100vh-19rem)]">
         <h2 className="text-lg font-semibold mb-4">Order History</h2>
-        <div className="space-y-4">
+        <div className="space-y-4 overflow-y-auto flex-1 pr-2">
           {data?.orders &&
             data?.orders.map((order) => (
               <div
@@ -218,7 +224,7 @@ function StaffOrdersPage() {
               >
                 <div className="flex justify-between items-start mb-3">
                   <div>
-                    <p className="font-medium">
+                    <p className="font-medium max-[500px]:text-sm">
                       Order #{order.cart_id.slice(-8)}
                     </p>
                     <p className="text-sm text-muted-foreground">
@@ -237,7 +243,9 @@ function StaffOrdersPage() {
                       )}
                     </p>
                     <p className="text-xs text-muted-foreground capitalize">
-                      {order.order_status}
+                      {order.order_status === 'settled'
+                        ? 'Completed'
+                        : order.order_status}
                     </p>
                   </div>
                 </div>
@@ -291,19 +299,25 @@ function StaffOrdersPage() {
               Page {data.pagination.current_page} of{' '}
               {data.pagination.total_pages}
             </div>
-            <div className="flex gap-2">
-              <StatefulButton
+            <div className="flex gap-1">
+              <Button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={!data.pagination.has_prev_page}
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
               >
-                Previous
-              </StatefulButton>
-              <StatefulButton
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
                 onClick={() => setPage((p) => p + 1)}
                 disabled={!data.pagination.has_next_page}
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
               >
-                Next
-              </StatefulButton>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         )}

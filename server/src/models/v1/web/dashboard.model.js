@@ -21,7 +21,7 @@ const getDashboardStats = async (req) => {
       SELECT COALESCE(SUM(total_amount), 0) as total_sales 
       FROM orders 
       WHERE rid = ${pool.escape(rid)} 
-        AND order_status = 'completed' 
+        AND (order_status = 'completed' OR order_status = 'settled') 
         AND payment_status = 'completed'
         ${dateFilter}
     `;
@@ -154,7 +154,7 @@ const getSalesTrend = async (req) => {
         COUNT(*) as daily_orders
       FROM orders 
       WHERE rid = ${pool.escape(rid)} 
-        AND order_status = 'completed'
+        AND (order_status = 'completed' OR order_status = 'settled')
         ${dateFilter}
       GROUP BY DATE(created_at)
       ORDER BY date ASC
@@ -262,7 +262,7 @@ const getTopSellingItems = async (req) => {
         GROUP BY cart_id
       ) calc ON o.cart_id = calc.cart_id
       WHERE o.rid = ${pool.escape(rid)}
-        AND o.order_status = 'completed'
+        AND (o.order_status = 'completed' OR o.order_status = 'settled')
         ${dateFilter}
       GROUP BY o.item_id, i.name
       ORDER BY total_quantity DESC
@@ -433,7 +433,7 @@ const getRevenueByCategory = async (req) => {
         GROUP BY cart_id
       ) calc ON o.cart_id = calc.cart_id
       WHERE o.rid = ${pool.escape(rid)}
-        AND o.order_status = 'completed'
+        AND (o.order_status = 'completed' OR o.order_status = 'settled')
         ${dateFilter}
       GROUP BY c.id, c.name
       ORDER BY total_revenue DESC
@@ -713,7 +713,7 @@ const getCustomerOrders = async (req) => {
       JOIN users u ON o.customer_id = u.id
       LEFT JOIN inventories i ON o.item_id = i.id
       WHERE o.rid = ${pool.escape(rid)}
-        AND o.order_status = 'completed'
+        AND (o.order_status = 'completed' OR o.order_status = 'settled')
         ${dateFilter}
       GROUP BY u.id
       ORDER BY total_spent DESC

@@ -165,13 +165,13 @@ const get_all_orders = async (req) => {
 
   try {
     const [countResult] = await pool.query(
-      "SELECT COUNT(*) AS total_orders FROM orders WHERE rid = ? AND (order_status = 'completed' OR order_status = 'cancelled') ",
+      "SELECT COUNT(*) AS total_orders FROM orders WHERE rid = ? AND (order_status = 'completed' OR order_status = 'cancelled' OR order_status = 'settled') ",
       [rid]
     );
     const total_orders = countResult[0].total_orders;
 
     const [orders] = await pool.query(
-      "SELECT * FROM orders WHERE rid = ? AND (order_status = 'completed' OR order_status = 'cancelled') LIMIT ?",
+      "SELECT * FROM orders WHERE rid = ? AND (order_status = 'completed' OR order_status = 'cancelled' OR order_status = 'settled') LIMIT ?",
       [rid, parseInt(limit)]
     );
 
@@ -534,7 +534,7 @@ const get_paginated_orders = async (req) => {
     // Build WHERE clause conditions for filtering
     const conditions = [
       "o.rid = ?",
-      "(o.order_status = 'completed' OR o.order_status = 'cancelled')",
+      "(o.order_status = 'completed' OR o.order_status = 'cancelled' OR o.order_status = 'settled')",
     ];
     const params = [rid];
 

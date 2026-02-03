@@ -98,8 +98,15 @@ export default function CustomerDetailsSheet({
               <ScrollArea className="h-[calc(100vh-13rem)] pr-4">
                 <div className="space-y-2">
                   {details?.history?.map((order) => {
-                    const isCompleted = order.order_status === 'completed'
+                    // Treat 'settled' as completed
+                    const isCompleted =
+                      order.order_status === 'completed' ||
+                      order.order_status === 'settled'
                     const isCancelled = order.order_status === 'cancelled'
+                    // Display text: show 'Completed' for both completed and settled
+                    const displayStatus = isCompleted
+                      ? 'Completed'
+                      : order.order_status
 
                     return (
                       <div
@@ -154,7 +161,7 @@ export default function CustomerDetailsSheet({
                                 ) : (
                                   <Package className="w-3.5 h-3.5" />
                                 )}
-                                {order.order_status}
+                                {displayStatus}
                               </div>
                             </div>
                           </div>

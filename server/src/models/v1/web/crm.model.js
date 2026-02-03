@@ -61,7 +61,7 @@ const getRestaurantCustomers = async (rid, timeRange = 'this_month') => {
           SUBSTRING_INDEX(GROUP_CONCAT(i.name ORDER BY o.created_at DESC SEPARATOR ','), ',', 3) as last_order_items_str
         FROM orders o
         LEFT JOIN inventories i ON o.item_id = i.id
-        WHERE o.rid = ? AND o.order_status = 'completed'
+        WHERE o.rid = ? AND (o.order_status = 'completed' OR o.order_status = 'settled')
         GROUP BY o.customer_id
       ) o_stats ON urv.user_id = o_stats.customer_id
       WHERE urv.restaurant_id = ? ${intervalCondition}
@@ -211,8 +211,8 @@ const getCustomerDetails = async (rid, customerId) => {
       SELECT 
         u.id, u.name, u.email, u.phone_number, u.profile_pic,
         urv.visit_count, urv.first_visit_at, urv.last_visit_at,
-        (SELECT SUM(total_amount - COALESCE(discount_amount, 0)) FROM orders WHERE rid = ? AND customer_id = ? AND order_status = 'completed') as total_spent,
-        (SELECT SUM(total_amount - COALESCE(discount_amount, 0)) / COUNT(DISTINCT cart_id) FROM orders WHERE rid = ? AND customer_id = ? AND order_status = 'completed') as avg_order_value
+        (SELECT SUM(total_amount - COALESCE(discount_amount, 0)) FROM orders WHERE rid = ? AND customer_id = ? AND (order_status = 'completed' OR order_status = 'settled')) as total_spent,
+        (SELECT SUM(total_amount - COALESCE(discount_amount, 0)) / COUNT(DISTINCT cart_id) FROM orders WHERE rid = ? AND customer_id = ? AND (order_status = 'completed' OR order_status = 'settled')) as avg_order_value
       FROM users u
       JOIN user_restaurant_visits urv ON u.id = urv.user_id
       WHERE u.id = ? AND urv.restaurant_id = ?

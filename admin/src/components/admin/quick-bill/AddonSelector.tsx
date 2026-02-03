@@ -122,7 +122,7 @@ export default function AddonSelector({
 
   return (
     <div
-      className="w-[300px] flex flex-col gap-3 p-1 max-[500px]:w-full"
+      className="w-[300px] flex flex-col gap-3 p-1 max-[500px]:w-full border border-amber-300 rounded-md bg-amber-50/40"
       onClick={(e) => e.stopPropagation()}
     >
       <div className="flex items-center justify-between px-1">
