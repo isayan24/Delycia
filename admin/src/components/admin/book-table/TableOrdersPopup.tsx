@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Users, CheckCircle2 } from 'lucide-react'
+import { Users, CheckCircle2, DollarSign } from 'lucide-react'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useTableOrdersQuery } from './hooks/useTableOrdersQuery'
@@ -16,10 +16,12 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { useUpdateTableStatus } from './hooks/useUpdateTableStatus'
+import { useSettleCustomerMutation } from './hooks/useSettleCustomerMutation'
 
 interface TableOrdersPopupProps {
   isOpen: boolean
   onClose: () => void
+  onRefresh?: () => void
   tableData: {
     id: number
     table_number: string
@@ -52,6 +54,7 @@ const getTimeAgo = (dateString: string) => {
 export default function TableOrdersPopup({
   isOpen,
   onClose,
+  onRefresh,
   tableData,
 }: TableOrdersPopupProps) {
   const { user } = useAdminAuthQuery()
@@ -60,6 +63,15 @@ export default function TableOrdersPopup({
     null,
   )
   const updateTableStatusMutation = useUpdateTableStatus()
+  const settleCustomerMutation = useSettleCustomerMutation({
+    onSettled: () => {
+      // Clear selection and trigger parent refresh
+      setSelectedCustomerId(null)
+      if (onRefresh) {
+        onRefresh()
+      }
+    },
+  })
 
   const { data: ordersResponse, isLoading } = useTableOrdersQuery({
     table_no: tableData ? parseInt(tableData.table_number) : 0,
@@ -385,6 +397,28 @@ export default function TableOrdersPopup({
                         ))}
                     </div>
                   </ScrollArea>
+
+                  {/* Settle Customer Button */}
+                  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                    <Button
+                      onClick={() => {
+                        if (selectedCustomer && tableData) {
+                          settleCustomerMutation.mutate({
+                            customerId: selectedCustomer.customer_id,
+                            tableNo: parseInt(tableData.table_number),
+                            restaurantId: user?.selected_rid || '',
+                          })
+                        }
+                      }}
+                      disabled={settleCustomerMutation.isPending}
+                      className="w-full bg-green-500 hover:bg-green-600 text-white"
+                    >
+                      <DollarSign className="h-4 w-4 mr-2" />
+                      {settleCustomerMutation.isPending
+                        ? 'Settling...'
+                        : 'Settle & Remove Customer'}
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}

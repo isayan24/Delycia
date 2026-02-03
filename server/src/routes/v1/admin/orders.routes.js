@@ -8,5 +8,6 @@ router.get("/history", authMiddleware, ordersController.get_paginated_orders);
 router.patch("/", authMiddleware, ordersController.update_orders);
 router.post("/merge", authMiddleware, ordersController.merge_orders);
 router.post("/by-table", authMiddleware, ordersController.get_orders_by_table);
+router.post("/settle-customer", authMiddleware, ordersController.settle_customer);
 router.delete("/", authMiddleware, ordersController.delete_order);
 export default router;

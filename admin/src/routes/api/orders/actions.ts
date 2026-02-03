@@ -52,6 +52,14 @@ export const Route = createFileRoute('/api/orders/actions')({
                 preparation_time: body.preparationTime,
               }
               break
+            case 'settle-customer':
+              endpoint = '/admin/orders/settle-customer'
+              payload = {
+                customer_id: body.customerId,
+                table_no: body.tableNo,
+                rid: body.restaurantId,
+              }
+              break
             default:
               return new Response(
                 JSON.stringify({

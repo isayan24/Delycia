@@ -368,7 +368,7 @@ const getOrderByTable = async (data) => {
           AND orders.rid = ?
           AND customer_id IN (${JSON_DATA.customer_ids.map(() => '?').join(',')})
           AND orders.created_at >= NOW() - INTERVAL 2 HOUR
-          AND orders.order_status != 'cancelled'
+          AND orders.order_status NOT IN ('cancelled', 'settled')
         ORDER BY orders.created_at DESC
       `;
       queryParams = [JSON_DATA.table_no, JSON_DATA.rid, ...JSON_DATA.customer_ids];
@@ -389,7 +389,7 @@ const getOrderByTable = async (data) => {
         WHERE table_no = ?
           AND orders.rid = ?
           AND orders.created_at >= NOW() - INTERVAL 2 HOUR
-          AND orders.order_status != 'cancelled'
+          AND orders.order_status NOT IN ('cancelled', 'settled')
         ORDER BY orders.created_at DESC
       `;
       queryParams = [JSON_DATA.table_no, JSON_DATA.rid];
@@ -645,6 +645,64 @@ const get_paginated_orders = async (req) => {
   }
 };
 
+// Settle all orders for a specific customer at a table
+const settleCustomerOrders = async (req) => {
+  const { customer_id, table_no, rid } = req.body;
+
+  console.log(customer_id, table_no, rid, "customer_id, table_no, rid")
+
+  if (!customer_id || !table_no || !rid) {
+    return apiResponse.error(400, "customer_id, table_no, and rid are required");
+  }
+
+  try {
+    const q = `
+      UPDATE orders 
+      SET order_status = 'settled', updated_at = NOW() 
+      WHERE customer_id = ? 
+        AND table_no = ? 
+        AND rid = ?
+        AND order_status NOT IN ('cancelled', 'settled')
+        AND created_at >= NOW() - INTERVAL 2 HOUR
+    `;
+
+    const [result] = await pool.query(q, [customer_id, table_no, rid]);
+
+    if (result.affectedRows === 0) {
+      return apiResponse.success(200, "No orders to settle");
+    }
+
+    // Check if there are any remaining active orders at this table
+    const checkActiveOrdersQuery = `
+      SELECT COUNT(*) as activeCount 
+      FROM orders 
+      WHERE table_no = ? 
+        AND rid = ? 
+        AND order_status NOT IN ('cancelled', 'settled')
+        AND created_at >= NOW() - INTERVAL 2 HOUR
+    `;
+    const [activeOrdersResult] = await pool.query(checkActiveOrdersQuery, [table_no, rid]);
+
+    // If no active orders remain, mark the table as available
+    if (activeOrdersResult[0].activeCount === 0) {
+      const updateTableQuery = `
+        UPDATE tables 
+        SET status = 'available', updated_at = NOW() 
+        WHERE table_number = ? AND rid = ?
+      `;
+      await pool.query(updateTableQuery, [table_no, rid]);
+    }
+
+    // Emit socket events to refresh UI
+    app.io.of("/orders").emit("orders_refresh");
+    app.io.of("/orders-by-table").emit("orders_refresh");
+
+    return apiResponse.success(200, `Settled ${result.affectedRows} order(s) for customer`);
+  } catch (error) {
+    return apiResponse.error(500, error.message);
+  }
+};
+
 export default {
   create_orders,
   get_orders,
@@ -655,4 +713,5 @@ export default {
   get_all_orders,
   get_paginated_orders,
   merge_orders,
+  settleCustomerOrders,
 };

@@ -240,6 +240,11 @@ export default function ShowTables({
       <TableOrdersPopup
         isOpen={isPopupOpen}
         onClose={() => setIsPopupOpen(false)}
+        onRefresh={() => {
+          if (user?.selected_rid) {
+            fetchTables(user.selected_rid)
+          }
+        }}
         tableData={selectedPopupTable}
       />
     </div>

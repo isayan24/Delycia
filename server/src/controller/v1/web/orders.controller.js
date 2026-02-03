@@ -59,6 +59,11 @@ const get_paginated_orders = async (req, res) => {
   res.status(response.statusCode).json(response);
 };
 
+const settle_customer = async (req, res) => {
+  const response = await ordersModel.settleCustomerOrders(req);
+  res.status(response.statusCode).json(response);
+};
+
 export default {
   create_orders,
   get_orders,
@@ -70,4 +75,5 @@ export default {
   get_paginated_orders,
   merge_orders,
   get_orders_by_table,
+  settle_customer,
 };
