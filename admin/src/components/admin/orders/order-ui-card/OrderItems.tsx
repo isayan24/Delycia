@@ -25,7 +25,7 @@ export function OrderItems({ items }: OrderItemsProps) {
               {item.addons && item.addons.length > 0 && (
                 <div className="ml-4 flex flex-col gap-0.5">
                   {item.addons.map((addon: any, addonIndex: number) => (
-                    <span key={addonIndex} className="text-xs text-gray-500">
+                    <span key={addonIndex} className="text-sm text-gray-500">
                       + {addon.quantity > 1 ? `${addon.quantity} x ` : ''}
                       {addon.name}
                     </span>

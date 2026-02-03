@@ -47,6 +47,7 @@ export default function AddCustomerDetails() {
     getTotalAmount,
     clearAllItems,
     refetchTables,
+    partySize,
   } = useTableStore()
 
   const { showError, showSuccess } = useToast()
@@ -158,6 +159,7 @@ export default function AddCustomerDetails() {
         })),
         totalAmount: finalAmount,
         table,
+        partySize,
       }
       await axios.post('/api/waiter-orders', orderData)
       showSuccess('Success', 'Order placed successfully')

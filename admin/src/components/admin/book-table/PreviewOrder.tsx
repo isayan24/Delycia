@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -13,8 +13,10 @@ import {
   Trash2,
   Plus,
   Minus,
+  AlertCircle,
 } from 'lucide-react'
 import { useTableStore } from '@/store/useTableStore'
+import PartySizeSelector from './PartySizeSelector'
 
 interface OrderItem {
   item: {
@@ -37,7 +39,10 @@ export default function PreviewOrder() {
     changeState,
     updateQuantity,
     getTotalAmount,
+    partySize,
   } = useTableStore()
+
+  const [showPartySizeError, setShowPartySizeError] = useState(false)
 
   const onCancelOrder = () => {
     changeState(0)
@@ -47,6 +52,11 @@ export default function PreviewOrder() {
     changeState(1)
   }
   const onConfirmOrder = () => {
+    if (partySize === 0) {
+      setShowPartySizeError(true)
+      return
+    }
+    setShowPartySizeError(false)
     changeState(3)
   }
 
@@ -79,8 +89,8 @@ export default function PreviewOrder() {
         <div className="max-w-4xl mx-auto space-y-3 overflow-auto h-full">
           {/* Table Information */}
           <Card>
-            <CardContent className="p-2">
-              <div className="flex items-center justify-between">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-4">
                   <div className="p-3 bg-primary/10 rounded-full">
                     <MapPin className="h-5 w-5 text-primary" />
@@ -100,6 +110,10 @@ export default function PreviewOrder() {
                     {/* <span>{totalItems} items</span> */}
                   </div>
                 </div>
+              </div>
+              {/* Party Size Selector */}
+              <div className="pt-3 border-t">
+                <PartySizeSelector showError={showPartySizeError} />
               </div>
             </CardContent>
           </Card>

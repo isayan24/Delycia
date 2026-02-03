@@ -9,6 +9,8 @@ interface TableCardProps {
     table_number: string
     status: string
     zone: string
+    capacity?: number
+    party_size?: number
   }
   onSelect: (table: any) => void
   onLongPress: (table: any) => void
@@ -95,6 +97,14 @@ export default function TableCard({
             <div className="text-2xl">{getTableIcon(table.status)}</div>
             <div className="flex items-center justify-center gap-1 text-xs text-gray-600 dark:text-gray-400">
               <Users className="h-3 w-3" />
+              {table.status === 'occupied' && table.party_size ? (
+                <span className="font-medium">
+                  {table.party_size}
+                  {table.capacity ? `/${table.capacity}` : ''}
+                </span>
+              ) : (
+                table.capacity && <span>{table.capacity}</span>
+              )}
             </div>
             <div className="text-xs font-medium text-gray-700 dark:text-gray-300">
               {getStatusText(table.status)}

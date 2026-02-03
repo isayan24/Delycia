@@ -38,6 +38,7 @@ export interface OrderItem {
   discount_amount: number
   special_instructions: string
   total_amount: number
+  party_size?: number
   addons?: any[]
 }
 
@@ -94,6 +95,7 @@ export interface WaiterOrderRequest {
   token: any
   variantId?: number | string
   table?: any
+  partySize?: number
 }
 
 /**

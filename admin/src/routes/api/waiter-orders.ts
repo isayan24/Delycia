@@ -46,8 +46,13 @@ export const Route = createFileRoute('/api/waiter-orders')({
           }
 
           const data: WaiterOrderRequest = await request.json()
-          const { customerDetails, specialInstructions, orderItems, table } =
-            data // Removed token from destructuring
+          const {
+            customerDetails,
+            specialInstructions,
+            orderItems,
+            table,
+            partySize,
+          } = data // Removed token from destructuring
 
           let customer_id: string | undefined
 
@@ -111,6 +116,7 @@ export const Route = createFileRoute('/api/waiter-orders')({
                 special_instructions: specialInstructions,
                 total_amount: item.totalPrice,
                 table_no: table?.table_number || 0,
+                party_size: partySize || 1,
                 placed_by_staff_id: staffId,
                 placed_by_role_id: staffRole,
                 addons: item.addons, // Pass addons to backend

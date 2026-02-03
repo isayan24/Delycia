@@ -26,6 +26,7 @@ interface TableOrdersPopupProps {
     zone: string
     status: string
     capacity?: number
+    party_size?: number
   } | null
 }
 
@@ -195,7 +196,13 @@ export default function TableOrdersPopup({
                 <div className="text-4xl">{getTableIcon(tableData.status)}</div>
                 <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 font-medium">
                   <Users className="h-5 w-5" />
-                  <span>{tableData.capacity || 4}</span>
+                  {tableData.status === 'occupied' && tableData.party_size ? (
+                    <span>
+                      {tableData.party_size}/{tableData.capacity || 4}
+                    </span>
+                  ) : (
+                    <span>{tableData.capacity || 4}</span>
+                  )}
                 </div>
                 <span className="text-lg font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">
                   {getStatusText(tableData.status)}

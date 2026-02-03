@@ -22,7 +22,7 @@ const create_orders = async (req) => {
   try {
     await conn.beginTransaction();
     q =
-      "INSERT INTO orders (rid, cart_id, customer_id, item_id, variant_id, quantity, payment_method, special_instructions, delivery_type, discount_amount, total_amount, table_no, order_status, placed_by_staff_id, placed_by_role_id) VALUES ?";
+      "INSERT INTO orders (rid, cart_id, customer_id, item_id, variant_id, quantity, payment_method, special_instructions, delivery_type, discount_amount, total_amount, table_no, party_size, order_status, placed_by_staff_id, placed_by_role_id) VALUES ?";
     const values = orders.map((order) => [
       order.rid,
       cart_id,
@@ -36,6 +36,7 @@ const create_orders = async (req) => {
       order.discount_amount,
       order.total_amount,
       order.table_no || 0,
+      order.party_size || 1,
       order.order_status || "pending",
       order.placed_by_staff_id || null,
       order.placed_by_role_id || null,
@@ -233,11 +234,36 @@ const getOrders24Hours = async (rid) => {
 };
 
 const update_orders = async (req) => {
+  const conn = await pool.getConnection();
+
   try {
     const { id, ...data } = req.body;
     if (!data) return apiResponse.error(400, "Data is missing!");
 
     for (let key in data) if (!data[key] || key === "id") delete data[key];
+
+    await conn.beginTransaction();
+
+    // Check if we're cancelling an order - need to restore stock
+    if (data.order_status === 'cancelled') {
+      // Fetch current order to get item_id, quantity, and current status
+      const [orderResult] = await conn.query(
+        "SELECT item_id, quantity, order_status FROM orders WHERE id = ?",
+        [id]
+      );
+
+      if (orderResult.length > 0 && orderResult[0].order_status !== 'cancelled') {
+        const { item_id, quantity } = orderResult[0];
+
+        // Restore stock to inventory by incrementing by the order quantity
+        if (item_id && quantity > 0) {
+          await conn.query(
+            "UPDATE inventories SET stock = stock + ? WHERE id = ?",
+            [quantity, item_id]
+          );
+        }
+      }
+    }
 
     let setClause = Object.keys(data)
       .map((key) => `${key} = ?`)
@@ -248,7 +274,10 @@ const update_orders = async (req) => {
 
     q = `UPDATE orders SET ${setClause} WHERE id = ?`;
 
-    const [{ changedRows }] = await pool.query(q, [...values, id]);
+    const [{ changedRows }] = await conn.query(q, [...values, id]);
+
+    await conn.commit();
+
     if (!changedRows)
       return apiResponse.success(
         200,
@@ -259,9 +288,13 @@ const update_orders = async (req) => {
     app.io.of("/orders-by-table").emit("orders_refresh");
     return apiResponse.success(200, "Order updated successfully.");
   } catch (error) {
+    await conn.rollback();
     return apiResponse.error(500, error.message);
+  } finally {
+    conn.release();
   }
 };
+
 
 const delete_order = async (req) => {
   try {

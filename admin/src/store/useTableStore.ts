@@ -19,6 +19,7 @@ interface TableStoreProps {
   itemsData: Record<string, Item>
   table: any
   categoryId: string
+  partySize: number
 
   // Highlighting state
   highlightedItemId: string | null
@@ -31,6 +32,7 @@ interface TableStoreProps {
   updateQuantity: (itemId: string, change: number, itemData: Item) => void
   setTable: (table: any) => void
   setCategoryId: (categoryId: string) => void
+  setPartySize: (size: number) => void
 
   // Highlighting actions
   setHighlightedItem: (itemId: string | null) => void
@@ -53,6 +55,7 @@ export const useTableStore = create<TableStoreProps>((set, get) => ({
   itemsData: {},
   table: {},
   categoryId: '',
+  partySize: 0, // 0 = not selected
 
   // Highlighting initial state
   highlightedItemId: null,
@@ -76,7 +79,11 @@ export const useTableStore = create<TableStoreProps>((set, get) => ({
       orderItems: [],
       quantities: {},
       itemsData: {},
+      partySize: 0, // Initial state for partySize (0 = not selected)
     })
+  },
+  setPartySize: (size) => {
+    set({ partySize: size })
   },
   updateQuantity: (itemId, change, itemData) => {
     const newQuantity = Math.max(0, (get().quantities[itemId] || 0) + change)

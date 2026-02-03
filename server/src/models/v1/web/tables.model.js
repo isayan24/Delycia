@@ -8,9 +8,22 @@ const tableModel = {
     if (!rid) return apiResponse.error(400, "rid is required");
 
     try {
-      const [tables] = await pool.query("SELECT * FROM tables WHERE rid = ?", [
-        rid,
-      ]);
+      // Get tables with party_size from most recent active order for each table
+      const [tables] = await pool.query(
+        `SELECT t.*, 
+          (SELECT o.party_size 
+           FROM orders o 
+           WHERE o.table_no = t.table_number 
+             AND o.rid = t.rid 
+             AND o.order_status NOT IN ('completed', 'cancelled')
+             AND o.created_at >= NOW() - INTERVAL 4 HOUR
+           ORDER BY o.created_at DESC 
+           LIMIT 1
+          ) AS party_size
+         FROM tables t 
+         WHERE t.rid = ?`,
+        [rid]
+      );
 
       return apiResponse.success(200, "success", { tables });
     } catch (err) {
