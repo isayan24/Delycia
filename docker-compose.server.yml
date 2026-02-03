@@ -1,0 +1,58 @@
+# ================================
+# Delycia Server-Only Docker Compose
+# Runs: Backend API Server Only
+# ================================
+
+services:
+  # ================================
+  # Backend API Server
+  # ================================
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: delycia-server
+    restart: unless-stopped
+    ports:
+      - "${SERVER_PORT:-8020}:8020"
+    environment:
+      # Database
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME}
+      - DB_PASS=${DB_PASS}
+      # Server
+      - PORT=8020
+      - NODE_ENV=production
+      # Secrets
+      - ACCESS_SECRET=${ACCESS_SECRET}
+      - REFRESH_SECRET=${REFRESH_SECRET}
+      - HMAC_SECRECT=${HMAC_SECRECT}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      # CORS
+      - ORIGIN=${ORIGIN:-*}
+      - SSL=${SSL:-false}
+      # Twilio
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+    networks:
+      - delycia-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:8020/api/v1/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+# ================================
+# Networks
+# ================================
+networks:
+  delycia-network:
+    driver: bridge

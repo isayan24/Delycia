@@ -1,0 +1,153 @@
+# ================================
+# Delycia Full-Stack Docker Compose
+# Runs: Server + Client + Admin
+# ================================
+
+services:
+  # ================================
+  # Backend API Server
+  # ================================
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: delycia-server
+    restart: unless-stopped
+    ports:
+      - "${SERVER_PORT:-8020}:8020"
+    environment:
+      # Database
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME}
+      - DB_PASS=${DB_PASS}
+      # Server
+      - PORT=8020
+      - NODE_ENV=production
+      # Secrets
+      - ACCESS_SECRET=${ACCESS_SECRET}
+      - REFRESH_SECRET=${REFRESH_SECRET}
+      - HMAC_SECRECT=${HMAC_SECRECT}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      # CORS
+      - ORIGIN=${ORIGIN:-*}
+      - SSL=${SSL:-false}
+      # Twilio
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+    networks:
+      - delycia-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:8020/api/v1/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ================================
+  # Client Application
+  # ================================
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://server:8020/api/v1}
+    container_name: delycia-client
+    restart: unless-stopped
+    ports:
+      - "${CLIENT_PORT:-4000}:4000"
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - HOST=0.0.0.0
+      # Runtime env vars
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - IMAGEKIT_PUBLIC_URL_ENDPOINT=${IMAGEKIT_PUBLIC_URL_ENDPOINT}
+      - IMAGEKIT_PUBLIC_KEY=${IMAGEKIT_PUBLIC_KEY}
+      - NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY=${NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY}
+      - IMAGEKIT_PRIVATE_KEY=${IMAGEKIT_PRIVATE_KEY}
+    depends_on:
+      server:
+        condition: service_healthy
+    networks:
+      - delycia-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:4000/",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ================================
+  # Admin Application
+  # ================================
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+      args:
+        - SERVER_URL=${ADMIN_SERVER_URL:-http://server:8020/api/v1}
+        - WS_SERVER_URL=${WS_SERVER_URL}
+        - CRYPTO_SECRET_KEY=${CRYPTO_SECRET_KEY}
+    container_name: delycia-admin
+    restart: unless-stopped
+    ports:
+      - "${ADMIN_PORT:-4500}:4500"
+    environment:
+      - NODE_ENV=production
+      - PORT=4500
+      - HOST=0.0.0.0
+      # Runtime env vars
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - IMAGEKIT_PUBLIC_URL_ENDPOINT=${IMAGEKIT_PUBLIC_URL_ENDPOINT}
+      - IMAGEKIT_PUBLIC_KEY=${IMAGEKIT_PUBLIC_KEY}
+      - NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY=${NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY}
+      - IMAGEKIT_PRIVATE_KEY=${IMAGEKIT_PRIVATE_KEY}
+      - SERVER_URL=${ADMIN_SERVER_URL:-http://server:8020/api/v1}
+      - WS_SERVER_URL=${WS_SERVER_URL}
+      - CRYPTO_SECRET_KEY=${CRYPTO_SECRET_KEY}
+    depends_on:
+      server:
+        condition: service_healthy
+    networks:
+      - delycia-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:4500/",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+# ================================
+# Networks
+# ================================
+networks:
+  delycia-network:
+    driver: bridge
