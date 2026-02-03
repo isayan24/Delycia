@@ -30,7 +30,11 @@ const useToast = () => {
   const showInfo = (title: any, description: any) => {
     toast.info(title, {
       description,
-      style: { backgroundColor: '#eff6ff', border: '1px solid #3b82f6' },
+      style: {
+        backgroundColor: '#eff6ff',
+        border: '1px solid #3b82f6',
+        color: 'black',
+      },
       icon: <Info className="h-5 w-5 text-blue-500" />,
     })
   }
@@ -38,7 +42,11 @@ const useToast = () => {
   const showWarning = (title: any, description: any) => {
     toast.warning(title, {
       description,
-      style: { backgroundColor: '#fffbeb', border: '1px solid #f59e0b' },
+      style: {
+        backgroundColor: '#fffbeb',
+        border: '1px solid #f59e0b',
+        color: 'black',
+      },
       icon: <AlertCircle className="h-5 w-5 text-yellow-500" />,
     })
   }

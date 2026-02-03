@@ -17,6 +17,7 @@ export const Route = createFileRoute('/api/restaurant/checkout')({
             orderItems,
             // totalPrice,
             customer_id,
+            party_size,
           } = data
 
           console.log(data, 'data in checkout \n\n\n')
@@ -63,6 +64,7 @@ export const Route = createFileRoute('/api/restaurant/checkout')({
               special_instructions: special_instruction,
               total_amount: item.price || 0,
               table_no: table || null, // Add table number to each order item,
+              party_size: party_size || 1,
               addons: item.addons || [],
             }))
 

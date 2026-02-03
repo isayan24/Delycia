@@ -3,7 +3,6 @@
 
 import { NameInputStep } from '@/components/steps/NameInputStep'
 import { ThemeColors } from '@/types/loginTypes'
-
 import { Form } from '@/components/ui/form'
 import { checkoutSchema } from '@/schemas/checkoutSchema'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -26,6 +25,7 @@ import { getUser } from '@/helpers/getUser'
 import TableNotFoundCard from './TableNotFoundCard'
 import { parseAndValidateQRCode } from '@/utils/qrCodeParser'
 import QRCodeScanner from './QRCodeScanner'
+import PartySizeSelector from './PartySizeSelector'
 import {
   Dialog,
   DialogContent,
@@ -47,11 +47,13 @@ export default function Checkout() {
 
   const { user, isLoading } = useAuthQuery()
 
-  console.log(user, 'user \n\n\n\n\n\n')
-
   // QR Scanner state management
   const [showQRScanner, setShowQRScanner] = useState<boolean>(false)
   const [scannerError, setScannerError] = useState<string | null>(null)
+
+  // Party size state
+  const [partySize, setPartySize] = useState<number>(0)
+  const [showPartySizeError, setShowPartySizeError] = useState(false)
 
   useEffect(() => {
     if (user) {
@@ -128,6 +130,7 @@ export default function Checkout() {
         orderItems: filteredCartItems,
         totalPrice: totalPrice,
         customer_id: uid,
+        party_size: partySize,
       })
 
       showSuccess('Success', 'Order placed successfully')
@@ -165,6 +168,13 @@ export default function Checkout() {
   }
 
   const handleSubmit = async (values: any) => {
+    // Validate party size first
+    if (partySize === 0) {
+      setShowPartySizeError(true)
+      return
+    }
+    setShowPartySizeError(false)
+
     if (!user) {
       console.log('no user found \n\n\n')
       openLoginDialog()
@@ -200,7 +210,6 @@ export default function Checkout() {
   const handleScanSuccess = (scannedData: string) => {
     try {
       // Parse and validate the scanned QR code data
-      console.log('Scanned data:', scannedData)
       const validationResult = parseAndValidateQRCode(scannedData)
 
       if (!validationResult.isValid) {
@@ -307,6 +316,14 @@ export default function Checkout() {
 
             <div className="flex gap-4 max-[890px]:flex-col flex-wrap">
               <div className="flex gap-4 flex-col">
+                {/* Party Size Selector */}
+                <div className="p-4 border rounded-lg bg-white">
+                  <PartySizeSelector
+                    partySize={partySize}
+                    setPartySize={setPartySize}
+                    showError={showPartySizeError}
+                  />
+                </div>
                 <PaymentButtons form={form} />
                 <SpecialInstructionArea form={form} />
               </div>

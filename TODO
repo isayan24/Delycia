@@ -2,16 +2,16 @@
 Todo:
 
   Plans Table:
-    ☐ Create a table for user plans expiration date
-    ☐ in the table these columns are needed id, user_id, start_date, end_date, plan_type:(free, premium, pro), status:(active, inactive, expired), created_at, updated_at
+    ☐ Create a table for user plans expiration date 
+    ☐ in the table these columns are needed id, user_id, start_date, end_date, plan_type:(free, premium, pro), status:(active, inactive, expired), created_at, updated_at 
     
 
   Stock:
-    ☐ If user ordered, and if the order is canceled, then the stock should be the same as before 
+    ✔ If user ordered, and if the order is canceled, then the stock should be the same as before @started(26-02-03 09:08) @done(26-02-03 09:27) @lasted(19m12s)
 
   Tables:
-    ☐ In tables and-customer order site, add a field to select how much customers are ordering in the table @started(26-02-03 08:58)
-      - For this i have to create a new column in the orders table as peoples, -> and update this accordingly
+    ☐ In tables and-customer order site, add a field to select how much customers are ordering in the table @started(26-02-03 09:48)
+      - For this i have to create a new column in the orders table as peoples, -> and update this accordingly @started(26-02-03 09:48)
  
 
    Priority Fix: 

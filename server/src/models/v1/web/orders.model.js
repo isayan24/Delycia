@@ -71,6 +71,18 @@ const create_orders = async (req) => {
       await conn.query(addonQ, [addonValues]);
     }
 
+    // Automatically update table status to 'occupied' if table_no is provided
+    const tableNo = orders[0]?.table_no;
+    const rid = orders[0]?.rid;
+    if (tableNo && rid) {
+      const updateTableQ = `
+        UPDATE tables 
+        SET status = 'occupied', updated_at = NOW() 
+        WHERE table_number = ? AND rid = ? AND status = 'available'
+      `;
+      await conn.query(updateTableQ, [tableNo, rid]);
+    }
+
     await conn.commit();
     app.io.of("/orders").emit("orders_refresh");
     app.io.of("/orders-by-table").emit("orders_created", { orders });
@@ -355,13 +367,13 @@ const getOrderByTable = async (data) => {
         WHERE table_no = ?
           AND orders.rid = ?
           AND customer_id IN (${JSON_DATA.customer_ids.map(() => '?').join(',')})
-          AND orders.created_at >= NOW() - INTERVAL 1 HOUR
-          AND orders.order_status NOT IN ('completed', 'cancelled')
+          AND orders.created_at >= NOW() - INTERVAL 2 HOUR
+          AND orders.order_status != 'cancelled'
         ORDER BY orders.created_at DESC
       `;
       queryParams = [JSON_DATA.table_no, JSON_DATA.rid, ...JSON_DATA.customer_ids];
     } else {
-      // Get all active orders for this table
+      // Get all active orders for this table (includes pending, confirmed, preparing, delivered)
       q = `
         SELECT 
           orders.*, 
@@ -376,8 +388,8 @@ const getOrderByTable = async (data) => {
         LEFT JOIN variants ON orders.variant_id = variants.id
         WHERE table_no = ?
           AND orders.rid = ?
-          AND orders.created_at >= NOW() - INTERVAL 1 HOUR
-          AND orders.order_status NOT IN ('completed', 'cancelled')
+          AND orders.created_at >= NOW() - INTERVAL 2 HOUR
+          AND orders.order_status != 'cancelled'
         ORDER BY orders.created_at DESC
       `;
       queryParams = [JSON_DATA.table_no, JSON_DATA.rid];

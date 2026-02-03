@@ -196,9 +196,10 @@ export default function TableOrdersPopup({
                 <div className="text-4xl">{getTableIcon(tableData.status)}</div>
                 <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 font-medium">
                   <Users className="h-5 w-5" />
-                  {tableData.status === 'occupied' && tableData.party_size ? (
+                  {tableData.status === 'occupied' ? (
                     <span>
-                      {tableData.party_size}/{tableData.capacity || 4}
+                      {tableData.party_size || customers.length || '-'}/
+                      {tableData.capacity || 4}
                     </span>
                   ) : (
                     <span>{tableData.capacity || 4}</span>
@@ -328,6 +329,11 @@ export default function TableOrdersPopup({
                                   {order.quantity > 1 && (
                                     <span className="bg-orange-100 text-orange-700 text-[10px] font-bold px-1.5 py-0.5 rounded">
                                       x{order.quantity}
+                                    </span>
+                                  )}
+                                  {order.order_status === 'completed' && (
+                                    <span className="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">
+                                      Delivered
                                     </span>
                                   )}
                                 </div>
