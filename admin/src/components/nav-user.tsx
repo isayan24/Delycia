@@ -4,6 +4,7 @@ import {
   ChevronsUpDown,
   CreditCard,
   LogOut,
+  Settings,
 } from 'lucide-react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -103,6 +104,12 @@ export function NavUser({
                 <DropdownMenuItem>
                   <BadgeCheck />
                   Account
+                </DropdownMenuItem>
+              </Link>
+              <Link to="/settings">
+                <DropdownMenuItem>
+                  <Settings />
+                  Settings
                 </DropdownMenuItem>
               </Link>
 

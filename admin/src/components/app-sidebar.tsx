@@ -39,7 +39,7 @@ const navMain = [
     url: '/billing',
     icon: ShoppingCart,
     color: 'text-indigo-500',
-    isActive: true,
+    isActive: false,
     items: [
       {
         title: 'Quick Bill',
@@ -56,7 +56,7 @@ const navMain = [
     url: '/orders/overview',
     icon: ShoppingBag,
     color: 'text-amber-500',
-    isActive: true,
+    isActive: false,
     items: [
       {
         title: 'Orders',
@@ -73,7 +73,7 @@ const navMain = [
     url: '/inventory',
     icon: Utensils,
     color: 'text-rose-500',
-    isActive: true,
+    isActive: false,
     items: [
       {
         title: 'Manage Menu',
@@ -89,7 +89,7 @@ const navMain = [
     title: 'Reports',
     url: '/reports',
     icon: BarChart3,
-    isActive: true,
+    isActive: false,
     color: 'text-emerald-500',
     items: [
       {

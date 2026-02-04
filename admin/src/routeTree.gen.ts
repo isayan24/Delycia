@@ -15,10 +15,12 @@ import { Route as AffiliateRouteImport } from './routes/affiliate'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UsersIndexRouteImport } from './routes/users/index'
 import { Route as StaffIndexRouteImport } from './routes/staff/index'
+import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as ReportsIndexRouteImport } from './routes/reports/index'
 import { Route as OrdersIndexRouteImport } from './routes/orders/index'
 import { Route as InventoryIndexRouteImport } from './routes/inventory/index'
 import { Route as BillingIndexRouteImport } from './routes/billing/index'
+import { Route as SettingsSubscriptionRouteImport } from './routes/settings/subscription'
 import { Route as ReportsSalesRouteImport } from './routes/reports/sales'
 import { Route as ReportsCrmRouteImport } from './routes/reports/crm'
 import { Route as OrdersOverviewRouteImport } from './routes/orders/overview'
@@ -31,6 +33,7 @@ import { Route as ApiWsTokenRouteImport } from './routes/api/ws-token'
 import { Route as ApiWaiterOrdersRouteImport } from './routes/api/waiter-orders'
 import { Route as ApiUsersRouteImport } from './routes/api/users'
 import { Route as ApiTableRouteImport } from './routes/api/table'
+import { Route as ApiSubscriptionRouteImport } from './routes/api/subscription'
 import { Route as ApiStaffReportsRouteImport } from './routes/api/staff-reports'
 import { Route as ApiRestaurantRouteImport } from './routes/api/restaurant'
 import { Route as ApiQuickBillRouteImport } from './routes/api/quick-bill'
@@ -103,6 +106,11 @@ const StaffIndexRoute = StaffIndexRouteImport.update({
   path: '/staff/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsIndexRoute = SettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReportsIndexRoute = ReportsIndexRouteImport.update({
   id: '/reports/',
   path: '/reports/',
@@ -121,6 +129,11 @@ const InventoryIndexRoute = InventoryIndexRouteImport.update({
 const BillingIndexRoute = BillingIndexRouteImport.update({
   id: '/billing/',
   path: '/billing/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsSubscriptionRoute = SettingsSubscriptionRouteImport.update({
+  id: '/settings/subscription',
+  path: '/settings/subscription',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReportsSalesRoute = ReportsSalesRouteImport.update({
@@ -181,6 +194,11 @@ const ApiUsersRoute = ApiUsersRouteImport.update({
 const ApiTableRoute = ApiTableRouteImport.update({
   id: '/api/table',
   path: '/api/table',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSubscriptionRoute = ApiSubscriptionRouteImport.update({
+  id: '/api/subscription',
+  path: '/api/subscription',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiStaffReportsRoute = ApiStaffReportsRouteImport.update({
@@ -408,6 +426,7 @@ export interface FileRoutesByFullPath {
   '/api/quick-bill': typeof ApiQuickBillRoute
   '/api/restaurant': typeof ApiRestaurantRoute
   '/api/staff-reports': typeof ApiStaffReportsRouteWithChildren
+  '/api/subscription': typeof ApiSubscriptionRoute
   '/api/table': typeof ApiTableRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
@@ -420,10 +439,12 @@ export interface FileRoutesByFullPath {
   '/orders/overview': typeof OrdersOverviewRoute
   '/reports/crm': typeof ReportsCrmRoute
   '/reports/sales': typeof ReportsSalesRoute
+  '/settings/subscription': typeof SettingsSubscriptionRoute
   '/billing': typeof BillingIndexRoute
   '/inventory': typeof InventoryIndexRoute
   '/orders': typeof OrdersIndexRoute
   '/reports': typeof ReportsIndexRoute
+  '/settings': typeof SettingsIndexRoute
   '/staff': typeof StaffIndexRoute
   '/users': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
@@ -473,6 +494,7 @@ export interface FileRoutesByTo {
   '/api/quick-bill': typeof ApiQuickBillRoute
   '/api/restaurant': typeof ApiRestaurantRoute
   '/api/staff-reports': typeof ApiStaffReportsRouteWithChildren
+  '/api/subscription': typeof ApiSubscriptionRoute
   '/api/table': typeof ApiTableRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
@@ -485,10 +507,12 @@ export interface FileRoutesByTo {
   '/orders/overview': typeof OrdersOverviewRoute
   '/reports/crm': typeof ReportsCrmRoute
   '/reports/sales': typeof ReportsSalesRoute
+  '/settings/subscription': typeof SettingsSubscriptionRoute
   '/billing': typeof BillingIndexRoute
   '/inventory': typeof InventoryIndexRoute
   '/orders': typeof OrdersIndexRoute
   '/reports': typeof ReportsIndexRoute
+  '/settings': typeof SettingsIndexRoute
   '/staff': typeof StaffIndexRoute
   '/users': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
@@ -539,6 +563,7 @@ export interface FileRoutesById {
   '/api/quick-bill': typeof ApiQuickBillRoute
   '/api/restaurant': typeof ApiRestaurantRoute
   '/api/staff-reports': typeof ApiStaffReportsRouteWithChildren
+  '/api/subscription': typeof ApiSubscriptionRoute
   '/api/table': typeof ApiTableRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
@@ -551,10 +576,12 @@ export interface FileRoutesById {
   '/orders/overview': typeof OrdersOverviewRoute
   '/reports/crm': typeof ReportsCrmRoute
   '/reports/sales': typeof ReportsSalesRoute
+  '/settings/subscription': typeof SettingsSubscriptionRoute
   '/billing/': typeof BillingIndexRoute
   '/inventory/': typeof InventoryIndexRoute
   '/orders/': typeof OrdersIndexRoute
   '/reports/': typeof ReportsIndexRoute
+  '/settings/': typeof SettingsIndexRoute
   '/staff/': typeof StaffIndexRoute
   '/users/': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
@@ -606,6 +633,7 @@ export interface FileRouteTypes {
     | '/api/quick-bill'
     | '/api/restaurant'
     | '/api/staff-reports'
+    | '/api/subscription'
     | '/api/table'
     | '/api/users'
     | '/api/waiter-orders'
@@ -618,10 +646,12 @@ export interface FileRouteTypes {
     | '/orders/overview'
     | '/reports/crm'
     | '/reports/sales'
+    | '/settings/subscription'
     | '/billing'
     | '/inventory'
     | '/orders'
     | '/reports'
+    | '/settings'
     | '/staff'
     | '/users'
     | '/api/admin/update'
@@ -671,6 +701,7 @@ export interface FileRouteTypes {
     | '/api/quick-bill'
     | '/api/restaurant'
     | '/api/staff-reports'
+    | '/api/subscription'
     | '/api/table'
     | '/api/users'
     | '/api/waiter-orders'
@@ -683,10 +714,12 @@ export interface FileRouteTypes {
     | '/orders/overview'
     | '/reports/crm'
     | '/reports/sales'
+    | '/settings/subscription'
     | '/billing'
     | '/inventory'
     | '/orders'
     | '/reports'
+    | '/settings'
     | '/staff'
     | '/users'
     | '/api/admin/update'
@@ -736,6 +769,7 @@ export interface FileRouteTypes {
     | '/api/quick-bill'
     | '/api/restaurant'
     | '/api/staff-reports'
+    | '/api/subscription'
     | '/api/table'
     | '/api/users'
     | '/api/waiter-orders'
@@ -748,10 +782,12 @@ export interface FileRouteTypes {
     | '/orders/overview'
     | '/reports/crm'
     | '/reports/sales'
+    | '/settings/subscription'
     | '/billing/'
     | '/inventory/'
     | '/orders/'
     | '/reports/'
+    | '/settings/'
     | '/staff/'
     | '/users/'
     | '/api/admin/update'
@@ -802,6 +838,7 @@ export interface RootRouteChildren {
   ApiQuickBillRoute: typeof ApiQuickBillRoute
   ApiRestaurantRoute: typeof ApiRestaurantRoute
   ApiStaffReportsRoute: typeof ApiStaffReportsRouteWithChildren
+  ApiSubscriptionRoute: typeof ApiSubscriptionRoute
   ApiTableRoute: typeof ApiTableRoute
   ApiUsersRoute: typeof ApiUsersRouteWithChildren
   ApiWaiterOrdersRoute: typeof ApiWaiterOrdersRoute
@@ -814,10 +851,12 @@ export interface RootRouteChildren {
   OrdersOverviewRoute: typeof OrdersOverviewRoute
   ReportsCrmRoute: typeof ReportsCrmRoute
   ReportsSalesRoute: typeof ReportsSalesRoute
+  SettingsSubscriptionRoute: typeof SettingsSubscriptionRoute
   BillingIndexRoute: typeof BillingIndexRoute
   InventoryIndexRoute: typeof InventoryIndexRoute
   OrdersIndexRoute: typeof OrdersIndexRoute
   ReportsIndexRoute: typeof ReportsIndexRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
   StaffIndexRoute: typeof StaffIndexRoute
   UsersIndexRoute: typeof UsersIndexRoute
   ApiAdminUpdateRoute: typeof ApiAdminUpdateRoute
@@ -884,6 +923,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/': {
+      id: '/settings/'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reports/': {
       id: '/reports/'
       path: '/reports'
@@ -910,6 +956,13 @@ declare module '@tanstack/react-router' {
       path: '/billing'
       fullPath: '/billing'
       preLoaderRoute: typeof BillingIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/subscription': {
+      id: '/settings/subscription'
+      path: '/settings/subscription'
+      fullPath: '/settings/subscription'
+      preLoaderRoute: typeof SettingsSubscriptionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reports/sales': {
@@ -994,6 +1047,13 @@ declare module '@tanstack/react-router' {
       path: '/api/table'
       fullPath: '/api/table'
       preLoaderRoute: typeof ApiTableRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/subscription': {
+      id: '/api/subscription'
+      path: '/api/subscription'
+      fullPath: '/api/subscription'
+      preLoaderRoute: typeof ApiSubscriptionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/staff-reports': {
@@ -1385,6 +1445,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiQuickBillRoute: ApiQuickBillRoute,
   ApiRestaurantRoute: ApiRestaurantRoute,
   ApiStaffReportsRoute: ApiStaffReportsRouteWithChildren,
+  ApiSubscriptionRoute: ApiSubscriptionRoute,
   ApiTableRoute: ApiTableRoute,
   ApiUsersRoute: ApiUsersRouteWithChildren,
   ApiWaiterOrdersRoute: ApiWaiterOrdersRoute,
@@ -1397,10 +1458,12 @@ const rootRouteChildren: RootRouteChildren = {
   OrdersOverviewRoute: OrdersOverviewRoute,
   ReportsCrmRoute: ReportsCrmRoute,
   ReportsSalesRoute: ReportsSalesRoute,
+  SettingsSubscriptionRoute: SettingsSubscriptionRoute,
   BillingIndexRoute: BillingIndexRoute,
   InventoryIndexRoute: InventoryIndexRoute,
   OrdersIndexRoute: OrdersIndexRoute,
   ReportsIndexRoute: ReportsIndexRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
   StaffIndexRoute: StaffIndexRoute,
   UsersIndexRoute: UsersIndexRoute,
   ApiAdminUpdateRoute: ApiAdminUpdateRoute,

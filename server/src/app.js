@@ -40,6 +40,7 @@ import adminAddonsRoutes from "./routes/v1/admin/addons.routes.js";
 import adminCrmRoutes from "./routes/v1/admin/crm.routes.js";
 import adminInventoryStatsRoutes from "./routes/v1/admin/inventory-stats.routes.js";
 import adminStaffReportsRoutes from "./routes/v1/admin/staff-reports.routes.js";
+import adminSubscriptionsRoutes from "./routes/v1/admin/subscriptions.routes.js";
 // System routes
 import systemDataRoutes from "./routes/v1/system/data.routes.js";
 
@@ -154,6 +155,7 @@ app.use("/api/v1/admin/dashboard", adminDashboardRoutes);
 app.use("/api/v1/admin/addons", adminAddonsRoutes);
 app.use("/api/v1/admin/crm", adminCrmRoutes);
 app.use("/api/v1/admin/staff-reports", adminStaffReportsRoutes);
+app.use("/api/v1/admin/subscriptions", adminSubscriptionsRoutes);
 
 //System routes
 app.use("/api/v1/system/upsells", systemDataRoutes);
