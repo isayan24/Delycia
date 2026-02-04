@@ -100,8 +100,8 @@ export function SubscriptionCard({ subscription }: SubscriptionCardProps) {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-violet-100 text-sm font-medium">Current Plan</p>
-            <h3 className="text-2xl font-bold text-white capitalize">
-              {subscription.plan_type}
+            <h3 className="text-2xl font-bold text-white">
+              {subscription.plan?.name || subscription.plan_type}
             </h3>
           </div>
           <div
@@ -177,7 +177,7 @@ export function SubscriptionCard({ subscription }: SubscriptionCardProps) {
                 {formatCurrency(subscription.amount, subscription.currency)}
               </p>
               <p className="text-xs text-gray-500">
-                per {subscription.plan_type === 'yearly' ? 'year' : 'month'}
+                per {subscription.plan?.billing_period || 'month'}
               </p>
             </div>
           </div>

@@ -54,6 +54,7 @@ import { Route as DemoStartServerFuncsRouteImport } from './routes/demo/start.se
 import { Route as DemoStartApiRequestRouteImport } from './routes/demo/start.api-request'
 import { Route as DemoApiNamesRouteImport } from './routes/demo/api.names'
 import { Route as ApiUsersSearchRouteImport } from './routes/api/users.search'
+import { Route as ApiSubscriptionPlansRouteImport } from './routes/api/subscription.plans'
 import { Route as ApiStaffReportsStaffIdRouteImport } from './routes/api/staff-reports/$staffId'
 import { Route as ApiOrdersOrderHistoryRouteImport } from './routes/api/orders/order-history'
 import { Route as ApiOrdersByTableRouteImport } from './routes/api/orders/by-table'
@@ -302,6 +303,11 @@ const ApiUsersSearchRoute = ApiUsersSearchRouteImport.update({
   path: '/search',
   getParentRoute: () => ApiUsersRoute,
 } as any)
+const ApiSubscriptionPlansRoute = ApiSubscriptionPlansRouteImport.update({
+  id: '/plans',
+  path: '/plans',
+  getParentRoute: () => ApiSubscriptionRoute,
+} as any)
 const ApiStaffReportsStaffIdRoute = ApiStaffReportsStaffIdRouteImport.update({
   id: '/$staffId',
   path: '/$staffId',
@@ -426,7 +432,7 @@ export interface FileRoutesByFullPath {
   '/api/quick-bill': typeof ApiQuickBillRoute
   '/api/restaurant': typeof ApiRestaurantRoute
   '/api/staff-reports': typeof ApiStaffReportsRouteWithChildren
-  '/api/subscription': typeof ApiSubscriptionRoute
+  '/api/subscription': typeof ApiSubscriptionRouteWithChildren
   '/api/table': typeof ApiTableRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
@@ -463,6 +469,7 @@ export interface FileRoutesByFullPath {
   '/api/orders/by-table': typeof ApiOrdersByTableRoute
   '/api/orders/order-history': typeof ApiOrdersOrderHistoryRoute
   '/api/staff-reports/$staffId': typeof ApiStaffReportsStaffIdRoute
+  '/api/subscription/plans': typeof ApiSubscriptionPlansRoute
   '/api/users/search': typeof ApiUsersSearchRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
@@ -494,7 +501,7 @@ export interface FileRoutesByTo {
   '/api/quick-bill': typeof ApiQuickBillRoute
   '/api/restaurant': typeof ApiRestaurantRoute
   '/api/staff-reports': typeof ApiStaffReportsRouteWithChildren
-  '/api/subscription': typeof ApiSubscriptionRoute
+  '/api/subscription': typeof ApiSubscriptionRouteWithChildren
   '/api/table': typeof ApiTableRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
@@ -531,6 +538,7 @@ export interface FileRoutesByTo {
   '/api/orders/by-table': typeof ApiOrdersByTableRoute
   '/api/orders/order-history': typeof ApiOrdersOrderHistoryRoute
   '/api/staff-reports/$staffId': typeof ApiStaffReportsStaffIdRoute
+  '/api/subscription/plans': typeof ApiSubscriptionPlansRoute
   '/api/users/search': typeof ApiUsersSearchRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
@@ -563,7 +571,7 @@ export interface FileRoutesById {
   '/api/quick-bill': typeof ApiQuickBillRoute
   '/api/restaurant': typeof ApiRestaurantRoute
   '/api/staff-reports': typeof ApiStaffReportsRouteWithChildren
-  '/api/subscription': typeof ApiSubscriptionRoute
+  '/api/subscription': typeof ApiSubscriptionRouteWithChildren
   '/api/table': typeof ApiTableRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
@@ -600,6 +608,7 @@ export interface FileRoutesById {
   '/api/orders/by-table': typeof ApiOrdersByTableRoute
   '/api/orders/order-history': typeof ApiOrdersOrderHistoryRoute
   '/api/staff-reports/$staffId': typeof ApiStaffReportsStaffIdRoute
+  '/api/subscription/plans': typeof ApiSubscriptionPlansRoute
   '/api/users/search': typeof ApiUsersSearchRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
@@ -670,6 +679,7 @@ export interface FileRouteTypes {
     | '/api/orders/by-table'
     | '/api/orders/order-history'
     | '/api/staff-reports/$staffId'
+    | '/api/subscription/plans'
     | '/api/users/search'
     | '/demo/api/names'
     | '/demo/start/api-request'
@@ -738,6 +748,7 @@ export interface FileRouteTypes {
     | '/api/orders/by-table'
     | '/api/orders/order-history'
     | '/api/staff-reports/$staffId'
+    | '/api/subscription/plans'
     | '/api/users/search'
     | '/demo/api/names'
     | '/demo/start/api-request'
@@ -806,6 +817,7 @@ export interface FileRouteTypes {
     | '/api/orders/by-table'
     | '/api/orders/order-history'
     | '/api/staff-reports/$staffId'
+    | '/api/subscription/plans'
     | '/api/users/search'
     | '/demo/api/names'
     | '/demo/start/api-request'
@@ -838,7 +850,7 @@ export interface RootRouteChildren {
   ApiQuickBillRoute: typeof ApiQuickBillRoute
   ApiRestaurantRoute: typeof ApiRestaurantRoute
   ApiStaffReportsRoute: typeof ApiStaffReportsRouteWithChildren
-  ApiSubscriptionRoute: typeof ApiSubscriptionRoute
+  ApiSubscriptionRoute: typeof ApiSubscriptionRouteWithChildren
   ApiTableRoute: typeof ApiTableRoute
   ApiUsersRoute: typeof ApiUsersRouteWithChildren
   ApiWaiterOrdersRoute: typeof ApiWaiterOrdersRoute
@@ -1196,6 +1208,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiUsersSearchRouteImport
       parentRoute: typeof ApiUsersRoute
     }
+    '/api/subscription/plans': {
+      id: '/api/subscription/plans'
+      path: '/plans'
+      fullPath: '/api/subscription/plans'
+      preLoaderRoute: typeof ApiSubscriptionPlansRouteImport
+      parentRoute: typeof ApiSubscriptionRoute
+    }
     '/api/staff-reports/$staffId': {
       id: '/api/staff-reports/$staffId'
       path: '/$staffId'
@@ -1417,6 +1436,18 @@ const ApiStaffReportsRouteWithChildren = ApiStaffReportsRoute._addFileChildren(
   ApiStaffReportsRouteChildren,
 )
 
+interface ApiSubscriptionRouteChildren {
+  ApiSubscriptionPlansRoute: typeof ApiSubscriptionPlansRoute
+}
+
+const ApiSubscriptionRouteChildren: ApiSubscriptionRouteChildren = {
+  ApiSubscriptionPlansRoute: ApiSubscriptionPlansRoute,
+}
+
+const ApiSubscriptionRouteWithChildren = ApiSubscriptionRoute._addFileChildren(
+  ApiSubscriptionRouteChildren,
+)
+
 interface ApiUsersRouteChildren {
   ApiUsersSearchRoute: typeof ApiUsersSearchRoute
 }
@@ -1445,7 +1476,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiQuickBillRoute: ApiQuickBillRoute,
   ApiRestaurantRoute: ApiRestaurantRoute,
   ApiStaffReportsRoute: ApiStaffReportsRouteWithChildren,
-  ApiSubscriptionRoute: ApiSubscriptionRoute,
+  ApiSubscriptionRoute: ApiSubscriptionRouteWithChildren,
   ApiTableRoute: ApiTableRoute,
   ApiUsersRoute: ApiUsersRouteWithChildren,
   ApiWaiterOrdersRoute: ApiWaiterOrdersRoute,

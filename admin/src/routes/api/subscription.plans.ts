@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import axiosInstance from '@/lib/axios'
 import { getAccessTokenFromCookie } from '@/lib/server-cookies'
 
-export const Route = createFileRoute('/api/subscription')({
+export const Route = createFileRoute('/api/subscription/plans')({
   server: {
     handlers: {
       GET: async ({ request }) => {
@@ -21,24 +21,9 @@ export const Route = createFileRoute('/api/subscription')({
             )
           }
 
-          // Get rid from query parameters
-          const url = new URL(request.url)
-          const rid = url.searchParams.get('rid')
-
-          if (!rid) {
-            return new Response(
-              JSON.stringify({
-                statusCode: 400,
-                message: 'Restaurant ID is required',
-                error: true,
-              }),
-              { status: 400, headers: { 'Content-Type': 'application/json' } },
-            )
-          }
-
-          // Fetch subscription from backend
+          // Fetch plans from backend
           const response = await axiosInstance.get(
-            `/admin/subscriptions?rid=${rid}`,
+            `/admin/subscriptions/plans`,
             {
               headers: {
                 Authorization: `Bearer ${accessToken}`,
@@ -50,23 +35,16 @@ export const Route = createFileRoute('/api/subscription')({
             JSON.stringify({
               statusCode: 200,
               message: 'success',
-              subscription: response.data?.subscription || null,
-              has_subscription: response.data?.has_subscription || false,
-              is_in_grace_period: response.data?.is_in_grace_period || false,
-              is_hard_blocked: response.data?.is_hard_blocked || false,
-              grace_period_days_remaining:
-                response.data?.grace_period_days_remaining || 0,
+              plans: response.data?.plans || [],
             }),
             { status: 200, headers: { 'Content-Type': 'application/json' } },
           )
         } catch (error: any) {
-          console.error('Error fetching subscription:', error)
+          console.error('Error fetching plans:', error)
           return new Response(
             JSON.stringify({
               statusCode: error.response?.status || 500,
-              message:
-                error.response?.data?.message ||
-                'Failed to fetch subscription details',
+              message: error.response?.data?.message || 'Failed to fetch plans',
               error: true,
             }),
             {

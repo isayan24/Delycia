@@ -71,11 +71,26 @@ function SubscriptionPage() {
       </div>
 
       {/* Plan Comparison */}
-      <div>
+      <div className="mb-8">
         <h2 className="text-lg font-semibold text-gray-800 mb-4">
           Available Plans
         </h2>
-        <PlanComparison currentPlanType={subscription?.plan_type} />
+        <PlanComparison
+          currentPlanType={subscription?.plan?.code || subscription?.plan_type}
+        />
+      </div>
+
+      {/* Contact for Renewal */}
+      <div className="bg-violet-50 border border-violet-200 rounded-lg p-4 text-center">
+        <p className="text-gray-700">
+          For subscription renewal, contact us at{' '}
+          <a
+            href="tel:9083928843"
+            className="font-semibold text-violet-700 hover:underline"
+          >
+            9083928843
+          </a>
+        </p>
       </div>
     </div>
   )

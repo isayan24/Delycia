@@ -1,65 +1,12 @@
 import { Check, Star } from 'lucide-react'
+import {
+  usePlansQuery,
+  type SubscriptionPlan,
+} from '@/hooks/queries/useSubscriptionQuery'
 
 interface PlanComparisonProps {
-  currentPlanType: 'monthly' | 'yearly' | undefined
+  currentPlanType: string | undefined
 }
-
-interface Plan {
-  id: string
-  name: string
-  plan_type: 'monthly' | 'yearly'
-  price: number
-  currency: string
-  billing_period: string
-  savings?: number
-  is_popular: boolean
-  features: string[]
-}
-
-// Static plans - same features, different pricing
-const plans: Plan[] = [
-  {
-    id: 'monthly',
-    name: 'Monthly',
-    plan_type: 'monthly',
-    price: 499,
-    currency: 'INR',
-    billing_period: 'month',
-    is_popular: false,
-    features: [
-      'Unlimited Orders',
-      'Real-time Order Tracking',
-      'Staff Management',
-      'Inventory Management',
-      'Sales Reports & Analytics',
-      'Customer Management (CRM)',
-      'Table Management',
-      'QR Code Ordering',
-      'Priority Support',
-    ],
-  },
-  {
-    id: 'yearly',
-    name: 'Yearly',
-    plan_type: 'yearly',
-    price: 4999,
-    currency: 'INR',
-    billing_period: 'year',
-    savings: 989, // 499*12 - 4999
-    is_popular: true,
-    features: [
-      'Unlimited Orders',
-      'Real-time Order Tracking',
-      'Staff Management',
-      'Inventory Management',
-      'Sales Reports & Analytics',
-      'Customer Management (CRM)',
-      'Table Management',
-      'QR Code Ordering',
-      'Priority Support',
-    ],
-  },
-]
 
 /**
  * Format currency
@@ -73,9 +20,33 @@ function formatCurrency(amount: number, currency: string): string {
 }
 
 export function PlanComparison({ currentPlanType }: PlanComparisonProps) {
+  const { data, isLoading, error } = usePlansQuery()
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="bg-gray-100 rounded-xl h-96 animate-pulse" />
+        ))}
+      </div>
+    )
+  }
+
+  if (error || !data?.plans?.length) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <p className="text-red-700">
+          Failed to load plans. Please try again later.
+        </p>
+      </div>
+    )
+  }
+
+  const plans = data.plans
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {plans.map((plan) => {
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {plans.map((plan: SubscriptionPlan) => {
         const isCurrentPlan = currentPlanType === plan.plan_type
 
         return (
@@ -119,9 +90,14 @@ export function PlanComparison({ currentPlanType }: PlanComparisonProps) {
                   / {plan.billing_period}
                 </span>
               </div>
-              {plan.savings && (
+              {plan.savings > 0 && (
                 <p className="text-sm text-green-600 font-medium mt-1">
                   Save {formatCurrency(plan.savings, plan.currency)} per year
+                </p>
+              )}
+              {plan.max_restaurants > 1 && (
+                <p className="text-xs text-violet-600 font-medium mt-1">
+                  Up to {plan.max_restaurants} restaurants
                 </p>
               )}
             </div>
@@ -132,7 +108,7 @@ export function PlanComparison({ currentPlanType }: PlanComparisonProps) {
                 All Features Included
               </p>
               <ul className="space-y-2.5">
-                {plan.features.map((feature, index) => (
+                {plan.features.map((feature: string, index: number) => (
                   <li key={index} className="flex items-start gap-2">
                     <Check className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
                     <span className="text-sm text-gray-700">{feature}</span>
@@ -141,7 +117,7 @@ export function PlanComparison({ currentPlanType }: PlanComparisonProps) {
               </ul>
             </div>
 
-            {/* Action Button - Disabled for now as upgrade flow is not implemented */}
+            {/* Action Button */}
             <div className="px-6 pb-6">
               {isCurrentPlan ? (
                 <div className="w-full py-2.5 text-center text-sm font-medium text-violet-700 bg-violet-50 rounded-lg border border-violet-200">

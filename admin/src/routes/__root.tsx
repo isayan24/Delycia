@@ -29,6 +29,7 @@ import { useRoleBasedUI } from '@/components/user-roles/useRoleBasedUI'
 import WaiterHeader from '@/components/admin/header/WaiterHeader'
 import { Separator } from '@/components/ui/separator'
 import RouteBreadcrumbs from '@/components/common/RouteBreadcrumbs'
+import { SubscriptionGuard } from '@/components/admin/settings/SubscriptionGuard'
 
 // Note: We don't define beforeLoad here because we get auth from component
 // and pass it via router instantiation in the app setup
@@ -135,21 +136,23 @@ function RootComponent() {
             <SidebarProvider className="darks">
               <AppSidebar />
               <SidebarInset className="relative">
-                <header className="flex h-10 shrink-0 items-center gap-2 border-b px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-                  <SidebarTrigger className="-ml-1" />
-                  {/* <Separator orientation="vertical" className="mr-2 h-4" /> */}
-                  <RouteBreadcrumbs />
-                </header>
+                <SubscriptionGuard>
+                  <header className="flex h-10 shrink-0 items-center gap-2 border-b px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+                    <SidebarTrigger className="-ml-1" />
+                    {/* <Separator orientation="vertical" className="mr-2 h-4" /> */}
+                    <RouteBreadcrumbs />
+                  </header>
 
-                <div className="p-5 max-[500px]:p-1 max-w-[90vw]s mx-autod borderx">
-                  <Toaster
-                    position="top-center"
-                    richColors
-                    // closeButton
-                    duration={4000}
-                  />
-                  <Outlet />
-                </div>
+                  <div className="p-5 max-[500px]:p-1 max-w-[90vw]s mx-autod borderx">
+                    <Toaster
+                      position="top-center"
+                      richColors
+                      // closeButton
+                      duration={4000}
+                    />
+                    <Outlet />
+                  </div>
+                </SubscriptionGuard>
               </SidebarInset>
             </SidebarProvider>
           ) : (
