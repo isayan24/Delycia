@@ -3,13 +3,12 @@ import "dotenv/config";
 import pool from "./config/db.connection.js";
 import { initScheduler, shutdownScheduler } from "./jobs/scheduler.js";
 
-const host = "192.168.0.115";
-const port = process.env.PORT;
+const port = process.env.PORT || 3000;
 
 // Start server
-app.server.listen(port || 8080, () => {
+app.server.listen(port, () => {
   console.log(
-    `Server has started : http://localhost:${process.env.PORT || 8080}`
+    `Server has started : http://localhost:${port}`
   );
 
   // Initialize scheduled jobs
