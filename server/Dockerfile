@@ -6,6 +6,9 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 
+# Install build dependencies for native modules (e.g., bcrypt)
+RUN apk add --no-cache python3 make g++
+
 # Copy package files
 COPY package*.json ./
 
@@ -18,6 +21,9 @@ RUN npm ci --only=production
 FROM node:20-alpine AS runner
 WORKDIR /app
 
+# Install tini for signal handling
+RUN apk add --no-cache tini
+
 # Create non-root user for security
 RUN addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 nodeuser
@@ -27,9 +33,6 @@ COPY --from=deps /app/node_modules ./node_modules
 
 # Copy application source
 COPY --chown=nodeuser:nodejs . .
-
-# Remove unnecessary files
-RUN rm -rf .env .git .gitignore
 
 # Set environment variables
 ENV NODE_ENV=production
@@ -45,5 +48,6 @@ USER nodeuser
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD node -e "require('http').get('http://localhost:8020/api/v1/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))" || exit 1
 
-# Start the server
+# Start the server using tini
+ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["node", "src/index.js"]

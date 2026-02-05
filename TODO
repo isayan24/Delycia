@@ -1,40 +1,26 @@
+Priority Fix:
+  ☐ Apply GST on orders for admin
 
-Todo:
 
-  Plans Table:
-    ☐ Create a table for user plans expiration date 
-    ☐ in the table these columns are needed id, user_id, start_date, end_date, plan_type:(free, premium, pro), status:(active, inactive, expired), created_at, updated_at 
-    
-
-  Stock:
-    ✔ If user ordered, and if the order is canceled, then the stock should be the same as before @started(26-02-03 09:08) @done(26-02-03 09:27) @lasted(19m12s)
-
-  Tables:
-    ☐ In tables and-customer order site, add a field to select how much customers are ordering in the table @started(26-02-03 09:48)
-      - For this i have to create a new column in the orders table as peoples, -> and update this accordingly @started(26-02-03 09:48)
- 
-
-   Priority Fix: 
-    ☐ Middleware: if there is no user, only the login page is accesible -> do it
-  
-    
+Todo: 
   Cart:
     ☐ Create rid column in the cart table
     ☐ Sync cart when user has logged in: sync with the redux
  
 
+  Client-Side:
+    ☐ current route delycia.com/?rid=123 = for fetching restaurant data, and the rid stored in the cookie
+       - So instead of direct rid.. can the domain will be like calcutta-retro.delycia.com??
+       - So in this way it looks more special for the restaurant itself
+    ☐ Add preparation time for order if not exist
+    ☐ Fixed the scanner issue, means if there is no table stored in the cookie.. then a scanner can be oppened after clicking on the scanner btn
 
 Features:  
 
   Super Admin Site:
     ☐ Add a site for super admin to manage all the delycia restaurants
     ☐ From there i can crud restaurant owners as well!
-
-  Notification System:
-    ☐ Add a notification system for admin and staffs
-    ☐ Create a slider based or sidebar to the right side, from here notifications will store
-    ☐ Notifications like stock alerts, new order, order canceled, staff online etc
-
+ 
    
   Delycia Wallet:
     ☐ Add wallet to the user profile
