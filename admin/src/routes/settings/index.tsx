@@ -54,14 +54,14 @@ function SettingsPage() {
           </div>
         </Link>
 
-        {/* Restaurant Settings Card - Placeholder */}
-        <div className="flex-1 min-w-[18rem] opacity-50 cursor-not-allowed">
-          <div className="relative rounded-xl border-2 h-[13rem] border-blue-600 overflow-hidden bg-blue-200 flex flex-col">
+        {/* Restaurant Settings Card */}
+        <Link to="/settings/restaurant" className="flex-1 min-w-[18rem]">
+          <div className="relative rounded-xl border-2 h-[13rem] border-blue-600 overflow-hidden bg-blue-200 flex flex-col group hover:shadow-lg transition-shadow">
             {/* Upper white section */}
             <div className="h-full bg-white rounded-xl flex flex-col items-center justify-center">
               <div className="flex flex-col items-center space-y-2 rounded-xl">
                 {/* Icon */}
-                <div className="w-14 h-14 flex items-center justify-center rounded-full bg-blue-100">
+                <div className="w-14 h-14 flex items-center justify-center rounded-full bg-blue-100 group-hover:bg-blue-200 transition-colors">
                   <Building2
                     className="w-8 h-8 text-blue-600"
                     strokeWidth={2}
@@ -72,19 +72,23 @@ function SettingsPage() {
                   <p className="text-lg font-medium text-gray-700">
                     Restaurant Settings
                   </p>
-                  <p className="text-sm text-gray-500 mt-1">Coming Soon</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Manage status, tax & more
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Bottom action area */}
-            <div className="relative w-full flex justify-center h-8 opacity-75">
+            <div className="relative cursor-pointer w-full flex justify-center h-8 opacity-75">
               <span className="flex gap-1 items-center text-sm text-blue-700">
-                Coming Soon
+                View Details
+                <ChevronRight className="w-4 h-4" strokeWidth={3} />
+                <ChevronRight className="w-4 h-4 -ml-3" strokeWidth={3} />
               </span>
             </div>
           </div>
-        </div>
+        </Link>
 
         {/* Account Settings Card */}
         <Link to="/settings/account" className="flex-1 min-w-[18rem]">

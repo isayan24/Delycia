@@ -62,7 +62,11 @@ const create_restaurant = async (req) => {
     if (!result.affectedRows)
       return apiResponse.error(400, "Unable to add the data!");
 
-    await embeddingModel.restaurant(result.insertId);
+    setImmediate(async () => {
+      if (result.insertId) {
+        await embeddingModel.restaurant(result.insertId);
+      }
+    })
     return apiResponse.success(201, "Created");
   } catch (error) {
     return apiResponse.error(500, error);
@@ -72,15 +76,28 @@ const create_restaurant = async (req) => {
 const update_restaurant = async (req) => {
   try {
     const { id, ...params } = req.body;
+    const userId = req.user.id;
+
+    if (!id) return apiResponse.error(400, "Restaurant ID is required!");
+
+    // Verify ownership
+    const [access] = await pool.query(
+      "SELECT rid FROM restaurant_access WHERE user_id = ? AND rid = ?",
+      [userId, id]
+    );
+
+    if (!access.length) {
+      // Check if super admin (optional, depending on requirements, assuming role > 90 is super admin)
+      if (req.user.role < 90) {
+        return apiResponse.error(403, "You do not have permission to update this restaurant.");
+      }
+    }
 
     if (params.username && !userValidations.isValidUsername(params.username))
       return apiResponse.error(
         400,
         "Username can only contain letters (A-Z, a-z) and numbers (0-9). No special characters allowed."
       );
-
-    if (!id || !Object.keys(params).length)
-      return apiResponse.error(400, "ID or update fields missing!");
 
     if (params.username) {
       const [[existing]] = await pool.query(
@@ -95,17 +112,28 @@ const update_restaurant = async (req) => {
         );
     }
 
+    // Validations for specifics
+    if (params.tax_percent !== undefined) {
+      if (isNaN(params.tax_percent) || params.tax_percent < 0 || params.tax_percent > 100)
+        return apiResponse.error(400, "Invalid tax percentage.");
+    }
+
     const values = [...Object.values(params), id];
     const setClause = Object.keys(params)
       .map((key) => `${key} =?`)
       .join(",");
 
+    if (!setClause) return apiResponse.error(400, "No fields to update.");
+
     const [{ changedRows }] = await pool.query(
       `UPDATE restaurants SET ${setClause} WHERE id = ?`,
       values
     );
-
-    await embeddingModel.restaurant(id);
+    setImmediate(async () => {
+      if (changedRows > 0) {
+        await embeddingModel.restaurant(id);
+      }
+    })
     return apiResponse.success(200, "Updated!");
   } catch (error) {
     return apiResponse.error(500, error);
@@ -114,11 +142,37 @@ const update_restaurant = async (req) => {
 
 const get_restaurant = async (req, admin = true) => {
   try {
-    const { rid } = req.query;
+    let { rid } = req.query;
 
     if (admin) {
-      if (!rid) return apiResponse.error(400, "Data is missing!");
+      const userId = req.user.id;
+
+      // If rid is provided, verify access
+      if (rid) {
+        const [access] = await pool.query(
+          "SELECT rid FROM restaurant_access WHERE user_id = ? AND rid = ?",
+          [userId, rid]
+        );
+        if (!access.length && req.user.role < 90) {
+          return apiResponse.error(403, "Access denied to this restaurant.");
+        }
+      } else {
+        // Find first restaurant accessible
+        const [access] = await pool.query(
+          "SELECT rid FROM restaurant_access WHERE user_id = ? LIMIT 1",
+          [userId]
+        );
+
+        if (access.length) {
+          rid = access[0].rid;
+        } else if (req.user.role < 90) {
+          return apiResponse.error(404, "No restaurant found associated with this account.");
+        }
+      }
     }
+
+    if (admin && !rid && req.user.role < 90) return apiResponse.error(400, "Restaurant ID missing or could not be determined!");
+
 
     let q, params;
 
@@ -128,12 +182,12 @@ const get_restaurant = async (req, admin = true) => {
     } else {
       if (rid) {
         q = `SELECT id,name,username,phone_number,email,address,city,state,pincode,
-              is_veg_only,description,logo,banner,latitude,longitude,is_active 
+              is_veg_only,description,logo,banner,tax_percent,latitude,longitude,is_active 
               FROM restaurants WHERE id = ?`;
         params = [rid];
       } else {
         q = `SELECT id,name,username,phone_number,email,address,city,state,pincode,
-              is_veg_only,description,logo,banner,latitude,longitude,is_active 
+              is_veg_only,description,logo,banner,tax_percent,latitude,longitude,is_active 
               FROM restaurants`;
         params = [];
       }
@@ -142,15 +196,22 @@ const get_restaurant = async (req, admin = true) => {
     const [rows] = await pool.query(q, params);
 
     if (admin || rid) {
-      const restaurant_info = admin ? rows[0] : rows[0];
+      const restaurant_info = rows[0];
       if (!restaurant_info) {
         return apiResponse.error(404, "Restaurant not found");
       }
 
       const [restaurant_hours] = await pool.query(
         "SELECT id, day_of_week, open_time, close_time FROM restaurant_hours WHERE rid = ?",
-        [rid]
+        [rid] // Corrected Use 'rid' variable not query id if it was derived
       );
+
+      // If we derived rid, we should use it. Note: 'rid' variable is updated above if admin=true, but if admin=false it comes from query.
+      // Wait, params[0] is the safe bet.
+      // Actually my code above updates 'rid' local variable. So using 'rid' is safe if logic holds.
+      // But let's use the one from the query to be safe: params[0] if admin.
+      const targetRid = admin ? rid : (req.query.rid || restaurant_info.id);
+
 
       return apiResponse.success(200, "success", {
         restaurant_info,

@@ -1,33 +1,35 @@
 /* eslint-disable @next/next/no-img-element */
 
-import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
-import { fileToBase64 } from "@/helpers/image/fileToBase64";
-import useToast from "@/hooks/UseToast";
-import { Images, Upload, X } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
+import { fileToBase64 } from '@/helpers/image/fileToBase64'
+import useToast from '@/hooks/UseToast'
+import { Images, Upload, X } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
 
 interface CategoryImage {
-  image: string | null;
-  previewImage: string | null;
+  image: string | null
+  previewImage: string | null
 }
 
 export default function AddImage({
   OldImage,
   onImageUpload,
   required = false,
+  inputId = 'categoryImage',
 }: {
-  OldImage?: string | null;
-  onImageUpload: any;
-  required?: boolean;
+  OldImage?: string | null
+  onImageUpload: any
+  required?: boolean
+  inputId?: string
 }) {
   const [categoryImage, setCategoryImage] = useState<CategoryImage>({
     image: OldImage || null,
     previewImage: null,
-  });
-  const [isImageLoading, setIsImageLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { showError } = useToast();
+  })
+  const [isImageLoading, setIsImageLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const { showError } = useToast()
 
   // Initialize on mount - set the existing image as valid
   useEffect(() => {
@@ -36,17 +38,17 @@ export default function AddImage({
       setCategoryImage({
         image: OldImage,
         previewImage: null,
-      });
+      })
 
       // Important: Tell parent component we have a valid image
-      if (typeof onImageUpload === "function") {
-        onImageUpload("VALID_IMAGE");
+      if (typeof onImageUpload === 'function') {
+        onImageUpload('VALID_IMAGE')
       }
       // Clear any errors since we have a valid image
-      setError(null);
+      setError(null)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [])
 
   // Handle when OldImage prop changes
   useEffect(() => {
@@ -54,62 +56,62 @@ export default function AddImage({
       setCategoryImage((prev) => ({
         ...prev,
         image: OldImage,
-      }));
+      }))
       // Clear errors since we have a valid image
-      setError(null);
+      setError(null)
     }
-  }, [OldImage]);
+  }, [OldImage])
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0]
 
-    if (!file) return;
+    if (!file) return
 
-    setIsImageLoading(true);
-    setError(null);
+    setIsImageLoading(true)
+    setError(null)
 
     try {
       // Convert to base64 for ImageKit SDK
-      const base64Avatar = await fileToBase64(file);
-      const base64Data = base64Avatar.split(",")[1];
+      const base64Avatar = await fileToBase64(file)
+      const base64Data = base64Avatar.split(',')[1]
 
       // Create object URL for preview
-      const previewUrl = URL.createObjectURL(file);
+      const previewUrl = URL.createObjectURL(file)
 
       // Update state with preview URL
       setCategoryImage({
         image: null,
         previewImage: previewUrl,
-      });
+      })
 
       // Send base64 data to parent component
-      onImageUpload(base64Data);
+      onImageUpload(base64Data)
     } catch (error) {
-      console.error("Error processing image:", error);
-      setError("Failed to process image. Please try another one.");
-      setIsImageLoading(false);
+      console.error('Error processing image:', error)
+      setError('Failed to process image. Please try another one.')
+      setIsImageLoading(false)
     }
-  };
+  }
 
   const handleRemoveImage = () => {
     setCategoryImage({
       image: null,
       previewImage: null,
-    });
+    })
 
     // If image is required, show error when removed
     if (required) {
-      setError("Image is required");
-      showError("Error", "Image is required");
+      setError('Image is required')
+      showError('Error', 'Image is required')
     }
     // Send null to parent component
-    onImageUpload(null);
-  };
+    onImageUpload(null)
+  }
 
   // Handle image loading
   const handleImageLoaded = () => {
-    setIsImageLoading(false);
-  };
+    setIsImageLoading(false)
+  }
 
   return (
     <div className="mb-4 space-y-2">
@@ -118,15 +120,15 @@ export default function AddImage({
           className={`
             relative bg-gray-50 shrink-0 !w-[9rem] h-[5rem] rounded-md overflow-hidden  
             flex items-center justify-center border transition-colors
-            ${error ? "border-red-500 bg-red-50" : "border-input"} 
-            ${!categoryImage.previewImage && !categoryImage.image ? "border-dashed" : ""}
+            ${error ? 'border-red-500 bg-red-50' : 'border-input'} 
+            ${!categoryImage.previewImage && !categoryImage.image ? 'border-dashed' : ''}
           `}
         >
           <input
             className="hidden"
             type="file"
-            id="categoryImage"
-            name="categoryImage"
+            id={inputId}
+            name={inputId}
             onChange={handleAvatarChange}
             accept="image/*"
           />
@@ -142,14 +144,14 @@ export default function AddImage({
               <>
                 <img
                   key={`img-${categoryImage.previewImage || categoryImage.image}`}
-                  src={categoryImage.previewImage || categoryImage.image || ""}
+                  src={categoryImage.previewImage || categoryImage.image || ''}
                   alt="Food item image"
                   loading="lazy"
                   className="object-cover h-full w-full"
                   onLoad={handleImageLoaded}
                   onError={() => {
-                    setIsImageLoading(false);
-                    setError("Failed to load image");
+                    setIsImageLoading(false)
+                    setError('Failed to load image')
                   }}
                 />
                 <button
@@ -163,7 +165,7 @@ export default function AddImage({
               </>
             ) : (
               <Label
-                htmlFor="categoryImage"
+                htmlFor={inputId}
                 className="flex flex-col items-center justify-center p-4 text-muted-foreground"
               >
                 <Images className="h-10 w-10 mb-2 opacity-70" />
@@ -174,17 +176,17 @@ export default function AddImage({
 
         <div className="flex flex-col gap-2">
           <p
-            className={`text-xs italic flex-wrap ${error ? "text-red-500 font-medium" : "text-muted-foreground"}`}
+            className={`text-xs italic flex-wrap ${error ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}
           >
             {error ||
               (required
-                ? "Upload a high-quality image of your food item (required)"
-                : "Add an image of your food item")}
+                ? 'Upload a high-quality image of your food item (required)'
+                : 'Add an image of your food item')}
           </p>
 
           <div className="flex gap-1">
             <label
-              htmlFor="categoryImage"
+              htmlFor={inputId}
               className="cursor-pointer flex items-center gap-2 px-3 py-2 rounded-md border border-input bg-background hover:bg-accent text-xs font-medium transition-colors"
             >
               <Upload className="h-3 w-3" />
@@ -194,5 +196,5 @@ export default function AddImage({
         </div>
       </div>
     </div>
-  );
+  )
 }

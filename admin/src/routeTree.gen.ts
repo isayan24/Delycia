@@ -26,6 +26,7 @@ import { Route as OrdersIndexRouteImport } from './routes/orders/index'
 import { Route as InventoryIndexRouteImport } from './routes/inventory/index'
 import { Route as BillingIndexRouteImport } from './routes/billing/index'
 import { Route as SettingsSubscriptionRouteImport } from './routes/settings/subscription'
+import { Route as SettingsRestaurantRouteImport } from './routes/settings/restaurant'
 import { Route as SettingsAccountRouteImport } from './routes/settings/account'
 import { Route as ReportsSalesRouteImport } from './routes/reports/sales'
 import { Route as ReportsCrmRouteImport } from './routes/reports/crm'
@@ -167,6 +168,11 @@ const BillingIndexRoute = BillingIndexRouteImport.update({
 const SettingsSubscriptionRoute = SettingsSubscriptionRouteImport.update({
   id: '/subscription',
   path: '/subscription',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsRestaurantRoute = SettingsRestaurantRouteImport.update({
+  id: '/restaurant',
+  path: '/restaurant',
   getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsAccountRoute = SettingsAccountRouteImport.update({
@@ -495,6 +501,7 @@ export interface FileRoutesByFullPath {
   '/reports/crm': typeof ReportsCrmRoute
   '/reports/sales': typeof ReportsSalesRoute
   '/settings/account': typeof SettingsAccountRoute
+  '/settings/restaurant': typeof SettingsRestaurantRoute
   '/settings/subscription': typeof SettingsSubscriptionRoute
   '/billing/': typeof BillingIndexRoute
   '/inventory/': typeof InventoryIndexRoute
@@ -565,6 +572,7 @@ export interface FileRoutesByTo {
   '/reports/crm': typeof ReportsCrmRoute
   '/reports/sales': typeof ReportsSalesRoute
   '/settings/account': typeof SettingsAccountRoute
+  '/settings/restaurant': typeof SettingsRestaurantRoute
   '/settings/subscription': typeof SettingsSubscriptionRoute
   '/billing': typeof BillingIndexRoute
   '/inventory': typeof InventoryIndexRoute
@@ -642,6 +650,7 @@ export interface FileRoutesById {
   '/reports/crm': typeof ReportsCrmRoute
   '/reports/sales': typeof ReportsSalesRoute
   '/settings/account': typeof SettingsAccountRoute
+  '/settings/restaurant': typeof SettingsRestaurantRoute
   '/settings/subscription': typeof SettingsSubscriptionRoute
   '/billing/': typeof BillingIndexRoute
   '/inventory/': typeof InventoryIndexRoute
@@ -720,6 +729,7 @@ export interface FileRouteTypes {
     | '/reports/crm'
     | '/reports/sales'
     | '/settings/account'
+    | '/settings/restaurant'
     | '/settings/subscription'
     | '/billing/'
     | '/inventory/'
@@ -790,6 +800,7 @@ export interface FileRouteTypes {
     | '/reports/crm'
     | '/reports/sales'
     | '/settings/account'
+    | '/settings/restaurant'
     | '/settings/subscription'
     | '/billing'
     | '/inventory'
@@ -866,6 +877,7 @@ export interface FileRouteTypes {
     | '/reports/crm'
     | '/reports/sales'
     | '/settings/account'
+    | '/settings/restaurant'
     | '/settings/subscription'
     | '/billing/'
     | '/inventory/'
@@ -1068,6 +1080,13 @@ declare module '@tanstack/react-router' {
       path: '/subscription'
       fullPath: '/settings/subscription'
       preLoaderRoute: typeof SettingsSubscriptionRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/restaurant': {
+      id: '/settings/restaurant'
+      path: '/restaurant'
+      fullPath: '/settings/restaurant'
+      preLoaderRoute: typeof SettingsRestaurantRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/account': {
@@ -1543,12 +1562,14 @@ const ReportsRouteWithChildren =
 
 interface SettingsRouteChildren {
   SettingsAccountRoute: typeof SettingsAccountRoute
+  SettingsRestaurantRoute: typeof SettingsRestaurantRoute
   SettingsSubscriptionRoute: typeof SettingsSubscriptionRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsAccountRoute: SettingsAccountRoute,
+  SettingsRestaurantRoute: SettingsRestaurantRoute,
   SettingsSubscriptionRoute: SettingsSubscriptionRoute,
   SettingsIndexRoute: SettingsIndexRoute,
 }

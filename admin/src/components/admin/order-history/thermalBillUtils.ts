@@ -51,7 +51,7 @@ export function orderToBillData(
     order.unique_table_numbers.length > 0
       ? order.unique_table_numbers.join(', ')
       : order.is_delivery
-        ? 'Delivery'
+        ? 'N/A'
         : 'Takeaway'
 
   return {
