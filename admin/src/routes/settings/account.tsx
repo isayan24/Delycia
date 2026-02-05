@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import AdminProfile from '@/components/admin/profile/AdminProfile'
 import { requireAuth } from '@/middleware/auth'
 
-export const Route = createFileRoute('/users/p/')({
+export const Route = createFileRoute('/settings/account')({
   beforeLoad: requireAuth,
   component: ProfilePage,
 })

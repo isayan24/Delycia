@@ -104,12 +104,6 @@ export function NavUser({
             <DropdownMenuSeparator />
             */}
               <DropdownMenuGroup>
-                <Link to="/users/p">
-                  <DropdownMenuItem>
-                    <BadgeCheck />
-                    Account
-                  </DropdownMenuItem>
-                </Link>
                 <Link to="/settings">
                   <DropdownMenuItem>
                     <Settings />

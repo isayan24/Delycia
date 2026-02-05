@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as UsersRouteImport } from './routes/users'
 import { Route as StaffRouteImport } from './routes/staff'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ReportsRouteImport } from './routes/reports'
@@ -20,7 +19,6 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as BillingRouteImport } from './routes/billing'
 import { Route as AffiliateRouteImport } from './routes/affiliate'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as UsersIndexRouteImport } from './routes/users/index'
 import { Route as StaffIndexRouteImport } from './routes/staff/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as ReportsIndexRouteImport } from './routes/reports/index'
@@ -28,6 +26,7 @@ import { Route as OrdersIndexRouteImport } from './routes/orders/index'
 import { Route as InventoryIndexRouteImport } from './routes/inventory/index'
 import { Route as BillingIndexRouteImport } from './routes/billing/index'
 import { Route as SettingsSubscriptionRouteImport } from './routes/settings/subscription'
+import { Route as SettingsAccountRouteImport } from './routes/settings/account'
 import { Route as ReportsSalesRouteImport } from './routes/reports/sales'
 import { Route as ReportsCrmRouteImport } from './routes/reports/crm'
 import { Route as OrdersOverviewRouteImport } from './routes/orders/overview'
@@ -53,7 +52,6 @@ import { Route as ApiDashboardRouteImport } from './routes/api/dashboard'
 import { Route as ApiCrmRouteImport } from './routes/api/crm'
 import { Route as ApiCategoryRouteImport } from './routes/api/category'
 import { Route as ApiAddonsRouteImport } from './routes/api/addons'
-import { Route as UsersPIndexRouteImport } from './routes/users/p/index'
 import { Route as ReportsStaffIndexRouteImport } from './routes/reports/staff/index'
 import { Route as ReportsInventoryIndexRouteImport } from './routes/reports/inventory/index'
 import { Route as ReportsStaffStaffIdRouteImport } from './routes/reports/staff/$staffId'
@@ -86,11 +84,6 @@ import { Route as DemoStartSsrFullSsrRouteImport } from './routes/demo/start.ssr
 import { Route as DemoStartSsrDataOnlyRouteImport } from './routes/demo/start.ssr.data-only'
 import { Route as ApiCategoryTemplatesCuisineRouteImport } from './routes/api/category/templates/$cuisine'
 
-const UsersRoute = UsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const StaffRoute = StaffRouteImport.update({
   id: '/staff',
   path: '/staff',
@@ -141,11 +134,6 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const UsersIndexRoute = UsersIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => UsersRoute,
-} as any)
 const StaffIndexRoute = StaffIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -179,6 +167,11 @@ const BillingIndexRoute = BillingIndexRouteImport.update({
 const SettingsSubscriptionRoute = SettingsSubscriptionRouteImport.update({
   id: '/subscription',
   path: '/subscription',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsAccountRoute = SettingsAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
   getParentRoute: () => SettingsRoute,
 } as any)
 const ReportsSalesRoute = ReportsSalesRouteImport.update({
@@ -305,11 +298,6 @@ const ApiAddonsRoute = ApiAddonsRouteImport.update({
   id: '/api/addons',
   path: '/api/addons',
   getParentRoute: () => rootRouteImport,
-} as any)
-const UsersPIndexRoute = UsersPIndexRouteImport.update({
-  id: '/p/',
-  path: '/p/',
-  getParentRoute: () => UsersRoute,
 } as any)
 const ReportsStaffIndexRoute = ReportsStaffIndexRouteImport.update({
   id: '/staff/',
@@ -481,7 +469,6 @@ export interface FileRoutesByFullPath {
   '/reports': typeof ReportsRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/staff': typeof StaffRouteWithChildren
-  '/users': typeof UsersRouteWithChildren
   '/api/addons': typeof ApiAddonsRoute
   '/api/category': typeof ApiCategoryRouteWithChildren
   '/api/crm': typeof ApiCrmRouteWithChildren
@@ -507,6 +494,7 @@ export interface FileRoutesByFullPath {
   '/orders/overview': typeof OrdersOverviewRoute
   '/reports/crm': typeof ReportsCrmRoute
   '/reports/sales': typeof ReportsSalesRoute
+  '/settings/account': typeof SettingsAccountRoute
   '/settings/subscription': typeof SettingsSubscriptionRoute
   '/billing/': typeof BillingIndexRoute
   '/inventory/': typeof InventoryIndexRoute
@@ -514,7 +502,6 @@ export interface FileRoutesByFullPath {
   '/reports/': typeof ReportsIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/staff/': typeof StaffIndexRoute
-  '/users/': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
   '/api/auth/create-admin': typeof ApiAuthCreateAdminRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -541,7 +528,6 @@ export interface FileRoutesByFullPath {
   '/reports/staff/$staffId': typeof ReportsStaffStaffIdRoute
   '/reports/inventory': typeof ReportsInventoryIndexRoute
   '/reports/staff': typeof ReportsStaffIndexRoute
-  '/users/p': typeof UsersPIndexRoute
   '/api/category/templates/$cuisine': typeof ApiCategoryTemplatesCuisineRoute
   '/demo/start/ssr/data-only': typeof DemoStartSsrDataOnlyRoute
   '/demo/start/ssr/full-ssr': typeof DemoStartSsrFullSsrRoute
@@ -578,6 +564,7 @@ export interface FileRoutesByTo {
   '/orders/overview': typeof OrdersOverviewRoute
   '/reports/crm': typeof ReportsCrmRoute
   '/reports/sales': typeof ReportsSalesRoute
+  '/settings/account': typeof SettingsAccountRoute
   '/settings/subscription': typeof SettingsSubscriptionRoute
   '/billing': typeof BillingIndexRoute
   '/inventory': typeof InventoryIndexRoute
@@ -585,7 +572,6 @@ export interface FileRoutesByTo {
   '/reports': typeof ReportsIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/staff': typeof StaffIndexRoute
-  '/users': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
   '/api/auth/create-admin': typeof ApiAuthCreateAdminRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -612,7 +598,6 @@ export interface FileRoutesByTo {
   '/reports/staff/$staffId': typeof ReportsStaffStaffIdRoute
   '/reports/inventory': typeof ReportsInventoryIndexRoute
   '/reports/staff': typeof ReportsStaffIndexRoute
-  '/users/p': typeof UsersPIndexRoute
   '/api/category/templates/$cuisine': typeof ApiCategoryTemplatesCuisineRoute
   '/demo/start/ssr/data-only': typeof DemoStartSsrDataOnlyRoute
   '/demo/start/ssr/full-ssr': typeof DemoStartSsrFullSsrRoute
@@ -631,7 +616,6 @@ export interface FileRoutesById {
   '/reports': typeof ReportsRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/staff': typeof StaffRouteWithChildren
-  '/users': typeof UsersRouteWithChildren
   '/api/addons': typeof ApiAddonsRoute
   '/api/category': typeof ApiCategoryRouteWithChildren
   '/api/crm': typeof ApiCrmRouteWithChildren
@@ -657,6 +641,7 @@ export interface FileRoutesById {
   '/orders/overview': typeof OrdersOverviewRoute
   '/reports/crm': typeof ReportsCrmRoute
   '/reports/sales': typeof ReportsSalesRoute
+  '/settings/account': typeof SettingsAccountRoute
   '/settings/subscription': typeof SettingsSubscriptionRoute
   '/billing/': typeof BillingIndexRoute
   '/inventory/': typeof InventoryIndexRoute
@@ -664,7 +649,6 @@ export interface FileRoutesById {
   '/reports/': typeof ReportsIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/staff/': typeof StaffIndexRoute
-  '/users/': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
   '/api/auth/create-admin': typeof ApiAuthCreateAdminRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -691,7 +675,6 @@ export interface FileRoutesById {
   '/reports/staff/$staffId': typeof ReportsStaffStaffIdRoute
   '/reports/inventory/': typeof ReportsInventoryIndexRoute
   '/reports/staff/': typeof ReportsStaffIndexRoute
-  '/users/p/': typeof UsersPIndexRoute
   '/api/category/templates/$cuisine': typeof ApiCategoryTemplatesCuisineRoute
   '/demo/start/ssr/data-only': typeof DemoStartSsrDataOnlyRoute
   '/demo/start/ssr/full-ssr': typeof DemoStartSsrFullSsrRoute
@@ -711,7 +694,6 @@ export interface FileRouteTypes {
     | '/reports'
     | '/settings'
     | '/staff'
-    | '/users'
     | '/api/addons'
     | '/api/category'
     | '/api/crm'
@@ -737,6 +719,7 @@ export interface FileRouteTypes {
     | '/orders/overview'
     | '/reports/crm'
     | '/reports/sales'
+    | '/settings/account'
     | '/settings/subscription'
     | '/billing/'
     | '/inventory/'
@@ -744,7 +727,6 @@ export interface FileRouteTypes {
     | '/reports/'
     | '/settings/'
     | '/staff/'
-    | '/users/'
     | '/api/admin/update'
     | '/api/auth/create-admin'
     | '/api/auth/login'
@@ -771,7 +753,6 @@ export interface FileRouteTypes {
     | '/reports/staff/$staffId'
     | '/reports/inventory'
     | '/reports/staff'
-    | '/users/p'
     | '/api/category/templates/$cuisine'
     | '/demo/start/ssr/data-only'
     | '/demo/start/ssr/full-ssr'
@@ -808,6 +789,7 @@ export interface FileRouteTypes {
     | '/orders/overview'
     | '/reports/crm'
     | '/reports/sales'
+    | '/settings/account'
     | '/settings/subscription'
     | '/billing'
     | '/inventory'
@@ -815,7 +797,6 @@ export interface FileRouteTypes {
     | '/reports'
     | '/settings'
     | '/staff'
-    | '/users'
     | '/api/admin/update'
     | '/api/auth/create-admin'
     | '/api/auth/login'
@@ -842,7 +823,6 @@ export interface FileRouteTypes {
     | '/reports/staff/$staffId'
     | '/reports/inventory'
     | '/reports/staff'
-    | '/users/p'
     | '/api/category/templates/$cuisine'
     | '/demo/start/ssr/data-only'
     | '/demo/start/ssr/full-ssr'
@@ -860,7 +840,6 @@ export interface FileRouteTypes {
     | '/reports'
     | '/settings'
     | '/staff'
-    | '/users'
     | '/api/addons'
     | '/api/category'
     | '/api/crm'
@@ -886,6 +865,7 @@ export interface FileRouteTypes {
     | '/orders/overview'
     | '/reports/crm'
     | '/reports/sales'
+    | '/settings/account'
     | '/settings/subscription'
     | '/billing/'
     | '/inventory/'
@@ -893,7 +873,6 @@ export interface FileRouteTypes {
     | '/reports/'
     | '/settings/'
     | '/staff/'
-    | '/users/'
     | '/api/admin/update'
     | '/api/auth/create-admin'
     | '/api/auth/login'
@@ -920,7 +899,6 @@ export interface FileRouteTypes {
     | '/reports/staff/$staffId'
     | '/reports/inventory/'
     | '/reports/staff/'
-    | '/users/p/'
     | '/api/category/templates/$cuisine'
     | '/demo/start/ssr/data-only'
     | '/demo/start/ssr/full-ssr'
@@ -939,7 +917,6 @@ export interface RootRouteChildren {
   ReportsRoute: typeof ReportsRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
   StaffRoute: typeof StaffRouteWithChildren
-  UsersRoute: typeof UsersRouteWithChildren
   ApiAddonsRoute: typeof ApiAddonsRoute
   ApiCategoryRoute: typeof ApiCategoryRouteWithChildren
   ApiCrmRoute: typeof ApiCrmRouteWithChildren
@@ -974,13 +951,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/users': {
-      id: '/users'
-      path: '/users'
-      fullPath: '/users'
-      preLoaderRoute: typeof UsersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/staff': {
       id: '/staff'
       path: '/staff'
@@ -1051,13 +1021,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/users/': {
-      id: '/users/'
-      path: '/'
-      fullPath: '/users/'
-      preLoaderRoute: typeof UsersIndexRouteImport
-      parentRoute: typeof UsersRoute
-    }
     '/staff/': {
       id: '/staff/'
       path: '/'
@@ -1105,6 +1068,13 @@ declare module '@tanstack/react-router' {
       path: '/subscription'
       fullPath: '/settings/subscription'
       preLoaderRoute: typeof SettingsSubscriptionRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/account': {
+      id: '/settings/account'
+      path: '/account'
+      fullPath: '/settings/account'
+      preLoaderRoute: typeof SettingsAccountRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/reports/sales': {
@@ -1281,13 +1251,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/addons'
       preLoaderRoute: typeof ApiAddonsRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/users/p/': {
-      id: '/users/p/'
-      path: '/p'
-      fullPath: '/users/p'
-      preLoaderRoute: typeof UsersPIndexRouteImport
-      parentRoute: typeof UsersRoute
     }
     '/reports/staff/': {
       id: '/reports/staff/'
@@ -1579,11 +1542,13 @@ const ReportsRouteWithChildren =
   ReportsRoute._addFileChildren(ReportsRouteChildren)
 
 interface SettingsRouteChildren {
+  SettingsAccountRoute: typeof SettingsAccountRoute
   SettingsSubscriptionRoute: typeof SettingsSubscriptionRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
+  SettingsAccountRoute: SettingsAccountRoute,
   SettingsSubscriptionRoute: SettingsSubscriptionRoute,
   SettingsIndexRoute: SettingsIndexRoute,
 }
@@ -1601,18 +1566,6 @@ const StaffRouteChildren: StaffRouteChildren = {
 }
 
 const StaffRouteWithChildren = StaffRoute._addFileChildren(StaffRouteChildren)
-
-interface UsersRouteChildren {
-  UsersIndexRoute: typeof UsersIndexRoute
-  UsersPIndexRoute: typeof UsersPIndexRoute
-}
-
-const UsersRouteChildren: UsersRouteChildren = {
-  UsersIndexRoute: UsersIndexRoute,
-  UsersPIndexRoute: UsersPIndexRoute,
-}
-
-const UsersRouteWithChildren = UsersRoute._addFileChildren(UsersRouteChildren)
 
 interface ApiCategoryRouteChildren {
   ApiCategoryAsTemplateRoute: typeof ApiCategoryAsTemplateRoute
@@ -1731,7 +1684,6 @@ const rootRouteChildren: RootRouteChildren = {
   ReportsRoute: ReportsRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,
   StaffRoute: StaffRouteWithChildren,
-  UsersRoute: UsersRouteWithChildren,
   ApiAddonsRoute: ApiAddonsRoute,
   ApiCategoryRoute: ApiCategoryRouteWithChildren,
   ApiCrmRoute: ApiCrmRouteWithChildren,
