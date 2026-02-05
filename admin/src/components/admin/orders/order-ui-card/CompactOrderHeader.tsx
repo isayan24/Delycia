@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Phone, Clock } from 'lucide-react'
+import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import { ProcessedOrder } from '@/types/WebSocketOrder'
 import {
   formatOrderTime,
@@ -36,6 +37,7 @@ export function CompactOrderHeader({
     calculateTimeElapsed(order.created_at),
   )
   const [showThermalBill, setShowThermalBill] = useState(false)
+  const { selectedRestaurant } = useRestaurantSelector()
 
   // Update time elapsed every minute
   useEffect(() => {
@@ -94,7 +96,7 @@ export function CompactOrderHeader({
         <ThermalBill
           isOpen={showThermalBill}
           onClose={() => setShowThermalBill(false)}
-          billData={orderToBillData(order)}
+          billData={orderToBillData(order, selectedRestaurant?.name || '')}
           showPrintButton={true}
           showDownloadButton={true}
           showShareButton={true}

@@ -8,6 +8,7 @@ import { Plus, Minus, Tag } from 'lucide-react'
 import ThermalBill from '@/components/admin/order-history/ThermalBill'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import useToast from '@/hooks/UseToast'
+import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 
 interface BillSummaryProps {
   cart: CartItem[]
@@ -27,6 +28,7 @@ export default function BillSummary({
   setDiscount,
 }: BillSummaryProps) {
   const { isAuthenticated } = useAdminAuthQuery()
+  const { selectedRestaurant } = useRestaurantSelector()
   const [isPlacingOrder, setIsPlacingOrder] = useState(false)
   const [showBillDialog, setShowBillDialog] = useState(false)
   const [completedOrderData, setCompletedOrderData] = useState<any>(null)
@@ -100,6 +102,7 @@ export default function BillSummary({
         // Prepare bill data for printing
         const billData = {
           orderId: res.data.order_id || 'New',
+          restaurantName: selectedRestaurant?.name,
           tableNo: 'N/A',
           customerName: selectedCustomer.name,
           customerPhone: selectedCustomer.phone_number,

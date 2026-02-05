@@ -10,6 +10,7 @@ export interface BillItem {
 
 export interface BillData {
   orderId: string
+  restaurantName: string
   tableNo: string | number
   customerName: string
   customerPhone: string
@@ -24,7 +25,10 @@ export interface BillData {
 /**
  * Convert ProcessedOrder to BillData format for thermal printer
  */
-export function orderToBillData(order: ProcessedOrder): BillData {
+export function orderToBillData(
+  order: ProcessedOrder,
+  restaurantName: string,
+): BillData {
   const items: BillItem[] = order.items.map((item) => ({
     name: item.display_name || 'Unknown Item',
     quantity: item.quantity,
@@ -52,6 +56,7 @@ export function orderToBillData(order: ProcessedOrder): BillData {
 
   return {
     orderId: order.id?.toString() || order.customer_id?.toString() || 'N/A',
+    restaurantName,
     tableNo,
     customerName: order.customer_name || 'Guest',
     customerPhone: order.customer_phone || order.customer_phone_masked || 'N/A',

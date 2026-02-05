@@ -61,7 +61,10 @@ axiosInstance.interceptors.response.use(
 
     // Handle 401 errors (Unauthorized)
     if (
-      error.response?.status === 401 &&
+      (error.response?.status === 401 ||
+        (error.response?.status === 403 &&
+          (error.response?.data as any)?.error ===
+            'Forbidden : Token expired.')) &&
       originalRequest &&
       !originalRequest._retry
     ) {

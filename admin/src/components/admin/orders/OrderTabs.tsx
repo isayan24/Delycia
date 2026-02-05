@@ -8,6 +8,7 @@ import { ProcessingOrderCard } from './order-states/ProcessingOrderCard'
 import { ReadyOrderCard } from './order-states/ReadyOrderCard'
 import { DeliveredOrderCard } from './order-states/DeliveredOrderCard'
 import { useSoundContext } from '@/context/SoundContext'
+import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import ThermalBill from '@/components/admin/order-history/ThermalBill'
 import {
   orderToBillData,
@@ -58,6 +59,7 @@ export default function OrderTabs({
   isMarkDelivered,
 }: OrderTabsProps) {
   const { isSoundEnabled, toggleSound } = useSoundContext()
+  const { selectedRestaurant } = useRestaurantSelector()
   const [cancelledBillOpen, setCancelledBillOpen] = useState<string | null>(
     null,
   )
@@ -258,7 +260,10 @@ export default function OrderTabs({
                     `${order.customer_id}-${order.created_at}`
                   }
                   onClose={() => setCancelledBillOpen(null)}
-                  billData={orderToBillData(order)}
+                  billData={orderToBillData(
+                    order,
+                    selectedRestaurant?.name || '',
+                  )}
                   showPrintButton={true}
                   showDownloadButton={true}
                   showShareButton={true}

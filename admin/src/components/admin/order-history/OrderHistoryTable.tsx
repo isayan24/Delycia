@@ -42,6 +42,7 @@ import {
   getISTDateKey,
   formatISTDateTime,
 } from './utils/historyDateUtils'
+import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import ThermalBill from './ThermalBill' // Adjust path as needed
 
 interface OrderHistoryTableProps {
@@ -85,6 +86,8 @@ export default function OrderHistoryTable({
 
   const [showBillDialog, setShowBillDialog] = useState(false)
   const [selectedOrderForBill, setSelectedOrderForBill] = useState<any>(null)
+  const { selectedRestaurant, getRestaurantName } = useRestaurantSelector()
+  // Try to get name from hook, fallback to safe access
 
   // Toggle expanded state for a specific row
   const toggleRowExpansion = useCallback((orderId: string) => {
@@ -266,6 +269,7 @@ export default function OrderHistoryTable({
     // Transform order data to match BillData interface
     const billData = {
       orderId: order.orderId || order.id || order.cart_id || 'N/A',
+      restaurantName: selectedRestaurant?.name || '',
       tableNo: order.table_no || order.tableNo || 'N/A',
       customerName: order.display_name || order.customer?.name || 'N/A',
       customerId: order.customer_id || order.customer?.phone || 'N/A',

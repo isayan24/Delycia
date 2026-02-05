@@ -5,6 +5,7 @@ interface PrintBillDialogProps {
   onOpenChange: (open: boolean) => void
   billData: {
     orderId: string
+    restaurantName: string
     tableNo: string | number
     customerName: string
     customerId: string

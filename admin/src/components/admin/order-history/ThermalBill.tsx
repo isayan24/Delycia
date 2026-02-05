@@ -17,6 +17,7 @@ interface BillItem {
 }
 interface BillData {
   orderId: string
+  restaurantName: string
   tableNo: string | number
   customerName: string
   customerPhone: string
@@ -110,7 +111,12 @@ export default function ThermalBill({
       }
 
       // Header
-      drawText('RESTAURANT BILL', padding, 16, 'center')
+      drawText(
+        (billData.restaurantName || 'RESTAURANT BILL').toUpperCase(),
+        padding,
+        16,
+        'center',
+      )
       drawText(`Order #${billData.orderId}`, padding, 11, 'center')
       y += 10
       drawLine()
@@ -263,7 +269,12 @@ export default function ThermalBill({
         y += 10
       }
 
-      drawText('RESTAURANT BILL', padding, 16, 'center')
+      drawText(
+        (billData.restaurantName || 'RESTAURANT BILL').toUpperCase(),
+        padding,
+        16,
+        'center',
+      )
       drawText(`Order #${billData.orderId}`, padding, 11, 'center')
       y += 10
       drawLine()
@@ -387,12 +398,22 @@ export default function ThermalBill({
   const printThermal = () => {
     if (!billRef.current) return
 
-    const printWindow = window.open('', '_blank')
-    if (!printWindow) return
+    // Create a hidden iframe
+    const iframe = document.createElement('iframe')
+    iframe.style.display = 'none'
+    document.body.appendChild(iframe)
+
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
+
+    if (!iframeDoc) {
+      document.body.removeChild(iframe)
+      return
+    }
 
     const billHTML = billRef.current.innerHTML
 
-    printWindow.document.write(`
+    iframeDoc.open()
+    iframeDoc.write(`
       <!DOCTYPE html>
       <html>
         <head>
@@ -442,19 +463,23 @@ export default function ThermalBill({
         </body>
       </html>
     `)
+    iframeDoc.close()
 
-    printWindow.document.close()
-    printWindow.focus()
-
+    // Wait for content to load then print
     setTimeout(() => {
-      printWindow.print()
-      printWindow.close()
+      iframe.contentWindow?.focus()
+      iframe.contentWindow?.print()
+      // Remove iframe after a delay to ensure print dialog has opened
+      setTimeout(() => {
+        document.body.removeChild(iframe)
+      }, 1000)
     }, 250)
   }
 
   // Sample data for preview
   const sampleBillData: BillData = {
     orderId: 'ORD-2024-001',
+    restaurantName: 'SAMPLE RESTAURANT',
     tableNo: 'T-05',
     customerName: 'John Doe',
     customerPhone: '+91 9876543210',
@@ -509,7 +534,7 @@ export default function ThermalBill({
                   className="font-bold text-lg"
                   style={{ fontWeight: 'bold', fontSize: '16px' }}
                 >
-                  RESTAURANT BILL
+                  {currentBillData.restaurantName || 'RESTAURANT BILL'}
                 </div>
                 <div className="text-sm" style={{ fontSize: '11px' }}>
                   Order #{currentBillData.orderId}

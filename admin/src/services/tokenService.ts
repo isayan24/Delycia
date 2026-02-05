@@ -33,7 +33,10 @@ class TokenService {
 
         // If error is 401 and we haven't retried yet
         if (
-          error.response?.status === 401 &&
+          (error.response?.status === 401 ||
+            (error.response?.status === 403 &&
+              (error.response?.data as any)?.error ===
+                'Forbidden : Token expired.')) &&
           !originalRequest._retry &&
           !originalRequest.url?.includes('/api/auth/login') && // Don't retry login
           !originalRequest.url?.includes('/api/auth/refresh') // Don't retry refresh itself

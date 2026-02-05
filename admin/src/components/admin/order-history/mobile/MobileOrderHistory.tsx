@@ -5,6 +5,7 @@ import { OrderInfoSkeleton } from '../LoadingSkeleton'
 import { TransformedOrder } from '../utils/orderHistoryUtils'
 import { PrintBillDialog } from '../shared/PrintBillDialog'
 import { getISTDateKey } from '../utils/historyDateUtils'
+import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 
 interface MobileOrderHistoryProps {
   orders: TransformedOrder[]
@@ -67,6 +68,7 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
   const [selectedOrder, setSelectedOrder] = useState<TransformedOrder | null>(
     null,
   )
+  const { selectedRestaurant } = useRestaurantSelector()
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [showBillDialog, setShowBillDialog] = useState(false)
   const [selectedOrderForBill, setSelectedOrderForBill] = useState<any>(null)
@@ -90,6 +92,7 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
 
     const billData = {
       orderId: order.orderId,
+      restaurantName: selectedRestaurant?.name,
       tableNo: order.tableNo,
       customerName: order.customerName || order.customer?.name || 'Guest',
       customerId: String(order.customerId) || 'N/A',

@@ -19,6 +19,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 
 import { useMergeOrders } from '@/hooks/mutations/useMergeOrders'
 import useToast from '@/hooks/UseToast'
+import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 
 interface OrderHistoryTablePaginatedProps {
   items: any[]
@@ -62,10 +63,11 @@ export default function OrderHistoryTablePaginated({
   const [selectedCartIds, setSelectedCartIds] = useState<Set<string>>(new Set())
   const [isSelectionMode, setIsSelectionMode] = useState(false)
   const mergeMutation = useMergeOrders()
+  const { selectedRestaurant } = useRestaurantSelector()
   const [showBillDialog, setShowBillDialog] = useState(false)
   const [selectedOrderForBill, setSelectedOrderForBill] = useState<any>(null)
 
-  const { showError, showSuccess } = useToast()
+  const { showError } = useToast()
 
   // Get currently selected customer ID to restrict selection
   const activeCustomerId = useMemo(() => {
@@ -168,6 +170,7 @@ export default function OrderHistoryTablePaginated({
 
     const billData = {
       orderId: order.orderId || order.cart_id || order.id || 'N/A',
+      restaurantName: selectedRestaurant?.name,
       tableNo: order.tableNo || order.table_no || 'N/A',
       customerName:
         order.customerName ||

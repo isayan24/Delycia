@@ -21,6 +21,7 @@ import {
 import { format } from 'date-fns'
 import { PrintBillDialog } from '../shared/PrintBillDialog'
 import { getISTDateKey } from '../utils/historyDateUtils'
+import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 
 interface OrderInfoListProps {
   orders: any[]
@@ -113,6 +114,7 @@ const OrderInfoList = memo(function OrderInfoList({
   const [startDate, setStartDate] = useState<Date | undefined>(undefined)
   const [endDate, setEndDate] = useState<Date | undefined>(undefined)
   const [isStartDateOpen, setIsStartDateOpen] = useState(false)
+  const { selectedRestaurant } = useRestaurantSelector()
   const [isEndDateOpen, setIsEndDateOpen] = useState(false)
   const [showBillDialog, setShowBillDialog] = useState(false)
   const [selectedOrderForBill, setSelectedOrderForBill] = useState<any>(null)
@@ -135,6 +137,7 @@ const OrderInfoList = memo(function OrderInfoList({
 
     const billData = {
       orderId: order.orderId || order.id,
+      restaurantName: selectedRestaurant?.name || 'RESTAURANT BILL',
       tableNo: order.tableNo || 'N/A',
       customerName: order.customerName || order.customer?.name || 'Guest',
       customerId: order.customerId || 'N/A',

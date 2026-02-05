@@ -26,6 +26,7 @@ import {
   orderToBillData,
   handleShareToMobile,
 } from '@/components/admin/order-history/thermalBillUtils'
+import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 
 interface DeliveredOrderCardProps {
   order: ProcessedOrder
@@ -43,6 +44,7 @@ export function DeliveredOrderCard({
   const [timeElapsed, setTimeElapsed] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
   const [showThermalBill, setShowThermalBill] = useState(false)
+  const { selectedRestaurant } = useRestaurantSelector()
 
   // Calculate time elapsed since order was placed using IST-aware function
   useEffect(() => {
@@ -71,7 +73,7 @@ export function DeliveredOrderCard({
       <ThermalBill
         isOpen={showThermalBill}
         onClose={() => setShowThermalBill(false)}
-        billData={orderToBillData(order)}
+        billData={orderToBillData(order, selectedRestaurant?.name || '')}
         showPrintButton={true}
         showDownloadButton={true}
         showShareButton={true}
