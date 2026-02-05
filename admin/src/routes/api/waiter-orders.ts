@@ -52,6 +52,7 @@ export const Route = createFileRoute('/api/waiter-orders')({
             orderItems,
             table,
             partySize,
+            order_status,
           } = data // Removed token from destructuring
 
           let customer_id: string | undefined
@@ -120,6 +121,7 @@ export const Route = createFileRoute('/api/waiter-orders')({
                 placed_by_staff_id: staffId,
                 placed_by_role_id: staffRole,
                 addons: item.addons, // Pass addons to backend
+                order_status: order_status || 'processing', // Pass order status to backend
               }),
             )
 

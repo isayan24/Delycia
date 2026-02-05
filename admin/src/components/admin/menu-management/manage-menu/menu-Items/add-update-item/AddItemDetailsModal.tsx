@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react'
 import { X } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 // Import types
 import type {
@@ -360,28 +361,20 @@ export default function AddItemDetailsModal({
                 <h2 className="text-xl font-bold text-black">
                   {getCurrentCategoryName()}
                 </h2>
-                <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
-                  <button
-                    onClick={() => !isBulkMode && handleModeToggle()}
-                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                      !isBulkMode
-                        ? 'bg-white text-orange-600 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    Single Item
-                  </button>
-                  <button
-                    onClick={() => isBulkMode && handleModeToggle()}
-                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                      isBulkMode
-                        ? 'bg-white text-orange-600 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    Bulk Add
-                  </button>
-                </div>
+                <Tabs
+                  value={isBulkMode ? 'bulk' : 'single'}
+                  onValueChange={(val) => {
+                    if ((val === 'bulk') !== isBulkMode) {
+                      handleModeToggle()
+                    }
+                  }}
+                  className="w-auto"
+                >
+                  <TabsList className="bg-gray-100">
+                    <TabsTrigger value="single">Single Item</TabsTrigger>
+                    <TabsTrigger value="bulk">Bulk Add Items</TabsTrigger>
+                  </TabsList>
+                </Tabs>
               </div>
               <button
                 onClick={() => onOpenChange(false)}

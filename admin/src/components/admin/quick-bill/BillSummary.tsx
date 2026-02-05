@@ -178,6 +178,7 @@ export default function BillSummary({
                     variant="outline"
                     size="icon"
                     className="h-6 w-6"
+                    disabled={item.stock ? item.quantity >= item.stock : false}
                     onClick={() => updateQuantity(item.id, 1)}
                   >
                     <Plus className="w-3 h-3" />

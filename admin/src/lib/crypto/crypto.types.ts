@@ -96,6 +96,7 @@ export interface WaiterOrderRequest {
   variantId?: number | string
   table?: any
   partySize?: number
+  order_status?: string
 }
 
 /**

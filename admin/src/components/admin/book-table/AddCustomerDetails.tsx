@@ -160,6 +160,7 @@ export default function AddCustomerDetails() {
         totalAmount: finalAmount,
         table,
         partySize,
+        order_status: 'processing',
       }
       await axios.post('/api/waiter-orders', orderData)
       showSuccess('Success', 'Order placed successfully')
