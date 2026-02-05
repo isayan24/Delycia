@@ -1,13 +1,18 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-import { Volume2, VolumeX } from 'lucide-react'
+import { Volume2, VolumeX, Printer } from 'lucide-react'
 import { ProcessedOrder } from '@/types/WebSocketOrder'
 import { PendingOrderCard } from './order-states/PendingOrderCard'
 import { ProcessingOrderCard } from './order-states/ProcessingOrderCard'
 import { ReadyOrderCard } from './order-states/ReadyOrderCard'
 import { DeliveredOrderCard } from './order-states/DeliveredOrderCard'
 import { useSoundContext } from '@/context/SoundContext'
+import ThermalBill from '@/components/admin/order-history/ThermalBill'
+import {
+  orderToBillData,
+  handleShareToMobile,
+} from '@/components/admin/order-history/thermalBillUtils'
 
 interface OrderTabsProps {
   activeTab: string
@@ -53,6 +58,10 @@ export default function OrderTabs({
   isMarkDelivered,
 }: OrderTabsProps) {
   const { isSoundEnabled, toggleSound } = useSoundContext()
+  const [cancelledBillOpen, setCancelledBillOpen] = useState<string | null>(
+    null,
+  )
+
   return (
     <Tabs
       value={activeTab}
@@ -242,6 +251,20 @@ export default function OrderTabs({
                 key={`cancelled-${order.customer_id}-${order.created_at}`}
                 className="p-4 border rounded-lg bg-red-50"
               >
+                {/* Thermal Bill Popup for this cancelled order */}
+                <ThermalBill
+                  isOpen={
+                    cancelledBillOpen ===
+                    `${order.customer_id}-${order.created_at}`
+                  }
+                  onClose={() => setCancelledBillOpen(null)}
+                  billData={orderToBillData(order)}
+                  showPrintButton={true}
+                  showDownloadButton={true}
+                  showShareButton={true}
+                  onShareToMobile={handleShareToMobile}
+                />
+
                 <div className="flex justify-between items-center">
                   <div>
                     <h3 className="font-semibold text-red-800">
@@ -258,10 +281,24 @@ export default function OrderTabs({
                       )}
                     </p>
                   </div>
-                  {/* No extra closing div here */}
-                  <span className="text-xs text-red-600 bg-red-100 px-2 py-1 rounded self-start">
-                    ❌ Cancelled
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        setCancelledBillOpen(
+                          `${order.customer_id}-${order.created_at}`,
+                        )
+                      }
+                      className="h-8 w-8 p-0"
+                      title="Print Bill"
+                    >
+                      <Printer className="h-4 w-4" />
+                    </Button>
+                    <span className="text-xs text-red-600 bg-red-100 px-2 py-1 rounded">
+                      ❌ Cancelled
+                    </span>
+                  </div>
                 </div>
                 <div className="mt-2 text-sm text-gray-600 space-y-1">
                   {order.items.map((item, index) => (

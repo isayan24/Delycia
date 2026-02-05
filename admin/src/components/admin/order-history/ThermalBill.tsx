@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import { useRef } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -6,7 +6,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Download, Share, Printer, X } from 'lucide-react'
+import { Download, Share, Printer } from 'lucide-react'
 
 interface BillItem {
   name: string
@@ -32,12 +32,24 @@ interface ThermalBillProps {
   isOpen: boolean
   onClose: () => void
   billData: BillData
+  /** Show print button - default true */
+  showPrintButton?: boolean
+  /** Show download button - default true */
+  showDownloadButton?: boolean
+  /** Show share button - default true */
+  showShareButton?: boolean
+  /** Custom callback for share to mobile - receives customer phone number */
+  onShareToMobile?: (phoneNumber: string) => void
 }
 
 export default function ThermalBill({
   isOpen,
   onClose,
   billData,
+  showPrintButton = true,
+  showDownloadButton = true,
+  showShareButton = true,
+  onShareToMobile,
 }: ThermalBillProps) {
   const billRef = useRef<HTMLDivElement>(null)
 
@@ -155,14 +167,14 @@ export default function ThermalBill({
       drawLine()
 
       // Discount (if applicable)
-      if (billData.discountAmount && billData.discountAmount > 0) {
+      if (billData.discountAmount && Number(billData.discountAmount) > 0) {
         y += 5
         ctx.font = '12px Courier New, monospace'
         ctx.textAlign = 'left'
         ctx.fillText('Discount:', padding, y)
         ctx.textAlign = 'right'
         ctx.fillText(
-          `-₹${billData.discountAmount.toFixed(2)}`,
+          `-₹${Number(billData.discountAmount).toFixed(2)}`,
           width - padding,
           y,
         )
@@ -298,14 +310,14 @@ export default function ThermalBill({
       drawLine()
 
       // Discount (if applicable)
-      if (billData.discountAmount && billData.discountAmount > 0) {
+      if (billData.discountAmount && Number(billData.discountAmount) > 0) {
         y += 5
         ctx.font = '12px Courier New, monospace'
         ctx.textAlign = 'left'
         ctx.fillText('Discount:', padding, y)
         ctx.textAlign = 'right'
         ctx.fillText(
-          `-₹${billData.discountAmount.toFixed(2)}`,
+          `-₹${Number(billData.discountAmount).toFixed(2)}`,
           width - padding,
           y,
         )
@@ -337,6 +349,11 @@ export default function ThermalBill({
         )
         const sanitizedDate = billData.orderDate.replace(/[^a-zA-Z0-9]/g, '_')
         const filename = `${sanitizedCustomerName}_${sanitizedDate}.png`
+
+        // If custom share handler is provided, call it with customer phone
+        if (onShareToMobile && billData.customerPhone) {
+          onShareToMobile(billData.customerPhone)
+        }
 
         if (navigator.share && navigator.canShare) {
           const file = new File([blob], filename, {
@@ -606,24 +623,25 @@ export default function ThermalBill({
               </div>
 
               {/* Discount */}
-              {currentBillData?.discountAmount &&
-                currentBillData?.discountAmount > 0 && (
-                  <div className="py-1" style={{ padding: '4px 0' }}>
-                    <div
-                      className="flex justify-between"
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        fontSize: '12px',
-                      }}
-                    >
-                      <span>Discount:</span>
-                      <span>
-                        -₹{currentBillData?.discountAmount.toFixed(2)}
-                      </span>
-                    </div>
+              {/* Discount */}
+              {(Number(currentBillData?.discountAmount) || 0) > 0 && (
+                <div className="py-1" style={{ padding: '4px 0' }}>
+                  <div
+                    className="flex justify-between"
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '12px',
+                    }}
+                  >
+                    <span>Discount:</span>
+                    <span>
+                      -₹
+                      {Number(currentBillData?.discountAmount || 0).toFixed(2)}
+                    </span>
                   </div>
-                )}
+                </div>
+              )}
 
               {/* Total */}
               <div
@@ -672,31 +690,37 @@ export default function ThermalBill({
 
           {/* Action Buttons */}
           <div className="flex gap-2">
-            <Button
-              onClick={downloadAsImage}
-              className="flex-1 flex items-center gap-2"
-              variant="outline"
-            >
-              <Download className="h-4 w-4" />
-              Download
-            </Button>
+            {showDownloadButton && (
+              <Button
+                onClick={downloadAsImage}
+                className="flex-1 flex items-center gap-2"
+                variant="outline"
+              >
+                <Download className="h-4 w-4" />
+                Download
+              </Button>
+            )}
 
-            <Button
-              onClick={shareAsImage}
-              className="flex-1 flex items-center gap-2"
-              variant="outline"
-            >
-              <Share className="h-4 w-4" />
-              Share
-            </Button>
+            {showShareButton && (
+              <Button
+                onClick={shareAsImage}
+                className="flex-1 flex items-center gap-2"
+                variant="outline"
+              >
+                <Share className="h-4 w-4" />
+                Share
+              </Button>
+            )}
 
-            <Button
-              onClick={printThermal}
-              className="flex-1 flex items-center gap-2"
-            >
-              <Printer className="h-4 w-4" />
-              Print
-            </Button>
+            {showPrintButton && (
+              <Button
+                onClick={printThermal}
+                className="flex-1 flex items-center gap-2"
+              >
+                <Printer className="h-4 w-4" />
+                Print
+              </Button>
+            )}
           </div>
         </div>
       </DialogContent>

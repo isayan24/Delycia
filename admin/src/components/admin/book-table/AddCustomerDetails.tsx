@@ -19,6 +19,9 @@ import { useAuth } from '@/hooks/useAuth'
 import { useCustomerSearch, UserSearchResult } from './hooks/useCustomerSearch'
 import { CustomerSearchDropdown } from './CustomerSearchDropdown'
 import { generateUsername } from '@/helpers/user/generateUsername'
+import ThermalBill from '@/components/admin/order-history/ThermalBill'
+import { BillData } from '@/components/admin/order-history/thermalBillUtils'
+import { handleShareToMobile } from '@/components/admin/order-history/thermalBillUtils'
 
 interface CustomerDetails {
   name: string
@@ -39,6 +42,10 @@ export default function AddCustomerDetails() {
   const [specialInstructions, setSpecialInstructions] = useState('')
   const [showSearchResults, setShowSearchResults] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
+
+  // Thermal Bill Popup state
+  const [showThermalBill, setShowThermalBill] = useState(false)
+  const [billData, setBillData] = useState<BillData | null>(null)
 
   const {
     changeState,
@@ -164,6 +171,34 @@ export default function AddCustomerDetails() {
       }
       await axios.post('/api/waiter-orders', orderData)
       showSuccess('Success', 'Order placed successfully')
+
+      // Prepare bill data for thermal printer
+      const thermalBillData: BillData = {
+        orderId: `TBL-${table?.table_number || 'N/A'}`,
+        tableNo: table?.table_number || 'N/A',
+        customerName: customerDetails.name,
+        customerPhone: customerDetails.phone_number,
+        items: orderItems.map((item) => ({
+          name: item.name || 'Unknown Item',
+          quantity: item.quantity || 1,
+          price: (item.price || 0) * (item.quantity || 1),
+          addons: item.addons,
+        })),
+        totalAmount: finalAmount,
+        discountAmount: validatedDiscount > 0 ? validatedDiscount : undefined,
+        orderDate: new Date().toLocaleString('en-IN', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        paymentMethod: 'Pending',
+        paymentStatus: 'Pending',
+      }
+      setBillData(thermalBillData)
+      setShowThermalBill(true)
+
       setCustomerDetails({ name: '', phone_number: '', username: '' })
       setDiscount(0)
       clearAllItems()
@@ -185,6 +220,19 @@ export default function AddCustomerDetails() {
 
   return (
     <div className="h-full flex flex-col relative overflow-hidden">
+      {/* Thermal Bill Popup */}
+      {billData && (
+        <ThermalBill
+          isOpen={showThermalBill}
+          onClose={() => setShowThermalBill(false)}
+          billData={billData}
+          showPrintButton={true}
+          showDownloadButton={true}
+          showShareButton={true}
+          onShareToMobile={handleShareToMobile}
+        />
+      )}
+
       <div className="flex-1 overflow-auto p-4 pb-32">
         <div className="max-w-2xl mx-auto">
           {/* Header */}

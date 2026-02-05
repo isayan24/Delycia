@@ -102,7 +102,7 @@ export default function BillSummary({
           orderId: res.data.order_id || 'New',
           tableNo: 'N/A',
           customerName: selectedCustomer.name,
-          customerId: selectedCustomer.phone_number,
+          customerPhone: selectedCustomer.phone_number,
           items: cart.map((i: any) => ({
             name: i.cartItemName || i.name,
             quantity: i.quantity,

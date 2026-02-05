@@ -1,21 +1,27 @@
-import React, { useState, useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Phone, Clock } from "lucide-react";
-import { ProcessedOrder } from "@/types/WebSocketOrder";
+import React, { useState, useEffect } from 'react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Phone, Clock } from 'lucide-react'
+import { ProcessedOrder } from '@/types/WebSocketOrder'
 import {
   formatOrderTime,
   formatTimeElapsed,
   calculateTimeElapsed,
-} from "../utils/orderProcessing";
+} from '../utils/orderProcessing'
+import { Printer } from 'lucide-react'
+import ThermalBill from '@/components/admin/order-history/ThermalBill'
+import {
+  orderToBillData,
+  handleShareToMobile,
+} from '@/components/admin/order-history/thermalBillUtils'
 
 interface CompactOrderHeaderProps {
-  order: ProcessedOrder;
-  statusBadge: React.ReactNode;
-  onCall: (customerId: number) => void;
-  onViewTimeline: (customerId: number) => void;
-  showCallButton?: boolean;
-  timeElapsed?: number;
+  order: ProcessedOrder
+  statusBadge: React.ReactNode
+  onCall: (customerId: number) => void
+  onViewTimeline: (customerId: number) => void
+  showCallButton?: boolean
+  timeElapsed?: number
 }
 
 export function CompactOrderHeader({
@@ -27,40 +33,41 @@ export function CompactOrderHeader({
   timeElapsed,
 }: CompactOrderHeaderProps) {
   const [currentTimeElapsed, setCurrentTimeElapsed] = useState(
-    calculateTimeElapsed(order.created_at)
-  );
+    calculateTimeElapsed(order.created_at),
+  )
+  const [showThermalBill, setShowThermalBill] = useState(false)
 
   // Update time elapsed every minute
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentTimeElapsed(calculateTimeElapsed(order.created_at));
-    }, 60000); // Update every minute
+      setCurrentTimeElapsed(calculateTimeElapsed(order.created_at))
+    }, 60000) // Update every minute
 
-    return () => clearInterval(interval);
-  }, [order.created_at]);
+    return () => clearInterval(interval)
+  }, [order.created_at])
 
   const getOrderTypeDisplay = () => {
     if (order.is_delivery) {
       return {
-        text: "DELIVERY",
-        color: "bg-blue-100 text-blue-800",
-        icon: "🚚",
-      };
+        text: 'DELIVERY',
+        color: 'bg-blue-100 text-blue-800',
+        icon: '🚚',
+      }
     } else if (order.unique_table_numbers.length > 0) {
       return {
-        text: `TABLE ${order.unique_table_numbers.join(", ")}`,
-        color: "bg-green-100 text-green-800 hover:!bg-green-100",
-        icon: "🍽️",
-      };
+        text: `TABLE ${order.unique_table_numbers.join(', ')}`,
+        color: 'bg-green-100 text-green-800 hover:!bg-green-100',
+        icon: '🍽️',
+      }
     }
     return {
-      text: "TAKEAWAY",
-      color: "bg-orange-100 text-orange-800",
-      icon: "🥡",
-    };
-  };
+      text: 'TAKEAWAY',
+      color: 'bg-orange-100 text-orange-800',
+      icon: '🥡',
+    }
+  }
 
-  const orderType = getOrderTypeDisplay();
+  const orderType = getOrderTypeDisplay()
 
   return (
     <div className="space-y-3">
@@ -72,18 +79,28 @@ export function CompactOrderHeader({
             {orderType.icon} {orderType.text}
           </Badge>
         </div>
-        {!showCallButton && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onCall(order.customer_id)}
-            className="h-8 w-8 p-0 md:h-auto md:w-auto md:px-3 md:py-2"
-          >
-            <Phone className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">Call</span>
-          </Button>
-        )}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-gray-500 hover:text-gray-900"
+          onClick={() => setShowThermalBill(true)}
+          title="Print Bill"
+        >
+          <Printer className="h-4 w-4" />
+        </Button>
       </div>
+
+      {showThermalBill && (
+        <ThermalBill
+          isOpen={showThermalBill}
+          onClose={() => setShowThermalBill(false)}
+          billData={orderToBillData(order)}
+          showPrintButton={true}
+          showDownloadButton={true}
+          showShareButton={true}
+          onShareToMobile={handleShareToMobile}
+        />
+      )}
 
       {/* Customer Info Row */}
       <div className="flex items-center justify-between">
@@ -120,5 +137,5 @@ export function CompactOrderHeader({
         </div>
       </div>
     </div>
-  );
+  )
 }

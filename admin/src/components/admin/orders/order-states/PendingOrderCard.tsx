@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Volume2, VolumeX, AlertCircle, Loader2 } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 import { ProcessedOrder } from '@/types/WebSocketOrder'
 import { PrepTimeSelector } from '../order-ui-card/PrepTimeSelector'
 import { CompactOrderHeader } from '../order-ui-card/CompactOrderHeader'
@@ -57,14 +57,18 @@ export function PendingOrderCard({
   return (
     <Card className="w-full shadow-md border-l-4 border-l-yellow-400 hover:shadow-lg transition-shadow ">
       <CardContent className="p-3 md:p-4 space-y-3">
-        {/* Compact Header */}
-        <CompactOrderHeader
-          order={order}
-          statusBadge={statusBadge}
-          onCall={handleCall}
-          onViewTimeline={handleViewTimeline}
-          showCallButton={false}
-        />
+        {/* Compact Header with Print Button */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex-1">
+            <CompactOrderHeader
+              order={order}
+              statusBadge={statusBadge}
+              onCall={handleCall}
+              onViewTimeline={handleViewTimeline}
+              showCallButton={false}
+            />
+          </div>
+        </div>
 
         {/* Special Instructions - Compact (Mobile Only) */}
         <div className="max-[768px]:hidden">

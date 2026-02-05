@@ -102,15 +102,19 @@ export function ProcessingOrderCard({
   return (
     <Card className="w-full shadow-md border-l-4 border-l-orange-400 hover:shadow-lg transition-shadow">
       <CardContent className="p-3 md:p-4 space-y-3">
-        {/* Compact Header */}
-        <CompactOrderHeader
-          order={order}
-          statusBadge={statusBadge}
-          onCall={onCall}
-          onViewTimeline={onViewTimeline}
-          showCallButton={false}
-          timeElapsed={timeElapsed}
-        />
+        {/* Compact Header with Print Button */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex-1">
+            <CompactOrderHeader
+              order={order}
+              statusBadge={statusBadge}
+              onCall={onCall}
+              onViewTimeline={onViewTimeline}
+              showCallButton={false}
+              timeElapsed={timeElapsed}
+            />
+          </div>
+        </div>
 
         {/* Special Instructions - Compact (Mobile Only) */}
         {hasSpecialInstructions && (

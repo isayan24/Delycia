@@ -2,7 +2,14 @@ import React, { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { CheckCircle, ChevronDown, ChevronUp, Phone, Clock } from 'lucide-react'
+import {
+  CheckCircle,
+  ChevronDown,
+  ChevronUp,
+  Phone,
+  Clock,
+  Printer,
+} from 'lucide-react'
 import { ProcessedOrder } from '@/types/WebSocketOrder'
 import {
   calculateTimeElapsed,
@@ -14,6 +21,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
+import ThermalBill from '@/components/admin/order-history/ThermalBill'
+import {
+  orderToBillData,
+  handleShareToMobile,
+} from '@/components/admin/order-history/thermalBillUtils'
 
 interface DeliveredOrderCardProps {
   order: ProcessedOrder
@@ -30,6 +42,7 @@ export function DeliveredOrderCard({
 }: DeliveredOrderCardProps) {
   const [timeElapsed, setTimeElapsed] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
+  const [showThermalBill, setShowThermalBill] = useState(false)
 
   // Calculate time elapsed since order was placed using IST-aware function
   useEffect(() => {
@@ -54,6 +67,17 @@ export function DeliveredOrderCard({
   }
   return (
     <Card className="w-full shadow-sm border-l-4 border-l-green-400 bg-green-50/20 hover:shadow-md transition-shadow">
+      {/* Thermal Bill Popup */}
+      <ThermalBill
+        isOpen={showThermalBill}
+        onClose={() => setShowThermalBill(false)}
+        billData={orderToBillData(order)}
+        showPrintButton={true}
+        showDownloadButton={true}
+        showShareButton={true}
+        onShareToMobile={handleShareToMobile}
+      />
+
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CardContent className="p-3">
           {/* Compact Overview */}
@@ -97,6 +121,16 @@ export function DeliveredOrderCard({
 
             {/* Actions */}
             <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowThermalBill(true)}
+                className="h-8 w-8 p-0"
+                title="Print Bill"
+              >
+                <Printer className="h-3 w-3" />
+              </Button>
+
               {showCallButton && (
                 <Button
                   variant="ghost"

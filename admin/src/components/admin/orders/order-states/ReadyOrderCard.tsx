@@ -7,7 +7,6 @@ import { calculateTimeElapsed } from '../utils/orderProcessing'
 import { CompactOrderHeader } from '../order-ui-card/CompactOrderHeader'
 import { MobileOrderAccordion } from '../small-screen/MobileOrderAccordion'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { Loader2 } from 'lucide-react'
 
 interface ReadyOrderCardProps {
   order: ProcessedOrder
@@ -51,15 +50,19 @@ export function ReadyOrderCard({
   return (
     <Card className="w-full shadow-md border-l-4 border-l-blue-400 hover:shadow-lg transition-shadow">
       <CardContent className="p-3 md:p-4 space-y-3">
-        {/* Compact Header */}
-        <CompactOrderHeader
-          order={order}
-          statusBadge={statusBadge}
-          onCall={onCall}
-          onViewTimeline={onViewTimeline}
-          showCallButton={true}
-          timeElapsed={timeElapsed}
-        />
+        {/* Compact Header with Print Button */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex-1">
+            <CompactOrderHeader
+              order={order}
+              statusBadge={statusBadge}
+              onCall={onCall}
+              onViewTimeline={onViewTimeline}
+              showCallButton={true}
+              timeElapsed={timeElapsed}
+            />
+          </div>
+        </div>
         {!isMobile &&
           order.items.some(
             (item) =>
