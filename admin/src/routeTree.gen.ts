@@ -38,6 +38,7 @@ import { Route as ApiStaffReportsRouteImport } from './routes/api/staff-reports'
 import { Route as ApiRestaurantRouteImport } from './routes/api/restaurant'
 import { Route as ApiQuickBillRouteImport } from './routes/api/quick-bill'
 import { Route as ApiOrdersRouteImport } from './routes/api/orders'
+import { Route as ApiNotificationsRouteImport } from './routes/api/notifications'
 import { Route as ApiInventoryStatsRouteImport } from './routes/api/inventory-stats'
 import { Route as ApiInventoryRouteImport } from './routes/api/inventory'
 import { Route as ApiImagekitRouteImport } from './routes/api/imagekit'
@@ -59,6 +60,7 @@ import { Route as ApiStaffReportsStaffIdRouteImport } from './routes/api/staff-r
 import { Route as ApiOrdersOrderHistoryRouteImport } from './routes/api/orders/order-history'
 import { Route as ApiOrdersByTableRouteImport } from './routes/api/orders/by-table'
 import { Route as ApiOrdersActionsRouteImport } from './routes/api/orders/actions'
+import { Route as ApiNotificationsIdRouteImport } from './routes/api/notifications.$id'
 import { Route as ApiInventoryBulkRouteImport } from './routes/api/inventory.bulk'
 import { Route as ApiCrmStatsRouteImport } from './routes/api/crm/stats'
 import { Route as ApiCrmDetailsRouteImport } from './routes/api/crm/details'
@@ -222,6 +224,11 @@ const ApiOrdersRoute = ApiOrdersRouteImport.update({
   path: '/api/orders',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiNotificationsRoute = ApiNotificationsRouteImport.update({
+  id: '/api/notifications',
+  path: '/api/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiInventoryStatsRoute = ApiInventoryStatsRouteImport.update({
   id: '/api/inventory-stats',
   path: '/api/inventory-stats',
@@ -328,6 +335,11 @@ const ApiOrdersActionsRoute = ApiOrdersActionsRouteImport.update({
   path: '/actions',
   getParentRoute: () => ApiOrdersRoute,
 } as any)
+const ApiNotificationsIdRoute = ApiNotificationsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiNotificationsRoute,
+} as any)
 const ApiInventoryBulkRoute = ApiInventoryBulkRouteImport.update({
   id: '/bulk',
   path: '/bulk',
@@ -428,6 +440,7 @@ export interface FileRoutesByFullPath {
   '/api/imagekit': typeof ApiImagekitRoute
   '/api/inventory': typeof ApiInventoryRouteWithChildren
   '/api/inventory-stats': typeof ApiInventoryStatsRoute
+  '/api/notifications': typeof ApiNotificationsRouteWithChildren
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/quick-bill': typeof ApiQuickBillRoute
   '/api/restaurant': typeof ApiRestaurantRoute
@@ -465,6 +478,7 @@ export interface FileRoutesByFullPath {
   '/api/crm/details': typeof ApiCrmDetailsRoute
   '/api/crm/stats': typeof ApiCrmStatsRoute
   '/api/inventory/bulk': typeof ApiInventoryBulkRoute
+  '/api/notifications/$id': typeof ApiNotificationsIdRoute
   '/api/orders/actions': typeof ApiOrdersActionsRoute
   '/api/orders/by-table': typeof ApiOrdersByTableRoute
   '/api/orders/order-history': typeof ApiOrdersOrderHistoryRoute
@@ -497,6 +511,7 @@ export interface FileRoutesByTo {
   '/api/imagekit': typeof ApiImagekitRoute
   '/api/inventory': typeof ApiInventoryRouteWithChildren
   '/api/inventory-stats': typeof ApiInventoryStatsRoute
+  '/api/notifications': typeof ApiNotificationsRouteWithChildren
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/quick-bill': typeof ApiQuickBillRoute
   '/api/restaurant': typeof ApiRestaurantRoute
@@ -534,6 +549,7 @@ export interface FileRoutesByTo {
   '/api/crm/details': typeof ApiCrmDetailsRoute
   '/api/crm/stats': typeof ApiCrmStatsRoute
   '/api/inventory/bulk': typeof ApiInventoryBulkRoute
+  '/api/notifications/$id': typeof ApiNotificationsIdRoute
   '/api/orders/actions': typeof ApiOrdersActionsRoute
   '/api/orders/by-table': typeof ApiOrdersByTableRoute
   '/api/orders/order-history': typeof ApiOrdersOrderHistoryRoute
@@ -567,6 +583,7 @@ export interface FileRoutesById {
   '/api/imagekit': typeof ApiImagekitRoute
   '/api/inventory': typeof ApiInventoryRouteWithChildren
   '/api/inventory-stats': typeof ApiInventoryStatsRoute
+  '/api/notifications': typeof ApiNotificationsRouteWithChildren
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/quick-bill': typeof ApiQuickBillRoute
   '/api/restaurant': typeof ApiRestaurantRoute
@@ -604,6 +621,7 @@ export interface FileRoutesById {
   '/api/crm/details': typeof ApiCrmDetailsRoute
   '/api/crm/stats': typeof ApiCrmStatsRoute
   '/api/inventory/bulk': typeof ApiInventoryBulkRoute
+  '/api/notifications/$id': typeof ApiNotificationsIdRoute
   '/api/orders/actions': typeof ApiOrdersActionsRoute
   '/api/orders/by-table': typeof ApiOrdersByTableRoute
   '/api/orders/order-history': typeof ApiOrdersOrderHistoryRoute
@@ -638,6 +656,7 @@ export interface FileRouteTypes {
     | '/api/imagekit'
     | '/api/inventory'
     | '/api/inventory-stats'
+    | '/api/notifications'
     | '/api/orders'
     | '/api/quick-bill'
     | '/api/restaurant'
@@ -675,6 +694,7 @@ export interface FileRouteTypes {
     | '/api/crm/details'
     | '/api/crm/stats'
     | '/api/inventory/bulk'
+    | '/api/notifications/$id'
     | '/api/orders/actions'
     | '/api/orders/by-table'
     | '/api/orders/order-history'
@@ -707,6 +727,7 @@ export interface FileRouteTypes {
     | '/api/imagekit'
     | '/api/inventory'
     | '/api/inventory-stats'
+    | '/api/notifications'
     | '/api/orders'
     | '/api/quick-bill'
     | '/api/restaurant'
@@ -744,6 +765,7 @@ export interface FileRouteTypes {
     | '/api/crm/details'
     | '/api/crm/stats'
     | '/api/inventory/bulk'
+    | '/api/notifications/$id'
     | '/api/orders/actions'
     | '/api/orders/by-table'
     | '/api/orders/order-history'
@@ -776,6 +798,7 @@ export interface FileRouteTypes {
     | '/api/imagekit'
     | '/api/inventory'
     | '/api/inventory-stats'
+    | '/api/notifications'
     | '/api/orders'
     | '/api/quick-bill'
     | '/api/restaurant'
@@ -813,6 +836,7 @@ export interface FileRouteTypes {
     | '/api/crm/details'
     | '/api/crm/stats'
     | '/api/inventory/bulk'
+    | '/api/notifications/$id'
     | '/api/orders/actions'
     | '/api/orders/by-table'
     | '/api/orders/order-history'
@@ -846,6 +870,7 @@ export interface RootRouteChildren {
   ApiImagekitRoute: typeof ApiImagekitRoute
   ApiInventoryRoute: typeof ApiInventoryRouteWithChildren
   ApiInventoryStatsRoute: typeof ApiInventoryStatsRoute
+  ApiNotificationsRoute: typeof ApiNotificationsRouteWithChildren
   ApiOrdersRoute: typeof ApiOrdersRouteWithChildren
   ApiQuickBillRoute: typeof ApiQuickBillRoute
   ApiRestaurantRoute: typeof ApiRestaurantRoute
@@ -1096,6 +1121,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOrdersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/notifications': {
+      id: '/api/notifications'
+      path: '/api/notifications'
+      fullPath: '/api/notifications'
+      preLoaderRoute: typeof ApiNotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/inventory-stats': {
       id: '/api/inventory-stats'
       path: '/api/inventory-stats'
@@ -1242,6 +1274,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/orders/actions'
       preLoaderRoute: typeof ApiOrdersActionsRouteImport
       parentRoute: typeof ApiOrdersRoute
+    }
+    '/api/notifications/$id': {
+      id: '/api/notifications/$id'
+      path: '/$id'
+      fullPath: '/api/notifications/$id'
+      preLoaderRoute: typeof ApiNotificationsIdRouteImport
+      parentRoute: typeof ApiNotificationsRoute
     }
     '/api/inventory/bulk': {
       id: '/api/inventory/bulk'
@@ -1408,6 +1447,17 @@ const ApiInventoryRouteWithChildren = ApiInventoryRoute._addFileChildren(
   ApiInventoryRouteChildren,
 )
 
+interface ApiNotificationsRouteChildren {
+  ApiNotificationsIdRoute: typeof ApiNotificationsIdRoute
+}
+
+const ApiNotificationsRouteChildren: ApiNotificationsRouteChildren = {
+  ApiNotificationsIdRoute: ApiNotificationsIdRoute,
+}
+
+const ApiNotificationsRouteWithChildren =
+  ApiNotificationsRoute._addFileChildren(ApiNotificationsRouteChildren)
+
 interface ApiOrdersRouteChildren {
   ApiOrdersActionsRoute: typeof ApiOrdersActionsRoute
   ApiOrdersByTableRoute: typeof ApiOrdersByTableRoute
@@ -1472,6 +1522,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiImagekitRoute: ApiImagekitRoute,
   ApiInventoryRoute: ApiInventoryRouteWithChildren,
   ApiInventoryStatsRoute: ApiInventoryStatsRoute,
+  ApiNotificationsRoute: ApiNotificationsRouteWithChildren,
   ApiOrdersRoute: ApiOrdersRouteWithChildren,
   ApiQuickBillRoute: ApiQuickBillRoute,
   ApiRestaurantRoute: ApiRestaurantRoute,

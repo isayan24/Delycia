@@ -22,6 +22,7 @@ import searchRoutes from "./routes/v1/web/search.routes.js";
 import restaurantsRoutes from "./routes/v1/web/restaurants.routes.js";
 import tablesRoutes from "./routes/v1/web/tables.routes.js";
 import userAddonsRoutes from "./routes/v1/web/addons.routes.js";
+import notificationRoutes from "./routes/v1/web/notifications.routes.js";
 // app routes
 import qrcodeRoutes from "./routes/v1/app/qrcodes.routes.js";
 import tempSessionRoutes from "./routes/v1/app/temp.session.routes.js";
@@ -118,7 +119,6 @@ const rateLimiter = rateLimit({
 
 app.use(rateLimiter);
 app.use(express.static("public"));
-
 app.get("/", (req, res) => {
   res.send("v29");
 });
@@ -136,6 +136,7 @@ app.use("/api/v1/search", searchRoutes);
 app.use("/api/v1/restaurant", restaurantsRoutes);
 app.use("/api/v1/tables", tablesRoutes);
 app.use("/api/v1/users/addons", userAddonsRoutes);
+
 
 // Aps
 app.use("/api/v1/app/qrcode", qrcodeRoutes);
@@ -156,6 +157,7 @@ app.use("/api/v1/admin/addons", adminAddonsRoutes);
 app.use("/api/v1/admin/crm", adminCrmRoutes);
 app.use("/api/v1/admin/staff-reports", adminStaffReportsRoutes);
 app.use("/api/v1/admin/subscriptions", adminSubscriptionsRoutes);
+app.use("/api/v1/admin/notifications", notificationRoutes);
 
 //System routes
 app.use("/api/v1/system/upsells", systemDataRoutes);

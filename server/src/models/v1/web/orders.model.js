@@ -5,6 +5,7 @@ import others from "../../../utils/others.js";
 import auth from "../../../utils/auth.js";
 import getOrderDetails from "../system/getorder.model.js";
 import utils from "../../../utils/whatsapp.js";
+import { internalCreateNotification } from "./notifications.model.js";
 let q, result;
 
 const create_orders = async (req) => {
@@ -83,9 +84,74 @@ const create_orders = async (req) => {
       await conn.query(updateTableQ, [tableNo, rid]);
     }
 
+    // Decrement Stock for each item
+    for (const order of orders) {
+      if (order.item_id && order.quantity) {
+        await conn.query("UPDATE inventories SET stock = GREATEST(0, stock - ?) WHERE id = ?", [order.quantity, order.item_id]);
+
+        // Check for Stock Alerts (Real-time trigger)
+        const [stockCheck] = await conn.query("SELECT stock, name FROM inventories WHERE id = ?", [order.item_id]);
+
+        if (stockCheck.length > 0) {
+          const currentStock = stockCheck[0].stock;
+
+          // 1. OUT OF STOCK CHECK (Critical)
+          if (currentStock === 0) {
+            try {
+              await internalCreateNotification({
+                restaurant_id: rid,
+                type: "out_of_stock",
+                title: "OUT OF STOCK",
+                message: `"${stockCheck[0].name}" is now out of stock!`,
+                priority: "critical",
+                data: { item_id: order.item_id, item_name: stockCheck[0].name, last_stock: 0 },
+                action_url: `/reports/inventory?filter=critical`,
+                action_label: "Restock Now"
+              });
+            } catch (e) {
+              console.error("Failed to create out_of_stock notification:", e);
+            }
+          }
+          // 2. LOW STOCK CHECK (High, Threshold <= 10)
+          else if (currentStock <= 10) {
+            // Prevent duplicate low stock alerts (check if sent in last 24h)
+            const [existing] = await conn.query(
+              "SELECT id FROM notifications WHERE restaurant_id = ? AND type = 'low_stock' AND JSON_EXTRACT(data, '$.item_id') = ? AND created_at > DATE_SUB(NOW(), INTERVAL 1 DAY)",
+              [rid, order.item_id]
+            );
+
+            if (existing.length === 0) {
+              try {
+                await internalCreateNotification({
+                  restaurant_id: rid,
+                  type: "low_stock",
+                  title: "Low Stock Alert",
+                  message: `Only ${currentStock} units of "${stockCheck[0].name}" remaining.`,
+                  priority: "high",
+                  data: {
+                    item_id: order.item_id,
+                    item_name: stockCheck[0].name,
+                    current_stock: currentStock,
+                    threshold: 10
+                  },
+                  action_url: `/reports/inventory?filter=low`,
+                  action_label: "Restock"
+                });
+              } catch (e) {
+                console.error("Failed to create low_stock notification:", e);
+              }
+            }
+          }
+        }
+      }
+    }
+
     await conn.commit();
     app.io.of("/orders").emit("orders_refresh");
     app.io.of("/orders-by-table").emit("orders_created", { orders });
+
+
+
     return apiResponse.success(201, "Orders placed successfully");
   } catch (error) {
     await conn.rollback();
@@ -273,7 +339,28 @@ const update_orders = async (req) => {
             "UPDATE inventories SET stock = stock + ? WHERE id = ?",
             [quantity, item_id]
           );
+
+          // Check for stock 0 after update
+          const [inventoryCheck] = await conn.query(
+            "SELECT stock FROM inventories WHERE id = ?",
+            [item_id]
+          );
+          if (inventoryCheck.length > 0 && inventoryCheck[0].stock === 0) {
+            // Trigger notification or other action if stock is now 0
+            console.warn(`Inventory item ${item_id} stock is now 0 after order cancellation.`);
+            // Example: Notify restaurant owner about low stock
+            // await internalCreateNotification({
+            //   restaurant_id: o[0].rid, // Assuming rid is available from orderResult or fetched
+            //   type: "inventory_low_stock",
+            //   title: "Item Out of Stock",
+            //   message: `Item ${item_id} is now out of stock.`,
+            //   priority: "high",
+            //   data: { item_id: item_id }
+            // });
+          }
         }
+
+
       }
     }
 
