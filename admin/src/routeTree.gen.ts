@@ -9,8 +9,15 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UsersRouteImport } from './routes/users'
+import { Route as StaffRouteImport } from './routes/staff'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as BillingRouteImport } from './routes/billing'
 import { Route as AffiliateRouteImport } from './routes/affiliate'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UsersIndexRouteImport } from './routes/users/index'
@@ -79,14 +86,49 @@ import { Route as DemoStartSsrFullSsrRouteImport } from './routes/demo/start.ssr
 import { Route as DemoStartSsrDataOnlyRouteImport } from './routes/demo/start.ssr.data-only'
 import { Route as ApiCategoryTemplatesCuisineRouteImport } from './routes/api/category/templates/$cuisine'
 
+const UsersRoute = UsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StaffRoute = StaffRouteImport.update({
+  id: '/staff',
+  path: '/staff',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersRoute = OrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InventoryRoute = InventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BillingRoute = BillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AffiliateRoute = AffiliateRouteImport.update({
@@ -100,84 +142,84 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const UsersIndexRoute = UsersIndexRouteImport.update({
-  id: '/users/',
-  path: '/users/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => UsersRoute,
 } as any)
 const StaffIndexRoute = StaffIndexRouteImport.update({
-  id: '/staff/',
-  path: '/staff/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => StaffRoute,
 } as any)
 const SettingsIndexRoute = SettingsIndexRouteImport.update({
-  id: '/settings/',
-  path: '/settings/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => SettingsRoute,
 } as any)
 const ReportsIndexRoute = ReportsIndexRouteImport.update({
-  id: '/reports/',
-  path: '/reports/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => ReportsRoute,
 } as any)
 const OrdersIndexRoute = OrdersIndexRouteImport.update({
-  id: '/orders/',
-  path: '/orders/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => OrdersRoute,
 } as any)
 const InventoryIndexRoute = InventoryIndexRouteImport.update({
-  id: '/inventory/',
-  path: '/inventory/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => InventoryRoute,
 } as any)
 const BillingIndexRoute = BillingIndexRouteImport.update({
-  id: '/billing/',
-  path: '/billing/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => BillingRoute,
 } as any)
 const SettingsSubscriptionRoute = SettingsSubscriptionRouteImport.update({
-  id: '/settings/subscription',
-  path: '/settings/subscription',
-  getParentRoute: () => rootRouteImport,
+  id: '/subscription',
+  path: '/subscription',
+  getParentRoute: () => SettingsRoute,
 } as any)
 const ReportsSalesRoute = ReportsSalesRouteImport.update({
-  id: '/reports/sales',
-  path: '/reports/sales',
-  getParentRoute: () => rootRouteImport,
+  id: '/sales',
+  path: '/sales',
+  getParentRoute: () => ReportsRoute,
 } as any)
 const ReportsCrmRoute = ReportsCrmRouteImport.update({
-  id: '/reports/crm',
-  path: '/reports/crm',
-  getParentRoute: () => rootRouteImport,
+  id: '/crm',
+  path: '/crm',
+  getParentRoute: () => ReportsRoute,
 } as any)
 const OrdersOverviewRoute = OrdersOverviewRouteImport.update({
-  id: '/orders/overview',
-  path: '/orders/overview',
-  getParentRoute: () => rootRouteImport,
+  id: '/overview',
+  path: '/overview',
+  getParentRoute: () => OrdersRoute,
 } as any)
 const OrdersHistoryRoute = OrdersHistoryRouteImport.update({
-  id: '/orders/history',
-  path: '/orders/history',
-  getParentRoute: () => rootRouteImport,
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => OrdersRoute,
 } as any)
 const InventoryStockRoute = InventoryStockRouteImport.update({
-  id: '/inventory/stock',
-  path: '/inventory/stock',
-  getParentRoute: () => rootRouteImport,
+  id: '/stock',
+  path: '/stock',
+  getParentRoute: () => InventoryRoute,
 } as any)
 const InventoryMenuRoute = InventoryMenuRouteImport.update({
-  id: '/inventory/menu',
-  path: '/inventory/menu',
-  getParentRoute: () => rootRouteImport,
+  id: '/menu',
+  path: '/menu',
+  getParentRoute: () => InventoryRoute,
 } as any)
 const BillingQuickBillRoute = BillingQuickBillRouteImport.update({
-  id: '/billing/quick-bill',
-  path: '/billing/quick-bill',
-  getParentRoute: () => rootRouteImport,
+  id: '/quick-bill',
+  path: '/quick-bill',
+  getParentRoute: () => BillingRoute,
 } as any)
 const BillingBookTableRoute = BillingBookTableRouteImport.update({
-  id: '/billing/book-table',
-  path: '/billing/book-table',
-  getParentRoute: () => rootRouteImport,
+  id: '/book-table',
+  path: '/book-table',
+  getParentRoute: () => BillingRoute,
 } as any)
 const ApiWsTokenRoute = ApiWsTokenRouteImport.update({
   id: '/api/ws-token',
@@ -265,30 +307,30 @@ const ApiAddonsRoute = ApiAddonsRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const UsersPIndexRoute = UsersPIndexRouteImport.update({
-  id: '/users/p/',
-  path: '/users/p/',
-  getParentRoute: () => rootRouteImport,
+  id: '/p/',
+  path: '/p/',
+  getParentRoute: () => UsersRoute,
 } as any)
 const ReportsStaffIndexRoute = ReportsStaffIndexRouteImport.update({
-  id: '/reports/staff/',
-  path: '/reports/staff/',
-  getParentRoute: () => rootRouteImport,
+  id: '/staff/',
+  path: '/staff/',
+  getParentRoute: () => ReportsRoute,
 } as any)
 const ReportsInventoryIndexRoute = ReportsInventoryIndexRouteImport.update({
-  id: '/reports/inventory/',
-  path: '/reports/inventory/',
-  getParentRoute: () => rootRouteImport,
+  id: '/inventory/',
+  path: '/inventory/',
+  getParentRoute: () => ReportsRoute,
 } as any)
 const ReportsStaffStaffIdRoute = ReportsStaffStaffIdRouteImport.update({
-  id: '/reports/staff/$staffId',
-  path: '/reports/staff/$staffId',
-  getParentRoute: () => rootRouteImport,
+  id: '/staff/$staffId',
+  path: '/staff/$staffId',
+  getParentRoute: () => ReportsRoute,
 } as any)
 const ReportsInventoryInventoryIdRoute =
   ReportsInventoryInventoryIdRouteImport.update({
-    id: '/reports/inventory/$inventoryId',
-    path: '/reports/inventory/$inventoryId',
-    getParentRoute: () => rootRouteImport,
+    id: '/inventory/$inventoryId',
+    path: '/inventory/$inventoryId',
+    getParentRoute: () => ReportsRoute,
   } as any)
 const DemoStartServerFuncsRoute = DemoStartServerFuncsRouteImport.update({
   id: '/demo/start/server-funcs',
@@ -431,8 +473,15 @@ const ApiCategoryTemplatesCuisineRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/affiliate': typeof AffiliateRoute
+  '/billing': typeof BillingRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/inventory': typeof InventoryRouteWithChildren
   '/login': typeof LoginRoute
+  '/orders': typeof OrdersRouteWithChildren
+  '/reports': typeof ReportsRouteWithChildren
+  '/settings': typeof SettingsRouteWithChildren
+  '/staff': typeof StaffRouteWithChildren
+  '/users': typeof UsersRouteWithChildren
   '/api/addons': typeof ApiAddonsRoute
   '/api/category': typeof ApiCategoryRouteWithChildren
   '/api/crm': typeof ApiCrmRouteWithChildren
@@ -459,13 +508,13 @@ export interface FileRoutesByFullPath {
   '/reports/crm': typeof ReportsCrmRoute
   '/reports/sales': typeof ReportsSalesRoute
   '/settings/subscription': typeof SettingsSubscriptionRoute
-  '/billing': typeof BillingIndexRoute
-  '/inventory': typeof InventoryIndexRoute
-  '/orders': typeof OrdersIndexRoute
-  '/reports': typeof ReportsIndexRoute
-  '/settings': typeof SettingsIndexRoute
-  '/staff': typeof StaffIndexRoute
-  '/users': typeof UsersIndexRoute
+  '/billing/': typeof BillingIndexRoute
+  '/inventory/': typeof InventoryIndexRoute
+  '/orders/': typeof OrdersIndexRoute
+  '/reports/': typeof ReportsIndexRoute
+  '/settings/': typeof SettingsIndexRoute
+  '/staff/': typeof StaffIndexRoute
+  '/users/': typeof UsersIndexRoute
   '/api/admin/update': typeof ApiAdminUpdateRoute
   '/api/auth/create-admin': typeof ApiAuthCreateAdminRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -574,8 +623,15 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/affiliate': typeof AffiliateRoute
+  '/billing': typeof BillingRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/inventory': typeof InventoryRouteWithChildren
   '/login': typeof LoginRoute
+  '/orders': typeof OrdersRouteWithChildren
+  '/reports': typeof ReportsRouteWithChildren
+  '/settings': typeof SettingsRouteWithChildren
+  '/staff': typeof StaffRouteWithChildren
+  '/users': typeof UsersRouteWithChildren
   '/api/addons': typeof ApiAddonsRoute
   '/api/category': typeof ApiCategoryRouteWithChildren
   '/api/crm': typeof ApiCrmRouteWithChildren
@@ -647,8 +703,15 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/affiliate'
+    | '/billing'
     | '/dashboard'
+    | '/inventory'
     | '/login'
+    | '/orders'
+    | '/reports'
+    | '/settings'
+    | '/staff'
+    | '/users'
     | '/api/addons'
     | '/api/category'
     | '/api/crm'
@@ -675,13 +738,13 @@ export interface FileRouteTypes {
     | '/reports/crm'
     | '/reports/sales'
     | '/settings/subscription'
-    | '/billing'
-    | '/inventory'
-    | '/orders'
-    | '/reports'
-    | '/settings'
-    | '/staff'
-    | '/users'
+    | '/billing/'
+    | '/inventory/'
+    | '/orders/'
+    | '/reports/'
+    | '/settings/'
+    | '/staff/'
+    | '/users/'
     | '/api/admin/update'
     | '/api/auth/create-admin'
     | '/api/auth/login'
@@ -789,8 +852,15 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/affiliate'
+    | '/billing'
     | '/dashboard'
+    | '/inventory'
     | '/login'
+    | '/orders'
+    | '/reports'
+    | '/settings'
+    | '/staff'
+    | '/users'
     | '/api/addons'
     | '/api/category'
     | '/api/crm'
@@ -861,8 +931,15 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AffiliateRoute: typeof AffiliateRoute
+  BillingRoute: typeof BillingRouteWithChildren
   DashboardRoute: typeof DashboardRoute
+  InventoryRoute: typeof InventoryRouteWithChildren
   LoginRoute: typeof LoginRoute
+  OrdersRoute: typeof OrdersRouteWithChildren
+  ReportsRoute: typeof ReportsRouteWithChildren
+  SettingsRoute: typeof SettingsRouteWithChildren
+  StaffRoute: typeof StaffRouteWithChildren
+  UsersRoute: typeof UsersRouteWithChildren
   ApiAddonsRoute: typeof ApiAddonsRoute
   ApiCategoryRoute: typeof ApiCategoryRouteWithChildren
   ApiCrmRoute: typeof ApiCrmRouteWithChildren
@@ -880,22 +957,6 @@ export interface RootRouteChildren {
   ApiUsersRoute: typeof ApiUsersRouteWithChildren
   ApiWaiterOrdersRoute: typeof ApiWaiterOrdersRoute
   ApiWsTokenRoute: typeof ApiWsTokenRoute
-  BillingBookTableRoute: typeof BillingBookTableRoute
-  BillingQuickBillRoute: typeof BillingQuickBillRoute
-  InventoryMenuRoute: typeof InventoryMenuRoute
-  InventoryStockRoute: typeof InventoryStockRoute
-  OrdersHistoryRoute: typeof OrdersHistoryRoute
-  OrdersOverviewRoute: typeof OrdersOverviewRoute
-  ReportsCrmRoute: typeof ReportsCrmRoute
-  ReportsSalesRoute: typeof ReportsSalesRoute
-  SettingsSubscriptionRoute: typeof SettingsSubscriptionRoute
-  BillingIndexRoute: typeof BillingIndexRoute
-  InventoryIndexRoute: typeof InventoryIndexRoute
-  OrdersIndexRoute: typeof OrdersIndexRoute
-  ReportsIndexRoute: typeof ReportsIndexRoute
-  SettingsIndexRoute: typeof SettingsIndexRoute
-  StaffIndexRoute: typeof StaffIndexRoute
-  UsersIndexRoute: typeof UsersIndexRoute
   ApiAdminUpdateRoute: typeof ApiAdminUpdateRoute
   ApiAuthCreateAdminRoute: typeof ApiAuthCreateAdminRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
@@ -905,11 +966,6 @@ export interface RootRouteChildren {
   DemoApiNamesRoute: typeof DemoApiNamesRoute
   DemoStartApiRequestRoute: typeof DemoStartApiRequestRoute
   DemoStartServerFuncsRoute: typeof DemoStartServerFuncsRoute
-  ReportsInventoryInventoryIdRoute: typeof ReportsInventoryInventoryIdRoute
-  ReportsStaffStaffIdRoute: typeof ReportsStaffStaffIdRoute
-  ReportsInventoryIndexRoute: typeof ReportsInventoryIndexRoute
-  ReportsStaffIndexRoute: typeof ReportsStaffIndexRoute
-  UsersPIndexRoute: typeof UsersPIndexRoute
   DemoStartSsrDataOnlyRoute: typeof DemoStartSsrDataOnlyRoute
   DemoStartSsrFullSsrRoute: typeof DemoStartSsrFullSsrRoute
   DemoStartSsrSpaModeRoute: typeof DemoStartSsrSpaModeRoute
@@ -918,6 +974,41 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/users': {
+      id: '/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/staff': {
+      id: '/staff'
+      path: '/staff'
+      fullPath: '/staff'
+      preLoaderRoute: typeof StaffRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders': {
+      id: '/orders'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof OrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -925,11 +1016,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/inventory': {
+      id: '/inventory'
+      path: '/inventory'
+      fullPath: '/inventory'
+      preLoaderRoute: typeof InventoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/billing': {
+      id: '/billing'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof BillingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/affiliate': {
@@ -948,115 +1053,115 @@ declare module '@tanstack/react-router' {
     }
     '/users/': {
       id: '/users/'
-      path: '/users'
-      fullPath: '/users'
+      path: '/'
+      fullPath: '/users/'
       preLoaderRoute: typeof UsersIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof UsersRoute
     }
     '/staff/': {
       id: '/staff/'
-      path: '/staff'
-      fullPath: '/staff'
+      path: '/'
+      fullPath: '/staff/'
       preLoaderRoute: typeof StaffIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof StaffRoute
     }
     '/settings/': {
       id: '/settings/'
-      path: '/settings'
-      fullPath: '/settings'
+      path: '/'
+      fullPath: '/settings/'
       preLoaderRoute: typeof SettingsIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof SettingsRoute
     }
     '/reports/': {
       id: '/reports/'
-      path: '/reports'
-      fullPath: '/reports'
+      path: '/'
+      fullPath: '/reports/'
       preLoaderRoute: typeof ReportsIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ReportsRoute
     }
     '/orders/': {
       id: '/orders/'
-      path: '/orders'
-      fullPath: '/orders'
+      path: '/'
+      fullPath: '/orders/'
       preLoaderRoute: typeof OrdersIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OrdersRoute
     }
     '/inventory/': {
       id: '/inventory/'
-      path: '/inventory'
-      fullPath: '/inventory'
+      path: '/'
+      fullPath: '/inventory/'
       preLoaderRoute: typeof InventoryIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof InventoryRoute
     }
     '/billing/': {
       id: '/billing/'
-      path: '/billing'
-      fullPath: '/billing'
+      path: '/'
+      fullPath: '/billing/'
       preLoaderRoute: typeof BillingIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof BillingRoute
     }
     '/settings/subscription': {
       id: '/settings/subscription'
-      path: '/settings/subscription'
+      path: '/subscription'
       fullPath: '/settings/subscription'
       preLoaderRoute: typeof SettingsSubscriptionRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof SettingsRoute
     }
     '/reports/sales': {
       id: '/reports/sales'
-      path: '/reports/sales'
+      path: '/sales'
       fullPath: '/reports/sales'
       preLoaderRoute: typeof ReportsSalesRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ReportsRoute
     }
     '/reports/crm': {
       id: '/reports/crm'
-      path: '/reports/crm'
+      path: '/crm'
       fullPath: '/reports/crm'
       preLoaderRoute: typeof ReportsCrmRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ReportsRoute
     }
     '/orders/overview': {
       id: '/orders/overview'
-      path: '/orders/overview'
+      path: '/overview'
       fullPath: '/orders/overview'
       preLoaderRoute: typeof OrdersOverviewRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OrdersRoute
     }
     '/orders/history': {
       id: '/orders/history'
-      path: '/orders/history'
+      path: '/history'
       fullPath: '/orders/history'
       preLoaderRoute: typeof OrdersHistoryRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof OrdersRoute
     }
     '/inventory/stock': {
       id: '/inventory/stock'
-      path: '/inventory/stock'
+      path: '/stock'
       fullPath: '/inventory/stock'
       preLoaderRoute: typeof InventoryStockRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof InventoryRoute
     }
     '/inventory/menu': {
       id: '/inventory/menu'
-      path: '/inventory/menu'
+      path: '/menu'
       fullPath: '/inventory/menu'
       preLoaderRoute: typeof InventoryMenuRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof InventoryRoute
     }
     '/billing/quick-bill': {
       id: '/billing/quick-bill'
-      path: '/billing/quick-bill'
+      path: '/quick-bill'
       fullPath: '/billing/quick-bill'
       preLoaderRoute: typeof BillingQuickBillRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof BillingRoute
     }
     '/billing/book-table': {
       id: '/billing/book-table'
-      path: '/billing/book-table'
+      path: '/book-table'
       fullPath: '/billing/book-table'
       preLoaderRoute: typeof BillingBookTableRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof BillingRoute
     }
     '/api/ws-token': {
       id: '/api/ws-token'
@@ -1179,38 +1284,38 @@ declare module '@tanstack/react-router' {
     }
     '/users/p/': {
       id: '/users/p/'
-      path: '/users/p'
+      path: '/p'
       fullPath: '/users/p'
       preLoaderRoute: typeof UsersPIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof UsersRoute
     }
     '/reports/staff/': {
       id: '/reports/staff/'
-      path: '/reports/staff'
+      path: '/staff'
       fullPath: '/reports/staff'
       preLoaderRoute: typeof ReportsStaffIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ReportsRoute
     }
     '/reports/inventory/': {
       id: '/reports/inventory/'
-      path: '/reports/inventory'
+      path: '/inventory'
       fullPath: '/reports/inventory'
       preLoaderRoute: typeof ReportsInventoryIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ReportsRoute
     }
     '/reports/staff/$staffId': {
       id: '/reports/staff/$staffId'
-      path: '/reports/staff/$staffId'
+      path: '/staff/$staffId'
       fullPath: '/reports/staff/$staffId'
       preLoaderRoute: typeof ReportsStaffStaffIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ReportsRoute
     }
     '/reports/inventory/$inventoryId': {
       id: '/reports/inventory/$inventoryId'
-      path: '/reports/inventory/$inventoryId'
+      path: '/inventory/$inventoryId'
       fullPath: '/reports/inventory/$inventoryId'
       preLoaderRoute: typeof ReportsInventoryInventoryIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ReportsRoute
     }
     '/demo/start/server-funcs': {
       id: '/demo/start/server-funcs'
@@ -1404,6 +1509,111 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface BillingRouteChildren {
+  BillingBookTableRoute: typeof BillingBookTableRoute
+  BillingQuickBillRoute: typeof BillingQuickBillRoute
+  BillingIndexRoute: typeof BillingIndexRoute
+}
+
+const BillingRouteChildren: BillingRouteChildren = {
+  BillingBookTableRoute: BillingBookTableRoute,
+  BillingQuickBillRoute: BillingQuickBillRoute,
+  BillingIndexRoute: BillingIndexRoute,
+}
+
+const BillingRouteWithChildren =
+  BillingRoute._addFileChildren(BillingRouteChildren)
+
+interface InventoryRouteChildren {
+  InventoryMenuRoute: typeof InventoryMenuRoute
+  InventoryStockRoute: typeof InventoryStockRoute
+  InventoryIndexRoute: typeof InventoryIndexRoute
+}
+
+const InventoryRouteChildren: InventoryRouteChildren = {
+  InventoryMenuRoute: InventoryMenuRoute,
+  InventoryStockRoute: InventoryStockRoute,
+  InventoryIndexRoute: InventoryIndexRoute,
+}
+
+const InventoryRouteWithChildren = InventoryRoute._addFileChildren(
+  InventoryRouteChildren,
+)
+
+interface OrdersRouteChildren {
+  OrdersHistoryRoute: typeof OrdersHistoryRoute
+  OrdersOverviewRoute: typeof OrdersOverviewRoute
+  OrdersIndexRoute: typeof OrdersIndexRoute
+}
+
+const OrdersRouteChildren: OrdersRouteChildren = {
+  OrdersHistoryRoute: OrdersHistoryRoute,
+  OrdersOverviewRoute: OrdersOverviewRoute,
+  OrdersIndexRoute: OrdersIndexRoute,
+}
+
+const OrdersRouteWithChildren =
+  OrdersRoute._addFileChildren(OrdersRouteChildren)
+
+interface ReportsRouteChildren {
+  ReportsCrmRoute: typeof ReportsCrmRoute
+  ReportsSalesRoute: typeof ReportsSalesRoute
+  ReportsIndexRoute: typeof ReportsIndexRoute
+  ReportsInventoryInventoryIdRoute: typeof ReportsInventoryInventoryIdRoute
+  ReportsStaffStaffIdRoute: typeof ReportsStaffStaffIdRoute
+  ReportsInventoryIndexRoute: typeof ReportsInventoryIndexRoute
+  ReportsStaffIndexRoute: typeof ReportsStaffIndexRoute
+}
+
+const ReportsRouteChildren: ReportsRouteChildren = {
+  ReportsCrmRoute: ReportsCrmRoute,
+  ReportsSalesRoute: ReportsSalesRoute,
+  ReportsIndexRoute: ReportsIndexRoute,
+  ReportsInventoryInventoryIdRoute: ReportsInventoryInventoryIdRoute,
+  ReportsStaffStaffIdRoute: ReportsStaffStaffIdRoute,
+  ReportsInventoryIndexRoute: ReportsInventoryIndexRoute,
+  ReportsStaffIndexRoute: ReportsStaffIndexRoute,
+}
+
+const ReportsRouteWithChildren =
+  ReportsRoute._addFileChildren(ReportsRouteChildren)
+
+interface SettingsRouteChildren {
+  SettingsSubscriptionRoute: typeof SettingsSubscriptionRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
+}
+
+const SettingsRouteChildren: SettingsRouteChildren = {
+  SettingsSubscriptionRoute: SettingsSubscriptionRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
+}
+
+const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
+  SettingsRouteChildren,
+)
+
+interface StaffRouteChildren {
+  StaffIndexRoute: typeof StaffIndexRoute
+}
+
+const StaffRouteChildren: StaffRouteChildren = {
+  StaffIndexRoute: StaffIndexRoute,
+}
+
+const StaffRouteWithChildren = StaffRoute._addFileChildren(StaffRouteChildren)
+
+interface UsersRouteChildren {
+  UsersIndexRoute: typeof UsersIndexRoute
+  UsersPIndexRoute: typeof UsersPIndexRoute
+}
+
+const UsersRouteChildren: UsersRouteChildren = {
+  UsersIndexRoute: UsersIndexRoute,
+  UsersPIndexRoute: UsersPIndexRoute,
+}
+
+const UsersRouteWithChildren = UsersRoute._addFileChildren(UsersRouteChildren)
+
 interface ApiCategoryRouteChildren {
   ApiCategoryAsTemplateRoute: typeof ApiCategoryAsTemplateRoute
   ApiCategoryCuisineTypesRoute: typeof ApiCategoryCuisineTypesRoute
@@ -1513,8 +1723,15 @@ const ApiUsersRouteWithChildren = ApiUsersRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AffiliateRoute: AffiliateRoute,
+  BillingRoute: BillingRouteWithChildren,
   DashboardRoute: DashboardRoute,
+  InventoryRoute: InventoryRouteWithChildren,
   LoginRoute: LoginRoute,
+  OrdersRoute: OrdersRouteWithChildren,
+  ReportsRoute: ReportsRouteWithChildren,
+  SettingsRoute: SettingsRouteWithChildren,
+  StaffRoute: StaffRouteWithChildren,
+  UsersRoute: UsersRouteWithChildren,
   ApiAddonsRoute: ApiAddonsRoute,
   ApiCategoryRoute: ApiCategoryRouteWithChildren,
   ApiCrmRoute: ApiCrmRouteWithChildren,
@@ -1532,22 +1749,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiUsersRoute: ApiUsersRouteWithChildren,
   ApiWaiterOrdersRoute: ApiWaiterOrdersRoute,
   ApiWsTokenRoute: ApiWsTokenRoute,
-  BillingBookTableRoute: BillingBookTableRoute,
-  BillingQuickBillRoute: BillingQuickBillRoute,
-  InventoryMenuRoute: InventoryMenuRoute,
-  InventoryStockRoute: InventoryStockRoute,
-  OrdersHistoryRoute: OrdersHistoryRoute,
-  OrdersOverviewRoute: OrdersOverviewRoute,
-  ReportsCrmRoute: ReportsCrmRoute,
-  ReportsSalesRoute: ReportsSalesRoute,
-  SettingsSubscriptionRoute: SettingsSubscriptionRoute,
-  BillingIndexRoute: BillingIndexRoute,
-  InventoryIndexRoute: InventoryIndexRoute,
-  OrdersIndexRoute: OrdersIndexRoute,
-  ReportsIndexRoute: ReportsIndexRoute,
-  SettingsIndexRoute: SettingsIndexRoute,
-  StaffIndexRoute: StaffIndexRoute,
-  UsersIndexRoute: UsersIndexRoute,
   ApiAdminUpdateRoute: ApiAdminUpdateRoute,
   ApiAuthCreateAdminRoute: ApiAuthCreateAdminRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
@@ -1557,11 +1758,6 @@ const rootRouteChildren: RootRouteChildren = {
   DemoApiNamesRoute: DemoApiNamesRoute,
   DemoStartApiRequestRoute: DemoStartApiRequestRoute,
   DemoStartServerFuncsRoute: DemoStartServerFuncsRoute,
-  ReportsInventoryInventoryIdRoute: ReportsInventoryInventoryIdRoute,
-  ReportsStaffStaffIdRoute: ReportsStaffStaffIdRoute,
-  ReportsInventoryIndexRoute: ReportsInventoryIndexRoute,
-  ReportsStaffIndexRoute: ReportsStaffIndexRoute,
-  UsersPIndexRoute: UsersPIndexRoute,
   DemoStartSsrDataOnlyRoute: DemoStartSsrDataOnlyRoute,
   DemoStartSsrFullSsrRoute: DemoStartSsrFullSsrRoute,
   DemoStartSsrSpaModeRoute: DemoStartSsrSpaModeRoute,

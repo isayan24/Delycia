@@ -14,8 +14,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { requireAuth } from '@/middleware/auth'
 
 export const Route = createFileRoute('/reports/crm')({
+  beforeLoad: requireAuth,
   validateSearch: (
     search: Record<string, unknown>,
   ): { customerId?: string } => {

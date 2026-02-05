@@ -1,8 +1,10 @@
 import { TableBar } from '@mui/icons-material'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { ChevronRight, ReceiptIndianRupee } from 'lucide-react'
+import { requireAuth } from '@/middleware/auth'
 
 export const Route = createFileRoute('/billing/')({
+  beforeLoad: requireAuth,
   component: RouteComponent,
 })
 

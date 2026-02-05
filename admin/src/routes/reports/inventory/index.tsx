@@ -26,10 +26,12 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
+import { requireAuth } from '@/middleware/auth'
 
 type InventoryFilter = 'all' | 'available' | 'low' | 'critical'
 
 export const Route = createFileRoute('/reports/inventory/')({
+  beforeLoad: requireAuth,
   component: InventoryReportPage,
   validateSearch: (search: Record<string, unknown>): { filter?: string } => {
     return {

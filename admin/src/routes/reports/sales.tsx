@@ -23,8 +23,10 @@ import DateFilterComponent from '@/components/admin/dashboard/DateFilterComponen
 import DateRangeDisplay from '@/components/admin/dashboard/DateRangeDisplay'
 import { Button as StatefulButton } from '@/components/ui/stateful-button'
 import { AlertCircle } from 'lucide-react'
+import { requireAuth } from '@/middleware/auth'
 
 export const Route = createFileRoute('/reports/sales')({
+  beforeLoad: requireAuth,
   component: SalesReportPage,
 })
 

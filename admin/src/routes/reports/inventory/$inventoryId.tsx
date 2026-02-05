@@ -27,8 +27,10 @@ import { convertToIST } from '@/components/admin/order-history/utils/historyDate
 import { QuickRestockButton } from '@/components/admin/inventory/QuickRestockButton'
 
 import { Skeleton } from '@/components/ui/skeleton'
+import { requireAuth } from '@/middleware/auth'
 
 export const Route = createFileRoute('/reports/inventory/$inventoryId')({
+  beforeLoad: requireAuth,
   component: InventoryItemDetailPage,
 })
 

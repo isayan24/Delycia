@@ -1,9 +1,10 @@
 import { redirect } from '@tanstack/react-router'
-import sessionService from '@/services/sessionService'
+import { createServerFn } from '@tanstack/react-start'
+import { getRequest } from '@tanstack/react-start/server'
+import { getAccessTokenFromCookie } from '@/lib/server-cookies'
 
 /**
  * Router context interface for type-safe auth state
- * Note: Currently not used for auth checks, but kept for future enhancements
  */
 export interface RouterContext {
   auth?: {
@@ -14,57 +15,97 @@ export interface RouterContext {
 }
 
 /**
+ * Server function to check if user is authenticated
+ * This runs on the server and checks the httpOnly cookie
+ */
+export const checkAuthServer = createServerFn({ method: 'GET' }).handler(
+  async () => {
+    try {
+      const request = getRequest()
+      if (!request) {
+        return { isAuthenticated: false, user: null }
+      }
+
+      // Check for access token in httpOnly cookie
+      const accessToken = getAccessTokenFromCookie(request)
+
+      if (!accessToken) {
+        return { isAuthenticated: false, user: null }
+      }
+
+      // Token exists, user is authenticated
+      // For more robust validation, we could also call the backend to verify
+      return { isAuthenticated: true, user: null }
+    } catch (error) {
+      console.error('[checkAuthServer] Error checking auth:', error)
+      return { isAuthenticated: false, user: null }
+    }
+  },
+)
+
+/**
  * Middleware function to require authentication
- * Redirects to /login if user is not authenticated
+ * Works on both server (SSR) and client
  *
- * Usage:
+ * Usage in route files:
  * export const Route = createFileRoute('/dashboard')({
  *   beforeLoad: requireAuth,
  *   component: DashboardPage,
  * })
  */
-export function requireAuth({
+export async function requireAuth({
   location,
 }: {
   context?: RouterContext
   location: { href: string }
 }) {
-  // IMPORTANT: On SSR or initial page load, localStorage might not be populated yet
-  // We need to allow the page to load and let the component handle auth
-
   // Check if we're on the server (SSR)
-  if (typeof window === 'undefined') {
-    // On server, allow through - client will handle auth
-    return {
-      showHeader: true,
-      showSidebar: true,
-    }
-  }
+  const isServer = typeof window === 'undefined'
 
-  // On client, check localStorage
-  const user = sessionService.getUserData()
-  const isAuthenticated = !!user
+  if (isServer) {
+    // On server, use server function to check session via httpOnly cookies
+    try {
+      const authResult = await checkAuthServer()
 
-  // Only redirect if DEFINITELY not authenticated
-  // Don't redirect on initial load when data might still be loading
-  if (!isAuthenticated) {
-    // Check if this might be an initial page load
-    // by seeing if the sessionService has been initialized
-    const hasLocalStorage = typeof localStorage !== 'undefined'
-    const userDataString = hasLocalStorage
-      ? localStorage.getItem('admin_user_data')
-      : null
+      if (!authResult.isAuthenticated) {
+        throw redirect({
+          to: '/login',
+          search: {
+            redirect: location.href,
+          },
+        })
+      }
 
-    // If localStorage has data, trust it and let the page load
-    // useAuth will validate with server after
-    if (userDataString) {
       return {
         showHeader: true,
         showSidebar: true,
+        user: authResult.user,
       }
+    } catch (error) {
+      // If it's a redirect, let it propagate
+      if (
+        error &&
+        typeof error === 'object' &&
+        ('to' in error || 'href' in error)
+      ) {
+        throw error
+      }
+      // On error, redirect to login
+      throw redirect({
+        to: '/login',
+        search: {
+          redirect: location.href,
+        },
+      })
     }
+  }
 
-    // Only redirect if localStorage is also empty
+  // On client, check localStorage (already hydrated)
+  // Dynamic import to avoid SSR issues
+  const { default: sessionService } = await import('@/services/sessionService')
+  const user = sessionService.getUserData()
+
+  if (!user) {
     throw redirect({
       to: '/login',
       search: {
@@ -73,22 +114,16 @@ export function requireAuth({
     })
   }
 
-  // Return metadata for layout control
   return {
     showHeader: true,
     showSidebar: true,
+    user,
   }
 }
 
 /**
  * Middleware function to require guest (unauthenticated) access
  * Redirects to /dashboard if user is already authenticated
- *
- * Usage:
- * export const Route = createFileRoute('/login')({
- *   beforeLoad: requireGuest,
- *   component: LoginPage,
- * })
  */
 export function requireGuest({
   search,
@@ -96,18 +131,24 @@ export function requireGuest({
   context?: RouterContext
   search?: { redirect?: string }
 }) {
-  // Get auth state directly from sessionService (synchronous)
-  const user = sessionService.getUserData()
-  const isAuthenticated = !!user
+  // On server, allow through - client will handle redirect
+  if (typeof window === 'undefined') {
+    return {
+      showHeader: false,
+      showSidebar: false,
+    }
+  }
 
-  // If authenticated, redirect to dashboard or the intended destination
+  // On client, check localStorage
+  const userData = localStorage.getItem('userData')
+  const isAuthenticated = !!userData
+
   if (isAuthenticated) {
     throw redirect({
       to: search?.redirect || '/dashboard',
     })
   }
 
-  // Return metadata for layout control
   return {
     showHeader: false,
     showSidebar: false,
@@ -116,15 +157,12 @@ export function requireGuest({
 
 /**
  * Helper to check if current route should show UI components
- * This is used in the root layout to conditionally render header/sidebar
  */
 export function shouldShowUIComponents(pathname: string): {
   showHeader: boolean
   showSidebar: boolean
 } {
-  // List of public routes that shouldn't show header/sidebar
   const publicRoutes = ['/login']
-
   const isPublicRoute = publicRoutes.includes(pathname)
 
   return {

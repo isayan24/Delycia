@@ -1,4 +1,4 @@
-import { useLocation } from '@tanstack/react-router'
+import { useLocation, Link } from '@tanstack/react-router'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -28,7 +28,9 @@ const RouteBreadcrumbs = () => {
     <Breadcrumb>
       <BreadcrumbList>
         <BreadcrumbItem>
-          <BreadcrumbLink href="/">Home</BreadcrumbLink>
+          <BreadcrumbLink asChild>
+            <Link to="/">Home</Link>
+          </BreadcrumbLink>
         </BreadcrumbItem>
         {pathnames.length > 0 && <BreadcrumbSeparator />}
         {pathnames.map((value, index) => {
@@ -42,7 +44,9 @@ const RouteBreadcrumbs = () => {
                 {isLast ? (
                   <BreadcrumbPage>{label}</BreadcrumbPage>
                 ) : (
-                  <BreadcrumbLink href={to}>{label}</BreadcrumbLink>
+                  <BreadcrumbLink asChild>
+                    <Link to={to}>{label}</Link>
+                  </BreadcrumbLink>
                 )}
               </BreadcrumbItem>
               {!isLast && <BreadcrumbSeparator />}

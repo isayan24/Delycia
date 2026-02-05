@@ -27,9 +27,10 @@ import { shouldShowUIComponents } from '@/middleware/auth'
 import { AppSidebar } from '@/components/app-sidebar'
 import { useRoleBasedUI } from '@/components/user-roles/useRoleBasedUI'
 import WaiterHeader from '@/components/admin/header/WaiterHeader'
-import { Separator } from '@/components/ui/separator'
 import RouteBreadcrumbs from '@/components/common/RouteBreadcrumbs'
 import { SubscriptionGuard } from '@/components/admin/settings/SubscriptionGuard'
+import { NotificationToastManager } from '@/components/common/NotificationToastManager'
+import { NotificationBell } from '@/components/common/NotificationBell'
 
 // Note: We don't define beforeLoad here because we get auth from component
 // and pass it via router instantiation in the app setup
@@ -141,6 +142,9 @@ function RootComponent() {
                     <SidebarTrigger className="-ml-1" />
                     {/* <Separator orientation="vertical" className="mr-2 h-4" /> */}
                     <RouteBreadcrumbs />
+                    <div className="ml-auto">
+                      <NotificationBell />
+                    </div>
                   </header>
 
                   <div className="p-5 max-[500px]:p-1 max-w-[90vw]s mx-autod borderx">
@@ -169,6 +173,9 @@ function RootComponent() {
 
           {/* Global Order Popup Manager */}
           <GlobalOrderPopupManager />
+
+          {/* Notification Toast Pop-ups */}
+          <NotificationToastManager />
         </SoundProvider>
       </QueryClientProvider>
     </RootDocument>
