@@ -22,7 +22,7 @@ COPY . .
 ENV NODE_ENV=production
 
 # Dokploy will inject PORT
-EXPOSE 3000
+EXPOSE 8020
 
 # Start app
 CMD ["node", "src/index.js"]
