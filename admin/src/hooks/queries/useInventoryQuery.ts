@@ -1,5 +1,38 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import axios from 'axios' // Call local server routes, NOT backend directly!
+import axios from 'axios'
+
+// ============================================
+// Types
+// ============================================
+
+export interface InventoryVariant {
+  id: string
+  inventory_id: string
+  name: string
+  price: number
+  is_active: boolean
+}
+
+export interface InventoryItem {
+  id: string
+  rid: string
+  category_id: string
+  name: string
+  description?: string
+  price: number
+  cost?: number
+  stock: number
+  status: 'available' | 'out_of_stock' | 'hidden'
+  images: string[]
+  variants?: InventoryVariant[]
+  is_veg?: boolean
+  created_at?: string
+  updated_at?: string
+}
+
+interface InventoryResponse {
+  inventory: InventoryItem[]
+}
 
 // ============================================
 // Query Key Factory for Inventory
@@ -27,14 +60,20 @@ export const inventoryKeys = {
  */
 export function useInventoryQuery(
   categoryId: string | null | undefined,
+  rid?: string, // Optional: if we want to fetch all items for a restaurant without category
   enabled = true,
 ) {
-  return useQuery({
+  return useQuery<InventoryResponse>({
     queryKey: categoryId
       ? inventoryKeys.byCategory(categoryId)
-      : inventoryKeys.all,
+      : rid
+        ? inventoryKeys.byRestaurant(rid)
+        : inventoryKeys.all,
     queryFn: async () => {
-      const params = categoryId ? { category_id: categoryId } : {}
+      const params: any = {}
+      if (categoryId) params.category_id = categoryId
+      if (rid && !categoryId) params.rid = rid // Only use rid if category is not present, or backend supports both
+
       const response = await axios.get('/api/inventory', { params })
       return response.data
     },
@@ -48,7 +87,7 @@ export function useInventoryQuery(
  * Fetch single inventory item by ID
  */
 export function useInventoryItemQuery(id: string | undefined, enabled = true) {
-  return useQuery({
+  return useQuery<InventoryItem>({
     queryKey: inventoryKeys.byId(id ?? ''),
     queryFn: async () => {
       if (!id) throw new Error('Item ID is required')
@@ -67,7 +106,7 @@ export function useInventoryVariantsQuery(
   inventoryId: string | undefined,
   enabled = true,
 ) {
-  return useQuery({
+  return useQuery<InventoryVariant[]>({
     queryKey: inventoryKeys.variants.byInventoryId(inventoryId ?? ''),
     queryFn: async () => {
       if (!inventoryId) throw new Error('Inventory ID is required')
@@ -95,7 +134,6 @@ interface CreateInventoryParams {
   stock?: number
   images?: string[]
   variants?: Array<{ name: string; price: number }>
-  token: string
 }
 
 /**
@@ -106,10 +144,7 @@ export function useCreateInventoryMutation() {
 
   return useMutation({
     mutationFn: async (params: CreateInventoryParams) => {
-      const { token, ...data } = params
-      const response = await axios.post('/api/inventory', data, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const response = await axios.post('/api/inventory', params)
       return response.data
     },
     onSuccess: (_data, variables) => {
@@ -136,7 +171,6 @@ interface UpdateInventoryParams {
   variants?: Array<{ id?: string; name: string; price: number }>
   selectiveFields?: string[]
   currentStatus?: string
-  token: string
 }
 
 /**
@@ -147,10 +181,7 @@ export function useUpdateInventoryMutation() {
 
   return useMutation({
     mutationFn: async (params: UpdateInventoryParams) => {
-      const { token, ...data } = params
-      const response = await axios.patch('/api/inventory', data, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const response = await axios.patch('/api/inventory', params)
       return response.data
     },
     onSuccess: (_data, variables) => {
@@ -172,7 +203,6 @@ interface DeleteInventoryParams {
   id: string
   rid: string
   img?: string[]
-  token: string
 }
 
 /**
@@ -183,10 +213,8 @@ export function useDeleteInventoryMutation() {
 
   return useMutation({
     mutationFn: async (params: DeleteInventoryParams) => {
-      const { token, ...data } = params
       const response = await axios.delete('/api/inventory', {
-        data,
-        headers: { Authorization: `Bearer ${token}` },
+        data: params,
       })
       return response.data
     },
@@ -209,7 +237,6 @@ interface BulkCreateInventoryParams {
     stock: number
     images: string[]
   }>
-  token: string
 }
 
 /**
@@ -220,10 +247,7 @@ export function useBulkCreateInventoryMutation() {
 
   return useMutation({
     mutationFn: async (params: BulkCreateInventoryParams) => {
-      const { token, ...data } = params
-      const response = await axios.post('/api/inventory/bulk', data, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const response = await axios.post('/api/inventory/bulk', params)
       return response.data
     },
     onSuccess: (_data, variables) => {

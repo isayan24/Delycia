@@ -14,6 +14,50 @@ import { getAccessTokenFromCookie } from '@/lib/server-cookies'
 export const Route = createFileRoute('/api/inventory')({
   server: {
     handlers: {
+      GET: async ({ request }) => {
+        try {
+          const url = new URL(request.url)
+          const rid = url.searchParams.get('rid')
+          const categoryId = url.searchParams.get('category_id')
+
+          // Get token from httpOnly cookie
+          const token = getAccessTokenFromCookie(request)
+
+          // Prepare params for backend call
+          const params: any = {}
+          if (rid) params.rid = rid
+          if (categoryId) params.category_id = categoryId
+
+          // Call backend
+          // Note: Using axiosInstance which already has baseURL configured
+          // and we attach the token manually or let interceptors handle it.
+          // The current axiosInstance configuration (lib/axios.ts) doesn't seem to attach Bearer token automatically
+          // from server-side cookies? lib/axios.ts says "Server routes handle adding Bearer tokens from httpOnly cookies".
+          // So we must manually add the header here like in POST/PATCH.
+
+          const headers: Record<string, string> = {}
+          if (token) {
+            headers['Authorization'] = `Bearer ${token}`
+          }
+
+          const response = await axiosInstance.get('/inventory', {
+            params,
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          })
+
+          return new Response(JSON.stringify(response.data), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        } catch (error) {
+          console.error('Error in GET /api/inventory:', error)
+          const errorResponse = handleApiError(error, 'fetching')
+          return new Response(JSON.stringify(errorResponse), {
+            status: (errorResponse as any).status || 500,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        }
+      },
       POST: async ({ request }) => {
         try {
           // Get token from httpOnly cookie

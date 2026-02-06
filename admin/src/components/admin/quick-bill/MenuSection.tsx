@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
@@ -9,7 +9,6 @@ import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import { useCategoriesQuery } from '@/hooks/queries/useCategoriesQuery'
 import { Item, Variant } from '@/types/menu.types'
 import LoadingScreen from '@/components/common/LoadingScreen'
-import axiosInstance from '@/lib/axios'
 import MenuGridItem from './MenuGridItem'
 
 interface MenuSectionProps {
@@ -40,7 +39,6 @@ export default function MenuSection({ addToCart, cart }: MenuSectionProps) {
   const { selectedRestaurant } = useRestaurantSelector()
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
-  const [variants, setVariants] = useState<Record<string, Variant[]>>({})
   // Track which item is currently being customized (Inline Addon Selection)
   const [customizingItemId, setCustomizingItemId] = useState<string | null>(
     null,
@@ -74,44 +72,6 @@ export default function MenuSection({ addToCart, cart }: MenuSectionProps) {
 
     return result
   }, [allItems, selectedCategoryId, searchQuery])
-
-  // Fetch variants for filtered items
-  useEffect(() => {
-    const fetchVariantsForItems = async () => {
-      if (filteredItems.length === 0) return
-
-      try {
-        const variantPromises = filteredItems.map(async (item) => {
-          try {
-            const response = await axiosInstance.get(
-              `/variants?inventory_id=${item.id}`,
-            )
-            return { itemId: item.id, variants: response.data?.variants || [] }
-          } catch (error) {
-            console.error(
-              `Failed to fetch variants for item ${item.id}:`,
-              error,
-            )
-            return { itemId: item.id, variants: [] }
-          }
-        })
-
-        const variantResults = await Promise.all(variantPromises)
-
-        setVariants((prev) => {
-          const newVariants = { ...prev }
-          variantResults.forEach(({ itemId, variants: itemVariants }) => {
-            newVariants[itemId] = itemVariants
-          })
-          return newVariants
-        })
-      } catch (error) {
-        console.error('Error fetching variants:', error)
-      }
-    }
-
-    fetchVariantsForItems()
-  }, [filteredItems])
 
   // DIRECT ADD TO CART - NO DIALOG
   const onAddItem = (item: Item, variant?: Variant, addons: any[] = []) => {
@@ -248,7 +208,6 @@ export default function MenuSection({ addToCart, cart }: MenuSectionProps) {
               <MenuGridItem
                 key={item.id}
                 item={item}
-                variants={variants[item.id] || []}
                 cart={cart}
                 isCustomizing={customizingItemId === item.id}
                 setCustomizingId={setCustomizingItemId}

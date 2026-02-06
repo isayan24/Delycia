@@ -27,7 +27,7 @@ export interface Item {
   img?: string
   image?: string
   images: string[]
-  cost_price: number
+  cost_price?: number
   price: number
   category_id?: string
   rid?: string
@@ -35,7 +35,7 @@ export interface Item {
   variantId?: string // For cart items with selected variant
   addons?: any[]
   is_active?: number
-  is_veg?: number
+  is_veg?: number | boolean
   description?: string
   cartItemName?: string // Base name for billing (Item + Variant, no addons)
 }

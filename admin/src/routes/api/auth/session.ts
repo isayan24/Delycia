@@ -1,8 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import jwt from 'jsonwebtoken'
-import axios from 'axios'
-
-const SERVER_URL = process.env.SERVER_URL || 'http://localhost:8020/api/v1'
+import axiosInstance from '@/lib/axios'
 
 // Helper function to parse cookies
 function parseCookies(cookieHeader: string | null): Record<string, string> {
@@ -74,8 +72,8 @@ export const Route = createFileRoute('/api/auth/session')({
 
           // Fetch user data from backend using the access token
           try {
-            const userResponse = await axios.get(
-              `${SERVER_URL}/admin/users?id=${decoded.id}`,
+            const userResponse = await axiosInstance.get(
+              `/admin/users?id=${decoded.id}`,
               {
                 headers: {
                   Authorization: `Bearer ${accessToken}`,
@@ -123,7 +121,25 @@ export const Route = createFileRoute('/api/auth/session')({
               )
             }
           } catch (userError: any) {
-            // If user fetch fails, return basic decoded data
+            // If token is invalid/expired on backend, fail the session
+            if (
+              userError.response?.status === 401 ||
+              userError.response?.status === 403
+            ) {
+              return new Response(
+                JSON.stringify({
+                  statusCode: 401,
+                  message: 'Session invalid or expired',
+                  isAuthenticated: false,
+                }),
+                {
+                  status: 401,
+                  headers: { 'Content-Type': 'application/json' },
+                },
+              )
+            }
+
+            // For other errors (e.g. network), return basic decoded data
             return new Response(
               JSON.stringify({
                 statusCode: 200,

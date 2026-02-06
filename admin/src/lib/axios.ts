@@ -1,10 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
 import qs from 'qs'
 
-const SERVER_URL =
-  import.meta.env.VITE_SERVER_URL ||
-  process.env.VITE_SERVER_URL ||
-  process.env.SERVER_URL // Fallback for server-side where non-VITE vars work
+const SERVER_URL = process.env.VITE_SERVER_URL
 
 const axiosInstance = axios.create({
   baseURL: SERVER_URL,

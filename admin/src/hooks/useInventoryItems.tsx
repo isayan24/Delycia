@@ -1,64 +1,37 @@
-import { useState, useEffect, useMemo } from "react";
-import axiosInstance from "@/lib/axios";
-import { useRestaurantSelector } from "./useRestaurantSelector";
+import { useMemo } from 'react'
+import { useInventoryQuery } from './queries/useInventoryQuery'
+import { useRestaurantSelector } from './useRestaurantSelector'
 
 export const useInventoryItems = (categoryId?: string | null) => {
-  const [allItems, setAllItems] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { selectedRestaurant } = useRestaurantSelector();
+  const { selectedRestaurant } = useRestaurantSelector()
+  const rid = selectedRestaurant?.id
 
-  const rid = selectedRestaurant?.id;
+  // We fetch ALL items for the restaurant to maintain compatibility with the original behavior
+  // which returned 'allItems' (everything) + 'items' (filtered).
+  // Server-side filtering by category is supported by the hook, but to support the
+  // "allItems" return value, we must fetch everything.
+  const {
+    data: response,
+    isLoading,
+    error: queryError,
+    refetch,
+  } = useInventoryQuery(null, rid, !!rid)
 
-  // Filter items based on categoryId
+  const entireInventory = useMemo(() => response?.inventory || [], [response])
+
   const items = useMemo(() => {
-    if (!categoryId || !allItems.length) {
-      return allItems;
+    if (!categoryId || !entireInventory.length) {
+      return entireInventory
     }
-
-    return allItems.filter((item) => item.category_id === categoryId);
-  }, [allItems, categoryId]);
-
-  const fetchAllItems = async () => {
-    if (!rid) {
-      setAllItems([]);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await axiosInstance.get(`/inventory?rid=${rid}`);
-      if (response.data && response.data.inventory) {
-        setAllItems(response.data.inventory);
-      } else {
-        setAllItems([]);
-      }
-      setError(null);
-    } catch (err) {
-      console.error("Error fetching all items:", err);
-      setError("Failed to load inventory items");
-      setAllItems([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch all items when rid changes
-  useEffect(() => {
-    fetchAllItems();
-  }, [rid]);
-
-  const refetch = () => {
-    return fetchAllItems();
-  };
+    return entireInventory.filter((item) => item.category_id === categoryId)
+  }, [entireInventory, categoryId])
 
   return {
     items,
-    loading,
-    error,
+    loading: isLoading,
+    error: queryError ? 'Failed to load inventory items' : null,
     refetch,
-    allItems,
-    fetchAllItems,
-  };
-};
+    allItems: entireInventory,
+    fetchAllItems: refetch, // Alias for compatibility
+  }
+}

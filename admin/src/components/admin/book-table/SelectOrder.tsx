@@ -6,7 +6,6 @@ import { useEffect, useState, useMemo } from 'react'
 import { ShoppingCart } from 'lucide-react'
 import { useTableStore } from '@/store/useTableStore'
 import OrderHeader from './OrderHeader'
-import axiosInstance from '@/lib/axios'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import InventoryItemRow from './InventoryItemRow'
 import { Category, Item, Variant } from '@/types/menu.types'
@@ -30,7 +29,6 @@ export default function SelectOrder() {
   const { data: categoriesData } = useCategoriesQuery(selectedRid)
 
   const [allItems, setAllItems] = useState<Item[]>([])
-  const [variants, setVariants] = useState<Record<string, Variant[]>>({})
 
   const {
     items,
@@ -70,43 +68,6 @@ export default function SelectOrder() {
         return Array.from(existingItemsMap.values())
       })
     }
-  }, [items])
-
-  useEffect(() => {
-    const fetchVariantsForCategory = async () => {
-      if (items.length === 0) return
-
-      try {
-        const variantPromises = items.map(async (item) => {
-          try {
-            const response = await axiosInstance.get(
-              `/variants?inventory_id=${item.id}`,
-            )
-            return { itemId: item.id, variants: response.data?.variants || [] }
-          } catch (error) {
-            console.error(
-              `Failed to fetch variants for item ${item.id}:`,
-              error,
-            )
-            return { itemId: item.id, variants: [] }
-          }
-        })
-
-        const variantResults = await Promise.all(variantPromises)
-
-        setVariants((prev) => {
-          const newVariants = { ...prev }
-          variantResults.forEach(({ itemId, variants: itemVariants }) => {
-            newVariants[itemId] = itemVariants
-          })
-          return newVariants
-        })
-      } catch (error) {
-        console.error('Error fetching variants:', error)
-      }
-    }
-
-    fetchVariantsForCategory()
   }, [items])
 
   useEffect(() => {
@@ -245,7 +206,6 @@ export default function SelectOrder() {
                     <InventoryItemRow
                       key={item.id}
                       item={item}
-                      variants={variants[item.id] || []}
                       getQuantity={getQuantity}
                       onUpdateQuantity={handleQuantityUpdate}
                       onAddItem={onAddItem}

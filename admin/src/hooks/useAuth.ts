@@ -177,8 +177,10 @@ export function useAuth(): UseAuthReturn {
         isAuthenticated: false,
       })
 
-      // Redirect to login page
-      window.location.href = '/login'
+      // Redirect to login page only if not already there
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login'
+      }
     } catch (error) {
       console.error('Logout failed:', error)
     }
@@ -228,7 +230,10 @@ export function useAuth(): UseAuthReturn {
       }
     } catch (error) {
       console.error('Session refresh failed:', error)
-      await logout()
+      // Only logout if not on public route to avoid loops
+      if (!window.location.pathname.includes('/login')) {
+        await logout()
+      }
     }
   }, [logout])
 

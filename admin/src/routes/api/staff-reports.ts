@@ -2,8 +2,6 @@ import { createFileRoute } from '@tanstack/react-router'
 import axiosInstance from '@/lib/axios'
 import { getAccessTokenFromCookie } from '@/lib/server-cookies'
 
-const SERVER_URL = process.env.SERVER_URL || 'http://localhost:8020/api/v1'
-
 export const Route = createFileRoute('/api/staff-reports')({
   server: {
     handlers: {
@@ -29,7 +27,7 @@ export const Route = createFileRoute('/api/staff-reports')({
 
           // Forward request to backend
           const response = await axiosInstance.get(
-            `${SERVER_URL}/admin/staff-reports/leaderboard?${queryParams}`,
+            `/admin/staff-reports/leaderboard?${queryParams}`,
             {
               headers: {
                 Authorization: `Bearer ${accessToken}`,

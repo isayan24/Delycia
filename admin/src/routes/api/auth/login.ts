@@ -1,8 +1,6 @@
+import axiosInstance from '@/lib/axios'
 import { createFileRoute } from '@tanstack/react-router'
-import axios from 'axios'
 import qs from 'qs'
-
-const SERVER_URL = process.env.SERVER_URL || 'http://localhost:8020/api/v1'
 
 export const Route = createFileRoute('/api/auth/login')({
   server: {
@@ -37,8 +35,8 @@ export const Route = createFileRoute('/api/auth/login')({
             ...(phone_number ? { phone_number } : { username }),
           }
 
-          const response = await axios.post(
-            `${SERVER_URL}/admin/auth/login`,
+          const response = await axiosInstance.post(
+            `/admin/auth/login`,
             qs.stringify(payload),
             {
               headers: {

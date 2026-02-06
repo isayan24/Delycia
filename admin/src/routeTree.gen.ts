@@ -38,6 +38,7 @@ import { Route as BillingQuickBillRouteImport } from './routes/billing/quick-bil
 import { Route as BillingBookTableRouteImport } from './routes/billing/book-table'
 import { Route as ApiWsTokenRouteImport } from './routes/api/ws-token'
 import { Route as ApiWaiterOrdersRouteImport } from './routes/api/waiter-orders'
+import { Route as ApiVariantsRouteImport } from './routes/api/variants'
 import { Route as ApiUsersRouteImport } from './routes/api/users'
 import { Route as ApiTablesRouteImport } from './routes/api/tables'
 import { Route as ApiSubscriptionRouteImport } from './routes/api/subscription'
@@ -228,6 +229,11 @@ const ApiWsTokenRoute = ApiWsTokenRouteImport.update({
 const ApiWaiterOrdersRoute = ApiWaiterOrdersRouteImport.update({
   id: '/api/waiter-orders',
   path: '/api/waiter-orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiVariantsRoute = ApiVariantsRouteImport.update({
+  id: '/api/variants',
+  path: '/api/variants',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiUsersRoute = ApiUsersRouteImport.update({
@@ -490,6 +496,7 @@ export interface FileRoutesByFullPath {
   '/api/subscription': typeof ApiSubscriptionRouteWithChildren
   '/api/tables': typeof ApiTablesRoute
   '/api/users': typeof ApiUsersRouteWithChildren
+  '/api/variants': typeof ApiVariantsRoute
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
   '/api/ws-token': typeof ApiWsTokenRoute
   '/billing/book-table': typeof BillingBookTableRoute
@@ -561,6 +568,7 @@ export interface FileRoutesByTo {
   '/api/subscription': typeof ApiSubscriptionRouteWithChildren
   '/api/tables': typeof ApiTablesRoute
   '/api/users': typeof ApiUsersRouteWithChildren
+  '/api/variants': typeof ApiVariantsRoute
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
   '/api/ws-token': typeof ApiWsTokenRoute
   '/billing/book-table': typeof BillingBookTableRoute
@@ -639,6 +647,7 @@ export interface FileRoutesById {
   '/api/subscription': typeof ApiSubscriptionRouteWithChildren
   '/api/tables': typeof ApiTablesRoute
   '/api/users': typeof ApiUsersRouteWithChildren
+  '/api/variants': typeof ApiVariantsRoute
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
   '/api/ws-token': typeof ApiWsTokenRoute
   '/billing/book-table': typeof BillingBookTableRoute
@@ -718,6 +727,7 @@ export interface FileRouteTypes {
     | '/api/subscription'
     | '/api/tables'
     | '/api/users'
+    | '/api/variants'
     | '/api/waiter-orders'
     | '/api/ws-token'
     | '/billing/book-table'
@@ -789,6 +799,7 @@ export interface FileRouteTypes {
     | '/api/subscription'
     | '/api/tables'
     | '/api/users'
+    | '/api/variants'
     | '/api/waiter-orders'
     | '/api/ws-token'
     | '/billing/book-table'
@@ -866,6 +877,7 @@ export interface FileRouteTypes {
     | '/api/subscription'
     | '/api/tables'
     | '/api/users'
+    | '/api/variants'
     | '/api/waiter-orders'
     | '/api/ws-token'
     | '/billing/book-table'
@@ -944,6 +956,7 @@ export interface RootRouteChildren {
   ApiSubscriptionRoute: typeof ApiSubscriptionRouteWithChildren
   ApiTablesRoute: typeof ApiTablesRoute
   ApiUsersRoute: typeof ApiUsersRouteWithChildren
+  ApiVariantsRoute: typeof ApiVariantsRoute
   ApiWaiterOrdersRoute: typeof ApiWaiterOrdersRoute
   ApiWsTokenRoute: typeof ApiWsTokenRoute
   ApiAdminUpdateRoute: typeof ApiAdminUpdateRoute
@@ -1164,6 +1177,13 @@ declare module '@tanstack/react-router' {
       path: '/api/waiter-orders'
       fullPath: '/api/waiter-orders'
       preLoaderRoute: typeof ApiWaiterOrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/variants': {
+      id: '/api/variants'
+      path: '/api/variants'
+      fullPath: '/api/variants'
+      preLoaderRoute: typeof ApiVariantsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/users': {
@@ -1720,6 +1740,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiSubscriptionRoute: ApiSubscriptionRouteWithChildren,
   ApiTablesRoute: ApiTablesRoute,
   ApiUsersRoute: ApiUsersRouteWithChildren,
+  ApiVariantsRoute: ApiVariantsRoute,
   ApiWaiterOrdersRoute: ApiWaiterOrdersRoute,
   ApiWsTokenRoute: ApiWsTokenRoute,
   ApiAdminUpdateRoute: ApiAdminUpdateRoute,

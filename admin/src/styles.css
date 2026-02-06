@@ -39,11 +39,16 @@
   --btn-color-active: #A65E00;
 
   /* Chart colors - enhanced definitions */
-  --chart-1: 220 70% 50%; /* Blue */
-  --chart-2: 160 60% 45%; /* Green */
-  --chart-3: 30 80% 55%; /* Orange */
-  --chart-4: 280 65% 60%; /* Purple */
-  --chart-5: 340 75% 55%; /* Pink */
+  --chart-1: 220 70% 50%;
+  /* Blue */
+  --chart-2: 160 60% 45%;
+  /* Green */
+  --chart-3: 30 80% 55%;
+  /* Orange */
+  --chart-4: 280 65% 60%;
+  /* Purple */
+  --chart-5: 340 75% 55%;
+  /* Pink */
 
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.141 0.005 285.823);
@@ -81,11 +86,16 @@
   --btn-color-active: #A65E00;
 
   /* Chart colors for dark mode */
-  --chart-1: 220 70% 60%; /* Lighter blue for dark mode */
-  --chart-2: 160 60% 55%; /* Lighter green for dark mode */
-  --chart-3: 30 80% 65%; /* Lighter orange for dark mode */
-  --chart-4: 280 65% 70%; /* Lighter purple for dark mode */
-  --chart-5: 340 75% 65%; /* Lighter pink for dark mode */
+  --chart-1: 220 70% 60%;
+  /* Lighter blue for dark mode */
+  --chart-2: 160 60% 55%;
+  /* Lighter green for dark mode */
+  --chart-3: 30 80% 65%;
+  /* Lighter orange for dark mode */
+  --chart-4: 280 65% 70%;
+  /* Lighter purple for dark mode */
+  --chart-5: 340 75% 65%;
+  /* Lighter pink for dark mode */
 
   --sidebar: oklch(0.21 0.006 285.885);
   --sidebar-foreground: oklch(0.985 0 0);
@@ -103,32 +113,39 @@
     transform: translateY(10px);
     opacity: 0;
   }
+
   25% {
     transform: translateY(0);
     opacity: 0.25;
   }
+
   50% {
     transform: translateY(0);
     opacity: 0.5;
   }
+
   75% {
     transform: translateY(0);
     opacity: 0.75;
   }
+
   100% {
     transform: translateY(0);
     opacity: 1;
   }
 }
+
 @keyframes pulse {
   0% {
     transform: scale(1);
     opacity: 1;
   }
+
   50% {
     transform: scale(1.02);
     opacity: 0.8;
   }
+
   100% {
     transform: scale(1);
     opacity: 1;
@@ -141,10 +158,12 @@
     transform: scale(1);
     box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4);
   }
+
   70% {
     transform: scale(1.01);
     box-shadow: 0 0 0 10px rgba(249, 115, 22, 0);
   }
+
   100% {
     transform: scale(1);
     box-shadow: 0 0 0 0 rgba(249, 115, 22, 0);
@@ -156,6 +175,7 @@
     transform: scale(0);
     opacity: 0;
   }
+
   100% {
     transform: scale(1);
     opacity: 1;
@@ -167,6 +187,7 @@
     transform: scale(1);
     opacity: 1;
   }
+
   100% {
     transform: scale(0);
     opacity: 0;
@@ -178,6 +199,7 @@
   from {
     height: 0;
   }
+
   to {
     height: var(--radix-accordion-content-height);
   }
@@ -187,36 +209,47 @@
   from {
     height: var(--radix-accordion-content-height);
   }
+
   to {
     height: 0;
   }
 }
 
 @keyframes highlight-blink {
-  0%, 100% { 
-    background-color: transparent; 
+
+  0%,
+  100% {
+    background-color: transparent;
     transform: scale(1);
   }
-  25%, 75% { 
+
+  25%,
+  75% {
     background-color: oklch(0.705 0.213 47.604 / 0.1);
     transform: scale(1.01);
   }
-  50% { 
+
+  50% {
     background-color: oklch(0.705 0.213 47.604 / 0.2);
     transform: scale(1.02);
   }
 }
 
 @keyframes highlight-blink-dark {
-  0%, 100% { 
-    background-color: transparent; 
+
+  0%,
+  100% {
+    background-color: transparent;
     transform: scale(1);
   }
-  25%, 75% { 
+
+  25%,
+  75% {
     background-color: oklch(0.646 0.222 41.116 / 0.15);
     transform: scale(1.01);
   }
-  50% { 
+
+  50% {
     background-color: oklch(0.646 0.222 41.116 / 0.25);
     transform: scale(1.02);
   }
@@ -295,31 +328,51 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
 
-  .adminHeader{
+  .adminHeader {
     @apply z-[39] sticky top-0 left-0 w-full flex h-[5rem] shrink-0 items-center gap-2 ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-[5rem];
 
     transition-property: width, height;
-    transition-duration: 150ms; /* Adjust duration as needed */
-  } 
+    transition-duration: 150ms;
+    /* Adjust duration as needed */
+  }
 }
 
 /* Utility classes for custom breakpoints */
 @layer utilities {
   @media (min-width: 480px) {
-    .xs\:block { display: block; }
-    .xs\:hidden { display: none; }
-    .xs\:flex { display: flex; }
+    .xs\:block {
+      display: block;
+    }
+
+    .xs\:hidden {
+      display: none;
+    }
+
+    .xs\:flex {
+      display: flex;
+    }
+
     /* Add more xs utilities as needed */
   }
 
   @media (min-width: 1300px) {
-    .xl1300\:block { display: block; }
-    .xl1300\:hidden { display: none; }
-    .xl1300\:flex { display: flex; }
+    .xl1300\:block {
+      display: block;
+    }
+
+    .xl1300\:hidden {
+      display: none;
+    }
+
+    .xl1300\:flex {
+      display: flex;
+    }
+
     /* Add more xl1300 utilities as needed */
   }
 

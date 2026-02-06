@@ -16,10 +16,10 @@ import { Item, Variant } from '@/types/menu.types'
 import { ShoppingBag } from 'lucide-react'
 import AddonSelector from './AddonSelector'
 import { useMediaQuery } from '@/hooks/use-media-query'
+import { useInventoryVariantsQuery } from '@/hooks/queries/useInventoryQuery'
 
 interface MenuGridItemProps {
   item: Item
-  variants: Variant[]
   cart: any[]
   // Global customization state
   isCustomizing: boolean
@@ -29,12 +29,14 @@ interface MenuGridItemProps {
 
 export default function MenuGridItem({
   item,
-  variants, // these are the specific variants for this item
   cart,
   isCustomizing,
   setCustomizingId,
   onAddItem,
 }: MenuGridItemProps) {
+  // Fetch variants using the hook - hook defaults to empty array if no variants
+  const { data: variants = [] } = useInventoryVariantsQuery(item.id)
+
   const hasVariants = variants.length > 0
   const isDesktop = useMediaQuery('(min-width: 768px)')
 
@@ -109,11 +111,11 @@ export default function MenuGridItem({
 
         {/* Veg/Non-Veg Indicator */}
         <div className="absolute top-2 left-2">
-          {item.is_veg === 1 ? (
+          {item.is_veg === 1 || item.is_veg === true ? (
             <div className="h-4 w-4 rounded-sm border border-green-600 flex items-center justify-center bg-white/90 backdrop-blur-sm">
               <div className="h-2 w-2 rounded-full bg-green-600"></div>
             </div>
-          ) : item.is_veg === 0 ? (
+          ) : item.is_veg === 0 || item.is_veg === false ? (
             <div className="h-4 w-4 rounded-sm border border-red-600 flex items-center justify-center bg-white/90 backdrop-blur-sm">
               <div className="h-2 w-2 rounded-full bg-red-600"></div>
             </div>

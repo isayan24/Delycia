@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import axios from 'axios'
 
-const SERVER_URL = process.env.SERVER_URL || 'http://localhost:8020/api/v1'
+const SERVER_URL = process.env.VITE_SERVER_URL
 
 // Helper function to parse cookies
 function parseCookies(cookieHeader: string | null): Record<string, string> {
@@ -47,6 +47,7 @@ export const Route = createFileRoute('/api/auth/refresh')({
               },
             },
           )
+          console.log('*** Token Refreshed ***')
 
           if (
             response.data &&

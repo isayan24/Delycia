@@ -3,10 +3,10 @@ import { Plus, Minus } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import ItemCustomization from './ItemCustomization'
 import { Item, Variant } from '@/types/menu.types'
+import { useInventoryVariantsQuery } from '@/hooks/queries/useInventoryQuery'
 
 interface InventoryItemRowProps {
   item: Item
-  variants: Variant[]
   getQuantity: (itemId: string, variant?: Variant) => number
   onUpdateQuantity: (
     itemId: string,
@@ -21,7 +21,6 @@ interface InventoryItemRowProps {
 
 export default function InventoryItemRow({
   item,
-  variants,
   getQuantity,
   onUpdateQuantity,
   onAddItem,
@@ -29,6 +28,10 @@ export default function InventoryItemRow({
   highlightedItemId,
 }: InventoryItemRowProps) {
   const isHighlighted = highlightedItemId === item.id
+
+  // Fetch variants using the hook
+  const { data: variants = [] } = useInventoryVariantsQuery(item.id)
+
   const hasVariants = variants.length > 0
 
   const AddButton = ({ onClick }: { onClick?: () => void }) => (
