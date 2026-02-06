@@ -44,6 +44,8 @@ export const queryKeys = {
     all: ['tables'] as const,
     lists: () => [...queryKeys.tables.all, 'list'] as const,
     list: (rid: string) => [...queryKeys.tables.lists(), rid] as const,
+    zones: () => [...queryKeys.tables.all, 'zones'] as const,
+    zoneList: (rid: string) => [...queryKeys.tables.zones(), rid] as const,
     detail: (id: string) => [...queryKeys.tables.all, 'detail', id] as const,
   },
 

@@ -6,7 +6,7 @@ import { useTableStore } from '@/store/useTableStore'
 import AddCustomerDetails from './AddCustomerDetails'
 import AddTablesComponent from './add-delete/AddTablesComponent'
 import DeleteTablesComponent from './add-delete/DeleteTablesComponent'
-import { useFetchTable } from './hooks/useFetchTable'
+import { useTablesQuery } from '@/hooks/queries/useTablesQuery'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import LoadingScreen from '@/components/common/LoadingScreen'
 
@@ -16,7 +16,7 @@ export default function BookTableMain() {
   const [showDeleteTables, setShowDeleteTables] = useState(false)
 
   const { user } = useAdminAuthQuery()
-  const { loading } = useFetchTable(user?.selected_rid)
+  const { isLoading: loading } = useTablesQuery(user?.selected_rid)
 
   const selectTable = (table: any) => {
     setTable(table)

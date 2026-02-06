@@ -22,11 +22,12 @@ import {
   ArrowLeft,
 } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import axiosInstance from '@/lib/axios'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
-import axios from 'axios'
 import useToast from '@/hooks/UseToast'
-import { useFetchTable } from '../hooks/useFetchTable'
+import {
+  useTablesAndZones,
+  useCreateTableMutation,
+} from '@/hooks/queries/useTablesQuery'
 
 interface PendingTable {
   id: string
@@ -48,9 +49,11 @@ const AddTablesComponent = ({
   const {
     zones,
     tables,
-    loading: dataLoading,
+    isLoading: dataLoading,
     error: dataError,
-  } = useFetchTable(user?.selected_rid)
+    refetch,
+  } = useTablesAndZones(user?.selected_rid)
+  const createTableMutation = useCreateTableMutation()
 
   const [pendingTables, setPendingTables] = useState<PendingTable[]>([])
   const [existingTables, setExistingTables] = useState<string[]>([])
@@ -180,71 +183,64 @@ const AddTablesComponent = ({
   const removeTableFromPending = (id: string) => {
     setPendingTables((prev) => prev.filter((table) => table.id !== id))
   }
-  // todo create table
-  const createTable = async (tableData: PendingTable) => {
+
+  // Create a single table using mutation
+  const createSingleTable = async (tableData: PendingTable) => {
     if (!user?.selected_rid) {
       throw new Error('Restaurant ID not found')
     }
-    const payload = {
+
+    await createTableMutation.mutateAsync({
       rid: user.selected_rid,
       table_number: tableData.table_number,
       capacity: tableData.capacity,
       zone: tableData.zone,
-    }
-
-    const response = await axios.post('/api/table', payload)
-    if (response.status === 201) {
-      setPendingTables([])
-    }
-    if (response.status !== 201 && response.status !== 200) {
-      showError('Error', 'Failed to create table, please try again')
-      throw new Error('Failed to create table')
-    }
-    return response.data
+    })
   }
 
   const submitAllTables = async () => {
     if (pendingTables.length === 0) return
 
     setIsSubmitting(true)
-    const errors: string[] = []
+    const submitErrors: string[] = []
     let successCount = 0
 
     try {
       for (const table of pendingTables) {
         try {
-          await createTable(table)
+          await createSingleTable(table)
           successCount++
         } catch (err: any) {
           const errorMsg =
             err.response?.data?.message || err.message || 'Unknown error'
-          errors.push(`Table ${table.table_number}: ${errorMsg}`)
+          submitErrors.push(`Table ${table.table_number}: ${errorMsg}`)
         }
       }
 
-      if (errors.length === 0) {
+      if (submitErrors.length === 0) {
         setExistingTables((prev) => [
           ...prev,
           ...pendingTables.map((t) => t.table_number),
         ])
         setPendingTables([])
+        showSuccess('Success', `${successCount} table(s) created successfully`)
         onTablesAdded?.()
       } else {
-        const message = `${successCount}/${pendingTables.length} tables created successfully.\n\nErrors:\n${errors.join('\n')}`
+        const message = `${successCount}/${pendingTables.length} tables created successfully.\n\nErrors:\n${submitErrors.join('\n')}`
         showError('Error', message)
 
         if (successCount > 0) {
           const successfulTableNumbers = pendingTables
             .filter(
               (table) =>
-                !errors.some((err) => err.includes(table.table_number)),
+                !submitErrors.some((err) => err.includes(table.table_number)),
             )
             .map((table) => table.table_number)
 
           setExistingTables((prev) => [...prev, ...successfulTableNumbers])
           setPendingTables((prev) =>
             prev.filter((table) =>
-              errors.some((err) => err.includes(table.table_number)),
+              submitErrors.some((err) => err.includes(table.table_number)),
             ),
           )
         }
@@ -274,11 +270,7 @@ const AddTablesComponent = ({
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6 h-full overflow-auto">
       <div className="flex items-center justify-between">
-        <Button
-          variant="outline"
-          onClick={() => window.location.reload()}
-          disabled={dataLoading}
-        >
+        <Button variant="outline" onClick={refetch} disabled={dataLoading}>
           <RefreshCw
             className={`h-4 w-4 mr-2 ${dataLoading ? 'animate-spin' : ''}`}
           />

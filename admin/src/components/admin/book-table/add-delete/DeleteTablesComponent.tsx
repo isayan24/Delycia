@@ -26,7 +26,6 @@ import {
 } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
-import axios from 'axios'
 import useToast from '@/hooks/UseToast'
 import {
   AlertDialog,
@@ -41,12 +40,14 @@ import {
 
 import { SelectAll } from '@mui/icons-material'
 import {
-  DeleteTableRequest,
   DeleteTableResponse,
   DeleteTablesComponentProps,
   TableToDelete,
 } from '../types/table.types'
-import { useFetchTable } from '../hooks/useFetchTable'
+import {
+  useTablesAndZones,
+  useDeleteTableMutation,
+} from '@/hooks/queries/useTablesQuery'
 
 const DeleteTablesComponent = ({
   onTablesDeleted,
@@ -56,9 +57,11 @@ const DeleteTablesComponent = ({
   const {
     zones,
     tables,
-    loading: dataLoading,
+    isLoading: dataLoading,
     error: dataError,
-  } = useFetchTable(user?.selected_rid)
+    refetch,
+  } = useTablesAndZones(user?.selected_rid)
+  const deleteTableMutation = useDeleteTableMutation()
 
   const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set())
   const [selectedZone, setSelectedZone] = useState<string>('all')
@@ -202,21 +205,20 @@ const DeleteTablesComponent = ({
     return processedTables.filter((table) => selectedTables.has(table.id))
   }, [processedTables, selectedTables])
 
-  // Delete single table - Fixed to use /api/table with id and in body
-  const deleteTable = async (tableId: string): Promise<DeleteTableResponse> => {
-    const payload: DeleteTableRequest = {
-      id: tableId,
+  // Delete single table using mutation
+  const deleteSingleTable = async (
+    tableId: string,
+  ): Promise<DeleteTableResponse> => {
+    if (!user?.selected_rid) {
+      throw new Error('Restaurant ID not found')
     }
 
-    const response = await axios.delete(`/api/table`, {
-      data: payload,
+    const result = await deleteTableMutation.mutateAsync({
+      id: tableId,
+      rid: user.selected_rid,
     })
 
-    if (response.status !== 200 && response.status !== 204) {
-      throw new Error('Failed to delete table')
-    }
-
-    return response.data
+    return result
   }
 
   // Delete multiple tables
@@ -231,7 +233,7 @@ const DeleteTablesComponent = ({
     try {
       for (const tableId of Array.from(selectedTables)) {
         try {
-          await deleteTable(tableId)
+          await deleteSingleTable(tableId)
           successCount++
         } catch (err: any) {
           const table = processedTables.find((t) => t.id === tableId)
@@ -335,7 +337,7 @@ const DeleteTablesComponent = ({
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={() => window.location.reload()}
+            onClick={refetch}
             disabled={dataLoading}
             size="sm"
           >

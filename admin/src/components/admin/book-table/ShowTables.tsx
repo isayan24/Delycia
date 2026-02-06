@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Menu, User, Users, Trash2, Plus } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useFetchTable } from './hooks/useFetchTable'
+import { useTablesAndZones } from '@/hooks/queries/useTablesQuery'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import {
   DropdownMenu,
@@ -32,23 +32,28 @@ export default function ShowTables({
   const [isPopupOpen, setIsPopupOpen] = useState(false)
 
   const { setRefetchTablesFunction } = useTableStore()
-  const { zones, tables, loading, error, fetchTables } = useFetchTable(
-    user?.selected_rid,
-  )
+  const {
+    zones,
+    tables,
+    isLoading: loading,
+    error,
+    refetch,
+  } = useTablesAndZones(user?.selected_rid)
 
   // pass the refetch function to the store
   useEffect(() => {
     if (user?.selected_rid) {
-      const refetchTables = async () => {
-        await fetchTables(user.selected_rid)
+      // Wrap refetch in async function to match store's expected type
+      const refetchAsync = async () => {
+        await refetch()
       }
-      setRefetchTablesFunction(refetchTables)
+      setRefetchTablesFunction(refetchAsync)
     }
     // Cleanup function to remove the refetch function when component unmounts
     return () => {
       setRefetchTablesFunction(null)
     }
-  }, [user?.selected_rid, setRefetchTablesFunction])
+  }, [user?.selected_rid, setRefetchTablesFunction, refetch])
 
   // Extract unique zones for tabs with error handling
   const uniqueZones = useMemo(() => {
@@ -240,11 +245,7 @@ export default function ShowTables({
       <TableOrdersPopup
         isOpen={isPopupOpen}
         onClose={() => setIsPopupOpen(false)}
-        onRefresh={() => {
-          if (user?.selected_rid) {
-            fetchTables(user.selected_rid)
-          }
-        }}
+        onRefresh={refetch}
         tableData={selectedPopupTable}
       />
     </div>

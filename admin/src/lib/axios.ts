@@ -1,10 +1,13 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
 import qs from 'qs'
 
-const SERVER_URL = import.meta.env.SERVER_URL || process.env.SERVER_URL
+const SERVER_URL =
+  import.meta.env.VITE_SERVER_URL ||
+  process.env.VITE_SERVER_URL ||
+  process.env.SERVER_URL // Fallback for server-side where non-VITE vars work
 
 const axiosInstance = axios.create({
-  baseURL: SERVER_URL || 'http://localhost:8020/api/v1',
+  baseURL: SERVER_URL,
   withCredentials: true, // Ensures httpOnly cookies are sent automatically
 })
 

@@ -34,9 +34,14 @@ export {
 // Tables Queries and Mutations
 export {
   useTablesQuery,
+  useZonesQuery,
+  useTablesAndZones,
   useCreateTableMutation,
+  useUpdateTableMutation,
   useDeleteTableMutation,
   tableKeys,
+  type Table,
+  type Zone,
 } from './useTablesQuery'
 
 // Restaurant Queries

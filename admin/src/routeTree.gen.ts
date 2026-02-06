@@ -39,7 +39,7 @@ import { Route as BillingBookTableRouteImport } from './routes/billing/book-tabl
 import { Route as ApiWsTokenRouteImport } from './routes/api/ws-token'
 import { Route as ApiWaiterOrdersRouteImport } from './routes/api/waiter-orders'
 import { Route as ApiUsersRouteImport } from './routes/api/users'
-import { Route as ApiTableRouteImport } from './routes/api/table'
+import { Route as ApiTablesRouteImport } from './routes/api/tables'
 import { Route as ApiSubscriptionRouteImport } from './routes/api/subscription'
 import { Route as ApiStaffReportsRouteImport } from './routes/api/staff-reports'
 import { Route as ApiRestaurantRouteImport } from './routes/api/restaurant'
@@ -235,9 +235,9 @@ const ApiUsersRoute = ApiUsersRouteImport.update({
   path: '/api/users',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiTableRoute = ApiTableRouteImport.update({
-  id: '/api/table',
-  path: '/api/table',
+const ApiTablesRoute = ApiTablesRouteImport.update({
+  id: '/api/tables',
+  path: '/api/tables',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSubscriptionRoute = ApiSubscriptionRouteImport.update({
@@ -488,7 +488,7 @@ export interface FileRoutesByFullPath {
   '/api/restaurant': typeof ApiRestaurantRoute
   '/api/staff-reports': typeof ApiStaffReportsRouteWithChildren
   '/api/subscription': typeof ApiSubscriptionRouteWithChildren
-  '/api/table': typeof ApiTableRoute
+  '/api/tables': typeof ApiTablesRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
   '/api/ws-token': typeof ApiWsTokenRoute
@@ -559,7 +559,7 @@ export interface FileRoutesByTo {
   '/api/restaurant': typeof ApiRestaurantRoute
   '/api/staff-reports': typeof ApiStaffReportsRouteWithChildren
   '/api/subscription': typeof ApiSubscriptionRouteWithChildren
-  '/api/table': typeof ApiTableRoute
+  '/api/tables': typeof ApiTablesRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
   '/api/ws-token': typeof ApiWsTokenRoute
@@ -637,7 +637,7 @@ export interface FileRoutesById {
   '/api/restaurant': typeof ApiRestaurantRoute
   '/api/staff-reports': typeof ApiStaffReportsRouteWithChildren
   '/api/subscription': typeof ApiSubscriptionRouteWithChildren
-  '/api/table': typeof ApiTableRoute
+  '/api/tables': typeof ApiTablesRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/waiter-orders': typeof ApiWaiterOrdersRoute
   '/api/ws-token': typeof ApiWsTokenRoute
@@ -716,7 +716,7 @@ export interface FileRouteTypes {
     | '/api/restaurant'
     | '/api/staff-reports'
     | '/api/subscription'
-    | '/api/table'
+    | '/api/tables'
     | '/api/users'
     | '/api/waiter-orders'
     | '/api/ws-token'
@@ -787,7 +787,7 @@ export interface FileRouteTypes {
     | '/api/restaurant'
     | '/api/staff-reports'
     | '/api/subscription'
-    | '/api/table'
+    | '/api/tables'
     | '/api/users'
     | '/api/waiter-orders'
     | '/api/ws-token'
@@ -864,7 +864,7 @@ export interface FileRouteTypes {
     | '/api/restaurant'
     | '/api/staff-reports'
     | '/api/subscription'
-    | '/api/table'
+    | '/api/tables'
     | '/api/users'
     | '/api/waiter-orders'
     | '/api/ws-token'
@@ -942,7 +942,7 @@ export interface RootRouteChildren {
   ApiRestaurantRoute: typeof ApiRestaurantRoute
   ApiStaffReportsRoute: typeof ApiStaffReportsRouteWithChildren
   ApiSubscriptionRoute: typeof ApiSubscriptionRouteWithChildren
-  ApiTableRoute: typeof ApiTableRoute
+  ApiTablesRoute: typeof ApiTablesRoute
   ApiUsersRoute: typeof ApiUsersRouteWithChildren
   ApiWaiterOrdersRoute: typeof ApiWaiterOrdersRoute
   ApiWsTokenRoute: typeof ApiWsTokenRoute
@@ -1173,11 +1173,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiUsersRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/table': {
-      id: '/api/table'
-      path: '/api/table'
-      fullPath: '/api/table'
-      preLoaderRoute: typeof ApiTableRouteImport
+    '/api/tables': {
+      id: '/api/tables'
+      path: '/api/tables'
+      fullPath: '/api/tables'
+      preLoaderRoute: typeof ApiTablesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/subscription': {
@@ -1718,7 +1718,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiRestaurantRoute: ApiRestaurantRoute,
   ApiStaffReportsRoute: ApiStaffReportsRouteWithChildren,
   ApiSubscriptionRoute: ApiSubscriptionRouteWithChildren,
-  ApiTableRoute: ApiTableRoute,
+  ApiTablesRoute: ApiTablesRoute,
   ApiUsersRoute: ApiUsersRouteWithChildren,
   ApiWaiterOrdersRoute: ApiWaiterOrdersRoute,
   ApiWsTokenRoute: ApiWsTokenRoute,
