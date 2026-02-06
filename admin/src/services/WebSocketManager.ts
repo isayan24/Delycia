@@ -33,8 +33,9 @@ class WebSocketManager {
   private stateSubscribers: Set<(state: ConnectionState) => void> = new Set()
 
   // Connection configuration
-  private serverUrl: string = `ws://localhost:8020/orders`
-  // private serverUrl: string = `wss://api.delycia.com/orders`
+  // Uses VITE_WS_SERVER_URL from .env, defaults to production URL
+  private serverUrl: string =
+    import.meta.env.VITE_WS_SERVER_URL || 'wss://api.delycia.com/orders'
   private maxReconnectAttempts: number = 5
   private reconnectInterval: number = 3000
   private heartbeatInterval: number = 30000
