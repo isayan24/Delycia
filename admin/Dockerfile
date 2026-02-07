@@ -20,7 +20,7 @@ RUN pnpm install --frozen-lockfile
 
 # Stage 2: Build
 FROM base AS builder
-WORKDIR /app
+WORKDIR /app 
 
 # Copy dependencies from deps
 COPY --from=deps /app/node_modules ./node_modules
@@ -51,6 +51,7 @@ FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV HOST=0.0.0.0
 ENV PORT=4500
 
 # Create non-root user
