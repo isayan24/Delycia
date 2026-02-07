@@ -10,7 +10,11 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Printer } from 'lucide-react'
-import { formatISTDateTime, getISTDateKey } from './utils/historyDateUtils'
+import {
+  convertToISTWithTimezone,
+  formatISTDateTime,
+  getISTDateKey,
+} from './utils/historyDateUtils'
 import { TableFilters } from './table/components/TableFilters'
 import { TablePagination } from './table/components/TablePagination'
 import { OrderItemsCell } from './table/components/OrderItemsCell'
@@ -361,7 +365,7 @@ export default function OrderHistoryTablePaginated({
                 {/* Date & Time */}
                 <TableCell className="py-3 px-3">
                   <div className="text-xs text-gray-600">
-                    {formatISTDateTime(
+                    {convertToISTWithTimezone(
                       order.createdAt || order.created_at || '',
                     )}
                   </div>

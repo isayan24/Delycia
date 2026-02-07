@@ -61,7 +61,7 @@ export interface SignatureInput {
  */
 export interface SignatureConfig {
   secretKey: string
-  algorithm: 'HmacSHA256'
+  algorithm: string
 }
 
 /**

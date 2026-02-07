@@ -88,8 +88,14 @@ class TokenService {
 
   private async performTokenRefresh(): Promise<boolean> {
     try {
+      // If running on client, we can use relative URL, otherwise strict absolute URL
+      const isServer = typeof window === 'undefined'
+      const url = isServer
+        ? 'http://localhost:4500/api/auth/refresh' // Internal call to own server
+        : '/api/auth/refresh'
+
       const response = await axios.post(
-        '/api/auth/refresh',
+        url,
         {},
         {
           withCredentials: true, // Send httpOnly cookies

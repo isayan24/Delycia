@@ -105,7 +105,7 @@ export async function requireAuth({
   const { default: sessionService } = await import('@/services/sessionService')
   const user = sessionService.getUserData()
 
-  if (!user) {
+  if (!user || user.selected_rid === null) {
     throw redirect({
       to: '/login',
       search: {

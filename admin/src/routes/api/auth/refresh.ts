@@ -1,7 +1,8 @@
+import axiosInstance from '@/lib/axios'
 import { createFileRoute } from '@tanstack/react-router'
-import axios from 'axios'
 
-const SERVER_URL = process.env.VITE_SERVER_URL
+// const SERVER_URL = process.env.VITE_SERVER_URL
+// const SERVER_URL = 'https://api.delycia.com/api/v1'
 
 // Helper function to parse cookies
 function parseCookies(cookieHeader: string | null): Record<string, string> {
@@ -37,8 +38,8 @@ export const Route = createFileRoute('/api/auth/refresh')({
           }
 
           // Call backend refresh endpoint
-          const response = await axios.post(
-            `${SERVER_URL}/users/auth/refresh`,
+          const response = await axiosInstance.post(
+            `/users/auth/refresh`,
             null,
             {
               headers: {

@@ -4,6 +4,7 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import viteReact from '@vitejs/plugin-react'
 import viteTsConfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
+import { nitro } from 'nitro/vite'
 
 const config = defineConfig({
   plugins: [
@@ -19,35 +20,13 @@ const config = defineConfig({
         entry: 'src/index.tsx',
       },
     }),
+    nitro(),
     viteReact(),
   ],
   build: {
     // Production optimizations
     minify: 'terser',
     sourcemap: false,
-    rollupOptions: {
-      output: {
-        // Manual chunk splitting for optimal loading
-        manualChunks: (id) => {
-          // Vendor chunks
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom')) {
-              return 'react-vendor'
-            }
-            if (id.includes('@tanstack')) {
-              return 'tanstack-vendor'
-            }
-            if (id.includes('@radix-ui')) {
-              return 'radix-vendor'
-            }
-            if (id.includes('recharts')) {
-              return 'charts-vendor'
-            }
-            return 'vendor'
-          }
-        },
-      },
-    },
     chunkSizeWarningLimit: 1000,
   },
   server: {
