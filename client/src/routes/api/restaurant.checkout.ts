@@ -20,8 +20,6 @@ export const Route = createFileRoute('/api/restaurant/checkout')({
             party_size,
           } = data
 
-          console.log(data, 'data in checkout \n\n\n')
-
           const accessToken = getAccessTokenFromCookie(request)
 
           // Validate that we have an access token

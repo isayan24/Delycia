@@ -7,7 +7,6 @@ async function getOrderDetails(ordersData) {
     let itemsList = [];
     let totalAmount = 0;
     const cartId = generateCartId();
-
     for (const orderData of ordersData) {
       // Updated query to get name, country_code, and phone_number
       const customerQuery = `SELECT name, country_code, phone_number FROM users WHERE id = ?`;

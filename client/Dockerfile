@@ -3,73 +3,82 @@
 # TanStack Start Application
 # ================================
 
-# Stage 1: Dependencies
-FROM node:20-alpine AS deps
-WORKDIR /app
+# Base stage for shared setup
+FROM node:20-alpine AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Stage 1: Dependencies
+FROM base AS deps
+WORKDIR /app
 
 # Copy package files
 COPY package.json pnpm-lock.yaml ./
 
-# Install dependencies
+# Install dependencies (frozen lockfile for consistency)
 RUN pnpm install --frozen-lockfile
 
-# ================================
 # Stage 2: Build
-# ================================
-FROM node:20-alpine AS builder
-WORKDIR /app
+FROM base AS builder
+WORKDIR /app 
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-# Copy dependencies from deps stage
+# Copy dependencies from deps
 COPY --from=deps /app/node_modules ./node_modules
-
-# Copy source code
 COPY . .
 
-# Build arguments for environment variables (injected at build time)
+# Build Arguments (These must be passed during docker build)
+# Note: We use VITE_ prefix as Vite requires this for client-side variables
 ARG VITE_API_BASE_URL
-ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
+ARG IMAGEKIT_PUBLIC_KEY
+ARG IMAGEKIT_PUBLIC_URL_ENDPOINT
+ARG NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY
+
+# Set ENVs for the build process (Vite/TanStack Start needs them)
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV IMAGEKIT_PUBLIC_KEY=$IMAGEKIT_PUBLIC_KEY
+ENV IMAGEKIT_PUBLIC_URL_ENDPOINT=$IMAGEKIT_PUBLIC_URL_ENDPOINT
+ENV NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY=$NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY
+ENV NODE_ENV=production
+
+# Increase memory limit for build (MUI icons + Nitro require more memory)
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 # Build the application
 RUN pnpm build
 
-# ================================
-# Stage 3: Production
-# ================================
-FROM node:20-alpine AS runner
+# Stage 3: Runner
+FROM base AS runner
 WORKDIR /app
+
+ENV NODE_ENV=production
+ENV HOST=0.0.0.0
+ENV PORT=4000
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs \
-    && adduser --system --uid 1001 nodeuser
+  && adduser --system --uid 1001 nodeuser
 
-# Install pnpm for runtime
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Copy package files for production dependencies
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
 
-# Copy built application and dependencies
+# Install only production dependencies
+RUN pnpm install --frozen-lockfile --prod
+
+# Copy built application
+# TanStack Start with Nitro outputs to .output/ directory
 COPY --from=builder --chown=nodeuser:nodejs /app/.output ./.output
-COPY --from=builder --chown=nodeuser:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nodeuser:nodejs /app/package.json ./package.json
-
-# Set environment
-ENV NODE_ENV=production
-ENV PORT=4000
-ENV HOST=0.0.0.0
-
-# Expose port
-EXPOSE 4000
 
 # Switch to non-root user
 USER nodeuser
 
+# Expose port
+EXPOSE 4000
+
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:4000/ || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:4000/ || exit 1
 
-# Start the application
+# Start command
 CMD ["node", ".output/server/index.mjs"]

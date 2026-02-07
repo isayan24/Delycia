@@ -1,34 +1,32 @@
 // HMAC SHA256 signature service implementation
 
-import CryptoJS from 'crypto-js'; 
-import cryptoConfig from './config';
-import { 
-  SignatureService, 
-  OrderItem, 
-  SignatureConfig 
-} from './types';
+import crypto from 'node:crypto'
+import logger from '../logger'
+import cryptoConfig from './config'
+import { OrderItem, SignatureConfig, SignatureService } from './types'
 
 /**
- * Implementation of signature service using crypto-js
+ * Implementation of signature service using native Node.js crypto
  */
 class CryptoSignatureService implements SignatureService {
-  private config: SignatureConfig;
+  private config: SignatureConfig
 
   constructor() {
     this.config = {
       secretKey: cryptoConfig.getSecretKey(),
-      algorithm: 'HmacSHA256'
-    };
-    
+      algorithm: 'sha256', // Node crypto uses 'sha256', not 'HmacSHA256'
+    }
+
     // Validate configuration on initialization
     if (!cryptoConfig.validateConfiguration()) {
-      console.error('CryptoSignatureService initialized with invalid configuration');
+      logger.error(
+        'CryptoSignatureService initialized with invalid configuration',
+      )
     }
   }
 
   /**
    * Generate HMAC SHA256 signature for order items
-   * Follows the same pattern as the HTML demo
    * @param orderItems Array of order items to sign
    * @returns HMAC SHA256 signature string
    */
@@ -36,58 +34,67 @@ class CryptoSignatureService implements SignatureService {
     try {
       // Validate input
       if (!orderItems || !Array.isArray(orderItems)) {
-        const error = 'Invalid order items: must be a non-empty array';
-        console.error('Signature generation failed - invalid input', { 
+        const error = 'Invalid order items: must be a non-empty array'
+        logger.error('Signature generation failed - invalid input', {
           orderItems: orderItems,
-          type: typeof orderItems 
-        });
-        throw new Error(error);
+          type: typeof orderItems,
+        })
+        throw new Error(error)
       }
 
       if (orderItems.length === 0) {
-        const error = 'Invalid order items: array cannot be empty';
-        console.error('Signature generation failed - empty array', { orderItemsLength: 0 });
-        throw new Error(error);
+        const error = 'Invalid order items: array cannot be empty'
+        logger.error('Signature generation failed - empty array', {
+          orderItemsLength: 0,
+        })
+        throw new Error(error)
       }
 
       // Validate secret key
       if (!this.config.secretKey) {
-        const error = 'Crypto secret key not configured';
-        console.error('Signature generation failed - missing secret key');
-        throw new Error(error);
+        const error = 'Crypto secret key not configured'
+        logger.error('Signature generation failed - missing secret key')
+        throw new Error(error)
       }
 
-      console.debug('Generating signature for order items', { 
+      logger.debug('Generating signature for order items', {
         itemCount: orderItems.length,
-        secretKeyLength: this.config.secretKey.length 
-      });
+        secretKeyLength: this.config.secretKey.length,
+      })
 
       // Normalize and stringify the order items consistently
-      // This matches the JSON.stringify behavior from the HTML demo
-      const stringified = JSON.stringify(orderItems);
-      
-      console.debug('Order items stringified for signature', { 
+      const stringified = JSON.stringify(orderItems)
+
+      logger.debug('Order items stringified for signature', {
         stringifiedLength: stringified.length,
-        stringifiedPreview: stringified.substring(0, 100) + (stringified.length > 100 ? '...' : '')
-      });
-      
-      // Generate HMAC SHA256 signature using crypto-js
-      const signature = CryptoJS.HmacSHA256(stringified, this.config.secretKey).toString();
-      
-      console.info('Signature generated successfully', { 
+        stringifiedPreview:
+          stringified.substring(0, 100) +
+          (stringified.length > 100 ? '...' : ''),
+      })
+
+      // Generate HMAC SHA256 signature using native Node.js crypto
+      const signature = crypto
+        .createHmac(this.config.algorithm, this.config.secretKey)
+        .update(stringified)
+        .digest('hex')
+
+      logger.info('Signature generated successfully', {
         signatureLength: signature.length,
-        itemCount: orderItems.length 
-      });
-      
-      return signature;
+        itemCount: orderItems.length,
+      })
+
+      return signature
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Signature generation failed', { 
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error'
+      logger.error('Signature generation failed', {
         error: errorMessage,
-        orderItemsCount: Array.isArray(orderItems) ? orderItems.length : 'invalid',
-        stack: error instanceof Error ? error.stack : undefined
-      });
-      throw new Error(`Signature generation failed: ${errorMessage}`);
+        orderItemsCount: Array.isArray(orderItems)
+          ? orderItems.length
+          : 'invalid',
+        stack: error instanceof Error ? error.stack : undefined,
+      })
+      throw new Error(`Signature generation failed: ${errorMessage}`)
     }
   }
 
@@ -101,54 +108,70 @@ class CryptoSignatureService implements SignatureService {
     try {
       // Validate inputs
       if (!data || typeof data !== 'string') {
-        console.error('Signature validation failed - invalid data', { 
+        logger.error('Signature validation failed - invalid data', {
           data: typeof data,
-          dataLength: data ? data.length : 0 
-        });
-        return false;
+          dataLength: data ? data.length : 0,
+        })
+        return false
       }
 
       if (!signature || typeof signature !== 'string') {
-        console.error('Signature validation failed - invalid signature', { 
+        logger.error('Signature validation failed - invalid signature', {
           signature: typeof signature,
-          signatureLength: signature ? signature.length : 0 
-        });
-        return false;
+          signatureLength: signature ? signature.length : 0,
+        })
+        return false
       }
 
       if (!this.config.secretKey) {
-        console.error('Signature validation failed - missing secret key');
-        return false;
+        logger.error('Signature validation failed - missing secret key')
+        return false
       }
 
-      console.debug('Validating signature', { 
+      logger.debug('Validating signature', {
         dataLength: data.length,
-        signatureLength: signature.length 
-      });
+        signatureLength: signature.length,
+      })
 
       // Generate expected signature from the data
-      const expectedSignature = CryptoJS.HmacSHA256(data, this.config.secretKey).toString();
-      
-      // Compare signatures securely
-      const isValid = expectedSignature === signature;
-      
-      if (isValid) {
-        console.info('Signature validation successful');
-      } else {
-        console.warn('Signature validation failed - signatures do not match', {
-          expectedLength: expectedSignature.length,
-          providedLength: signature.length
-        });
+      const expectedSignature = crypto
+        .createHmac(this.config.algorithm, this.config.secretKey)
+        .update(data)
+        .digest('hex')
+
+      // Compare signatures securely using constant-time comparison
+      // This protects against timing attacks
+      const sourceBuffer = Buffer.from(expectedSignature)
+      const targetBuffer = Buffer.from(signature)
+
+      let isValid = false
+      try {
+        if (sourceBuffer.length === targetBuffer.length) {
+          isValid = crypto.timingSafeEqual(sourceBuffer, targetBuffer)
+        }
+      } catch (e) {
+        // Fallback for length mismatch or other buffer errors
+        isValid = false
       }
-      
-      return isValid;
+
+      if (isValid) {
+        logger.info('Signature validation successful')
+      } else {
+        logger.warn('Signature validation failed - signatures do not match', {
+          expectedLength: expectedSignature.length,
+          providedLength: signature.length,
+        })
+      }
+
+      return isValid
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Signature validation error', { 
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error'
+      logger.error('Signature validation error', {
         error: errorMessage,
-        stack: error instanceof Error ? error.stack : undefined
-      });
-      return false;
+        stack: error instanceof Error ? error.stack : undefined,
+      })
+      return false
     }
   }
 
@@ -157,15 +180,15 @@ class CryptoSignatureService implements SignatureService {
    * @returns The secret key
    */
   getSecretKey(): string {
-    return this.config.secretKey;
+    return this.config.secretKey
   }
 }
 
 // Export singleton instance
-export const signatureService = new CryptoSignatureService();
+export const signatureService = new CryptoSignatureService()
 
 // Export class for testing
-export { CryptoSignatureService };
+export { CryptoSignatureService }
 
 // Export default instance
-export default signatureService;
+export default signatureService

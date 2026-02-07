@@ -12,6 +12,8 @@ const create_orders = async (req) => {
   const orders = req.body;
   const receivedSignature = req?.headers["x-signature"];
 
+  console.log(orders);
+
   if (!orders?.length) return apiResponse.error(400, "Invalid or empty orders");
 
   if (!auth.isValidSignature(receivedSignature, orders))
@@ -152,15 +154,17 @@ const create_orders = async (req) => {
 
 
 
+    const data = await getOrderDetails(orders);
+
+    // fix in future uncomment this and before that link another twillio account
+    // await utils.sendOrderPlaceUpdate(data);
+
     return apiResponse.success(201, "Orders placed successfully");
   } catch (error) {
     await conn.rollback();
     return apiResponse.error(500, error.message);
   } finally {
     conn.release();
-    const data = await getOrderDetails(orders);
-    // fix in future uncomment this and before that link another twillio account
-    // await utils.sendOrderPlaceUpdate(data);
   }
 };
 
