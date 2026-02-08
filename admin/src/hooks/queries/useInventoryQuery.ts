@@ -258,3 +258,27 @@ export function useBulkCreateInventoryMutation() {
     },
   })
 }
+
+interface DeleteVariantParams {
+  id: number
+}
+
+/**
+ * Delete a variant
+ */
+export function useDeleteVariantMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (params: DeleteVariantParams) => {
+      const response = await axios.delete('/api/variants', {
+        data: params,
+      })
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: inventoryKeys.variants.all })
+      queryClient.invalidateQueries({ queryKey: inventoryKeys.all })
+    },
+  })
+}

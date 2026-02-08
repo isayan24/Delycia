@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import axios from 'axios'
 import useToast from '@/hooks/UseToast'
+import { useQueryClient } from '@tanstack/react-query'
+import { inventoryKeys } from '@/hooks/queries/useInventoryQuery'
 
 // Import types
 import type {
@@ -55,6 +57,7 @@ export default function UpdateItemDetailsModal({
   const [removedImageUrls, setRemovedImageUrls] = useState<string[]>([])
 
   const { showError, showSuccess } = useToast()
+  const queryClient = useQueryClient()
 
   // Use custom hooks
   const {
@@ -355,6 +358,14 @@ export default function UpdateItemDetailsModal({
 
       showSuccess('Successfully!', successMessage)
       refetch()
+      // Invalidate variants query to ensure fresh data on next open
+      if (currentFoodItem?.id) {
+        queryClient.invalidateQueries({
+          queryKey: inventoryKeys.variants.byInventoryId(
+            currentFoodItem.id.toString(),
+          ),
+        })
+      }
       onOpenChange(false)
     } catch (err) {
       console.error('Error submitting form:', err)

@@ -7,7 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
-import axiosInstance from '@/lib/axios'
+import { useDeleteVariantMutation } from '@/hooks/queries/useInventoryQuery'
 import useToast from '@/hooks/UseToast'
 
 interface ExtendedVariantManagerProps extends VariantManagerProps {
@@ -21,6 +21,8 @@ const VariantManagerMain: React.FC<ExtendedVariantManagerProps> = ({
   const [savedVariants, setSavedVariants] = useState<Variant[]>([])
   const [isVariantDeleting, startTransition] = useTransition()
   const { showError, showSuccess } = useToast()
+
+  const deleteVariantMutation = useDeleteVariantMutation()
 
   // Set initial variants when provided
   useEffect(() => {
@@ -61,12 +63,12 @@ const VariantManagerMain: React.FC<ExtendedVariantManagerProps> = ({
         const isExistingVariant = !isNaN(Number(variantToDelete.id))
         if (isExistingVariant) {
           // This is an existing variant in the database, delete it via API
-          // Fix why directly calling axiosInstance
-          const response = await axiosInstance.delete(`/admin/variants`, {
-            data: { id: Number(variantIdStr) },
+          await deleteVariantMutation.mutateAsync({
+            id: Number(variantIdStr),
           })
 
-          if (response.status === 200) {
+          // If we reach here, it means success (otherwise error is thrown)
+          if (true) {
             // Update savedVariants state
             const updatedVariants = savedVariants.filter(
               (variant) => variant.id.toString() !== variantIdStr,

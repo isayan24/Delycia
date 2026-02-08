@@ -162,6 +162,10 @@ export default function AddCustomerDetails() {
         specialInstructions,
         orderItems: orderItems.map((item) => ({
           ...item,
+          id: item.id.toString().includes('_')
+            ? item.id.toString().split('_')[0]
+            : item.id,
+          variantId: item.variantId ? parseInt(item.variantId) : 0,
           discount_amount: discountPerItem,
         })),
         totalAmount: finalAmount,

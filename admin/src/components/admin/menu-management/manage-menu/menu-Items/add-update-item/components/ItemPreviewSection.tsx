@@ -7,7 +7,7 @@ interface ItemPreviewSectionProps {
 
 export function ItemPreviewSection({ previewData }: ItemPreviewSectionProps) {
   return (
-    <div className="hidden md:block h-full overflow-hidden bg-gray-50 border-r relative shrink-0">
+    <div className="md:w-[400px] hidden md:block h-full overflow-hidden bg-gray-50 border-r relative shrink-0">
       <div className="absolute inset-0 flex items-center justify-center p-4">
         <MobilePreview previewData={previewData} />
       </div>

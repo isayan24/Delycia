@@ -86,6 +86,7 @@ export const updateVariants = async (
         },
       })
     } else {
+      console.log('Creating new variant:', variant)
       // Create new variant
       const variantPayload: VariantPayload = {
         inventory_id: inventoryId,
@@ -111,7 +112,7 @@ export const deleteAllVariants = async (
   try {
     // First fetch all variants for this inventory item
     const existingVariantsResponse = await axiosInstance.get(
-      `/admin/variants?inventory_id=${inventoryId}`,
+      `/variants?inventory_id=${inventoryId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

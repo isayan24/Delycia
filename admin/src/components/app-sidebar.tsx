@@ -39,7 +39,7 @@ const navMain = [
     url: '/billing',
     icon: ShoppingCart,
     color: 'text-indigo-500',
-    isActive: false,
+    isActive: true,
     items: [
       {
         title: 'Quick Bill',
@@ -56,7 +56,7 @@ const navMain = [
     url: '/orders/overview',
     icon: ShoppingBag,
     color: 'text-amber-500',
-    isActive: false,
+    isActive: true,
     items: [
       {
         title: 'Orders',
@@ -131,7 +131,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Format user data for NavUser
   const userData = {
     name: user?.name || user?.username || 'Guest',
-    email: user?.email || 'guest@example.com',
+    email: user?.email,
     avatar: user?.profile_pic || '/delycia-logo.jpg', // Fallback to logo or default
   }
 

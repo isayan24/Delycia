@@ -28,13 +28,6 @@ export const Route = createFileRoute('/api/inventory')({
           if (rid) params.rid = rid
           if (categoryId) params.category_id = categoryId
 
-          // Call backend
-          // Note: Using axiosInstance which already has baseURL configured
-          // and we attach the token manually or let interceptors handle it.
-          // The current axiosInstance configuration (lib/axios.ts) doesn't seem to attach Bearer token automatically
-          // from server-side cookies? lib/axios.ts says "Server routes handle adding Bearer tokens from httpOnly cookies".
-          // So we must manually add the header here like in POST/PATCH.
-
           const headers: Record<string, string> = {}
           if (token) {
             headers['Authorization'] = `Bearer ${token}`

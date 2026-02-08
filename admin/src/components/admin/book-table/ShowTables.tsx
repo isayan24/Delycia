@@ -2,17 +2,16 @@ import React, { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Menu, User, Users, Trash2, Plus } from 'lucide-react'
+import { Menu, Plus, Trash2 } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useTablesAndZones } from '@/hooks/queries/useTablesQuery'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuLabel,
+  DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import { ShowTablesProps } from './types/table.types'
 import { useTableStore } from '@/store/useTableStore'
@@ -25,7 +24,7 @@ export default function ShowTables({
   handleShowDeleteTables,
 }: ShowTablesProps) {
   const { user } = useAdminAuthQuery()
-  const [activeZone, setActiveZone] = useState<string>('')
+  const [activeZone, setActiveZone] = useState<string>('All')
 
   // Popup state
   const [selectedPopupTable, setSelectedPopupTable] = useState<any>(null)
@@ -43,52 +42,47 @@ export default function ShowTables({
   // pass the refetch function to the store
   useEffect(() => {
     if (user?.selected_rid) {
-      // Wrap refetch in async function to match store's expected type
       const refetchAsync = async () => {
         await refetch()
       }
       setRefetchTablesFunction(refetchAsync)
     }
-    // Cleanup function to remove the refetch function when component unmounts
     return () => {
       setRefetchTablesFunction(null)
     }
   }, [user?.selected_rid, setRefetchTablesFunction, refetch])
 
-  // Extract unique zones for tabs with error handling
+  // Extract unique zones for tabs
   const uniqueZones = useMemo(() => {
     try {
       if (!zones || !Array.isArray(zones)) {
-        return []
+        return ['All']
       }
-      return zones
+      const zoneNames = zones
         .filter((zone) => zone && typeof zone.zone === 'string')
         .map((zone) => zone.zone)
         .filter(Boolean)
+      return ['All', ...zoneNames]
     } catch (error) {
       console.error('Error processing zones:', error)
-      return []
+      return ['All']
     }
   }, [zones])
 
-  // Update activeZone when uniqueZones changes
+  // Ensure activeZone is valid
   useEffect(() => {
-    if (uniqueZones.length > 0 && !activeZone) {
-      setActiveZone(uniqueZones[0])
+    if (uniqueZones.length > 0 && !uniqueZones.includes(activeZone)) {
+      setActiveZone('All')
     }
   }, [uniqueZones, activeZone])
 
-  // Memoized filtered tables based on selected zone
+  // Filter tables based on activeZone
   const filteredTables = useMemo(() => {
+    if (activeZone === 'All') {
+      return tables
+    }
     return tables.filter((table: any) => table.zone === activeZone)
   }, [tables, activeZone])
-
-  // Handle zone tab change with validation
-  const handleZoneChange = (zone: string) => {
-    if (uniqueZones.includes(zone)) {
-      setActiveZone(zone)
-    }
-  }
 
   // Safe table data with fallback values
   const safeFilteredTables = useMemo(() => {
@@ -116,17 +110,44 @@ export default function ShowTables({
     setIsPopupOpen(true)
   }
 
+  // Helper to render tables for a specific zone
+  const renderTablesForZone = (zoneName: string) => {
+    const zoneTables = safeFilteredTables.filter(
+      (table) => table.zone === zoneName,
+    )
+
+    if (zoneTables.length === 0) return null
+
+    return (
+      <div key={zoneName} className="mb-8 last:mb-0">
+        <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4 px-1">
+          {zoneName}
+        </h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+          {zoneTables.map((table) => (
+            <TableCard
+              key={table.id}
+              table={table}
+              onSelect={selectTable}
+              onLongPress={handleTableLongPress}
+            />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="dark:bg-gray-900 p-4 md:p-6 h-full overflow-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-          TABLES
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <span>🍽️</span> Tables
         </h1>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="">
-              <Menu className="h-6 w-6" />
+            <Button variant="ghost" size="icon">
+              <Menu className="h-5 w-5" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-48" align="end" forceMount>
@@ -138,31 +159,25 @@ export default function ShowTables({
               <span>Add Tables</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-
-            {/* Delete Tables Option */}
             <DropdownMenuItem
               onClick={handleShowDeleteTables}
               className="cursor-pointer text-red-600 hover:!text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/20"
             >
-              <Trash2 className="h-4 w-4 mr-2 text-red-600" />
+              <Trash2 className="h-4 w-4 mr-2" />
               <span>Delete Tables</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
-      {/* Loading State */}
-
       {loading && user?.selected_rid && (
         <div className="space-y-4">
-          {/* Tabs Skeleton */}
           <div className="flex gap-2 mb-4">
             {[1, 2, 3].map((i) => (
               <Skeleton key={i} className="h-10 w-24" />
             ))}
           </div>
           <Skeleton className="h-4 w-32 mb-4" />
-          {/* Tables Grid Skeleton */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <Card key={i} className="border-gray-200">
@@ -178,7 +193,6 @@ export default function ShowTables({
         </div>
       )}
 
-      {/* Error State */}
       {error && !loading && (
         <div className="flex justify-center items-center py-12">
           <div className="text-red-500 dark:text-red-400">
@@ -187,61 +201,63 @@ export default function ShowTables({
         </div>
       )}
 
-      {/* Content when data is loaded */}
       {!loading && !error && user?.restaurant_rids?.[0] && (
         <>
-          {/* Dynamic Zone Tabs */}
           <Tabs
-            defaultValue={uniqueZones[0]}
             value={activeZone}
-            onValueChange={handleZoneChange}
-            className="mb-4"
+            onValueChange={setActiveZone}
+            className="mb-6"
           >
-            <TabsList>
+            <TabsList className="flex flex-wrap h-auto gap-1 bg-transparent p-0 justify-start">
               {uniqueZones.map((zone) => (
-                <TabsTrigger key={zone} value={zone}>
+                <TabsTrigger
+                  key={zone}
+                  value={zone}
+                  className="rounded-full px-4 py-2 border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-white data-[state=inactive]:hover:bg-gray-50 dark:data-[state=inactive]:bg-gray-800"
+                >
                   {zone}
                 </TabsTrigger>
               ))}
             </TabsList>
 
-            {uniqueZones.map((zone) => (
-              <TabsContent key={zone} value={zone}>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  {zone === 'all' ? 'All Tables' : `${zone} Tables`}
+            <TabsContent value="All" className="mt-4">
+              {safeFilteredTables.length === 0 ? (
+                <div className="flex justify-center items-center py-12 text-gray-500">
+                  No tables available.
                 </div>
-              </TabsContent>
-            ))}
-          </Tabs>
+              ) : (
+                uniqueZones
+                  .filter((z) => z !== 'All')
+                  .map((zone) => renderTablesForZone(zone))
+              )}
+            </TabsContent>
 
-          {/* Empty State */}
-          {safeFilteredTables.length === 0 && (
-            <div className="flex justify-center items-center py-12">
-              <div className="text-gray-500 dark:text-gray-400">
-                {activeZone === 'all'
-                  ? 'No tables available.'
-                  : `No tables in ${activeZone} zone.`}
-              </div>
-            </div>
-          )}
-
-          {/* Tables Grid */}
-          {safeFilteredTables.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
-              {safeFilteredTables.map((table) => (
-                <TableCard
-                  key={table.id}
-                  table={table}
-                  onSelect={selectTable}
-                  onLongPress={handleTableLongPress}
-                />
+            {uniqueZones
+              .filter((z) => z !== 'All')
+              .map((zone) => (
+                <TabsContent key={zone} value={zone} className="mt-4">
+                  {safeFilteredTables.length === 0 ? (
+                    <div className="flex justify-center items-center py-12 text-gray-500">
+                      No tables in {zone}.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+                      {safeFilteredTables.map((table) => (
+                        <TableCard
+                          key={table.id}
+                          table={table}
+                          onSelect={selectTable}
+                          onLongPress={handleTableLongPress}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
               ))}
-            </div>
-          )}
+          </Tabs>
         </>
       )}
 
-      {/* Table Orders Popup */}
       <TableOrdersPopup
         isOpen={isPopupOpen}
         onClose={() => setIsPopupOpen(false)}

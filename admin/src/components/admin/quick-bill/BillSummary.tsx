@@ -84,9 +84,12 @@ export default function BillSummary({
         },
         orderItems: cart.map((item) => ({
           ...item,
+          id: item.id.toString().includes('_')
+            ? item.id.toString().split('_')[0]
+            : item.id,
           rid: rid,
           order_status: 'completed',
-          variantId: item.variantId || null,
+          variantId: item.variantId ? parseInt(item.variantId) : 0,
           discount_amount: discountPerItem,
           totalItemAmount: item.price * item.quantity,
         })),

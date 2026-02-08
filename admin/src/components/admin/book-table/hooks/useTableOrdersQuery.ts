@@ -58,7 +58,7 @@ export function useTableOrdersQuery({
       }
     },
     enabled: enabled && !!table_no && !!rid,
-    staleTime: 30 * 1000, // 30 seconds
+    // staleTime: 30 * 1000, // 30 seconds
     gcTime: 2 * 60 * 1000, // 2 minutes
     refetchOnWindowFocus: false,
   })

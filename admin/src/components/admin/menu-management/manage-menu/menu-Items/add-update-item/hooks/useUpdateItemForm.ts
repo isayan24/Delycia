@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useChangeTracking } from '@/hooks/useChangeTracking'
-import axiosInstance from '@/lib/axios'
-import type { FormData, ItemImage } from '../../types/addItemModal'
-import type { Variant } from '../../variants/types/variant.types'
+import { useInventoryVariantsQuery } from '@/hooks/queries/useInventoryQuery'
+import { FormData, ItemImage } from '../../types/addItemModal'
+import { Variant } from '../../variants/types/variant.types'
 
 interface CurrentFoodItem {
   id?: number
@@ -63,38 +63,29 @@ export const useUpdateItemForm = (
   )
 
   // Fetch existing variants when modal opens
+  const { data: variantsData, isLoading: isVariantsQueryLoading } =
+    useInventoryVariantsQuery(currentFoodItem?.id?.toString(), open)
+
+  // Sync fetched variants to local state
   useEffect(() => {
-    const fetchVariants = async () => {
-      if (currentFoodItem?.id && open) {
-        setIsLoadingVariants(true)
-        try {
-          const response = await axiosInstance.get(
-            `/variants?inventory_id=${currentFoodItem.id}`,
-          )
+    if (variantsData && open) {
+      const formattedVariants = variantsData.map((v) => ({
+        id: v.id,
+        name: v.name,
+        price: v.price.toString(),
+      }))
 
-          if (response.data) {
-            const fetchedVariants = response.data.variants.map((v: any) => ({
-              id:
-                v.id?.toString() ||
-                Date.now().toString() +
-                  Math.random().toString().substring(2, 5),
-              name: v.name || '',
-              price: v.price?.toString() || '0',
-            }))
-
-            setExistingVariants(fetchedVariants)
-            setItemVariants(fetchedVariants)
-          }
-        } catch (error) {
-          console.error('Error fetching variants:', error)
-        } finally {
-          setIsLoadingVariants(false)
-        }
-      }
+      setExistingVariants(formattedVariants)
+      // Only set item variants if we haven't started editing or if it's the initial load
+      // Ideally query syncs only once or when data changes from server and we want to refresh
+      // For now, simpler approach: if local state is empty and we have data, set it.
+      // But careful about re-fetching overwriting user edits.
+      // Since existingVariants is for tracking changes, we should update it.
+      // We set itemVariants only if we are initializing.
+      setItemVariants((prev) => (prev.length === 0 ? formattedVariants : prev))
+      setIsLoadingVariants(false)
     }
-
-    fetchVariants()
-  }, [currentFoodItem?.id, open])
+  }, [variantsData, open])
 
   // Set default values when currentFoodItem is available
   useEffect(() => {

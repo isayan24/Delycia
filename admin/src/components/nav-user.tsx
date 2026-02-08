@@ -33,7 +33,7 @@ export function NavUser({
 }: {
   user: {
     name: string
-    email: string
+    email: string | undefined
     avatar: string
   }
 }) {

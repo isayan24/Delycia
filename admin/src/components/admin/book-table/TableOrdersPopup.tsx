@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Users, CheckCircle2, DollarSign } from 'lucide-react'
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useTableOrdersQuery } from './hooks/useTableOrdersQuery'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
@@ -187,6 +192,7 @@ export default function TableOrdersPopup({
           <DialogTitle className="sr-only">
             Table {tableData.table_number} Details
           </DialogTitle>
+          <DialogDescription />
 
           <div className="relative flex flex-col items-center gap-6 animate-in zoom-in-95 duration-300">
             {/* 1. Table Visual Card (Centered & Popped) */}

@@ -26,12 +26,6 @@ export const Route = createFileRoute('/api/variants')({
           // Get token from httpOnly cookie
           const token = getAccessTokenFromCookie(request)
 
-          // Call backend
-          // Assuming backend has /variants endpoint.
-          // If not, we might need to use /inventory/{id}/variants or similar.
-          // But usually variants are fetched via query param on /variants or /inventory/variants
-          // Based on previous code: /api/variants?inventory_id=...
-
           const params = { inventory_id: inventoryId }
 
           const response = await axiosInstance.get('/variants', {
