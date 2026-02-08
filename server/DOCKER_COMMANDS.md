@@ -1,7 +1,3 @@
-# Docker Commands for Delycia Server
-
-Here are the essential commands to manage your Docker container. Run these commands from the `server/` directory.
-
 ## 🔨 Build
 
 Build the Docker image from the Dockerfile.
@@ -51,14 +47,16 @@ docker logs -f delycia-server-instance
 Remove the container layout (necessary if you want to run `docker run` again with the same name).
 
 ```bash
-# Stop and remove in one go
-docker rm -f delycia-server-instance
-```
 
-## 💻 Shell Access
+start compose
+docker compose -f docker-compose.yml up -d --build
 
-Enter the running container's shell for debugging.
+stop compose
+docker compose -f docker-compose.yml down
 
-```bash
-docker exec -it delycia-server-instance /bin/sh
+remove
+docker stop delycia-server-container && docker rm delycia-server-container
+
+# Follow logs properties (live stream)
+docker logs -f delycia-server-container
 ```
