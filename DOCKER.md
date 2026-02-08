@@ -50,7 +50,35 @@ docker compose -f docker-compose.server.yml up --build
 docker compose -f docker-compose.server.yml up -d --build
 ```
 
----
+### Option 3: Landing Page Only
+
+Run the landing page individually (serves static files via nginx):
+
+```bash
+# Build the image
+docker build -t delycia-landing \
+  --build-arg VITE_API_URL=https://api.delycia.com \
+  --build-arg VITE_APP_URL=https://delycia.com \
+  ./landing
+
+# Run in detached mode
+docker run -d -p 3500:80 --name landing delycia-landing
+
+# View logs
+docker logs -f landing
+
+# Stop
+docker stop landing
+
+# Start (after stopped)
+docker start landing
+
+# Remove container
+docker rm landing
+
+# Remove image
+docker rmi delycia-landing
+```
 
 ## Common Commands
 
@@ -247,6 +275,8 @@ Delycia/
 │   └── Dockerfile
 ├── client/
 │   └── Dockerfile
-└── admin/
+├── admin/
+│   └── Dockerfile
+└── landing/
     └── Dockerfile
 ```
