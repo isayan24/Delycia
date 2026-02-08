@@ -30,7 +30,7 @@ export default function MobilePreview({ previewData }: any) {
   }, [previewData])
 
   return (
-    <div className="w-full bg-gray-100 p-8 flex flex-col items-center justify-center">
+    <div className="hidden md:flex w-full bg-gray-100 p-8  flex-col items-center justify-center">
       <div className="relative">
         <div className="w-80 h-[600px] bg-black rounded-[3rem] p-2 shadow-2xl relative">
           <div className="w-full h-full bg-white rounded-[2.5rem] overflow-hidden relative">

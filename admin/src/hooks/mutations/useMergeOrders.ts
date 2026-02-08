@@ -21,7 +21,7 @@ export const useMergeOrders = () => {
       return response.data
     },
     onSuccess: (data) => {
-      if (data.status) {
+      if (data.statusCode === 200) {
         showSuccess('Success', 'Orders merged successfully')
         // Invalidate orders queries to refresh the list
         queryClient.invalidateQueries({ queryKey: ['orders'] })

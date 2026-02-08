@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Download, Share, Printer } from 'lucide-react'
+import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 
 interface BillItem {
   name: string
@@ -53,6 +54,7 @@ export default function ThermalBill({
   onShareToMobile,
 }: ThermalBillProps) {
   const billRef = useRef<HTMLDivElement>(null)
+  const { selectedRestaurant } = useRestaurantSelector()
 
   const downloadAsImage = async () => {
     if (!billRef.current) return
@@ -111,12 +113,7 @@ export default function ThermalBill({
       }
 
       // Header
-      drawText(
-        (billData.restaurantName || 'RESTAURANT BILL').toUpperCase(),
-        padding,
-        16,
-        'center',
-      )
+      drawText(billData.restaurantName.toUpperCase(), padding, 16, 'center')
       drawText(`Order #${billData.orderId}`, padding, 11, 'center')
       y += 10
       drawLine()
@@ -269,12 +266,7 @@ export default function ThermalBill({
         y += 10
       }
 
-      drawText(
-        (billData.restaurantName || 'RESTAURANT BILL').toUpperCase(),
-        padding,
-        16,
-        'center',
-      )
+      drawText(billData.restaurantName.toUpperCase(), padding, 16, 'center')
       drawText(`Order #${billData.orderId}`, padding, 11, 'center')
       y += 10
       drawLine()
@@ -534,7 +526,7 @@ export default function ThermalBill({
                   className="font-bold text-lg"
                   style={{ fontWeight: 'bold', fontSize: '16px' }}
                 >
-                  {currentBillData.restaurantName || 'RESTAURANT BILL'}
+                  {selectedRestaurant?.name || 'RESTAURANT BILL'}
                 </div>
                 <div className="text-sm" style={{ fontSize: '11px' }}>
                   Order #{currentBillData.orderId}

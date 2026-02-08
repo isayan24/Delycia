@@ -61,10 +61,10 @@ const VariantManagerContent: React.FC<VariantManagerContentProps> = ({
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-0 text-center">
           <button
             onClick={addVariant}
-            className="flex items-center justify-center w-full text-blue-600 hover:text-blue-700 p-6 font-medium text-base hover:bg-blue-50 rounded-md transition-colors"
+            className="flex items-center justify-center w-full text-blue-600 hover:text-blue-700 p-3 sm:p-6 font-medium text-sm sm:text-base hover:bg-blue-50 rounded-md transition-colors"
             type="button"
           >
-            <Plus className="w-5 h-5 mr-2" />
+            <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
             Add Another Variant
           </button>
         </div>

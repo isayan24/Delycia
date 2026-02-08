@@ -61,7 +61,7 @@ const VariantManagerMain: React.FC<ExtendedVariantManagerProps> = ({
         const isExistingVariant = !isNaN(Number(variantToDelete.id))
         if (isExistingVariant) {
           // This is an existing variant in the database, delete it via API
-
+          // Fix why directly calling axiosInstance
           const response = await axiosInstance.delete(`/admin/variants`, {
             data: { id: Number(variantIdStr) },
           })
@@ -121,12 +121,12 @@ const VariantManagerMain: React.FC<ExtendedVariantManagerProps> = ({
           className="w-full border-b border-dashed border-black"
         >
           <AccordionItem value="variant-manager" className="border-0">
-            <AccordionTrigger className="hover:no-underline px-6 py-4 text-xl font-semibold justify-between">
-              <div className="flex items-center gap-3">
+            <AccordionTrigger className="hover:no-underline px-3 py-3 sm:px-6 sm:py-4 text-base sm:text-xl font-semibold justify-between">
+              <div className="flex items-center gap-2 sm:gap-3">
                 {savedVariants.length > 0 ? (
                   <>
                     Edit Variants
-                    <span className="text-sm font-normal text-gray-500">
+                    <span className="text-xs sm:text-sm font-normal text-gray-500">
                       ({savedVariants.length} variant
                       {savedVariants.length !== 1 ? 's' : ''})
                     </span>

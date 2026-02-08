@@ -17,7 +17,7 @@ export function useUpdateTableStatus() {
 
   return useMutation({
     mutationFn: async (data: UpdateTableStatusParams) => {
-      const response = await axios.patch('/api/table', {
+      const response = await axios.patch('/api/tables', {
         id: data.id,
         status: data.status,
         capacity: data.capacity,

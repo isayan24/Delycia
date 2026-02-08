@@ -64,23 +64,12 @@ async function getOrderDetails(ordersData) {
           }).join(', ');
           itemName += `\n   + ${addonDetails}`;
 
-          // Add addon prices to total
-          // Assuming orderData.total_amount already includes addon prices if it was updated during order creation/linking
-          // If not, we might need to add it here, but usually total_amount in orders table should be final.
-          // Let's check logic: create_orders inserts orders first, then addons. 
-          // It inserts price into order_addons. 
-          // Does it update orders.total_amount?
-          // In create_orders:
-          // const values = orders.map(...) -> includes total_amount.
-          // Frontend calculates total_amount including addons.
-          // So database total_amount is correct. We don't need to add it here.
         }
 
         itemsList.push(itemName);
         totalAmount += parseInt(orderData.total_amount);
       }
     }
-
     return {
       name: customerName,
       phone: customerPhone,

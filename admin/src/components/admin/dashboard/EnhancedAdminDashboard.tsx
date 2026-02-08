@@ -8,6 +8,7 @@ import {
 import OverviewPage from './OverviewPage'
 import LoadingScreen from '@/components/common/LoadingScreen'
 import { AnimatePresence, motion } from 'motion/react'
+import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 
 interface EnhancedAdminDashboardProps {
   rid: string
@@ -15,7 +16,7 @@ interface EnhancedAdminDashboardProps {
 
 const ErrorDisplay: React.FC<{ onRetry?: () => void }> = ({ onRetry }) => {
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-red-200">
+    <div className="bg-white rounded-xl p-6 max-[500px]:p-2 shadow-sm border border-red-200">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-red-600 flex items-center">
           <AlertCircle className="w-5 h-5 mr-2" />
@@ -48,6 +49,7 @@ export const EnhancedAdminDashboard: React.FC<EnhancedAdminDashboardProps> = ({
 }) => {
   const { loadFromStorage, currentDateRange } = useDateFilterStore()
   const refreshDashboard = useRefreshDashboard()
+  const { selectedRestaurant } = useRestaurantSelector()
 
   // Load saved filter state on mount
   useEffect(() => {
@@ -84,13 +86,18 @@ export const EnhancedAdminDashboard: React.FC<EnhancedAdminDashboardProps> = ({
     <div className="">
       {/* Header */}
       <div className="">
-        <div className="px-6 py-4">
+        <div className="px-6 py-4 max-[500px]:px-2">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <ChefHat className="w-8 h-8 text-orange-600" />
-              <h1 className="text-2xl font-semibold text-gray-900">
-                Delycia Dashboard
-              </h1>
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <ChefHat className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600" />
+              <div>
+                <h1 className="text-lg sm:text-2xl font-semibold text-gray-900">
+                  {selectedRestaurant?.name} Dashboard
+                </h1>
+                <p className="text-[10px] sm:text-xs text-gray-500">
+                  Your restaurant at a glance
+                </p>
+              </div>
             </div>
           </div>
 
@@ -98,7 +105,7 @@ export const EnhancedAdminDashboard: React.FC<EnhancedAdminDashboardProps> = ({
         </div>
       </div>
 
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-6 max-[500px]:p-2">
         <AnimatePresence mode="wait">
           <motion.div
             key="overview"

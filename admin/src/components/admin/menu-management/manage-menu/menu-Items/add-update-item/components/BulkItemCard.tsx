@@ -46,10 +46,12 @@ export const BulkItemCard: React.FC<BulkItemCardProps> = ({
   )
 
   return (
-    <div className="border-2 border-gray-200 rounded-lg p-5 bg-gray-50 relative">
+    <div className="border-2 border-gray-200 rounded-lg p-3 sm:p-5 bg-gray-50 relative">
       {/* Item Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h4 className="font-semibold text-gray-700">Item #{index + 1}</h4>
+      <div className="flex items-center justify-between mb-2 sm:mb-4">
+        <h4 className="font-semibold text-base sm:text-lg text-gray-700">
+          Item #{index + 1}
+        </h4>
         {totalItems > 1 && (
           <button
             onClick={() => onRemove(item.id)}
@@ -63,7 +65,7 @@ export const BulkItemCard: React.FC<BulkItemCardProps> = ({
       </div>
 
       {/* Item Fields */}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         <ItemNameInput
           value={item.name}
           onChange={(value: string) => onChange(item.id, 'name', value)}

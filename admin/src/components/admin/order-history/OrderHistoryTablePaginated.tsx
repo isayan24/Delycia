@@ -67,7 +67,6 @@ export default function OrderHistoryTablePaginated({
   const [selectedCartIds, setSelectedCartIds] = useState<Set<string>>(new Set())
   const [isSelectionMode, setIsSelectionMode] = useState(false)
   const mergeMutation = useMergeOrders()
-  const { selectedRestaurant } = useRestaurantSelector()
   const [showBillDialog, setShowBillDialog] = useState(false)
   const [selectedOrderForBill, setSelectedOrderForBill] = useState<any>(null)
 
@@ -174,7 +173,6 @@ export default function OrderHistoryTablePaginated({
 
     const billData = {
       orderId: order.orderId || order.cart_id || order.id || 'N/A',
-      restaurantName: selectedRestaurant?.name,
       tableNo: order.tableNo || order.table_no || 'N/A',
       customerName:
         order.customerName ||

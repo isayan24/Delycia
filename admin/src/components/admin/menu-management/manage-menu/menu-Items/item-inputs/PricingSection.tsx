@@ -22,12 +22,14 @@ export default function PricingSection({
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
-        <Calculator className="h-5 w-5 text-orange-600" />
-        <h2 className="text-lg font-[500] text-gray-800">Item Pricing</h2>
+        <Calculator className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600" />
+        <h2 className="text-base sm:text-lg font-[500] text-gray-800">
+          Item Pricing
+        </h2>
       </div>
 
-      <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-6 rounded-xl border border-orange-100">
-        <div className="grid md:grid-cols-2 gap-6">
+      <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-3 sm:p-6 rounded-xl border border-orange-100">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           {/* Cost Input */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
@@ -50,7 +52,7 @@ export default function PricingSection({
                 type="number"
                 value={cost || ''}
                 onChange={(e) => onCostChange(e.target.value)}
-                className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 text-lg"
+                className="w-full pl-8 pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 text-sm sm:text-lg"
                 placeholder="0"
                 min="0"
                 step="1"
@@ -83,7 +85,7 @@ export default function PricingSection({
                 type="number"
                 value={price || ''}
                 onChange={(e) => onPriceChange(e.target.value)}
-                className={`w-full pl-8 pr-4 py-3 text-lg border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 ${
+                className={`w-full pl-8 pr-4 py-2 sm:py-3 text-sm sm:text-lg border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 ${
                   hasError ? 'border-red-500 bg-red-50' : 'border-gray-300'
                 }`}
                 placeholder="0"
@@ -100,30 +102,34 @@ export default function PricingSection({
         {/* mark Profit Calculation */}
         {(costNum > 0 || priceNum > 0) && (
           <div className="mt-6 pt-4 border-t border-orange-200">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white p-4 rounded-lg border border-orange-100">
-                <div className="text-xs text-gray-500 mb-1">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
+              <div className="bg-white p-2 sm:p-4 rounded-lg border border-orange-100">
+                <div className="text-[10px] sm:text-xs text-gray-500 mb-1">
                   Profit per Item
                 </div>
                 <div
-                  className={`text-lg font-semibold ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                  className={`text-sm sm:text-lg font-semibold ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}
                 >
                   ₹ {profit.toFixed(2)}
                 </div>
               </div>
 
-              <div className="bg-white p-4 rounded-lg border border-orange-100">
-                <div className="text-xs text-gray-500 mb-1">Profit Margin</div>
+              <div className="bg-white p-2 sm:p-4 rounded-lg border border-orange-100">
+                <div className="text-[10px] sm:text-xs text-gray-500 mb-1">
+                  Profit Margin
+                </div>
                 <div
-                  className={`text-lg font-semibold ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                  className={`text-sm sm:text-lg font-semibold ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}
                 >
                   {profitMargin}%
                 </div>
               </div>
 
-              <div className="bg-white p-4 rounded-lg border border-orange-100">
-                <div className="text-xs text-gray-500 mb-1">Markup</div>
-                <div className="text-lg font-semibold text-gray-700">
+              <div className="bg-white p-2 sm:p-4 rounded-lg border border-orange-100">
+                <div className="text-[10px] sm:text-xs text-gray-500 mb-1">
+                  Markup
+                </div>
+                <div className="text-sm sm:text-lg font-semibold text-gray-700">
                   {costNum > 0
                     ? `${((priceNum / costNum - 1) * 100).toFixed(1)}%`
                     : '0%'}

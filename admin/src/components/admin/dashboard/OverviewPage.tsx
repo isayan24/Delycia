@@ -160,9 +160,9 @@ const OverviewPage: React.FC<OverviewPageProps> = ({ rid }) => {
   }
 
   return (
-    <div className="space-y-8 p-1">
+    <div className="space-y-4 sm:space-y-8 p-1">
       {/* Top Cards Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         {sections.topCards.map((card) => {
           const showSkeleton = !stats || !inventoryData
           return (
@@ -173,32 +173,36 @@ const OverviewPage: React.FC<OverviewPageProps> = ({ rid }) => {
               className={`rounded-xl border-2 ${card.borderColor} overflow-visible bg-white shadow-sm hover:shadow-md transition-shadow relative group`}
             >
               {showSkeleton ? (
-                <div className="p-4 flex flex-col items-center justify-center pt-8 space-y-4">
-                  <Skeleton className="w-10 h-10 rounded-full" />
-                  <Skeleton className="h-8 w-24" />
-                  <Skeleton className="h-4 w-32" />
+                <div className="p-2 sm:p-4 flex flex-col items-center justify-center pt-4 sm:pt-8 space-y-2 sm:space-y-4">
+                  <Skeleton className="w-6 h-6 sm:w-10 sm:h-10 rounded-full" />
+                  <Skeleton className="h-5 sm:h-8 w-16 sm:w-24" />
+                  <Skeleton className="h-3 sm:h-4 w-20 sm:w-32" />
                 </div>
               ) : (
                 <>
                   {card.id === 'sales' && (
-                    <div className="absolute top-2 right-2 z-10">
+                    <div className="absolute top-1 right-1 sm:top-2 sm:right-2 z-10">
                       <DateFilterComponent compact hideCustomRange />
                     </div>
                   )}
-                  <div className="p-4 flex flex-col items-center text-center pt-8">
-                    <card.icon className={`w-8 h-8 mb-3 ${card.iconColor}`} />
-                    <h3 className="text-2xl font-bold text-gray-800">
+                  <div className="p-2 sm:p-4 flex flex-col items-center text-center pt-4 sm:pt-8">
+                    <card.icon
+                      className={`w-5 h-5 sm:w-8 sm:h-8 mb-2 sm:mb-3 ${card.iconColor} ${card.id === 'sales' ? 'opacity-0 sm:opacity-100' : ''}`}
+                    />
+                    <h3 className="text-base sm:text-2xl font-bold text-gray-800">
                       {card.title}
                     </h3>
-                    <p className="text-gray-500 text-sm font-medium">
+                    <p className="text-gray-500 text-[10px] sm:text-sm font-medium">
                       {card.subtitle}
                     </p>
                   </div>
                   <Link
                     to={card.actionLink}
-                    className={`block w-full py-2 text-center text-xs font-semibold ${card.accentColor} hover:opacity-90 transition-opacity flex items-center justify-center gap-1`}
+                    className={`block w-full py-1 sm:py-2 text-center text-[10px] sm:text-xs font-semibold ${card.accentColor} hover:opacity-90 transition-opacity flex items-center justify-center gap-1 rounded-b-xl`}
                   >
-                    {card.actionText} <ArrowRight className="w-3 h-3" />
+                    <span className="hidden sm:inline">{card.actionText}</span>
+                    <span className="sm:hidden">View</span>
+                    <ArrowRight className="w-2 h-2 sm:w-3 sm:h-3" />
                   </Link>
                 </>
               )}
@@ -209,26 +213,31 @@ const OverviewPage: React.FC<OverviewPageProps> = ({ rid }) => {
 
       {/* Quick Actions Section */}
       <div>
-        <h2 className="text-lg font-bold text-gray-800 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {sections.quickActions.map((action, idx) => (
+        <h2 className="text-sm sm:text-lg font-bold text-gray-800 mb-2 sm:mb-4">
+          Quick Actions
+        </h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+          {sections.quickActions.map((action) => (
             <motion.div
               key={action.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1 }}
+              initial={{ y: 10 }}
+              animate={{ y: 0 }}
               onClick={() => navigate({ to: action.link })}
-              className={`relative overflow-hidden rounded-xl p-6 cursor-pointer bg-linear-to-br ${action.gradient} text-white shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group`}
+              className={`relative overflow-hidden rounded-lg sm:rounded-xl p-3 sm:p-6 cursor-pointer bg-linear-to-br ${action.gradient} text-white shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group`}
             >
               {/* Background Decoration */}
-              <div className="absolute top-0 right-0 w-24 h-24 bg-white opacity-10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150" />
+              <div className="absolute top-0 right-0 w-16 sm:w-24 h-16 sm:h-24 bg-white opacity-10 rounded-full blur-2xl -mr-6 sm:-mr-10 -mt-6 sm:-mt-10 transition-transform group-hover:scale-150" />
 
               <div className="relative z-10">
-                <div className="bg-white/20 w-12 h-12 rounded-lg flex items-center justify-center mb-4 backdrop-blur-sm">
-                  <action.icon className="w-6 h-6 text-white" />
+                <div className="bg-white/20 w-8 h-8 sm:w-12 sm:h-12 rounded-md sm:rounded-lg flex items-center justify-center mb-2 sm:mb-4 backdrop-blur-sm">
+                  <action.icon className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
                 </div>
-                <h3 className="text-lg font-bold mb-1">{action.title}</h3>
-                <p className="text-white/80 text-sm">{action.desc}</p>
+                <h3 className="text-xs sm:text-lg font-bold mb-0.5 sm:mb-1">
+                  {action.title}
+                </h3>
+                <p className="text-white/80 text-[10px] sm:text-sm hidden sm:block">
+                  {action.desc}
+                </p>
               </div>
             </motion.div>
           ))}
@@ -237,26 +246,32 @@ const OverviewPage: React.FC<OverviewPageProps> = ({ rid }) => {
 
       {/* Quick Visit Section */}
       <div>
-        <h2 className="text-lg font-bold text-gray-800 mb-4">Quick Visit</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {sections.quickVisit.map((visit, idx) => (
+        <h2 className="text-sm sm:text-lg font-bold text-gray-800 mb-2 sm:mb-4">
+          Quick Visit
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-6">
+          {sections.quickVisit.map((visit) => (
             <motion.div
               key={visit.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 + idx * 0.1 }}
+              initial={{ y: 10 }}
+              animate={{ y: 0 }}
+              transition={{ delay: 0.3 }}
               onClick={() => navigate({ to: visit.link })}
-              className={`relative overflow-hidden rounded-xl p-6 cursor-pointer bg-linear-to-br ${visit.gradient} text-white shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group`}
+              className={`relative overflow-hidden rounded-lg sm:rounded-xl p-3 sm:p-6 cursor-pointer bg-linear-to-br ${visit.gradient} text-white shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 group`}
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full blur-3xl -mr-10 -mt-10" />
+              <div className="absolute top-0 right-0 w-20 sm:w-32 h-20 sm:h-32 bg-white opacity-10 rounded-full blur-3xl -mr-6 sm:-mr-10 -mt-6 sm:-mt-10" />
 
               <div className="relative z-10 flex flex-col justify-between h-full">
-                <div className="bg-white/20 w-10 h-10 rounded-lg flex items-center justify-center mb-3 backdrop-blur-sm">
-                  <visit.icon className="w-5 h-5 text-white" />
+                <div className="bg-white/20 w-7 h-7 sm:w-10 sm:h-10 rounded-md sm:rounded-lg flex items-center justify-center mb-2 sm:mb-3 backdrop-blur-sm">
+                  <visit.icon className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold mb-1">{visit.title}</h3>
-                  <p className="text-white/80 text-sm">{visit.desc}</p>
+                  <h3 className="text-xs sm:text-lg font-bold mb-0.5 sm:mb-1">
+                    {visit.title}
+                  </h3>
+                  <p className="text-white/80 text-[10px] sm:text-sm hidden sm:block">
+                    {visit.desc}
+                  </p>
                 </div>
               </div>
             </motion.div>

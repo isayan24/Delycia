@@ -8,17 +8,16 @@ const tableModel = {
     if (!rid) return apiResponse.error(400, "rid is required");
 
     try {
-      // Get tables with party_size from most recent active order for each table
+      // Get tables with party_size as the sum of all active orders for each table
+      // This ensures when multiple customers order at the same table, their party sizes are accumulated
       const [tables] = await pool.query(
         `SELECT t.*, 
-          (SELECT o.party_size 
+          (SELECT COALESCE(SUM(o.party_size), 0) 
            FROM orders o 
            WHERE o.table_no = t.table_number 
              AND o.rid = t.rid 
              AND o.order_status NOT IN ('cancelled', 'settled')
              AND o.created_at >= NOW() - INTERVAL 2 HOUR
-           ORDER BY o.created_at DESC 
-           LIMIT 1
           ) AS party_size
          FROM tables t 
          WHERE t.rid = ?`,

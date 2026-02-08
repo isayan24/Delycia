@@ -1,4 +1,3 @@
-import React from 'react'
 import {
   FormData,
   Errors,
@@ -45,11 +44,11 @@ export function BulkItemForm({
   return (
     <>
       {/* Shared Fields */}
-      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
-        <h3 className="text-lg font-semibold text-orange-800 mb-3">
+      <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 sm:p-4 mb-3 sm:mb-6">
+        <h3 className="text-base sm:text-lg font-semibold text-orange-800 mb-2 sm:mb-3">
           Shared Settings (applies to all items)
         </h3>
-        <section className="flex gap-4 flex-wrap">
+        <section className="flex gap-2 sm:gap-4 flex-wrap">
           <FoodTypeSelector
             selectedType={formData.foodType}
             onTypeChange={handleFoodTypeChange}
@@ -67,11 +66,13 @@ export function BulkItemForm({
       </div>
 
       {/* Bulk Items List */}
-      <div className="space-y-6">
+      <div className="space-y-3 sm:space-y-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Items ({bulkItems.length})</h3>
+          <h3 className="text-base sm:text-lg font-semibold">
+            Items ({bulkItems.length})
+          </h3>
           {bulkItems.length >= 100 && (
-            <span className="text-sm text-red-600">
+            <span className="text-xs sm:text-sm text-red-600">
               Maximum 100 items allowed
             </span>
           )}
@@ -95,7 +96,7 @@ export function BulkItemForm({
           <button
             onClick={handleAddBulkItem}
             type="button"
-            className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-orange-500 hover:text-orange-600 transition-colors font-medium"
+            className="w-full py-2 sm:py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-orange-500 hover:text-orange-600 transition-colors font-medium text-sm sm:text-base"
           >
             + Add Another Item
           </button>

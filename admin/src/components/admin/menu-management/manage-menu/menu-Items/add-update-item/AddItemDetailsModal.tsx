@@ -342,8 +342,8 @@ export default function AddItemDetailsModal({
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-full max-w-7xl h-[90vh] flex overflow-hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-0">
+      <div className="bg-white rounded-lg w-full max-w-7xl h-[95vh] sm:h-[90vh] flex overflow-hidden">
         {/* Preview Section */}
         <ItemPreviewSection
           previewData={
@@ -354,11 +354,11 @@ export default function AddItemDetailsModal({
         <div className="w-full py-0 overflow-y-auto relative">
           <header
             style={{ boxShadow: '0px -4px 8px black' }}
-            className="sticky top-0 bg-white z-52 p-5 pb-0 left-0 mb-8 w-full"
+            className="sticky top-0 bg-white z-52 p-3 sm:p-5 pb-0 left-0 mb-8 w-full"
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <h2 className="text-xl font-bold text-black">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+                <h2 className="text-base sm:text-xl font-bold text-black">
                   {getCurrentCategoryName()}
                 </h2>
                 <Tabs
@@ -370,9 +370,21 @@ export default function AddItemDetailsModal({
                   }}
                   className="w-auto"
                 >
-                  <TabsList className="bg-gray-100">
-                    <TabsTrigger value="single">Single Item</TabsTrigger>
-                    <TabsTrigger value="bulk">Bulk Add Items</TabsTrigger>
+                  <TabsList className="bg-gray-100 h-7 sm:h-9">
+                    <TabsTrigger
+                      value="single"
+                      className="text-xs sm:text-sm px-2 sm:px-3 py-1"
+                    >
+                      <span className="hidden sm:inline">Single Item</span>
+                      <span className="sm:hidden">Single</span>
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="bulk"
+                      className="text-xs sm:text-sm px-2 sm:px-3 py-1"
+                    >
+                      <span className="hidden sm:inline">Bulk Add Items</span>
+                      <span className="sm:hidden">Bulk</span>
+                    </TabsTrigger>
                   </TabsList>
                 </Tabs>
               </div>
@@ -380,10 +392,10 @@ export default function AddItemDetailsModal({
                 onClick={() => onOpenChange(false)}
                 className="text-gray-500 hover:text-gray-700"
               >
-                <X size={24} />
+                <X size={20} className="sm:w-6 sm:h-6" />
               </button>
             </div>
-            <Separator className="mt-4 shadow-sm" />
+            <Separator className="mt-2 sm:mt-4 shadow-sm" />
           </header>
 
           <ErrorWarning
@@ -391,7 +403,7 @@ export default function AddItemDetailsModal({
             errorFields={getErrorFields(errors)}
           />
 
-          <div className="p-5 space-y-5 relative text-lg">
+          <div className="p-3 sm:p-5 space-y-3 sm:space-y-5 relative text-sm sm:text-lg">
             {isBulkMode ? (
               <BulkItemForm
                 formData={formData}
@@ -424,22 +436,33 @@ export default function AddItemDetailsModal({
               />
             )}
 
-            <div className="flex justify-between pt-4 sticky -bottom-2 left-0 right-0 w-full bg-white p-5 border-t mt-auto">
+            <div className="flex justify-between pt-2 sm:pt-4 sticky -bottom-2 left-0 right-0 w-full bg-white p-3 sm:p-5 border-t mt-auto">
               <Button
                 onClick={() => onOpenChange(false)}
-                className="bg-red-200 text-red-600 border border-red-500 px-6 py-4 rounded-lg hover:bg-red-300 transition-colors"
+                className="bg-red-200 text-red-600 border border-red-500 px-3 sm:px-6 py-2 sm:py-4 text-xs sm:text-base rounded-lg hover:bg-red-300 transition-colors"
               >
                 Discard
               </Button>
               <StatefulButton
                 onClick={onSubmit}
-                className="bg-green-500 text-white text-lg px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+                className="bg-green-500 text-white text-sm sm:text-lg px-3 sm:px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
                 disabled={isPending}
                 loading={isPending}
               >
-                {isBulkMode
-                  ? `Save ${bulkItems.length} Item${bulkItems.length > 1 ? 's' : ''}`
-                  : 'Save Item'}
+                {isBulkMode ? (
+                  <span>
+                    <span className="hidden sm:inline">
+                      Save {bulkItems.length} Item
+                      {bulkItems.length > 1 ? 's' : ''}
+                    </span>
+                    <span className="sm:hidden">Save ({bulkItems.length})</span>
+                  </span>
+                ) : (
+                  <span>
+                    <span className="hidden sm:inline">Save Item</span>
+                    <span className="sm:hidden">Save</span>
+                  </span>
+                )}
               </StatefulButton>
             </div>
           </div>

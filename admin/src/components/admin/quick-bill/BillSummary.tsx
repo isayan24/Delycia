@@ -99,10 +99,10 @@ export default function BillSummary({
       if (res.data && (res.data.success || res.data.status === 201)) {
         showSuccess('Success', 'Order placed successfully')
 
+        console.log(res.data)
         // Prepare bill data for printing
         const billData = {
           orderId: res.data.order_id || 'New',
-          restaurantName: selectedRestaurant?.name,
           tableNo: 'N/A',
           customerName: selectedCustomer.name,
           customerPhone: selectedCustomer.phone_number,

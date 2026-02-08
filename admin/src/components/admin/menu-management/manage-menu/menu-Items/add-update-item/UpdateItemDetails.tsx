@@ -395,27 +395,27 @@ export default function UpdateItemDetailsModal({
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-full max-w-7xl h-[90vh] flex overflow-hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-0">
+      <div className="bg-white rounded-lg w-full max-w-7xl h-[95vh] sm:h-[90vh] flex overflow-hidden">
         <MobilePreview previewData={previewData} />
 
         <div className="w-full py-0 overflow-y-auto relative">
           <header
             style={{ boxShadow: '0px -4px 8px black' }}
-            className="sticky top-0 bg-white z-52 p-5 pb-0 left-0 mb-8d w-full"
+            className="sticky top-0 bg-white z-52 p-3 sm:p-5 pb-0 left-0 mb-8d w-full"
           >
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-black">
+              <h2 className="text-base sm:text-xl font-bold text-black">
                 {getCurrentCategoryName()}
               </h2>
               <button
                 onClick={() => onOpenChange(false)}
                 className="text-gray-500 hover:text-gray-700"
               >
-                <X size={24} />
+                <X size={20} className="sm:w-6 sm:h-6" />
               </button>
             </div>
-            <Separator className="mt-4 shadow-sm" />
+            <Separator className="mt-2 sm:mt-4 shadow-sm" />
           </header>
 
           <ErrorWarning
@@ -423,7 +423,7 @@ export default function UpdateItemDetailsModal({
             errorFields={getErrorFields(errors)}
           />
 
-          <div className="p-5 space-y-5 relative text-lg">
+          <div className="p-3 sm:p-5 space-y-3 sm:space-y-5 relative text-sm sm:text-lg">
             <ItemNameInput
               value={formData.name}
               onChange={(value: string) => handleInputChange('name', value)}
@@ -438,7 +438,7 @@ export default function UpdateItemDetailsModal({
               hasError={errors.description}
             />
 
-            <section className="flex justify-betweens gap-4 flex-wrap py-5">
+            <section className="flex justify-betweens gap-2 sm:gap-4 flex-wrap py-2 sm:py-5">
               <FoodTypeSelector
                 selectedType={formData.foodType}
                 onTypeChange={handleFoodTypeChange}
@@ -483,25 +483,29 @@ export default function UpdateItemDetailsModal({
               />
             </div>
 
-            <div className="flex justify-between pt-4 sticky -bottom-2 left-0 right-0 w-full bg-white p-5">
+            <div className="flex justify-between pt-2 sm:pt-4 sticky -bottom-2 left-0 right-0 w-full bg-white p-3 sm:p-5">
               <Button
                 onClick={() => onOpenChange(false)}
-                className="bg-red-200 text-red-600 border border-red-500 px-6 py-4 rounded-md hover:bg-red-300 transition-colors"
+                className="bg-red-200 text-red-600 border border-red-500 px-3 sm:px-6 py-2 sm:py-4 text-xs sm:text-base rounded-md hover:bg-red-300 transition-colors"
               >
                 Discard
               </Button>
               <Button
                 onClick={onSubmit}
-                className="bg-orange-500 text-white text-lg px-6 py-4 rounded-md hover:bg-orange-600 transition-colors"
+                className="bg-orange-500 text-white text-sm sm:text-lg px-4 sm:px-6 py-2 sm:py-4 rounded-md hover:bg-orange-600 transition-colors"
                 disabled={isPending}
               >
                 {isPending ? (
                   <span className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Updating...
+                    <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                    <span className="hidden sm:inline">Updating...</span>
+                    <span className="sm:hidden">Updating</span>
                   </span>
                 ) : (
-                  'Update Item'
+                  <span>
+                    <span className="hidden sm:inline">Update Item</span>
+                    <span className="sm:hidden">Update</span>
+                  </span>
                 )}
               </Button>
             </div>
