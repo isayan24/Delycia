@@ -35,9 +35,9 @@ const getOrderByTable = async (data) => {
 
 // REST endpoint version for HTTP requests
 const get_orders_by_table = async (req, res) => {
-  const { table_no, rid } = req.body;
+  const { table_id, rid } = req.body;
   const response = await ordersModel.getOrderByTable({
-    table_no,
+    table_id,
     rid,
     customer_ids: [],
   });

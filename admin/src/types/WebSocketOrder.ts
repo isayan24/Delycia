@@ -10,7 +10,10 @@ export interface WebSocketOrderItem {
   created_at: string
   updated_at?: string
   total_amount: number
-  table_no: number
+  table_id: number
+  table_display?: string // Zone-prefixed display (e.g., 'VIP-25')
+  table_zone?: string
+  table_number?: number
   special_instructions: string
   preparation_time?: number
   discount_amount?: number
@@ -44,7 +47,10 @@ export interface ProcessedOrderItem {
   payment_status: string
   created_at: string
   updated_at?: string
-  table_no: number
+  table_id: number
+  table_display?: string // Zone-prefixed display (e.g., 'VIP-25')
+  table_zone?: string
+  table_number?: number
   special_instructions: string
   preparation_time?: number
   discount_amount?: number
@@ -74,13 +80,15 @@ export interface ProcessedOrder {
   payment_method?: string
   order_status: string
   delivery_type: string
-  table_no?: number
+  table_id?: number
+  table_display?: string // Zone-prefixed display (e.g., 'VIP-25')
   preparation_time: number // Make required
   original_preparation_time?: number // Store original for reference
   time_extended?: number // Track total time extensions
   preparation_started_at?: string // When order was accepted
   has_table_assignment: boolean
   is_delivery: boolean
+  table_zone?: string // Zone name like 'Ground floor'
   unique_table_numbers: number[]
 }
 

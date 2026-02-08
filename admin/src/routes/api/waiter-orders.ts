@@ -116,7 +116,7 @@ export const Route = createFileRoute('/api/waiter-orders')({
                 discount_amount: item.discount_amount || 0,
                 special_instructions: specialInstructions,
                 total_amount: item.totalPrice,
-                table_no: table?.table_number || 0,
+                table_id: table?.id || 0,
                 party_size: partySize || 1,
                 placed_by_staff_id: staffId,
                 placed_by_role_id: staffRole,

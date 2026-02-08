@@ -173,7 +173,9 @@ const getStaffOrders = async (req) => {
       SELECT 
         o.cart_id,
         o.customer_id,
-        o.table_no,
+        o.table_id,
+        t.zone AS table_zone,
+        t.table_number AS table_number,
         o.payment_method,
         o.payment_status,
         o.order_status,
@@ -201,14 +203,15 @@ const getStaffOrders = async (req) => {
       FROM orders o
       LEFT JOIN users c ON o.customer_id = c.id
       LEFT JOIN inventories i ON o.item_id = i.id
+      LEFT JOIN tables t ON o.table_id = t.id
       WHERE o.placed_by_staff_id = ?
         AND o.rid = ?
         AND o.order_status != 'cancelled'
         ${dateFilter}
-      GROUP BY o.cart_id, o.customer_id, o.table_no, o.payment_method, 
+      GROUP BY o.cart_id, o.customer_id, o.table_id, o.payment_method, 
                o.payment_status, o.order_status, o.delivery_type, 
                o.created_at, o.updated_at,
-               c.name, c.phone_number, c.email, c.username, c.profile_pic
+               c.name, c.phone_number, c.email, c.username, c.profile_pic, t.id, t.zone, t.table_number
       ORDER BY o.created_at DESC
       LIMIT ? OFFSET ?
     `;

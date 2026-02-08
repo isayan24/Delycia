@@ -91,9 +91,16 @@ axiosInstance.interceptors.response.use(
       isRefreshing = true
 
       try {
+        // Determine the correct URL based on execution context
+        // On server-side, we need an absolute URL since there's no browser origin
+        const isServer = typeof window === 'undefined'
+        const refreshUrl = isServer
+          ? `${process.env.VITE_APP_URL || 'http://localhost:4500'}/api/auth/refresh`
+          : '/api/auth/refresh'
+
         // Attempt to refresh the token
         const refreshResponse = await axios.post(
-          '/api/auth/refresh',
+          refreshUrl,
           {},
           { withCredentials: true },
         )

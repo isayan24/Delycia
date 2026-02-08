@@ -23,15 +23,15 @@ export const Route = createFileRoute('/api/orders/by-table')({
           }
 
           const data: {
-            table_no: number
+            table_id: number
             rid: string
           } = await request.json()
 
-          if (!data.table_no || !data.rid) {
+          if (!data.table_id || !data.rid) {
             return new Response(
               JSON.stringify({
                 status: 400,
-                message: 'table_no and rid are required',
+                message: 'table_id and rid are required',
                 error: true,
               }),
               { status: 400, headers: { 'Content-Type': 'application/json' } },
@@ -42,7 +42,7 @@ export const Route = createFileRoute('/api/orders/by-table')({
           const response = await axiosInstance.post(
             '/admin/orders/by-table',
             {
-              table_no: data.table_no,
+              table_id: data.table_id,
               rid: data.rid,
             },
             {

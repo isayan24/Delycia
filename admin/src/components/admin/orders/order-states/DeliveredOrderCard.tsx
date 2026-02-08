@@ -62,6 +62,19 @@ export function DeliveredOrderCard({
   const getOrderTypeDisplay = () => {
     if (order.is_delivery) {
       return 'DELIVERY'
+    } else if (
+      order.items.some((item: any) => item.table_zone || item.table_number)
+    ) {
+      // Get table info from first item with zone/number data
+      const tableItem = order.items.find(
+        (item: any) => item.table_zone || item.table_number,
+      )
+
+      const zone = tableItem?.table_zone || ''
+      const number =
+        tableItem?.table_number || order.unique_table_numbers[0] || ''
+
+      return zone ? `${zone} - Table ${number}` : `Table ${number}`
     } else if (order.unique_table_numbers.length > 0) {
       return `TABLE ${order.unique_table_numbers.join(', ')}`
     }

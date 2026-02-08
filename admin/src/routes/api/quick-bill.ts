@@ -104,7 +104,7 @@ export const Route = createFileRoute('/api/quick-bill')({
               delivery_type: item.delivery_type || 'takeaway',
               discount_amount: item.discount_amount || 0,
               total_amount: item.totalItemAmount,
-              table_no: item.table_no || 0,
+              table_id: null, // Quick bill orders don't have tables (takeaway/delivery)
               placed_by_staff_id: staffId,
               placed_by_role_id: staffRole,
               addons: item.addons,

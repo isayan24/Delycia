@@ -126,7 +126,7 @@ const OrderInfoList = memo(function OrderInfoList({
 
   // Print bill handler
   const handlePrintBill = useCallback((order: any) => {
-    console.log(order.customer)
+    // console.log(order.customer) // Removed debug log
     const billItems = order.items.map((item: any) => ({
       name: item.name,
       quantity: item.quantity,
@@ -139,6 +139,7 @@ const OrderInfoList = memo(function OrderInfoList({
       orderId: order.orderId || order.id,
       restaurantName: selectedRestaurant?.name || 'RESTAURANT BILL',
       tableNo: order.tableNo || 'N/A',
+      tableZone: order.tableZone || '',
       customerName: order.customerName || order.customer?.name || 'Guest',
       customerId: order.customerId || 'N/A',
       customerPhone: order.customer?.phone_number || 'N/A',

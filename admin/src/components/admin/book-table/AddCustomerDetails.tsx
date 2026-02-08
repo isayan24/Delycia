@@ -179,7 +179,9 @@ export default function AddCustomerDetails() {
       // Prepare bill data for thermal printer
       const thermalBillData: BillData = {
         orderId: `TBL-${table?.table_number || 'N/A'}`,
+        restaurantName: '', // ThermalBill uses useRestaurantSelector
         tableNo: table?.table_number || 'N/A',
+        tableZone: table?.zone,
         customerName: customerDetails.name,
         customerPhone: customerDetails.phone_number,
         items: orderItems.map((item) => ({

@@ -20,6 +20,7 @@ interface BillData {
   orderId: string
   restaurantName: string
   tableNo: string | number
+  tableZone?: string // Full zone name like 'Ground floor', 'AC room'
   customerName: string
   customerPhone: string
   items: BillItem[]
@@ -120,6 +121,9 @@ export default function ThermalBill({
       y += 10
       // Customer & Table Info
       drawText(`Table No: ${billData.tableNo}`, padding)
+      if (billData.tableZone) {
+        drawText(billData.tableZone, padding)
+      }
       drawText(`Customer: ${billData.customerName}`, padding)
       drawText(`Phone No: ${billData.customerPhone}`, padding)
       drawText(`Date: ${billData.orderDate}`, padding)
@@ -272,6 +276,9 @@ export default function ThermalBill({
       drawLine()
       y += 10
       drawText(`Table No: ${billData.tableNo}`, padding)
+      if (billData.tableZone) {
+        drawText(billData.tableZone, padding)
+      }
       drawText(`Customer: ${billData.customerName}`, padding)
       drawText(`Phone No: ${billData.customerPhone}`, padding)
       drawText(`Date: ${billData.orderDate}`, padding)
@@ -538,21 +545,17 @@ export default function ThermalBill({
                 className="space-y-1"
                 style={{ marginBottom: '16px', marginTop: '10px' }}
               >
-                <div
-                  className="flex justify-between"
-                  style={{ display: 'flex', justifyContent: 'space-between' }}
-                >
-                  <span>Table No:</span>
-                  <span className="font-bold" style={{ fontWeight: 'bold' }}>
-                    {currentBillData.tableNo}
-                  </span>
+                <div className="flex justify-between font-bold text-lg border-b border-black pb-2 mb-2">
+                  <span>Table: {currentBillData.tableNo}</span>
                 </div>
-                <div
-                  className="flex justify-between"
-                  style={{ display: 'flex', justifyContent: 'space-between' }}
-                >
+                {currentBillData.tableZone && (
+                  <div className="flex justify-between font-bold text-sm border-b border-black pb-2 mb-2">
+                    <span>{currentBillData.tableZone}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-sm">
                   <span>Customer:</span>
-                  <span className="font-bold" style={{ fontWeight: 'bold' }}>
+                  <span className="font-bold">
                     {currentBillData.customerName}
                   </span>
                 </div>

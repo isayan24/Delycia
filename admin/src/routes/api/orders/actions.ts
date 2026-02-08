@@ -56,7 +56,7 @@ export const Route = createFileRoute('/api/orders/actions')({
               endpoint = '/admin/orders/settle-customer'
               payload = {
                 customer_id: body.customerId,
-                table_no: body.tableNo,
+                table_id: body.tableId,
                 rid: body.restaurantId,
               }
               break

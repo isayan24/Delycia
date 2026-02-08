@@ -225,6 +225,7 @@ export default function OrderHistoryTable({
       'Payment Method',
       'Payment Status',
       'Total Amount',
+      'Table Zone',
       'Table No',
       'Delivery Type',
       'Date & Time (IST)',
@@ -240,7 +241,8 @@ export default function OrderHistoryTable({
       order.payment_method || order.paymentMethod || '',
       order.payment_status || order.paymentStatus || '',
       `₹${order.total_amount || order.totalAmount || 0}`,
-      order.table_no || order.tableNo || '',
+      order.table_zone || '',
+      order.table_number || order.table_no || order.tableNo || '',
       order.delivery_type || order.deliveryType || '',
       formatISTDateTime(order.created_at || order.createdAt),
       order.quantity || 1,
@@ -270,7 +272,8 @@ export default function OrderHistoryTable({
     const billData = {
       orderId: order.orderId || order.id || order.cart_id || 'N/A',
       restaurantName: selectedRestaurant?.name || '',
-      tableNo: order.table_no || order.tableNo || 'N/A',
+      tableNo: order.table_number || order.table_no || order.tableNo || 'N/A',
+      tableZone: order.table_zone || '',
       customerName: order.display_name || order.customer?.name || 'N/A',
       customerId: order.customer_id || order.customer?.phone || 'N/A',
       items:
@@ -623,7 +626,16 @@ export default function OrderHistoryTable({
                       ₹{order.total_amount || order.totalAmount || 0}
                     </TableCell>
                     <TableCell>
-                      {order.table_no || order.tableNo || 'N/A'}
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">
+                          {order.table_zone || ''}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {order.table_number
+                            ? `Table ${order.table_number}`
+                            : order.table_no || order.tableNo || 'N/A'}
+                        </span>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div>

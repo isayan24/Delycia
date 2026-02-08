@@ -88,10 +88,10 @@ class TokenService {
 
   private async performTokenRefresh(): Promise<boolean> {
     try {
-      // If running on client, we can use relative URL, otherwise strict absolute URL
+      // If running on client, we can use relative URL, otherwise need absolute URL
       const isServer = typeof window === 'undefined'
       const url = isServer
-        ? 'http://localhost:4500/api/auth/refresh' // Internal call to own server
+        ? `${process.env.VITE_APP_URL || 'http://localhost:4500'}/api/auth/refresh`
         : '/api/auth/refresh'
 
       const response = await axios.post(

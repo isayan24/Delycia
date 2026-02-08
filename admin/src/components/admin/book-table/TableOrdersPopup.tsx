@@ -79,7 +79,7 @@ export default function TableOrdersPopup({
   })
 
   const { data: ordersResponse, isLoading } = useTableOrdersQuery({
-    table_no: tableData ? parseInt(tableData.table_number) : 0,
+    table_id: tableData ? tableData.id : 0,
     rid: user?.selected_rid?.toString() || '',
     enabled: isOpen && !!tableData && !!user?.selected_rid,
   })
@@ -411,7 +411,7 @@ export default function TableOrdersPopup({
                         if (selectedCustomer && tableData) {
                           settleCustomerMutation.mutate({
                             customerId: selectedCustomer.customer_id,
-                            tableNo: parseInt(tableData.table_number),
+                            tableId: tableData.id,
                             restaurantId: user?.selected_rid || '',
                           })
                         }

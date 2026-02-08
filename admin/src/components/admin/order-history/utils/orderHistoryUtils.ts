@@ -20,9 +20,11 @@ export interface ApiOrder {
   rid: number
   special_instructions: string | null
   table_no: number
+  table_number?: number
   total_amount: number
   variant_id: number
   customer_phone: string
+  table_zone?: string
 }
 
 // Transformed order interface for UI
@@ -60,7 +62,8 @@ export interface TransformedOrder {
   deliveryType: string
   specialInstructions?: string
   preparationTime: number
-  tableNo: number
+  tableNo: number | string
+  tableZone?: string
   paymentStatus: string
 }
 
@@ -309,9 +312,10 @@ export const transformOrderData = (apiOrders: any[]): TransformedOrder[] => {
           deliveryType: order.delivery_type,
           specialInstructions: items[0]?.special_instructions || undefined,
           preparationTime: 0, // Not available in grouped structure
-          tableNo: order.table_no,
+          tableNo: order.table_number || order.table_no,
           paymentStatus: order.payment_status,
           discountAmount: order.discount_amount || 0,
+          tableZone: order.table_zone,
         }
       })
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
@@ -341,7 +345,8 @@ export const transformOrderData = (apiOrders: any[]): TransformedOrder[] => {
           deliveryType: firstItem.delivery_type,
           specialInstructions: firstItem.special_instructions || undefined,
           preparationTime: firstItem.preparation_time,
-          tableNo: firstItem.table_no,
+          tableNo: firstItem.table_number || firstItem.table_no,
+          tableZone: firstItem.table_zone,
           paymentStatus: firstItem.payment_status,
         }
       })

@@ -83,7 +83,9 @@ interface OrderItem {
 interface StaffOrder {
   cart_id: string
   customer_id: number
-  table_no: number
+  table_id: number
+  table_zone?: string
+  table_number?: number
   payment_method: string
   payment_status: string
   order_status: string

@@ -8,6 +8,7 @@ import utils from "../../../utils/whatsapp.js";
 import { internalCreateNotification } from "./notifications.model.js";
 let q, result;
 
+
 const create_orders = async (req) => {
   const orders = req.body;
   const receivedSignature = req?.headers["x-signature"];
@@ -24,7 +25,7 @@ const create_orders = async (req) => {
   try {
     await conn.beginTransaction();
     q =
-      "INSERT INTO orders (rid, cart_id, customer_id, item_id, variant_id, quantity, payment_method, special_instructions, delivery_type, discount_amount, total_amount, table_no, party_size, order_status, placed_by_staff_id, placed_by_role_id) VALUES ?";
+      "INSERT INTO orders (rid, cart_id, customer_id, item_id, variant_id, quantity, payment_method, special_instructions, delivery_type, discount_amount, total_amount, table_id, party_size, order_status, placed_by_staff_id, placed_by_role_id) VALUES ?";
     const values = orders.map((order) => [
       order.rid,
       cart_id,
@@ -37,7 +38,7 @@ const create_orders = async (req) => {
       order.delivery_type,
       order.discount_amount,
       order.total_amount,
-      order.table_no || 0,
+      order.table_id || null,
       order.party_size || 1,
       order.order_status || "pending",
       order.placed_by_staff_id || null,
@@ -73,16 +74,16 @@ const create_orders = async (req) => {
       await conn.query(addonQ, [addonValues]);
     }
 
-    // Automatically update table status to 'occupied' if table_no is provided
-    const tableNo = orders[0]?.table_no;
+    // Automatically update table status to 'occupied' if table_id is provided
+    const tableId = orders[0]?.table_id;
     const rid = orders[0]?.rid;
-    if (tableNo && rid) {
+    if (tableId && rid) {
       const updateTableQ = `
         UPDATE tables 
         SET status = 'occupied', updated_at = NOW() 
-        WHERE table_number = ? AND rid = ? AND status = 'available'
+        WHERE id = ? AND rid = ? AND status = 'available'
       `;
-      await conn.query(updateTableQ, [tableNo, rid]);
+      await conn.query(updateTableQ, [tableId, rid]);
     }
 
     // Decrement Stock for each item
@@ -179,6 +180,8 @@ const get_orders = async (req) => {
               i.name as item_name, 
               i.images as item_images,
               v.name as variant_name,
+              t.zone as table_zone,
+              t.table_number as table_number,
               (
                 SELECT JSON_ARRAYAGG(
                   JSON_OBJECT(
@@ -194,6 +197,7 @@ const get_orders = async (req) => {
        FROM orders o 
        LEFT JOIN inventories i ON o.item_id = i.id
        LEFT JOIN variants v ON o.variant_id = v.id
+       LEFT JOIN tables t ON o.table_id = t.id
        WHERE o.customer_id = ?
        ORDER BY o.created_at DESC`,
       [customer_id]
@@ -284,7 +288,9 @@ const getOrders24Hours = async (rid) => {
             'delivery_type', o.delivery_type,
             'discount_amount', o.discount_amount,
             'updated_at', o.updated_at,
-            'table_no', o.table_no,
+            'table_id', o.table_id,
+            'table_zone', t.zone,
+            'table_number', t.table_number,
             'variant_name', v.name,
             'addons', (
               SELECT JSON_ARRAYAGG(
@@ -303,6 +309,7 @@ const getOrders24Hours = async (rid) => {
       FROM orders o
       JOIN users u ON o.customer_id = u.id
       LEFT JOIN variants v ON o.variant_id = v.id
+      LEFT JOIN tables t ON o.table_id = t.id
       WHERE o.rid = ? AND o.created_at >= NOW() - INTERVAL 1 DAY
       GROUP BY o.customer_id, o.created_at
       ORDER BY o.created_at DESC
@@ -353,15 +360,7 @@ const update_orders = async (req) => {
           if (inventoryCheck.length > 0 && inventoryCheck[0].stock === 0) {
             // Trigger notification or other action if stock is now 0
             console.warn(`Inventory item ${item_id} stock is now 0 after order cancellation.`);
-            // Example: Notify restaurant owner about low stock
-            // await internalCreateNotification({
-            //   restaurant_id: o[0].rid, // Assuming rid is available from orderResult or fetched
-            //   type: "inventory_low_stock",
-            //   title: "Item Out of Stock",
-            //   message: `Item ${item_id} is now out of stock.`,
-            //   priority: "high",
-            //   data: { item_id: item_id }
-            // });
+
           }
         }
 
@@ -429,10 +428,10 @@ const getOrderByTable = async (data) => {
     let JSON_DATA = data;
 
     if (
-      JSON_DATA.table_no === undefined ||
+      JSON_DATA.table_id === undefined ||
       JSON_DATA.rid === undefined
     )
-      return { status: false, error: "Data missing - table_no and rid are required" };
+      return { status: false, error: "Data missing - table_id and rid are required" };
 
     // Build the query - if customer_ids is provided and not empty, filter by it
     // Otherwise, get all orders for the table
@@ -451,19 +450,22 @@ const getOrderByTable = async (data) => {
           users.profile_pic AS profile_pic,
           inventories.name AS item_name,
           inventories.images AS item_img,
-          variants.name AS variant_name
+          variants.name AS variant_name,
+          tables.zone AS table_zone,
+          tables.table_number AS table_number
         FROM orders
         JOIN users ON orders.customer_id = users.id
         LEFT JOIN inventories ON orders.item_id = inventories.id
         LEFT JOIN variants ON orders.variant_id = variants.id
-        WHERE table_no = ?
+        LEFT JOIN tables ON orders.table_id = tables.id
+        WHERE table_id = ?
           AND orders.rid = ?
           AND customer_id IN (${JSON_DATA.customer_ids.map(() => '?').join(',')})
           AND orders.created_at >= NOW() - INTERVAL 2 HOUR
           AND orders.order_status NOT IN ('cancelled', 'settled')
         ORDER BY orders.created_at DESC
       `;
-      queryParams = [JSON_DATA.table_no, JSON_DATA.rid, ...JSON_DATA.customer_ids];
+      queryParams = [JSON_DATA.table_id, JSON_DATA.rid, ...JSON_DATA.customer_ids];
     } else {
       // Get all active orders for this table (includes pending, confirmed, preparing, delivered)
       q = `
@@ -473,18 +475,21 @@ const getOrderByTable = async (data) => {
           users.profile_pic AS profile_pic,
           inventories.name AS item_name,
           inventories.images AS item_img,
-          variants.name AS variant_name
+          variants.name AS variant_name,
+          tables.zone AS table_zone,
+          tables.table_number AS table_number
         FROM orders
         JOIN users ON orders.customer_id = users.id
         LEFT JOIN inventories ON orders.item_id = inventories.id
         LEFT JOIN variants ON orders.variant_id = variants.id
-        WHERE table_no = ?
+        LEFT JOIN tables ON orders.table_id = tables.id
+        WHERE table_id = ?
           AND orders.rid = ?
           AND orders.created_at >= NOW() - INTERVAL 2 HOUR
           AND orders.order_status NOT IN ('cancelled', 'settled')
         ORDER BY orders.created_at DESC
       `;
-      queryParams = [JSON_DATA.table_no, JSON_DATA.rid];
+      queryParams = [JSON_DATA.table_id, JSON_DATA.rid];
     }
 
     const [rows] = await pool.query(q, queryParams);
@@ -503,7 +508,9 @@ const getOrderByTable = async (data) => {
         order_status,
         payment_status,
         total_amount,
-        table_no,
+        table_id,
+        table_zone,
+        table_number,
         created_at,
         updated_at,
         item_name,
@@ -545,7 +552,9 @@ const getOrderByTable = async (data) => {
         order_status,
         payment_status,
         total_amount,
-        table_no,
+        table_id,
+        table_zone,
+        table_number,
         created_at,
         updated_at,
         item_name,
@@ -670,7 +679,9 @@ const get_paginated_orders = async (req) => {
       SELECT 
         o.cart_id,
         o.customer_id,
-        o.table_no,
+        o.table_id,
+        t.zone AS table_zone,
+        t.table_number AS table_number,
         o.payment_method,
         o.payment_status,
         o.order_status,
@@ -712,10 +723,12 @@ const get_paginated_orders = async (req) => {
       LEFT JOIN users u ON o.customer_id = u.id
       LEFT JOIN inventories i ON o.item_id = i.id
       LEFT JOIN variants v ON o.variant_id = v.id
+      LEFT JOIN tables t ON o.table_id = t.id
       WHERE ${whereClause}
       GROUP BY o.cart_id, o.customer_id,  o.payment_method, 
                o.payment_status, o.order_status, 
-               u.name, u.phone_number, u.email, u.username, u.profile_pic
+               u.name, u.phone_number, u.email, u.username, u.profile_pic,
+               o.table_id, t.zone, t.table_number, o.created_at, o.updated_at, o.delivery_type
       ORDER BY o.created_at DESC
       LIMIT ? OFFSET ?
     `;
@@ -739,12 +752,12 @@ const get_paginated_orders = async (req) => {
 
 // Settle all orders for a specific customer at a table
 const settleCustomerOrders = async (req) => {
-  const { customer_id, table_no, rid } = req.body;
+  const { customer_id, table_id, rid } = req.body;
 
-  console.log(customer_id, table_no, rid, "customer_id, table_no, rid")
+  console.log(customer_id, table_id, rid, "customer_id, table_id, rid")
 
-  if (!customer_id || !table_no || !rid) {
-    return apiResponse.error(400, "customer_id, table_no, and rid are required");
+  if (!customer_id || !table_id || !rid) {
+    return apiResponse.error(400, "customer_id, table_id, and rid are required");
   }
 
   try {
@@ -752,13 +765,13 @@ const settleCustomerOrders = async (req) => {
       UPDATE orders 
       SET order_status = 'settled', updated_at = NOW() 
       WHERE customer_id = ? 
-        AND table_no = ? 
+        AND table_id = ? 
         AND rid = ?
         AND order_status NOT IN ('cancelled', 'settled')
         AND created_at >= NOW() - INTERVAL 2 HOUR
     `;
 
-    const [result] = await pool.query(q, [customer_id, table_no, rid]);
+    const [result] = await pool.query(q, [customer_id, table_id, rid]);
 
     if (result.affectedRows === 0) {
       return apiResponse.success(200, "No orders to settle");
@@ -768,21 +781,21 @@ const settleCustomerOrders = async (req) => {
     const checkActiveOrdersQuery = `
       SELECT COUNT(*) as activeCount 
       FROM orders 
-      WHERE table_no = ? 
+      WHERE table_id = ? 
         AND rid = ? 
         AND order_status NOT IN ('cancelled', 'settled')
         AND created_at >= NOW() - INTERVAL 2 HOUR
     `;
-    const [activeOrdersResult] = await pool.query(checkActiveOrdersQuery, [table_no, rid]);
+    const [activeOrdersResult] = await pool.query(checkActiveOrdersQuery, [table_id, rid]);
 
     // If no active orders remain, mark the table as available
     if (activeOrdersResult[0].activeCount === 0) {
       const updateTableQuery = `
         UPDATE tables 
         SET status = 'available', updated_at = NOW() 
-        WHERE table_number = ? AND rid = ?
+        WHERE id = ? AND rid = ?
       `;
-      await pool.query(updateTableQuery, [table_no, rid]);
+      await pool.query(updateTableQuery, [table_id, rid]);
     }
 
     // Emit socket events to refresh UI

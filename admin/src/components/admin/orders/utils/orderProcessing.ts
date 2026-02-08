@@ -86,13 +86,6 @@ function calculateOrderPreparationTime(items: ProcessedOrderItem[]): number {
 /**
  * Gets unique table numbers from order items (needed for processWebSocketOrders)
  */
-function getUniqueTableNumbers(items: ProcessedOrderItem[]): number[] {
-  const tableNumbers = items
-    .map((item) => item.table_no)
-    .filter((table) => table && table > 0)
-
-  return [...new Set(tableNumbers)]
-}
 
 /**
  * Groups items by their created_at timestamp (needed for processWebSocketOrders)
@@ -394,7 +387,9 @@ export function processWebSocketOrders(
                 payment_status: item.payment_status,
                 created_at: item.created_at,
                 updated_at: item.updated_at,
-                table_no: item.table_no,
+                table_id: item.table_id || item.table_no || 0,
+                table_zone: item.table_zone,
+                table_number: item.table_number,
                 special_instructions: item.special_instructions || '',
                 preparation_time: item.preparation_time,
                 discount_amount: item.discount_amount,
@@ -405,13 +400,24 @@ export function processWebSocketOrders(
             // Calculate totals and metadata for this specific order time
             const totalAmount = calculateOrderTotals(processedItems)
             const paymentStatus = getGroupPaymentStatus(processedItems)
-            const uniqueTableNumbers = getUniqueTableNumbers(processedItems)
-            const hasTableAssignment = uniqueTableNumbers.length > 0
+            // Get unique table IDs
+            const uniqueTableIds = processedItems
+              .map((item) => item.table_id)
+              .filter((id) => id && id > 0)
+
+            // Get visual table numbers for display
+            const visualTableNumbers = processedItems
+              .map((item) => item.table_number)
+              .filter((num): num is number => !!num && num > 0)
+            const uniqueVisualTableNumbers = [...new Set(visualTableNumbers)]
+            const uniqueTableNumbers = [...new Set(uniqueTableIds)] // Fallback
+
+            const hasTableAssignment = uniqueTableIds.length > 0
             const isDelivery = !hasTableAssignment
 
-            // Get table number from first item (should be same for all items in this order)
-            const tableNo = processedItems[0]?.table_no || 0
-            const deliveryType = getDeliveryType(tableNo)
+            // Get table ID from first item
+            const tableId = processedItems[0]?.table_id || 0
+            const deliveryType = getDeliveryType(tableId)
             const orderStatus =
               processedItems[0]?.order_status || OrderStatus.PENDING // Derive from the first item
             const preparationTime =
@@ -433,12 +439,16 @@ export function processWebSocketOrders(
               payment_status: paymentStatus,
               order_status: orderStatus, // Use the derived order status
               delivery_type: deliveryType,
-              table_no: tableNo > 0 ? tableNo : undefined,
+              table_id: tableId > 0 ? tableId : undefined,
               has_table_assignment: hasTableAssignment,
               is_delivery: isDelivery,
-              unique_table_numbers: uniqueTableNumbers,
+              unique_table_numbers:
+                uniqueVisualTableNumbers.length > 0
+                  ? uniqueVisualTableNumbers
+                  : uniqueTableNumbers,
               preparation_time: preparationTime,
               discount_amount: firstOrder.discount_amount,
+              table_zone: processedItems[0]?.table_zone,
             }
 
             processedOrders.push(processedOrder)

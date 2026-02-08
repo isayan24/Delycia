@@ -106,6 +106,7 @@ export default function BillSummary({
         // Prepare bill data for printing
         const billData = {
           orderId: res.data.order_id || 'New',
+          restaurantName: selectedRestaurant?.name || 'Restaurant',
           tableNo: 'N/A',
           customerName: selectedCustomer.name,
           customerPhone: selectedCustomer.phone_number,

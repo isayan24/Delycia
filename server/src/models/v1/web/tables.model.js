@@ -14,7 +14,7 @@ const tableModel = {
         `SELECT t.*, 
           (SELECT COALESCE(SUM(o.party_size), 0) 
            FROM orders o 
-           WHERE o.table_no = t.table_number 
+           WHERE o.table_id = t.id 
              AND o.rid = t.rid 
              AND o.order_status NOT IN ('cancelled', 'settled')
              AND o.created_at >= NOW() - INTERVAL 2 HOUR

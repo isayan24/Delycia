@@ -156,6 +156,7 @@ export default function OrderHistoryTablePaginated({
 
   // Print bill handler
   const handlePrintBill = useCallback((order: any) => {
+    console.log(order, 'order')
     const items = order.items
       ? typeof order.items === 'string'
         ? JSON.parse(order.items)
@@ -173,7 +174,8 @@ export default function OrderHistoryTablePaginated({
 
     const billData = {
       orderId: order.orderId || order.cart_id || order.id || 'N/A',
-      tableNo: order.tableNo || order.table_no || 'N/A',
+      tableNo: order.tableNo || order.table_no || order.table_number || 'N/A',
+      tableZone: order.tableZone || order.table_zone || '',
       customerName:
         order.customerName ||
         order.customer_name ||
@@ -357,7 +359,14 @@ export default function OrderHistoryTablePaginated({
 
                 {/* Table */}
                 <TableCell className="py-3 px-3 text-sm">
-                  {order.tableNo || order.table_no || 'N/A'}
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">
+                      {order.tableZone || ''}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {order.tableNo ? `Table ${order.tableNo}` : 'N/A'}
+                    </span>
+                  </div>
                 </TableCell>
 
                 {/* Date & Time */}

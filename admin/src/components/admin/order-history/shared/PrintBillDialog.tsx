@@ -7,6 +7,7 @@ interface PrintBillDialogProps {
     orderId: string
     restaurantName: string
     tableNo: string | number
+    tableZone?: string
     customerName: string
     customerId: string
     discountAmount: number

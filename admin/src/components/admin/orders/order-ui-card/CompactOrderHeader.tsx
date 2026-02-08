@@ -55,7 +55,26 @@ export function CompactOrderHeader({
         color: 'bg-blue-100 text-blue-800',
         icon: '🚚',
       }
+    } else if (
+      order.items.some((item: any) => item.table_zone || item.table_number)
+    ) {
+      // Get table info from first item with zone/number data
+      const tableItem = order.items.find(
+        (item: any) => item.table_zone || item.table_number,
+      )
+      const zone = tableItem?.table_zone || ''
+      const number =
+        tableItem?.table_number || order.unique_table_numbers[0] || ''
+      const tableDisplay = zone
+        ? `${zone} - Table ${number}`
+        : `Table ${number}`
+      return {
+        text: tableDisplay.toUpperCase(),
+        color: 'bg-green-100 text-green-800 hover:!bg-green-100',
+        icon: '🍽️',
+      }
     } else if (order.unique_table_numbers.length > 0) {
+      // Fallback for old format
       return {
         text: `TABLE ${order.unique_table_numbers.join(', ')}`,
         color: 'bg-green-100 text-green-800 hover:!bg-green-100',

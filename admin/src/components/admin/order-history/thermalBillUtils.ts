@@ -12,6 +12,7 @@ export interface BillData {
   orderId: string
   restaurantName: string
   tableNo: string | number
+  tableZone?: string // Full zone name like 'Ground floor', 'AC room'
   customerName: string
   customerPhone: string
   items: BillItem[]
@@ -58,6 +59,7 @@ export function orderToBillData(
     orderId: order.id?.toString() || order.customer_id?.toString() || 'N/A',
     restaurantName,
     tableNo,
+    tableZone: order.table_zone,
     customerName: order.customer_name || 'Guest',
     customerPhone: order.customer_phone || order.customer_phone_masked || 'N/A',
     items,

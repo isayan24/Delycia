@@ -53,7 +53,7 @@ interface CreateOrderParams {
     variant_id?: string
     special_instructions?: string
   }>
-  table_no?: number
+  table_id?: number
   delivery_type?: string
   payment_method?: string
   token: string
