@@ -1,8 +1,8 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
 import qs from 'qs'
 
-// const SERVER_URL = process.env.VITE_SERVER_URL
-const SERVER_URL = 'https://api.delycia.com/api/v1'
+// const SERVER_URL = 'https://api.delycia.com/api/v1'
+const SERVER_URL = process.env.VITE_SERVER_URL
 
 const axiosInstance = axios.create({
   baseURL: SERVER_URL,
