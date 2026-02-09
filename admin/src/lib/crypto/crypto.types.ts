@@ -40,6 +40,8 @@ export interface OrderItem {
   total_amount: number
   party_size?: number
   addons?: any[]
+  tax_percent?: number // GST rate % (e.g., 12.00 for 12%)
+  tax_amount?: number // Calculated tax amount (e.g., 22.80)
 }
 
 /**

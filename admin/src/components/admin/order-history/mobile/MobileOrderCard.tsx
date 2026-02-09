@@ -43,6 +43,14 @@ const MobileOrderCard = memo(function MobileOrderCard({
     return itemsText
   }, [order.items])
 
+  // Calculate grand total: subtotal - discount + tax
+  const grandTotal = useMemo(() => {
+    const subtotal = order.totalAmount
+    const discount = parseFloat(String(order.discountAmount || 0))
+    const tax = parseFloat(String(order.taxAmount || 0))
+    return subtotal - discount + tax
+  }, [order.totalAmount, order.discountAmount, order.taxAmount])
+
   const statusColorClass = useMemo(
     () => getStatusColor(order.status),
     [order.status],
@@ -96,11 +104,16 @@ const MobileOrderCard = memo(function MobileOrderCard({
           {order.discountAmount &&
             parseFloat(String(order.discountAmount)) > 0 && (
               <div className="text-xs text-green-600 font-medium">
-                -₹{parseFloat(String(order.discountAmount)).toFixed(2)} off
+                -₹{parseFloat(String(order.discountAmount)).toFixed(0)} off
               </div>
             )}
+          {order.taxAmount && parseFloat(String(order.taxAmount)) > 0 && (
+            <div className="text-xs text-gray-600">
+              +₹{parseFloat(String(order.taxAmount)).toFixed(0)} tax
+            </div>
+          )}
           <span className="text-base font-semibold text-gray-900">
-            ₹{order.totalAmount.toFixed(2)}
+            ₹{grandTotal.toFixed(0)}
           </span>
         </div>
       </div>

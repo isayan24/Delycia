@@ -118,6 +118,8 @@ export default function BillSummary({
           })),
           discountAmount: validatedDiscount,
           totalAmount: subtotal,
+          taxPercent: selectedRestaurant?.tax_percent || 0,
+          taxAmount: (subtotal * (selectedRestaurant?.tax_percent || 0)) / 100,
           orderDate: new Date().toLocaleString(),
           paymentMethod: 'Cash',
           paymentStatus: 'Paid',

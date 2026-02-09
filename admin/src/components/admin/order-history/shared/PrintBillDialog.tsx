@@ -18,6 +18,8 @@ interface PrintBillDialogProps {
       price: number
     }>
     totalAmount: number
+    taxPercent?: number
+    taxAmount?: number
     orderDate: string
   } | null
 }

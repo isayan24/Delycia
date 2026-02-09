@@ -16,9 +16,9 @@ const getDashboardStats = async (req) => {
         )} AND DATE(created_at) <= ${pool.escape(endDate)}`
         : "";
 
-    // Total Sales
+    // Total Sales (including tax, excluding discount)
     const totalSalesQuery = `
-      SELECT COALESCE(SUM(total_amount), 0) as total_sales 
+      SELECT COALESCE(SUM(total_amount - COALESCE(discount_amount, 0) + COALESCE(tax_amount, 0)), 0) as total_sales 
       FROM orders 
       WHERE rid = ${pool.escape(rid)} 
         AND (order_status = 'completed' OR order_status = 'settled') 
@@ -52,9 +52,9 @@ const getDashboardStats = async (req) => {
           AND visit_count = 1
       `;
 
-    // Average Order Value
+    // Average Order Value (including tax, excluding discount)
     const avgOrderValueQuery = `
-      SELECT COALESCE(AVG(total_amount), 0) as avg_order_value 
+      SELECT COALESCE(AVG(total_amount - COALESCE(discount_amount, 0) + COALESCE(tax_amount, 0)), 0) as avg_order_value 
       FROM orders 
       WHERE rid = ${pool.escape(rid)} 
         AND total_amount > 0
@@ -150,7 +150,7 @@ const getSalesTrend = async (req) => {
     const salesTrendQuery = `
       SELECT 
         DATE(created_at) as date,
-        COALESCE(SUM(total_amount), 0) as daily_sales,
+        COALESCE(SUM(total_amount - COALESCE(discount_amount, 0) + COALESCE(tax_amount, 0)), 0) as daily_sales,
         COUNT(*) as daily_orders
       FROM orders 
       WHERE rid = ${pool.escape(rid)} 
@@ -252,7 +252,11 @@ const getTopSellingItems = async (req) => {
         i.name,
         SUM(o.quantity) as total_quantity,
         COUNT(o.id) as order_count,
-        SUM(o.total_amount - (COALESCE(o.discount_amount, 0) / COALESCE(calc.cnt, 1))) as total_revenue
+        SUM(
+          o.total_amount 
+          - (COALESCE(o.discount_amount, 0) / COALESCE(calc.cnt, 1))
+          + (COALESCE(o.tax_amount, 0) / COALESCE(calc.cnt, 1))
+        ) as total_revenue
       FROM orders o
       JOIN inventories i ON o.item_id = i.id
       JOIN (
@@ -421,7 +425,11 @@ const getRevenueByCategory = async (req) => {
       SELECT 
         c.id as category_id,
         c.name as category_name,
-        SUM(o.total_amount - (COALESCE(o.discount_amount, 0) / COALESCE(calc.cnt, 1))) as total_revenue,
+        SUM(
+          o.total_amount 
+          - (COALESCE(o.discount_amount, 0) / COALESCE(calc.cnt, 1))
+          + (COALESCE(o.tax_amount, 0) / COALESCE(calc.cnt, 1))
+        ) as total_revenue,
         COUNT(o.id) as order_count
       FROM orders o
       JOIN inventories i ON o.item_id = i.id
@@ -539,7 +547,7 @@ const getDeliveryTypeDistribution = async (req) => {
       SELECT 
         delivery_type,
         COUNT(*) as count,
-        SUM(total_amount) as total_amount
+        SUM(total_amount - COALESCE(discount_amount, 0) + COALESCE(tax_amount, 0)) as total_amount
       FROM orders 
       WHERE rid = ${pool.escape(rid)} 
         ${dateFilter}
@@ -699,14 +707,14 @@ const getCustomerOrders = async (req) => {
         )} AND DATE(o.created_at) <= ${pool.escape(endDate)}`
         : "";
 
-    // Query to get aggregated customer order stats within the date range
+    // Query to get aggregated customer order stats within the date range (including tax)
     const query = `
       SELECT 
         u.id as user_id,
         u.name as customer_name,
         u.phone_number,
         COUNT(DISTINCT o.cart_id) as total_orders,
-        SUM(o.total_amount) as total_spent,
+        SUM(o.total_amount - COALESCE(o.discount_amount, 0) + COALESCE(o.tax_amount, 0)) as total_spent,
         MAX(o.created_at) as last_order_date,
         SUBSTRING_INDEX(GROUP_CONCAT(DISTINCT i.name ORDER BY o.created_at DESC SEPARATOR ', '), ', ', 5) as top_items
       FROM orders o

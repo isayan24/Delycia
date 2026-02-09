@@ -2,18 +2,20 @@ import React, { memo, useMemo, useCallback } from 'react'
 import { TransformedOrderItem, CustomerInfo } from '../utils/orderHistoryUtils'
 import CustomerAvatar from '../CustomerAvatar'
 import { Printer } from 'lucide-react'
+import { formatISTDateTime, getISTDateKey } from '../utils/historyDateUtils'
 
 interface OrderInfoCardProps {
   status: 'DELIVERED' | 'CANCELLED'
-  rating?: number
-  time: string
-  date: string
+  rating?: number 
+  orderDate: string
   orderId: string
   customerName: string
   customer?: CustomerInfo
   items: TransformedOrderItem[]
-  totalAmount: number
+  totalAmount: number // Subtotal (pre-tax)
   discountAmount?: number
+  taxPercent?: number
+  taxAmount?: number
   isSelected?: boolean
   onClick?: () => void
   onPrint?: () => void
@@ -32,15 +34,16 @@ const getStatusColor = (status: string) => {
 
 const OrderInfoCard = memo(function OrderInfoCard({
   status,
-  rating,
-  time,
-  date,
+  rating, 
+  orderDate,
   orderId,
   customerName,
   customer,
   items,
   totalAmount,
   discountAmount,
+  taxPercent,
+  taxAmount,
   isSelected = false,
   onClick,
   onPrint,
@@ -68,6 +71,14 @@ const OrderInfoCard = memo(function OrderInfoCard({
 
     return itemsText
   }, [items])
+
+  // Calculate grand total: subtotal - discount + tax
+  const grandTotal = useMemo(() => {
+    const subtotal = totalAmount
+    const discount = parseFloat(String(discountAmount || 0))
+    const tax = parseFloat(String(taxAmount || 0))
+    return subtotal - discount + tax
+  }, [totalAmount, discountAmount, taxAmount])
 
   // Memoize the click handler to prevent unnecessary re-renders
   const handleClick = useCallback(() => {
@@ -115,8 +126,8 @@ const OrderInfoCard = memo(function OrderInfoCard({
           )}
         </div>
         <div className="text-right text-gray-500">
-          <div className="text-sm">
-            {time} | {date}
+          <div className="text-sm"> 
+            {formatISTDateTime(orderDate)} 
           </div>
         </div>
       </div>
@@ -154,8 +165,13 @@ const OrderInfoCard = memo(function OrderInfoCard({
               -₹{parseFloat(String(discountAmount)).toFixed(2)} off
             </div>
           )}
+          {taxAmount && parseFloat(String(taxAmount)) > 0 && (
+            <div className="text-xs text-gray-600 whitespace-nowrap">
+              +₹{parseFloat(String(taxAmount)).toFixed(2)} tax
+            </div>
+          )}
           <span className="text-lg font-semibold text-gray-900 whitespace-nowrap">
-            ₹{totalAmount.toFixed(2)}
+            ₹{grandTotal}
           </span>
         </div>
       </div>

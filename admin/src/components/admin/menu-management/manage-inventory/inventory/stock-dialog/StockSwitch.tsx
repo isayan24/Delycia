@@ -1,14 +1,14 @@
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { RemoveShoppingCart } from "@mui/icons-material";
-import { Package, Loader2 } from "lucide-react";
-import React from "react";
-import useInventoryStore from "../main-file/UseInventoryStates";
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { RemoveShoppingCart } from '@mui/icons-material'
+import { Package, Loader2 } from 'lucide-react'
+import React from 'react'
+import useInventoryStore from '../main-file/UseInventoryStates'
 
 interface StockSwitchProps {
-  variableId: string;
-  status: string;
-  variableType: string;
+  variableId: string
+  status: string
+  variableType: string
 }
 
 export default function StockSwitch({
@@ -17,19 +17,16 @@ export default function StockSwitch({
   variableType,
 }: StockSwitchProps) {
   const { handleStockSwitch, getVariableStockStatus, isPendingStockUpdate } =
-    useInventoryStore();
+    useInventoryStore()
 
   const variableStatus =
-    status == "available" || status == "low_stock" ? true : false;
+    status == 'available' || status == 'low_stock' ? true : false
 
   // Get the stock status for this specific category
-  const isStockSwitchActive = getVariableStockStatus(
-    variableId,
-    variableStatus
-  );
+  const isStockSwitchActive = getVariableStockStatus(variableId, variableStatus)
 
   // Check if this category has a pending stock update
-  const isPending = isPendingStockUpdate(variableId);
+  const isPending = isPendingStockUpdate(variableId)
 
   return (
     <div className="flex items-center gap-2 [500px]:gap-1">
@@ -65,11 +62,11 @@ export default function StockSwitch({
       </div>
       <Label className="w-[6rem] text-[1rem] max-[500px]:text-[0.8rem] max-[500px]:w-[4.5rem] font-[400] duration-150 ease-in-out">
         {isPending
-          ? "Processing..."
+          ? 'Processing...'
           : isStockSwitchActive
-            ? "In Stock"
-            : "Out of Stock"}
+            ? 'In Stock'
+            : 'Out of Stock'}
       </Label>
     </div>
-  );
+  )
 }

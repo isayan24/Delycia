@@ -27,7 +27,7 @@ export default function ManageInventory() {
       // Your API call to update stock status in database
       if (currentVariableType === 'category') {
         const catValues = {
-          categoryId: variableId,
+          id: variableId,
           is_active: '1',
           rid: selectedRid,
         }
@@ -74,7 +74,7 @@ export default function ManageInventory() {
     try {
       if (currentVariableType === 'category') {
         const catValues = {
-          categoryId: variableId,
+          id: variableId,
           is_active: '0',
           rid: selectedRid,
         }

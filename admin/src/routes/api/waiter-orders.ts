@@ -10,6 +10,7 @@ import {
   OrderItem,
   FullOrderItem,
 } from '@/lib/crypto/crypto.types'
+import { calculateTax } from '@/lib/tax/taxCalculator'
 
 export const Route = createFileRoute('/api/waiter-orders')({
   server: {
@@ -104,6 +105,38 @@ export const Route = createFileRoute('/api/waiter-orders')({
           }
 
           if (customer_id) {
+            // Calculate subtotal from order items
+            const subtotal = orderItems.reduce((sum: number, item: FullOrderItem) => {
+              return sum + (item.totalPrice || 0)
+            }, 0)
+
+            // Fetch restaurant tax rate
+            let taxPercent = 0
+            const rid = orderItems[0]?.rid
+            
+            if (rid) {
+              try {
+                const restaurantResponse = await axiosInstance.get(
+                  `/admin/restaurants?rid=${rid}`,
+                  {
+                    headers: {
+                      Authorization: `Bearer ${accessToken}`,
+                    },
+                  },
+                )
+                taxPercent = restaurantResponse.data?.restaurant_info?.tax_percent || 0
+              } catch (error) {
+                logger.error('Failed to fetch restaurant tax rate', {
+                  error: error instanceof Error ? error.message : 'Unknown error',
+                  restaurantId: rid,
+                })
+                // Continue with tax_percent = 0 if fetch fails
+              }
+            }
+
+            // Calculate tax
+            const { taxAmount } = calculateTax(subtotal, taxPercent)
+
             const transformedOrderItems: OrderItem[] = orderItems.map(
               (item: FullOrderItem) => ({
                 rid: item.rid,
@@ -122,6 +155,8 @@ export const Route = createFileRoute('/api/waiter-orders')({
                 placed_by_role_id: staffRole,
                 addons: item.addons, // Pass addons to backend
                 order_status: order_status || 'processing', // Pass order status to backend
+                tax_percent: taxPercent,
+                tax_amount: taxAmount,
               }),
             )
 

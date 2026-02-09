@@ -34,6 +34,8 @@ export interface CustomerDetails {
     created_at: string
     order_status: string
     items: string
+    tax_percent: string
+    tax_amount: string
   }[]
 }
 

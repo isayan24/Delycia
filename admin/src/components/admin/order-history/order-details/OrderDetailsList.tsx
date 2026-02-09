@@ -75,6 +75,8 @@ const OrderDetailsList = memo(function OrderDetailsList({
         tableNo={selectedOrder.tableNo}
         paymentStatus={selectedOrder.paymentStatus}
         discountAmount={selectedOrder.discountAmount}
+        taxPercent={selectedOrder.taxPercent}
+        taxAmount={selectedOrder.taxAmount}
       />
     </div>
   )

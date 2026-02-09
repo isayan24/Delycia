@@ -191,7 +191,9 @@ export default function OrderHistoryTablePaginated({
       discountAmount: parseFloat(
         order.discountAmount || order.discount_amount || 0,
       ),
-      orderDate: getISTDateKey(order.createdAt || order.created_at),
+      taxPercent: parseFloat(order.taxPercent || order.tax_percent || 0),
+      taxAmount: parseFloat(order.taxAmount || order.tax_amount || 0),
+      orderDate: formatISTDateTime(order.createdAt || order.created_at),
     }
 
     setSelectedOrderForBill(billData)
@@ -342,7 +344,7 @@ export default function OrderHistoryTablePaginated({
                     )
                     return discountValue > 0 ? (
                       <div className="text-sm text-green-600 font-medium">
-                        -₹{discountValue.toFixed(2)}
+                        -₹{discountValue.toFixed(0)}
                       </div>
                     ) : (
                       <div className="text-xs text-gray-400">---</div>
@@ -353,7 +355,14 @@ export default function OrderHistoryTablePaginated({
                 {/* Amount */}
                 <TableCell className="py-3 px-3">
                   <div className="text-sm font-semibold">
-                    ₹{order.totalAmount || order.total_amount || 0}
+                    ₹
+                    {(
+                      parseFloat(order.totalAmount || order.total_amount || 0) -
+                      parseFloat(
+                        order.discountAmount || order.discount_amount || 0,
+                      ) +
+                      parseFloat(order.taxAmount || order.tax_amount || 0)
+                    )?.toFixed(0)}
                   </div>
                 </TableCell>
 
@@ -372,7 +381,7 @@ export default function OrderHistoryTablePaginated({
                 {/* Date & Time */}
                 <TableCell className="py-3 px-3">
                   <div className="text-xs text-gray-600">
-                    {convertToISTWithTimezone(
+                    {formatISTDateTime(
                       order.createdAt || order.created_at || '',
                     )}
                   </div>

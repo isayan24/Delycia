@@ -54,8 +54,10 @@ export interface TransformedOrder {
   customerName: string
   customer?: CustomerInfo
   items: TransformedOrderItem[]
-  totalAmount: number
+  totalAmount: number // This is the subtotal (pre-tax)
   discountAmount?: number | any
+  taxPercent?: number // GST rate % (e.g., 12.00 for 12%)
+  taxAmount?: number // Calculated tax amount (e.g., 22.80)
   createdAt: Date
   updatedAt: Date
   paymentMethod: string
@@ -316,6 +318,8 @@ export const transformOrderData = (apiOrders: any[]): TransformedOrder[] => {
           paymentStatus: order.payment_status,
           discountAmount: order.discount_amount || 0,
           tableZone: order.table_zone,
+          taxPercent: parseFloat(order.tax_percent) || 0,
+          taxAmount: parseFloat(order.tax_amount) || 0,
         }
       })
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())

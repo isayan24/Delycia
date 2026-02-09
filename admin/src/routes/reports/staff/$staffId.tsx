@@ -124,17 +124,11 @@ function StaffOrdersPage() {
     )
   }
 
-  const totalRevenue =
-    data?.orders.reduce(
-      (sum, order) =>
-        sum +
-        (parseFloat(order.order_total.toString()) -
-          parseFloat(order.total_discount.toString() || '0')),
-      0,
-    ) || 0
-  const totalOrders = data?.orders.length || 0
-  const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
-
+  // Use summary data from API instead of calculating from paginated orders
+  const totalRevenue = parseInt(data?.summary?.total_revenue || 0)
+  const totalOrders = parseInt(data?.summary?.total_orders || 0)
+  const avgOrderValue = parseInt(data?.summary?.avg_order_value || 0)
+ 
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -236,12 +230,18 @@ function StaffOrdersPage() {
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-emerald-600">
-                      {order.total_discount > 0 ? (
-                        <>₹{order.order_total - order.total_discount}</>
-                      ) : (
-                        <>₹{order.order_total}</>
-                      )}
+                      ₹
+                      {(
+                        parseFloat(order.order_total.toString()) -
+                        parseFloat((order.total_discount || 0).toString()) +
+                        parseFloat((order.tax_amount || 0).toString())
+                      ).toFixed(2)}
                     </p>
+                    {order.tax_amount && parseFloat(order.tax_amount.toString()) > 0 && (
+                      <p className="text-xs text-gray-600">
+                        +₹{parseFloat(order.tax_amount.toString()).toFixed(2)} tax
+                      </p>
+                    )}
                     <p className="text-xs text-muted-foreground capitalize">
                       {order.order_status === 'settled'
                         ? 'Completed'

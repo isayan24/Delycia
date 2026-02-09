@@ -20,7 +20,7 @@ import {
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { PrintBillDialog } from '../shared/PrintBillDialog'
-import { getISTDateKey } from '../utils/historyDateUtils'
+import { formatISTDateTime, getISTDateKey, getISTTimeComponents } from '../utils/historyDateUtils'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 
 interface OrderInfoListProps {
@@ -142,13 +142,19 @@ const OrderInfoList = memo(function OrderInfoList({
       tableZone: order.tableZone || '',
       customerName: order.customerName || order.customer?.name || 'Guest',
       customerId: order.customerId || 'N/A',
-      customerPhone: order.customer?.phone_number || 'N/A',
+      customerPhone:
+        order.customer_phone ||
+        order.customerPhone ||
+        order.customer?.phone ||
+        'N/A',
       items: billItems,
       discountAmount: parseFloat(
         order.discountAmount || order.discount_amount || 0,
       ),
       totalAmount: order.totalAmount,
-      orderDate: getISTDateKey(order.createdAt),
+      taxPercent: order.taxPercent || 0,
+      taxAmount: order.taxAmount || 0,
+      orderDate: formatISTDateTime(order.createdAt),
     }
 
     setSelectedOrderForBill(billData)
@@ -305,15 +311,16 @@ const OrderInfoList = memo(function OrderInfoList({
           {orders.map((order, index) => (
             <OrderInfoCard
               key={`${order.cartId}-${index}`}
-              status={order.status}
-              time={order.time}
-              date={order.date}
+              status={order.status} 
+              orderDate={order.updatedAt}
               orderId={order.orderId}
               customerName={order.customerName}
               customer={order.customer}
               items={order.items}
               totalAmount={order.totalAmount}
               discountAmount={order.discountAmount}
+              taxPercent={order.taxPercent}
+              taxAmount={order.taxAmount}
               isSelected={selectedOrderId === order.id}
               onClick={() => onOrderSelect(order.id)}
               onPrint={() => handlePrintBill(order)}

@@ -29,6 +29,8 @@ interface BillData {
   orderDate: string
   paymentMethod: string
   paymentStatus: string
+  taxPercent?: number // GST rate % (e.g., 12.00 for 12%)
+  taxAmount?: number // Calculated tax amount (e.g., 22.80)
 }
 
 interface ThermalBillProps {
@@ -188,13 +190,29 @@ export default function ThermalBill({
         y += 16
       }
 
+      // Tax (always display)
+      y += 5
+      ctx.font = '12px Courier New, monospace'
+      ctx.textAlign = 'left'
+      ctx.fillText(`Tax (${billData.taxPercent || 0}%):`, padding, y)
+      ctx.textAlign = 'right'
+      ctx.fillText(
+        `₹${Number(billData.taxAmount || 0).toFixed(2)}`,
+        width - padding,
+        y,
+      )
+      y += 16
+
       // Total - Add padding top above total
       y += 5
       ctx.font = '14px Courier New, monospace'
       ctx.textAlign = 'left'
-      ctx.fillText('TOTAL:', padding, y)
+      ctx.fillText('GRAND TOTAL:', padding, y)
       ctx.textAlign = 'right'
-      ctx.fillText(`₹${billData.totalAmount.toFixed(2)}`, width - padding, y)
+      const grandTotal = billData.totalAmount - 
+                         (billData.discountAmount || 0) + 
+                         (billData.taxAmount || 0)
+      ctx.fillText(`₹${grandTotal.toFixed(2)}`, width - padding, y)
       y += 20
 
       drawLine()
@@ -334,13 +352,29 @@ export default function ThermalBill({
         y += 16
       }
 
+      // Tax (always display)
+      y += 5
+      ctx.font = '12px Courier New, monospace'
+      ctx.textAlign = 'left'
+      ctx.fillText(`Tax (${billData.taxPercent || 0}%):`, padding, y)
+      ctx.textAlign = 'right'
+      ctx.fillText(
+        `₹${Number(billData.taxAmount || 0).toFixed(2)}`,
+        width - padding,
+        y,
+      )
+      y += 16
+
       // Add padding top above total
       y += 5
       ctx.font = '14px Courier New, monospace'
       ctx.textAlign = 'left'
-      ctx.fillText('TOTAL:', padding, y)
+      ctx.fillText('GRAND TOTAL:', padding, y)
       ctx.textAlign = 'right'
-      ctx.fillText(`₹${billData.totalAmount.toFixed(2)}`, width - padding, y)
+      const grandTotal = billData.totalAmount - 
+                         (billData.discountAmount || 0) + 
+                         (billData.taxAmount || 0)
+      ctx.fillText(`₹${grandTotal.toFixed(2)}`, width - padding, y)
       y += 20
 
       drawLine()
@@ -474,28 +508,9 @@ export default function ThermalBill({
       }, 1000)
     }, 250)
   }
+ 
 
-  // Sample data for preview
-  const sampleBillData: BillData = {
-    orderId: 'ORD-2024-001',
-    restaurantName: 'SAMPLE RESTAURANT',
-    tableNo: 'T-05',
-    customerName: 'John Doe',
-    customerPhone: '+91 9876543210',
-    items: [
-      { name: 'Chicken Biryani', quantity: 2, price: 300 },
-      { name: 'Mutton Curry', quantity: 1, price: 250 },
-      { name: 'Naan', quantity: 3, price: 60 },
-      { name: 'Cold Drink', quantity: 2, price: 80 },
-    ],
-    totalAmount: 640,
-    discountAmount: 50,
-    orderDate: '2024-03-15 14:30',
-    paymentMethod: 'Cash',
-    paymentStatus: 'Paid',
-  }
-
-  const currentBillData = billData || sampleBillData
+  const currentBillData = billData 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -643,7 +658,6 @@ export default function ThermalBill({
               </div>
 
               {/* Discount */}
-              {/* Discount */}
               {(Number(currentBillData?.discountAmount) || 0) > 0 && (
                 <div className="py-1" style={{ padding: '4px 0' }}>
                   <div
@@ -658,6 +672,25 @@ export default function ThermalBill({
                     <span>
                       -₹
                       {Number(currentBillData?.discountAmount || 0).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Tax */}
+              {(Number(currentBillData?.taxAmount) || 0) >= 0 && (
+                <div className="py-1" style={{ padding: '4px 0' }}>
+                  <div
+                    className="flex justify-between"
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '12px',
+                    }}
+                  >
+                    <span>Tax ({currentBillData?.taxPercent || 0}%):</span>
+                    <span>
+                      ₹{Number(currentBillData?.taxAmount || 0).toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -681,13 +714,13 @@ export default function ThermalBill({
                     fontSize: '14px',
                   }}
                 >
-                  <span>TOTAL:</span>
+                  <span>GRAND TOTAL:</span>
                   <span>
-                    {currentBillData.discountAmount &&
-                    currentBillData.discountAmount > 0
-                      ? currentBillData.totalAmount -
-                        currentBillData.discountAmount
-                      : currentBillData.totalAmount}
+                    ₹{(
+                      currentBillData.totalAmount -
+                      (currentBillData.discountAmount || 0) +
+                      (currentBillData.taxAmount || 0)
+                    ).toFixed(2)}
                   </span>
                 </div>
               </div>

@@ -99,6 +99,7 @@ interface StaffOrder {
   customer_profile_pic: string | null
   order_total: number
   total_discount: number
+  tax_amount?:number;
   items: OrderItem[]
 }
 
@@ -112,6 +113,7 @@ interface StaffOrdersResponse {
     phone_number: string
   }
   orders: StaffOrder[]
+  summary: any,
   pagination: {
     total_orders: number
     total_pages: number
@@ -131,14 +133,13 @@ export const useStaffOrdersQuery = (
     queryFn: async () => {
       const response = await axios.get(`/api/staff-reports/${staffId}`, {
         params,
-      })
-
-      // console.log(response.data, 'response orders \n\n\n')
+      }) 
 
       // Same structure - data is spread at root level
       const result: StaffOrdersResponse = {
         staff: response.data.staff,
         orders: response.data.orders || [],
+        summary: response.data.summary || {},
         pagination: response.data.pagination || {
           total_orders: 0,
           total_pages: 0,

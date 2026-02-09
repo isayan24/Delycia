@@ -56,8 +56,8 @@ const getRestaurantCustomers = async (rid, timeRange = 'this_month') => {
       LEFT JOIN (
         SELECT 
           o.customer_id,
-          SUM(o.total_amount - COALESCE(o.discount_amount, 0)) as total_spent,
-          SUM(o.total_amount - COALESCE(o.discount_amount, 0)) / NULLIF(COUNT(DISTINCT o.cart_id), 0) as avg_order_value,
+          SUM(o.total_amount - COALESCE(o.discount_amount, 0) + COALESCE(o.tax_amount, 0)) as total_spent,
+          SUM(o.total_amount - COALESCE(o.discount_amount, 0) + COALESCE(o.tax_amount, 0)) / NULLIF(COUNT(DISTINCT o.cart_id), 0) as avg_order_value,
           SUBSTRING_INDEX(GROUP_CONCAT(i.name ORDER BY o.created_at DESC SEPARATOR ','), ',', 3) as last_order_items_str
         FROM orders o
         LEFT JOIN inventories i ON o.item_id = i.id
@@ -206,25 +206,27 @@ const getCustomerDetails = async (rid, customerId) => {
   if (!rid || !customerId) return apiResponse.error(400, "Missing required params");
 
   try {
-    // 1. Profile & Stats
+    // 1. Profile & Stats (including tax in total_spent and avg_order_value)
     const profileQuery = `
       SELECT 
         u.id, u.name, u.email, u.phone_number, u.profile_pic,
         urv.visit_count, urv.first_visit_at, urv.last_visit_at,
-        (SELECT SUM(total_amount - COALESCE(discount_amount, 0)) FROM orders WHERE rid = ? AND customer_id = ? AND (order_status = 'completed' OR order_status = 'settled')) as total_spent,
-        (SELECT SUM(total_amount - COALESCE(discount_amount, 0)) / COUNT(DISTINCT cart_id) FROM orders WHERE rid = ? AND customer_id = ? AND (order_status = 'completed' OR order_status = 'settled')) as avg_order_value
+        (SELECT SUM(total_amount - COALESCE(discount_amount, 0) + COALESCE(tax_amount, 0)) FROM orders WHERE rid = ? AND customer_id = ? AND (order_status = 'completed' OR order_status = 'settled')) as total_spent,
+        (SELECT SUM(total_amount - COALESCE(discount_amount, 0) + COALESCE(tax_amount, 0)) / COUNT(DISTINCT cart_id) FROM orders WHERE rid = ? AND customer_id = ? AND (order_status = 'completed' OR order_status = 'settled')) as avg_order_value
       FROM users u
       JOIN user_restaurant_visits urv ON u.id = urv.user_id
       WHERE u.id = ? AND urv.restaurant_id = ?
     `;
 
-    // 2. Order History (Timeline)
+    // 2. Order History (Timeline) - including tax fields
     const historyQuery = `
       SELECT 
         MIN(o.id) as order_id,
         o.cart_id,
         SUM(o.total_amount) as total_amount,
         SUM(o.discount_amount) as discount_amount,
+        AVG(o.tax_percent) as tax_percent,
+        SUM(o.tax_amount) as tax_amount,
         MAX(o.created_at) as created_at,
         o.order_status,
         JSON_ARRAYAGG(

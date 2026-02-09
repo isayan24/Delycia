@@ -144,6 +144,8 @@ export default function CustomerDetailsSheet({
                               <OrderItemTotal
                                 total={order.total_amount}
                                 discount={order.discount_amount}
+                                taxPercent={order.tax_percent}
+                                taxAmount={order.tax_amount}
                               />
                               <div
                                 className={`flex items-center justify-end gap-1.5 mt-1 text-xs font-medium capitalize ${
@@ -242,20 +244,29 @@ export default function CustomerDetailsSheet({
 function OrderItemTotal({
   total,
   discount,
+  taxPercent,
+  taxAmount,
 }: {
   total: number
   discount?: number
+  taxPercent?: number | any
+  taxAmount?: number | any
 }) {
-  if (discount && discount > 0) {
-    return (
-      <div className="text-base font-bold text-gray-900">
-        ₹{(total - discount).toLocaleString()}
-      </div>
-    )
-  }
+  const subtotal = total
+  const discountValue = discount && discount > 0 ? discount : 0
+  const taxValue = taxAmount && taxAmount > 0 ? taxAmount : 0
+  const grandTotal = subtotal - discountValue
+
   return (
-    <div className="text-base font-bold text-gray-900">
-      ₹{total.toLocaleString()}
+    <div className="text-right">
+      <div className="text-base font-bold text-gray-900">
+        ₹{grandTotal.toLocaleString()}
+      </div>
+      {taxValue > 0 && (
+        <div className="text-xs text-gray-600 mt-0.5">
+          +₹{taxValue} tax
+        </div>
+      )}
     </div>
   )
 }

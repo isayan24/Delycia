@@ -5,6 +5,7 @@ import signatureService from '@/lib/crypto/signatureService'
 import logger from '@/lib/logger-dynamic'
 import { getAccessTokenFromCookie } from '@/lib/server-cookies'
 import jwt from 'jsonwebtoken'
+import { calculateTax } from '@/lib/tax/taxCalculator'
 
 export const Route = createFileRoute('/api/quick-bill')({
   server: {
@@ -92,6 +93,38 @@ export const Route = createFileRoute('/api/quick-bill')({
           }
 
           if (customer_id) {
+            // Calculate subtotal from order items
+            const subtotal = orderItems.reduce((sum: number, item: any) => {
+              return sum + (item.totalItemAmount || 0)
+            }, 0)
+
+            // Fetch restaurant tax rate
+            let taxPercent = 0
+            const rid = orderItems[0]?.rid
+            
+            if (rid) {
+              try {
+                const restaurantResponse = await axiosInstance.get(
+                  `/admin/restaurants?rid=${rid}`,
+                  {
+                    headers: {
+                      Authorization: `Bearer ${accessToken}`,
+                    },
+                  },
+                )
+                taxPercent = restaurantResponse.data?.restaurant_info?.tax_percent || 0
+              } catch (error) {
+                logger.error('Failed to fetch restaurant tax rate', {
+                  error: error instanceof Error ? error.message : 'Unknown error',
+                  restaurantId: rid,
+                })
+                // Continue with tax_percent = 0 if fetch fails
+              }
+            }
+
+            // Calculate tax
+            const { taxAmount } = calculateTax(subtotal, taxPercent)
+
             const transformedOrderItems = orderItems.map((item: any) => ({
               rid: item.rid,
               customer_id: customer_id,
@@ -108,6 +141,8 @@ export const Route = createFileRoute('/api/quick-bill')({
               placed_by_staff_id: staffId,
               placed_by_role_id: staffRole,
               addons: item.addons,
+              tax_percent: taxPercent,
+              tax_amount: taxAmount,
             }))
 
             // Generate signature for the transformed order items

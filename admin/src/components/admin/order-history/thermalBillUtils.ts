@@ -18,6 +18,8 @@ export interface BillData {
   items: BillItem[]
   totalAmount: number
   discountAmount?: number
+  taxPercent?: number
+  taxAmount?: number
   orderDate: string
   paymentMethod: string
   paymentStatus: string
@@ -65,6 +67,8 @@ export function orderToBillData(
     items,
     totalAmount: order.total_amount,
     discountAmount: order.discount_amount,
+    taxPercent: order.tax_percent,
+    taxAmount: order.tax_amount,
     orderDate,
     paymentMethod: order.payment_method || 'N/A',
     paymentStatus: order.payment_status || 'Pending',

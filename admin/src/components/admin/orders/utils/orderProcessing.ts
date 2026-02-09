@@ -32,6 +32,46 @@ function calculateOrderTotals(items: ProcessedOrderItem[]): number {
 }
 
 /**
+ * Calculates aggregated discount amount from processed order items
+ */
+function calculateTotalDiscount(items: ProcessedOrderItem[]): number {
+  return items.reduce((total, item) => {
+    const discount = parseFloat(String(item.discount_amount || 0))
+    return total + discount
+  }, 0)
+}
+
+/**
+ * Calculates aggregated tax amount and average tax percent from processed order items
+ */
+function calculateTaxTotals(items: ProcessedOrderItem[]): {
+  tax_amount: number
+  tax_percent: number
+} {
+  const totalTaxAmount = items.reduce((total, item) => {
+    const tax = parseFloat(String(item.tax_amount || 0))
+    return total + tax
+  }, 0)
+
+  // Calculate average tax percent (weighted by tax amount)
+  const itemsWithTax = items.filter(
+    (item) => item.tax_percent && item.tax_amount,
+  )
+  const avgTaxPercent =
+    itemsWithTax.length > 0
+      ? itemsWithTax.reduce(
+          (sum, item) => sum + (parseFloat(String(item.tax_percent)) || 0),
+          0,
+        ) / itemsWithTax.length
+      : 0
+
+  return {
+    tax_amount: totalTaxAmount,
+    tax_percent: avgTaxPercent,
+  }
+}
+
+/**
  * Masks phone number for privacy (needed for processWebSocketOrders)
  */
 function formatPhoneNumber(phone: string): string {
@@ -393,12 +433,16 @@ export function processWebSocketOrders(
                 special_instructions: item.special_instructions || '',
                 preparation_time: item.preparation_time,
                 discount_amount: item.discount_amount,
+                tax_percent: item.tax_percent,
+                tax_amount: item.tax_amount,
                 addons: item.addons,
               }),
             )
 
             // Calculate totals and metadata for this specific order time
             const totalAmount = calculateOrderTotals(processedItems)
+            const totalDiscount = calculateTotalDiscount(processedItems)
+            const { tax_amount, tax_percent } = calculateTaxTotals(processedItems)
             const paymentStatus = getGroupPaymentStatus(processedItems)
             // Get unique table IDs
             const uniqueTableIds = processedItems
@@ -436,6 +480,9 @@ export function processWebSocketOrders(
               latest_created_at: orderTime,
               items: processedItems,
               total_amount: totalAmount,
+              discount_amount: totalDiscount > 0 ? totalDiscount : undefined,
+              tax_percent: tax_percent > 0 ? tax_percent : undefined,
+              tax_amount: tax_amount > 0 ? tax_amount : undefined,
               payment_status: paymentStatus,
               order_status: orderStatus, // Use the derived order status
               delivery_type: deliveryType,
@@ -447,7 +494,6 @@ export function processWebSocketOrders(
                   ? uniqueVisualTableNumbers
                   : uniqueTableNumbers,
               preparation_time: preparationTime,
-              discount_amount: firstOrder.discount_amount,
               table_zone: processedItems[0]?.table_zone,
             }
 

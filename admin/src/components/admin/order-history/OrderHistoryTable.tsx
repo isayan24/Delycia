@@ -240,7 +240,11 @@ export default function OrderHistoryTable({
       order.order_status || order.status || '',
       order.payment_method || order.paymentMethod || '',
       order.payment_status || order.paymentStatus || '',
-      `₹${order.total_amount || order.totalAmount || 0}`,
+      `₹${(
+        parseFloat(order.total_amount || order.totalAmount || 0) -
+        parseFloat(order.discount_amount || order.discountAmount || 0) +
+        parseFloat(order.tax_amount || order.taxAmount || 0)
+      ).toFixed(2)}`,
       order.table_zone || '',
       order.table_number || order.table_no || order.tableNo || '',
       order.delivery_type || order.deliveryType || '',
@@ -283,6 +287,11 @@ export default function OrderHistoryTable({
           price: item.price || 0,
         })) || [],
       totalAmount: parseFloat(order.total_amount || order.totalAmount || 0),
+      discountAmount: parseFloat(
+        order.discount_amount || order.discountAmount || 0,
+      ),
+      taxPercent: parseFloat(order.tax_percent || order.taxPercent || 0),
+      taxAmount: parseFloat(order.tax_amount || order.taxAmount || 0),
       orderDate: getISTDateKey(order.created_at || order.createdAt),
     }
 
@@ -623,7 +632,14 @@ export default function OrderHistoryTable({
                       </div>
                     </TableCell>
                     <TableCell className="">
-                      ₹{order.total_amount || order.totalAmount || 0}
+                      ₹
+                      {(
+                        parseFloat(order.total_amount || order.totalAmount || 0) -
+                        parseFloat(
+                          order.discount_amount || order.discountAmount || 0,
+                        ) +
+                        parseFloat(order.tax_amount || order.taxAmount || 0)
+                      ).toFixed(2)}
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col">

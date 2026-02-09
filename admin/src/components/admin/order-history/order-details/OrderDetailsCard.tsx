@@ -23,9 +23,11 @@ interface OrderDetailsCardProps {
   paymentMethod: string
   deliveryType: string
   specialInstructions?: string
-  tableNo: number
+  tableNo: number | any
   paymentStatus: string
   discountAmount?: number
+  taxPercent?: number
+  taxAmount?: number
 }
 
 const getStatusColor = (status: string) => {
@@ -67,15 +69,26 @@ const OrderDetailsCard = memo(function OrderDetailsCard({
   tableNo,
   paymentStatus,
   discountAmount,
+  taxPercent,
+  taxAmount,
 }: OrderDetailsCardProps) {
   // Memoize calculations to prevent unnecessary recalculations
   const totalItems = useMemo(
     () => items.reduce((sum, item) => sum + item.quantity, 0),
     [items],
   )
-  const totalAmount = useMemo(
+  const subtotal = useMemo(
     () => items.reduce((sum, item) => sum + item.price, 0),
     [items],
+  )
+  const discount = useMemo(
+    () => parseFloat(String(discountAmount || 0)),
+    [discountAmount],
+  )
+  const tax = useMemo(() => parseFloat(String(taxAmount || 0)), [taxAmount])
+  const grandTotal = useMemo(
+    () => subtotal - discount + tax,
+    [subtotal, discount, tax],
   )
   const statusColorClass = useMemo(() => getStatusColor(status), [status])
   const timelineColorClass = useMemo(() => getTimelineColor(status), [status])
@@ -290,7 +303,17 @@ const OrderDetailsCard = memo(function OrderDetailsCard({
                 Discount
               </span>
               <span className="text-sm font-medium text-green-600">
-                -₹{parseFloat(String(discountAmount)).toFixed(2)}
+                -₹{discount.toFixed(2)}
+              </span>
+            </div>
+          )}
+          {taxAmount && parseFloat(String(taxAmount)) > 0 && (
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-medium text-gray-600">
+                Tax ({taxPercent || 0}%)
+              </span>
+              <span className="text-sm font-medium text-gray-600">
+                +₹{tax.toFixed(2)}
               </span>
             </div>
           )}
@@ -299,11 +322,7 @@ const OrderDetailsCard = memo(function OrderDetailsCard({
               Total Amount
             </span>
             <span className="text-xl font-bold text-gray-900">
-              {discountAmount && parseFloat(String(discountAmount)) > 0
-                ? `₹${(
-                    totalAmount - parseFloat(String(discountAmount))
-                  ).toFixed(2)}`
-                : `₹${totalAmount.toFixed(2)}`}
+              ₹{grandTotal.toFixed(2)}
             </span>
           </div>
         </div>

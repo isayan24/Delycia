@@ -14,6 +14,7 @@ export interface Restaurant {
   city?: string
   state?: string
   pincode?: string
+  tax_percent?: number // GST rate for the restaurant (e.g., 12.00 for 12%)
 }
 
 export interface RestaurantMap {
@@ -75,6 +76,7 @@ export function useRestaurantsQuery(
               city: restaurantInfo.city,
               state: restaurantInfo.state,
               pincode: restaurantInfo.pincode?.toString(),
+              tax_percent: restaurantInfo.tax_percent || 0,
             }
           } else if (
             response.data?.restaurants &&
@@ -98,6 +100,7 @@ export function useRestaurantsQuery(
                 city: restaurant.city,
                 state: restaurant.state,
                 pincode: restaurant.pincode?.toString(),
+                tax_percent: restaurant.tax_percent || 0,
               }
             }
           }

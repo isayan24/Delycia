@@ -53,7 +53,7 @@ const getStaffLeaderboard = async (req) => {
     const total_staff = countResult[0].total_staff;
     const total_pages = Math.ceil(total_staff / limitNum);
 
-    // Get staff leaderboard with aggregated metrics
+    // Get staff leaderboard with aggregated metrics (including tax)
     const leaderboardQuery = `
       SELECT 
         u.id AS staff_id,
@@ -62,8 +62,8 @@ const getStaffLeaderboard = async (req) => {
         u.profile_pic,
         u.role,
         COUNT(DISTINCT o.cart_id) AS total_orders,
-        SUM(o.total_amount - COALESCE(o.discount_amount, 0)) AS total_revenue,
-        ROUND(SUM(o.total_amount - COALESCE(o.discount_amount, 0)) / NULLIF(COUNT(DISTINCT o.cart_id), 0), 2) AS avg_order_value,
+        SUM(o.total_amount - COALESCE(o.discount_amount, 0) + COALESCE(o.tax_amount, 0)) AS total_revenue,
+        ROUND(SUM(o.total_amount - COALESCE(o.discount_amount, 0) + COALESCE(o.tax_amount, 0)) / NULLIF(COUNT(DISTINCT o.cart_id), 0), 2) AS avg_order_value,
         MIN(o.created_at) AS first_order_date,
         MAX(o.created_at) AS last_order_date,
         COUNT(DISTINCT o.customer_id) AS unique_customers
@@ -128,18 +128,22 @@ const getStaffOrders = async (req) => {
     const params = [staffId, rid];
 
     if (start_date) {
-      dateConditions.push("o.created_at >= ?");
+      dateConditions.push("created_at >= ?");
       params.push(start_date);
     }
 
     if (end_date) {
       // Add 1 day to end_date to include the entire day (23:59:59)
-      dateConditions.push("o.created_at < DATE_ADD(?, INTERVAL 1 DAY)");
+      dateConditions.push("created_at < DATE_ADD(?, INTERVAL 1 DAY)");
       params.push(end_date);
     }
 
     const dateFilter = dateConditions.length > 0
       ? `AND ${dateConditions.join(" AND ")}`
+      : "";
+
+    const dateFilterWithAlias = dateConditions.length > 0
+      ? `AND ${dateConditions.map(c => c.replace('created_at', 'o.created_at')).join(" AND ")}`
       : "";
 
     // Get total count of orders
@@ -149,7 +153,7 @@ const getStaffOrders = async (req) => {
       WHERE o.placed_by_staff_id = ?
         AND o.rid = ?
         AND o.order_status != 'cancelled'
-        ${dateFilter}
+        ${dateFilterWithAlias}
     `;
 
     const [countResult] = await pool.query(countQuery, params);
@@ -168,7 +172,30 @@ const getStaffOrders = async (req) => {
       return apiResponse.error(404, "Staff member not found");
     }
 
-    // Get orders with customer details and items
+    // Get aggregated summary for ALL orders (not paginated) - for KPI cards
+    const summaryQuery = `
+      SELECT 
+        COUNT(DISTINCT cart_id) AS total_orders,
+        COALESCE(SUM(order_total - total_discount + tax_amount), 0) AS total_revenue,
+        COALESCE(ROUND(SUM(order_total - total_discount + tax_amount) / NULLIF(COUNT(DISTINCT cart_id), 0), 2), 0) AS avg_order_value
+      FROM (
+        SELECT 
+          cart_id,
+          SUM(total_amount) AS order_total,
+          SUM(discount_amount) AS total_discount,
+          SUM(tax_amount) AS tax_amount
+        FROM orders
+        WHERE placed_by_staff_id = ?
+          AND rid = ?
+          AND order_status != 'cancelled'
+          ${dateFilter}
+        GROUP BY cart_id
+      ) AS order_totals
+    `;
+
+    const [summaryResult] = await pool.query(summaryQuery, params);
+
+    // Get orders with customer details and items (including tax) - PAGINATED
     const ordersQuery = `
       SELECT 
         o.cart_id,
@@ -189,6 +216,8 @@ const getStaffOrders = async (req) => {
         c.profile_pic AS customer_profile_pic,
         SUM(o.total_amount) AS order_total,
         SUM(o.discount_amount) AS total_discount,
+        AVG(o.tax_percent) AS tax_percent,
+        SUM(o.tax_amount) AS tax_amount,
         JSON_ARRAYAGG(
           JSON_OBJECT(
             'id', o.id,
@@ -207,7 +236,7 @@ const getStaffOrders = async (req) => {
       WHERE o.placed_by_staff_id = ?
         AND o.rid = ?
         AND o.order_status != 'cancelled'
-        ${dateFilter}
+        ${dateFilterWithAlias}
       GROUP BY o.cart_id, o.customer_id, o.table_id, o.payment_method, 
                o.payment_status, o.order_status, o.delivery_type, 
                o.created_at, o.updated_at,
@@ -225,6 +254,7 @@ const getStaffOrders = async (req) => {
     return apiResponse.success(200, "Staff orders retrieved successfully", {
       staff: staffData[0],
       orders,
+      summary: summaryResult[0], // Add summary for KPI cards
       pagination: {
         total_orders,
         total_pages,

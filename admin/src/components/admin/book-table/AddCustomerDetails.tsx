@@ -22,6 +22,7 @@ import { generateUsername } from '@/helpers/user/generateUsername'
 import ThermalBill from '@/components/admin/order-history/ThermalBill'
 import { BillData } from '@/components/admin/order-history/thermalBillUtils'
 import { handleShareToMobile } from '@/components/admin/order-history/thermalBillUtils'
+import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 
 interface CustomerDetails {
   name: string
@@ -59,6 +60,7 @@ export default function AddCustomerDetails() {
 
   const { showError, showSuccess } = useToast()
   const { user } = useAuth()
+  const { selectedRestaurant } = useRestaurantSelector()
 
   // Use custom search hook - filter by current restaurant
   const { searchResults, isSearching, searchError, clearResults } =
@@ -177,6 +179,9 @@ export default function AddCustomerDetails() {
       showSuccess('Success', 'Order placed successfully')
 
       // Prepare bill data for thermal printer
+      const taxPercent = selectedRestaurant?.tax_percent || 0
+      const taxAmount = (subtotal * taxPercent) / 100
+      
       const thermalBillData: BillData = {
         orderId: `TBL-${table?.table_number || 'N/A'}`,
         restaurantName: '', // ThermalBill uses useRestaurantSelector
@@ -190,8 +195,10 @@ export default function AddCustomerDetails() {
           price: (item.price || 0) * (item.quantity || 1),
           addons: item.addons,
         })),
-        totalAmount: finalAmount,
+        totalAmount: subtotal,
         discountAmount: validatedDiscount > 0 ? validatedDiscount : undefined,
+        taxPercent: taxPercent,
+        taxAmount: Math.round(taxAmount * 100) / 100,
         orderDate: new Date().toLocaleString('en-IN', {
           year: 'numeric',
           month: 'short',

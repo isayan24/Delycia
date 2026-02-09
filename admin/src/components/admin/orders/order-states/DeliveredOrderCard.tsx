@@ -121,13 +121,11 @@ export function DeliveredOrderCard({
                     {formatTimeElapsed(timeElapsed)}
                   </span>
                   <span>
-                    {order.discount_amount &&
-                    parseFloat(String(order.discount_amount)) > 0
-                      ? `₹${(
-                          order.total_amount -
-                          parseFloat(String(order.discount_amount))
-                        ).toFixed(2)}`
-                      : `₹${order.total_amount}`}
+                    ₹{(
+                      order.total_amount -
+                      (parseFloat(String(order.discount_amount)) || 0) +
+                      (parseFloat(String(order.tax_amount)) || 0)
+                    ).toFixed(2)}
                   </span>
                   <span>{order.items.length} items</span>
                 </div>
@@ -178,21 +176,8 @@ export function DeliveredOrderCard({
                   Order Items ({order.items.length})
                 </h4>
                 <div className="text-right">
-                  {order.discount_amount &&
-                    parseFloat(String(order.discount_amount)) > 0 && (
-                      <span className="block text-xs text-green-600 font-medium">
-                        -₹{parseFloat(String(order.discount_amount)).toFixed(2)}{' '}
-                        off
-                      </span>
-                    )}
                   <span className="text-sm font-semibold">
-                    {order.discount_amount &&
-                    parseFloat(String(order.discount_amount)) > 0
-                      ? `₹${(
-                          order.total_amount -
-                          parseFloat(String(order.discount_amount))
-                        ).toFixed(2)}`
-                      : `₹${order.total_amount}`}
+                    ₹{order.total_amount}
                   </span>
                 </div>
               </div>
@@ -230,6 +215,36 @@ export function DeliveredOrderCard({
                     <span className="font-medium">₹{item.total_amount}</span>
                   </div>
                 ))}
+              </div>
+
+              {/* Bill Summary */}
+              <div className="mt-2 pt-2 border-t space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Subtotal:</span>
+                  <span>₹{order.total_amount.toFixed(2)}</span>
+                </div>
+                {order.discount_amount && parseFloat(String(order.discount_amount)) > 0 && (
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>Discount:</span>
+                    <span>-₹{parseFloat(String(order.discount_amount)).toFixed(2)}</span>
+                  </div>
+                )}
+                {order.tax_amount && parseFloat(String(order.tax_amount)) > 0 && (
+                  <div className="flex justify-between text-sm text-gray-700">
+                    <span>Tax ({order.tax_percent}%):</span>
+                    <span>+₹{parseFloat(String(order.tax_amount)).toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-sm font-semibold pt-1 border-t">
+                  <span>Grand Total:</span>
+                  <span>
+                    ₹{(
+                      order.total_amount -
+                      (parseFloat(String(order.discount_amount)) || 0) +
+                      (parseFloat(String(order.tax_amount)) || 0)
+                    ).toFixed(2)}
+                  </span>
+                </div>
               </div>
 
               {/* Order Meta */}
