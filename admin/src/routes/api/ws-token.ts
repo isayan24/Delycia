@@ -1,49 +1,39 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { getAccessTokenFromCookie } from '@/lib/server-cookies'
+import { withAuth, jsonResponse } from '@/lib/withAuth'
 
 export const Route = createFileRoute('/api/ws-token')({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        try {
-          // Get access token from httpOnly cookie
-          const accessToken = getAccessTokenFromCookie(request)
+        return withAuth(request, async (token, authHeaders) => {
+          try {
+            // Return the actual access token - backend validates this with ACCESS_SECRET
+            // No need to create a new JWT, just pass through the existing token
+            const response = jsonResponse(
+              {
+                token: token,
+                expiresIn: 900, // 15 minutes (typical access token expiry)
+              },
+              200,
+              authHeaders,
+            )
 
-          if (!accessToken) {
-            return new Response(
-              JSON.stringify({
-                error: 'Not authenticated',
-                message: 'No access token found',
-              }),
-              { status: 401, headers: { 'Content-Type': 'application/json' } },
+            // Add Cache-Control header to prevent token caching
+            response.headers.set('Cache-Control', 'no-store')
+
+            return response
+          } catch (error) {
+            console.error('Error getting WS token:', error)
+            return jsonResponse(
+              {
+                error: 'Token retrieval failed',
+                message: error instanceof Error ? error.message : 'Unknown error',
+              },
+              500,
+              authHeaders,
             )
           }
-
-          // Return the actual access token - backend validates this with ACCESS_SECRET
-          // No need to create a new JWT, just pass through the existing token
-          return new Response(
-            JSON.stringify({
-              token: accessToken,
-              expiresIn: 900, // 15 minutes (typical access token expiry)
-            }),
-            {
-              status: 200,
-              headers: {
-                'Content-Type': 'application/json',
-                'Cache-Control': 'no-store', // Don't cache tokens
-              },
-            },
-          )
-        } catch (error) {
-          console.error('Error getting WS token:', error)
-          return new Response(
-            JSON.stringify({
-              error: 'Token retrieval failed',
-              message: error instanceof Error ? error.message : 'Unknown error',
-            }),
-            { status: 500, headers: { 'Content-Type': 'application/json' } },
-          )
-        }
+        })
       },
     },
   },

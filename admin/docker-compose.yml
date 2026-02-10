@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   delycia-admin:
     container_name: delycia-admin-container

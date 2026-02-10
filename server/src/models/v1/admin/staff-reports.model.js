@@ -53,7 +53,7 @@ const getStaffLeaderboard = async (req) => {
     const total_staff = countResult[0].total_staff;
     const total_pages = Math.ceil(total_staff / limitNum);
 
-    // Get staff leaderboard with aggregated metrics (including tax)
+    // Get staff leaderboard with aggregated metrics
     const leaderboardQuery = `
       SELECT 
         u.id AS staff_id,
@@ -62,8 +62,8 @@ const getStaffLeaderboard = async (req) => {
         u.profile_pic,
         u.role,
         COUNT(DISTINCT o.cart_id) AS total_orders,
-        SUM(o.total_amount - COALESCE(o.discount_amount, 0) + COALESCE(o.tax_amount, 0)) AS total_revenue,
-        ROUND(SUM(o.total_amount - COALESCE(o.discount_amount, 0) + COALESCE(o.tax_amount, 0)) / NULLIF(COUNT(DISTINCT o.cart_id), 0), 2) AS avg_order_value,
+        SUM(o.total_amount - COALESCE(o.discount_amount, 0)) AS total_revenue,
+        ROUND(SUM(o.total_amount - COALESCE(o.discount_amount, 0)) / NULLIF(COUNT(DISTINCT o.cart_id), 0), 2) AS avg_order_value,
         MIN(o.created_at) AS first_order_date,
         MAX(o.created_at) AS last_order_date,
         COUNT(DISTINCT o.customer_id) AS unique_customers
@@ -176,14 +176,13 @@ const getStaffOrders = async (req) => {
     const summaryQuery = `
       SELECT 
         COUNT(DISTINCT cart_id) AS total_orders,
-        COALESCE(SUM(order_total - total_discount + tax_amount), 0) AS total_revenue,
-        COALESCE(ROUND(SUM(order_total - total_discount + tax_amount) / NULLIF(COUNT(DISTINCT cart_id), 0), 2), 0) AS avg_order_value
+        COALESCE(SUM(order_total - total_discount), 0) AS total_revenue,
+        COALESCE(ROUND(SUM(order_total - total_discount) / NULLIF(COUNT(DISTINCT cart_id), 0), 2), 0) AS avg_order_value
       FROM (
         SELECT 
           cart_id,
           SUM(total_amount) AS order_total,
-          SUM(discount_amount) AS total_discount,
-          SUM(tax_amount) AS tax_amount
+          SUM(discount_amount) AS total_discount
         FROM orders
         WHERE placed_by_staff_id = ?
           AND rid = ?
@@ -216,8 +215,6 @@ const getStaffOrders = async (req) => {
         c.profile_pic AS customer_profile_pic,
         SUM(o.total_amount) AS order_total,
         SUM(o.discount_amount) AS total_discount,
-        AVG(o.tax_percent) AS tax_percent,
-        SUM(o.tax_amount) AS tax_amount,
         JSON_ARRAYAGG(
           JSON_OBJECT(
             'id', o.id,

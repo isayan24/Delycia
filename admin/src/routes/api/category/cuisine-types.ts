@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { handleApiError } from '@/helpers/handleApiError'
 import axiosInstance from '@/lib/axios'
+import { jsonResponse } from '@/lib/withAuth'
 
 export const Route = createFileRoute('/api/category/cuisine-types')({
   server: {

@@ -1,21 +1,6 @@
 import axiosInstance from '@/lib/axios'
 import { createFileRoute } from '@tanstack/react-router'
-
-// const SERVER_URL = process.env.VITE_SERVER_URL
-// const SERVER_URL = 'https://api.delycia.com/api/v1'
-
-// Helper function to parse cookies
-function parseCookies(cookieHeader: string | null): Record<string, string> {
-  if (!cookieHeader) return {}
-  return cookieHeader.split(';').reduce(
-    (cookies, cookie) => {
-      const [name, value] = cookie.trim().split('=')
-      cookies[name] = value
-      return cookies
-    },
-    {} as Record<string, string>,
-  )
-}
+import { parseCookies } from '@/lib/server-cookies'
 
 export const Route = createFileRoute('/api/auth/refresh')({
   server: {
@@ -37,9 +22,9 @@ export const Route = createFileRoute('/api/auth/refresh')({
             )
           }
 
-          // Call backend refresh endpoint
+          // Call backend refresh endpoint with Bearer token
           const response = await axiosInstance.post(
-            `/users/auth/refresh`,
+            '/users/auth/refresh',
             null,
             {
               headers: {
@@ -48,23 +33,16 @@ export const Route = createFileRoute('/api/auth/refresh')({
               },
             },
           )
-          console.log('*** Token Refreshed ***')
 
-          if (
-            response.data &&
-            response.data.access_token &&
-            response.data.refresh_token
-          ) {
+          // Backend returns: { status: true, refresh_token, access_token }
+          if (response.data?.access_token && response.data?.refresh_token) {
             const { access_token, refresh_token } = response.data
+
+            console.log('*** Token Refreshed ***')
 
             // Set new httpOnly cookies
             const isProduction = process.env.NODE_ENV === 'production'
-            const cookieOptions = {
-              httpOnly: true,
-              secure: isProduction,
-              sameSite: 'strict' as const,
-              path: '/',
-            }
+            const secure = isProduction ? 'Secure;' : ''
 
             const headers = new Headers({
               'Content-Type': 'application/json',
@@ -73,13 +51,13 @@ export const Route = createFileRoute('/api/auth/refresh')({
             // Set new access token cookie (7 days)
             headers.append(
               'Set-Cookie',
-              `admin_access_token=${access_token}; Max-Age=${7 * 24 * 60 * 60}; ${cookieOptions.httpOnly ? 'HttpOnly;' : ''} ${cookieOptions.secure ? 'Secure;' : ''} SameSite=${cookieOptions.sameSite}; Path=${cookieOptions.path}`,
+              `admin_access_token=${access_token}; Max-Age=${7 * 24 * 60 * 60}; HttpOnly; ${secure} SameSite=strict; Path=/`,
             )
 
             // Set new refresh token cookie (30 days)
             headers.append(
               'Set-Cookie',
-              `admin_refresh_token=${refresh_token}; Max-Age=${30 * 24 * 60 * 60}; ${cookieOptions.httpOnly ? 'HttpOnly;' : ''} ${cookieOptions.secure ? 'Secure;' : ''} SameSite=${cookieOptions.sameSite}; Path=${cookieOptions.path}`,
+              `admin_refresh_token=${refresh_token}; Max-Age=${30 * 24 * 60 * 60}; HttpOnly; ${secure} SameSite=strict; Path=/`,
             )
 
             return new Response(
@@ -90,6 +68,10 @@ export const Route = createFileRoute('/api/auth/refresh')({
               { status: 200, headers },
             )
           } else {
+            console.error(
+              '[refresh] Backend returned unexpected data:',
+              response.data,
+            )
             return new Response(
               JSON.stringify({
                 statusCode: 401,
@@ -99,27 +81,22 @@ export const Route = createFileRoute('/api/auth/refresh')({
             )
           }
         } catch (error: any) {
-          console.error('Token refresh error:', error)
+          console.error(
+            '[refresh] Token refresh error:',
+            error?.response?.data || error.message,
+          )
 
           // Handle 401 from backend (invalid refresh token)
-          if (error.response?.status === 401) {
-            return new Response(
-              JSON.stringify({
-                statusCode: 401,
-                message: 'Refresh token expired or invalid',
-              }),
-              { status: 401, headers: { 'Content-Type': 'application/json' } },
-            )
-          }
-
-          // Other errors
+          const status = error.response?.status === 401 ? 401 : 500
           return new Response(
             JSON.stringify({
-              statusCode: 500,
-              message: 'Token refresh failed',
-              error: error.message,
+              statusCode: status,
+              message:
+                status === 401
+                  ? 'Refresh token expired or invalid'
+                  : 'Token refresh failed',
             }),
-            { status: 500, headers: { 'Content-Type': 'application/json' } },
+            { status, headers: { 'Content-Type': 'application/json' } },
           )
         }
       },

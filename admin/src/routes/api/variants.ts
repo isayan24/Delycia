@@ -1,50 +1,47 @@
 import { createFileRoute } from '@tanstack/react-router'
 import axiosInstance from '@/lib/axios'
 import { handleApiError } from '@/helpers/handleApiError'
-import { getAccessTokenFromCookie } from '@/lib/server-cookies'
+import { withAuth, jsonResponse } from '@/lib/withAuth'
 
 export const Route = createFileRoute('/api/variants')({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        try {
-          // Parse query params
-          const url = new URL(request.url)
-          const inventoryId = url.searchParams.get('inventory_id')
+        return withAuth(request, async (accessToken, authHeaders) => {
+          try {
+            // Parse query params
+            const url = new URL(request.url)
+            const inventoryId = url.searchParams.get('inventory_id')
 
-          if (!inventoryId) {
-            return new Response(
-              JSON.stringify({
-                status: 400,
-                message: 'Inventory ID is required',
-                error: true,
-              }),
-              { status: 400, headers: { 'Content-Type': 'application/json' } },
+            if (!inventoryId) {
+              return jsonResponse(
+                {
+                  status: 400,
+                  message: 'Inventory ID is required',
+                  error: true,
+                },
+                400,
+              )
+            }
+
+            const params = { inventory_id: inventoryId }
+
+            const response = await axiosInstance.get('/variants', {
+              params,
+              headers: { Authorization: `Bearer ${accessToken}` },
+            })
+
+            return jsonResponse(response.data, 200, authHeaders)
+          } catch (error) {
+            console.error('Error in GET /api/variants:', error)
+            const errorResponse = handleApiError(error, 'fetching variants')
+            return jsonResponse(
+              errorResponse,
+              (errorResponse as any).status || 500,
+              authHeaders,
             )
           }
-
-          // Get token from httpOnly cookie
-          const token = getAccessTokenFromCookie(request)
-
-          const params = { inventory_id: inventoryId }
-
-          const response = await axiosInstance.get('/variants', {
-            params,
-            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-          })
-
-          return new Response(JSON.stringify(response.data), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          })
-        } catch (error) {
-          console.error('Error in GET /api/variants:', error)
-          const errorResponse = handleApiError(error, 'fetching variants')
-          return new Response(JSON.stringify(errorResponse), {
-            status: (errorResponse as any).status || 500,
-            headers: { 'Content-Type': 'application/json' },
-          })
-        }
+        })
       },
     },
   },

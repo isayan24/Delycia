@@ -1,71 +1,57 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { handleApiError } from '@/helpers/handleApiError'
 import axiosInstance from '@/lib/axios'
-import { getAccessTokenFromCookie } from '@/lib/server-cookies'
+import { withAuth, jsonResponse } from '@/lib/withAuth'
 
 export const Route = createFileRoute('/api/orders/by-table')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        try {
-          // Get token from httpOnly cookie
-          const accessToken = getAccessTokenFromCookie(request)
+        return withAuth(request, async (accessToken, authHeaders) => {
+          try {
+            const data: {
+              table_id: number
+              rid: string
+            } = await request.json()
 
-          if (!accessToken) {
-            return new Response(
-              JSON.stringify({
-                status: 401,
-                message: 'Not authenticated',
-                error: true,
-              }),
-              { status: 401, headers: { 'Content-Type': 'application/json' } },
-            )
-          }
+            if (!data.table_id || !data.rid) {
+              return jsonResponse(
+                {
+                  status: 400,
+                  message: 'table_id and rid are required',
+                  error: true,
+                },
+                400,
+              )
+            }
 
-          const data: {
-            table_id: number
-            rid: string
-          } = await request.json()
-
-          if (!data.table_id || !data.rid) {
-            return new Response(
-              JSON.stringify({
-                status: 400,
-                message: 'table_id and rid are required',
-                error: true,
-              }),
-              { status: 400, headers: { 'Content-Type': 'application/json' } },
-            )
-          }
-
-          // Call the backend endpoint to get orders by table
-          const response = await axiosInstance.post(
-            '/admin/orders/by-table',
-            {
-              table_id: data.table_id,
-              rid: data.rid,
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
+            // Call the backend endpoint to get orders by table
+            const response = await axiosInstance.post(
+              '/admin/orders/by-table',
+              {
+                table_id: data.table_id,
+                rid: data.rid,
               },
-            },
-          )
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                },
+              },
+            )
 
-          return new Response(JSON.stringify(response.data), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          })
-        } catch (error) {
-          const errorResponse = handleApiError(
-            error,
-            'Error fetching table orders',
-          )
-          return new Response(JSON.stringify(errorResponse), {
-            status: (errorResponse as any).status || 500,
-            headers: { 'Content-Type': 'application/json' },
-          })
-        }
+            return jsonResponse(response.data, 200, authHeaders)
+          } catch (error) {
+            const errorResponse = handleApiError(
+              error,
+              'Error fetching table orders',
+            )
+            return jsonResponse(
+              errorResponse,
+              (errorResponse as any).status || 500,
+              authHeaders,
+            )
+          }
+        })
       },
     },
   },

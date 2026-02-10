@@ -3,226 +3,184 @@ import { handleApiError } from '@/helpers/handleApiError'
 import axiosInstance from '@/lib/axios'
 import { imagekit } from '@/lib/imagekit'
 import { extractFileIdFromUrl } from '@/helpers/image/imagekitHelpers'
-import { getAccessTokenFromCookie } from '@/lib/server-cookies'
+import { withAuth, jsonResponse } from '@/lib/withAuth'
 
 export const Route = createFileRoute('/api/category')({
   server: {
     handlers: {
       // GET - Fetch categories by restaurant ID
       GET: async ({ request }) => {
-        const accessToken = getAccessTokenFromCookie(request)
+        return withAuth(request, async (accessToken, authHeaders) => {
+          const url = new URL(request.url)
+          const rid = url.searchParams.get('rid')
 
-        if (!accessToken) {
-          return new Response(
-            JSON.stringify({
-              status: 401,
-              message: 'Not authenticated',
-              error: true,
-            }),
-            { status: 401, headers: { 'Content-Type': 'application/json' } },
-          )
-        }
+          if (!rid) {
+            return jsonResponse(
+              {
+                status: 400,
+                message: 'Restaurant ID (rid) is required',
+                error: true,
+              },
+              400,
+            )
+          }
 
-        const url = new URL(request.url)
-        const rid = url.searchParams.get('rid')
+          try {
+            // Call backend API to get categories
+            const response = await axiosInstance.get('/categories', {
+              params: { rid },
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            })
 
-        if (!rid) {
-          return new Response(
-            JSON.stringify({
-              status: 400,
-              message: 'Restaurant ID (rid) is required',
-              error: true,
-            }),
-            { status: 400, headers: { 'Content-Type': 'application/json' } },
-          )
-        }
-
-        try {
-          // Call backend API to get categories
-          const response = await axiosInstance.get('/categories', {
-            params: { rid },
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          })
-
-          // ❌ REMOVED Cache-Control - was causing 5 minute delay!
-          // Browser/CDN was caching old data even after mutations
-          return new Response(JSON.stringify(response.data), {
-            status: 200,
-            headers: {
-              'Content-Type': 'application/json',
-              'Cache-Control': 'no-cache, no-store, must-revalidate', // Always fetch fresh data
-            },
-          })
-        } catch (error) {
-          const errorResponse = handleApiError(
-            error,
-            'Failed to fetch categories',
-          )
-          return new Response(JSON.stringify(errorResponse), {
-            status: (errorResponse as any).status || 500,
-            headers: { 'Content-Type': 'application/json' },
-          })
-        }
+            // ❌ REMOVED Cache-Control - was causing 5 minute delay!
+            // Browser/CDN was caching old data even after mutations
+            return jsonResponse(response.data, 200, authHeaders)
+          } catch (error) {
+            const errorResponse = handleApiError(
+              error,
+              'Failed to fetch categories',
+            )
+            return jsonResponse(
+              errorResponse,
+              (errorResponse as any).status || 500,
+              authHeaders,
+            )
+          }
+        })
       },
       // POST - Create new category
       POST: async ({ request }) => {
-        const accessToken = getAccessTokenFromCookie(request)
+        return withAuth(request, async (accessToken, authHeaders) => {
+          try {
+            const body = await request.json()
+            const { name, description, img, rid } = body
 
-        if (!accessToken) {
-          return new Response(
-            JSON.stringify({
-              status: 401,
-              message: 'Not authenticated',
-              error: true,
-            }),
-            { status: 401, headers: { 'Content-Type': 'application/json' } },
-          )
-        }
+            const response = await axiosInstance.post(
+              '/category',
+              {
+                rid,
+                name,
+                description,
+                img,
+              },
+              { headers: { Authorization: `Bearer ${accessToken}` } },
+            )
 
-        const body = await request.json()
-        const { name, description, img, rid } = body
-        try {
-          const response = await axiosInstance.post(
-            '/category',
-            {
-              rid,
+            // Return the created category data for optimistic updates
+            return jsonResponse(
+              {
+                status: 200,
+                message: 'Category added successfully',
+                success: true,
+                category: response.data?.category || response.data, // Return the category data
+              },
+              200,
+              authHeaders,
+            )
+          } catch (error) {
+            const errorResponse = handleApiError(error, 'Failed to add category')
+            return jsonResponse(
+              errorResponse,
+              (errorResponse as any).status || 500,
+              authHeaders,
+            )
+          }
+        })
+      },
+      PATCH: async ({ request }) => {
+        return withAuth(request, async (accessToken, authHeaders) => {
+          try {
+            const body = await request.json()
+            const { rid, id, name, description, img, is_active } = body
+
+            const data = {
               name,
               description,
               img,
-            },
-            { headers: { Authorization: `Bearer ${accessToken}` } },
-          )
+              id,
+              rid,
+              is_active,
+            }
 
-          // Return the created category data for optimistic updates
-          return new Response(
-            JSON.stringify({
-              status: 200,
-              message: 'Category added successfully',
-              success: true,
-              category: response.data?.category || response.data, // Return the category data
-            }),
-            { status: 200, headers: { 'Content-Type': 'application/json' } },
-          )
-        } catch (error) {
-          const errorResponse = handleApiError(error, 'Failed to add category')
-          return new Response(JSON.stringify(errorResponse), {
-            status: (errorResponse as any).status || 500,
-            headers: { 'Content-Type': 'application/json' },
-          })
-        }
-      },
-      PATCH: async ({ request }) => {
-        const accessToken = getAccessTokenFromCookie(request)
+            await axiosInstance.patch('/category', data, {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            })
 
-        if (!accessToken) {
-          return new Response(
-            JSON.stringify({
-              status: 401,
-              message: 'Not authenticated',
-              error: true,
-            }),
-            { status: 401, headers: { 'Content-Type': 'application/json' } },
-          )
-        }
-
-        const body = await request.json()
-        const { rid, id, name, description, img, is_active } = body
-
-        try {
-          const data = {
-            name,
-            description,
-            img,
-            id,
-            rid,
-            is_active,
+            return jsonResponse(
+              {
+                status: 200,
+                message: 'Category updated successfully',
+                success: true,
+              },
+              200,
+              authHeaders,
+            )
+          } catch (error) {
+            const errorResponse = handleApiError(
+              error,
+              'Failed to update category',
+            )
+            return jsonResponse(
+              errorResponse,
+              (errorResponse as any).status || 500,
+              authHeaders,
+            )
           }
-
-          await axiosInstance.patch('/category', data, {
-            headers: { Authorization: `Bearer ${accessToken}` },
-          })
-
-          return new Response(
-            JSON.stringify({
-              status: 200,
-              message: 'Category updated successfully',
-              success: true,
-            }),
-            { status: 200, headers: { 'Content-Type': 'application/json' } },
-          )
-        } catch (error) {
-          const errorResponse = handleApiError(
-            error,
-            'Failed to update category',
-          )
-          return new Response(JSON.stringify(errorResponse), {
-            status: (errorResponse as any).status || 500,
-            headers: { 'Content-Type': 'application/json' },
-          })
-        }
+        })
       },
       DELETE: async ({ request }) => {
-        const accessToken = getAccessTokenFromCookie(request)
+        return withAuth(request, async (accessToken, authHeaders) => {
+          try {
+            const body = await request.json()
+            const { img, id, rid, template_id } = body
 
-        if (!accessToken) {
-          return new Response(
-            JSON.stringify({
-              status: 401,
-              message: 'Not authenticated',
-              error: true,
-            }),
-            { status: 401, headers: { 'Content-Type': 'application/json' } },
-          )
-        }
+            // Only delete image from ImageKit if this is a custom category (no template_id)
+            if (img && !template_id) {
+              try {
+                const fileId = extractFileIdFromUrl(img)
 
-        const body = await request.json()
-        const { img, id, rid, template_id } = body
-
-        try {
-          // Only delete image from ImageKit if this is a custom category (no template_id)
-          if (img && !template_id) {
-            try {
-              const fileId = extractFileIdFromUrl(img)
-
-              if (fileId) {
-                await imagekit.deleteFile(fileId)
-              } else {
-                console.warn('Could not extract fileId from URL:', img)
+                if (fileId) {
+                  await imagekit.deleteFile(fileId)
+                } else {
+                  console.warn('Could not extract fileId from URL:', img)
+                }
+              } catch (imageError) {
+                console.error('Failed to delete ImageKit image:', imageError)
+                // Continue with category deletion even if image deletion fails
               }
-            } catch (imageError) {
-              console.error('Failed to delete ImageKit image:', imageError)
-              // Continue with category deletion even if image deletion fails
+            } else if (template_id) {
+              console.log(`Skipping image deletion - template_id: ${template_id}`)
             }
-          } else if (template_id) {
-            console.log(`Skipping image deletion - template_id: ${template_id}`)
+
+            // Delete category from database
+            await axiosInstance.delete(`/category`, {
+              data: { id, rid },
+              headers: { Authorization: `Bearer ${accessToken}` },
+            })
+
+            return jsonResponse(
+              {
+                status: 200,
+                message: 'Category deleted successfully',
+                success: true,
+              },
+              200,
+              authHeaders,
+            )
+          } catch (error) {
+            const errorResponse = handleApiError(
+              error,
+              'Failed to delete category',
+            )
+            return jsonResponse(
+              errorResponse,
+              (errorResponse as any).status || 500,
+              authHeaders,
+            )
           }
-
-          // Delete category from database
-          await axiosInstance.delete(`/category`, {
-            data: { id, rid },
-            headers: { Authorization: `Bearer ${accessToken}` },
-          })
-
-          return new Response(
-            JSON.stringify({
-              status: 200,
-              message: 'Category deleted successfully',
-              success: true,
-            }),
-            { status: 200, headers: { 'Content-Type': 'application/json' } },
-          )
-        } catch (error) {
-          const errorResponse = handleApiError(
-            error,
-            'Failed to delete category',
-          )
-          return new Response(JSON.stringify(errorResponse), {
-            status: (errorResponse as any).status || 500,
-            headers: { 'Content-Type': 'application/json' },
-          })
-        }
+        })
       },
     },
   },

@@ -1,9 +1,19 @@
 import axios from 'axios'
 
+/**
+ * Singleton service for client-side token refresh.
+ *
+ * Registers interceptors on the GLOBAL axios instance (used for client→BFF calls).
+ * When a BFF route returns 401/403, this interceptor calls /api/auth/refresh
+ * (the BFF refresh route), which handles the actual backend token refresh.
+ *
+ * IMPORTANT: This is client-side only. Server-side BFF routes use withAuth() instead.
+ */
 class TokenService {
   private static instance: TokenService
   private refreshPromise: Promise<boolean> | null = null
   private onLogoutCallback: (() => void) | null = null
+  private interceptorsRegistered = false
 
   private constructor() {}
 
@@ -22,45 +32,53 @@ class TokenService {
   }
 
   /**
-   * Setup Axios interceptors to handle 401s
+   * Setup Axios interceptors to handle 401s on the global axios instance.
+   * This method is idempotent — safe to call multiple times.
    */
   setupInterceptors() {
-    // Response interceptor
+    // Guard: only register once
+    if (this.interceptorsRegistered) return
+    this.interceptorsRegistered = true
+
+    // Only register on client side
+    if (typeof window === 'undefined') return
+
     axios.interceptors.response.use(
       (response) => response,
       async (error) => {
         const originalRequest = error.config
 
-        // If error is 401 and we haven't retried yet
-        if (
-          (error.response?.status === 401 ||
-            (error.response?.status === 403 &&
-              (error.response?.data as any)?.error ===
-                'Forbidden : Token expired.')) &&
-          !originalRequest._retry &&
-          !originalRequest.url?.includes('/api/auth/login') && // Don't retry login
-          !originalRequest.url?.includes('/api/auth/refresh') // Don't retry refresh itself
-        ) {
+        if (!originalRequest) return Promise.reject(error)
+
+        // Check if this is a token expiration error
+        const status = error.response?.status
+        const isTokenError =
+          status === 401 ||
+          (status === 403 &&
+            (error.response?.data as any)?.error ===
+              'Forbidden : Token expired.')
+
+        // Skip retry for auth endpoints and already-retried requests
+        const isAuthEndpoint =
+          originalRequest.url?.includes('/api/auth/login') ||
+          originalRequest.url?.includes('/api/auth/refresh') ||
+          originalRequest.url?.includes('/api/auth/logout')
+
+        if (isTokenError && !originalRequest._retry && !isAuthEndpoint) {
           originalRequest._retry = true
 
           try {
             const refreshSuccess = await this.refreshTokens()
 
             if (refreshSuccess) {
-              // Retry the original request
+              // Retry the original request — cookies are already updated
               return axios(originalRequest)
             } else {
-              // Refresh failed, trigger logout
-              if (this.onLogoutCallback) {
-                this.onLogoutCallback()
-              }
+              this.triggerLogout()
               return Promise.reject(error)
             }
           } catch (refreshError) {
-            // Refresh process error, trigger logout
-            if (this.onLogoutCallback) {
-              this.onLogoutCallback()
-            }
+            this.triggerLogout()
             return Promise.reject(refreshError)
           }
         }
@@ -71,45 +89,42 @@ class TokenService {
   }
 
   /**
-   * Refresh access and refresh tokens via server route
+   * Refresh access and refresh tokens via the BFF server route.
+   * Deduplicates concurrent refresh calls — only one network request is made.
    */
   async refreshTokens(): Promise<boolean> {
-    // Prevent multiple simultaneous refresh requests
+    // Deduplicate: if a refresh is already in-flight, wait for it
     if (this.refreshPromise) {
       return this.refreshPromise
     }
 
     this.refreshPromise = this.performTokenRefresh()
-    const result = await this.refreshPromise
-    this.refreshPromise = null
 
-    return result
+    try {
+      return await this.refreshPromise
+    } finally {
+      this.refreshPromise = null
+    }
   }
 
   private async performTokenRefresh(): Promise<boolean> {
     try {
-      // If running on client, we can use relative URL, otherwise need absolute URL
-      const isServer = typeof window === 'undefined'
-      const url = isServer
-        ? `${process.env.VITE_APP_URL || 'http://localhost:4500'}/api/auth/refresh`
-        : '/api/auth/refresh'
-
       const response = await axios.post(
-        url,
+        '/api/auth/refresh',
         {},
-        {
-          withCredentials: true, // Send httpOnly cookies
-        },
+        { withCredentials: true },
       )
 
-      if (response.status === 200 && response.data?.statusCode === 200) {
-        return true
-      }
-
-      return false
+      return response.status === 200 && response.data?.statusCode === 200
     } catch (error: any) {
-      console.error('Failed to refresh tokens:', error.message)
+      console.error('[TokenService] Refresh failed:', error.message)
       return false
+    }
+  }
+
+  private triggerLogout() {
+    if (this.onLogoutCallback) {
+      this.onLogoutCallback()
     }
   }
 }

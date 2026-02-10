@@ -1,58 +1,47 @@
 import { createFileRoute } from '@tanstack/react-router'
 import axiosInstance from '@/lib/axios'
-import { getAccessTokenFromCookie } from '@/lib/server-cookies'
+import { withAuth, jsonResponse } from '@/lib/withAuth'
+import { handleApiError } from '@/helpers/handleApiError'
 
 export const Route = createFileRoute('/api/staff-reports/$staffId')({
   server: {
     handlers: {
       GET: async ({ request, params }) => {
-        try {
-          console.log('Staff orders request received')
-          // Get token from httpOnly cookie
-          const accessToken = getAccessTokenFromCookie(request)
+        return withAuth(request, async (accessToken, authHeaders) => {
+          try {
+            console.log('Staff orders request received')
 
-          if (!accessToken) {
-            return new Response(
-              JSON.stringify({
-                status: 401,
-                message: 'Not authenticated',
-                error: true,
-              }),
-              { status: 401, headers: { 'Content-Type': 'application/json' } },
+            const { staffId } = params
+
+            // Parse URL to get query parameters
+            const url = new URL(request.url)
+            const queryParams = url.searchParams.toString()
+
+            // Forward request to backend
+            const response = await axiosInstance.get(
+              `/admin/staff-reports/${staffId}/orders?${queryParams}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  'Content-Type': 'application/json',
+                },
+              },
+            )
+
+            return jsonResponse(response.data, 200, authHeaders)
+          } catch (error: any) {
+            console.error('Staff orders error:', error)
+            const errorResponse = handleApiError(
+              error,
+              'Failed to fetch staff orders',
+            )
+            return jsonResponse(
+              errorResponse,
+              (errorResponse as any).status || 500,
+              authHeaders,
             )
           }
-
-          const { staffId } = params
-
-          // Parse URL to get query parameters
-          const url = new URL(request.url)
-          const queryParams = url.searchParams.toString()
-
-          // Forward request to backend
-          const response = await axiosInstance.get(
-            `/admin/staff-reports/${staffId}/orders?${queryParams}`,
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-                'Content-Type': 'application/json',
-              },
-            },
-          )
-
-          return new Response(JSON.stringify(response.data), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          })
-        } catch (error: any) {
-          console.error('Staff orders error:', error)
-          return new Response(
-            JSON.stringify({
-              error: 'Failed to fetch staff orders',
-              message: error.message,
-            }),
-            { status: 500, headers: { 'Content-Type': 'application/json' } },
-          )
-        }
+        })
       },
     },
   },

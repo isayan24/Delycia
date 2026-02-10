@@ -1,87 +1,81 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { handleApiError } from '@/helpers/handleApiError'
 import axiosInstance from '@/lib/axios'
-import { getAccessTokenFromCookie } from '@/lib/server-cookies'
+import { withAuth, jsonResponse } from '@/lib/withAuth'
 
 export const Route = createFileRoute('/api/users')({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        try {
-          const accessToken = getAccessTokenFromCookie(request)
-          if (!accessToken) {
-            return new Response(
-              JSON.stringify({ status: 401, message: 'Not authenticated' }),
-              { status: 401 },
+        return withAuth(request, async (accessToken, authHeaders) => {
+          try {
+            const url = new URL(request.url)
+
+            // Forward all query parameters
+            const endpoint = `/admin/users${url.search}`
+
+            const response = await axiosInstance.get(endpoint, {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            })
+
+            return jsonResponse(response.data, 200, authHeaders)
+          } catch (error) {
+            const errorResponse = handleApiError(error, 'Error fetching users')
+            return jsonResponse(
+              errorResponse,
+              (errorResponse as any).status || 500,
+              authHeaders,
             )
           }
-
-          const url = new URL(request.url)
-
-          // Forward all query parameters
-          const endpoint = `/admin/users${url.search}`
-
-          const response = await axiosInstance.get(endpoint, {
-            headers: { Authorization: `Bearer ${accessToken}` },
-          })
-
-          return new Response(JSON.stringify(response.data), { status: 200 })
-        } catch (error) {
-          const errorResponse = handleApiError(error, 'Error fetching users')
-          return new Response(JSON.stringify(errorResponse), { status: 500 })
-        }
+        })
       },
       PATCH: async ({ request }) => {
-        try {
-          const accessToken = getAccessTokenFromCookie(request)
-          if (!accessToken) {
-            return new Response(
-              JSON.stringify({ status: 401, message: 'Not authenticated' }),
-              { status: 401 },
+        return withAuth(request, async (accessToken, authHeaders) => {
+          try {
+            const body = await request.json()
+
+            const response = await axiosInstance.patch('/admin/users', body, {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            })
+
+            return jsonResponse(response.data, 200, authHeaders)
+          } catch (error) {
+            const errorResponse = handleApiError(error, 'Error updating user')
+            return jsonResponse(
+              errorResponse,
+              (errorResponse as any).status || 500,
+              authHeaders,
             )
           }
-
-          const body = await request.json()
-
-          const response = await axiosInstance.patch('/admin/users', body, {
-            headers: { Authorization: `Bearer ${accessToken}` },
-          })
-
-          return new Response(JSON.stringify(response.data), { status: 200 })
-        } catch (error) {
-          const errorResponse = handleApiError(error, 'Error updating user')
-          return new Response(JSON.stringify(errorResponse), { status: 500 })
-        }
+        })
       },
       DELETE: async ({ request }) => {
-        try {
-          const accessToken = getAccessTokenFromCookie(request)
-          const url = new URL(request.url)
-          const uid = url.searchParams.get('uid')
+        return withAuth(request, async (accessToken, authHeaders) => {
+          try {
+            const url = new URL(request.url)
+            const uid = url.searchParams.get('uid')
 
-          if (!accessToken) {
-            return new Response(
-              JSON.stringify({ status: 401, message: 'Not authenticated' }),
-              { status: 401 },
+            if (!uid) {
+              return jsonResponse(
+                { status: 400, message: 'UID is required' },
+                400,
+              )
+            }
+
+            const response = await axiosInstance.delete(`/admin/users/${uid}`, {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            })
+
+            return jsonResponse(response.data, 200, authHeaders)
+          } catch (error) {
+            const errorResponse = handleApiError(error, 'Error deleting user')
+            return jsonResponse(
+              errorResponse,
+              (errorResponse as any).status || 500,
+              authHeaders,
             )
           }
-
-          if (!uid) {
-            return new Response(
-              JSON.stringify({ status: 400, message: 'UID is required' }),
-              { status: 400 },
-            )
-          }
-
-          const response = await axiosInstance.delete(`/admin/users/${uid}`, {
-            headers: { Authorization: `Bearer ${accessToken}` },
-          })
-
-          return new Response(JSON.stringify(response.data), { status: 200 })
-        } catch (error) {
-          const errorResponse = handleApiError(error, 'Error deleting user')
-          return new Response(JSON.stringify(errorResponse), { status: 500 })
-        }
+        })
       },
     },
   },

@@ -2,6 +2,15 @@ import { createFileRoute } from '@tanstack/react-router'
 import { imagekit } from '@/lib/imagekit'
 import { deleteImagesOneByOne } from '@/helpers/image/formatImage'
 
+/**
+ * ImageKit Route - Intentionally NOT refactored to use withAuth
+ * 
+ * This route only performs ImageKit SDK operations (upload/delete) and does not
+ * make authenticated backend API calls. Therefore, it does not need the withAuth
+ * wrapper or token management.
+ * 
+ * Excluded from api-routes-withauth-refactor per Requirements 1.4
+ */
 export const Route = createFileRoute('/api/imagekit')({
   server: {
     handlers: {

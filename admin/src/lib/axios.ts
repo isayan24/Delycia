@@ -1,33 +1,26 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
+import axios from 'axios'
 import qs from 'qs'
 
-// const SERVER_URL = 'https://api.delycia.com/api/v1'
 const SERVER_URL = process.env.VITE_SERVER_URL
 
+/**
+ * Pre-configured axios instance for BFF server routes → backend API calls.
+ *
+ * IMPORTANT: This instance does NOT handle token refresh.
+ * Token refresh is handled in two places:
+ *   - Client-side: tokenService.ts interceptors on the global axios instance
+ *   - Server-side (BFF): withAuth() helper in lib/withAuth.ts
+ *
+ * This separation exists because server-side code cannot access browser cookies
+ * from within an axios interceptor — only the BFF route handler has access to
+ * the incoming Request object and its cookies.
+ */
 const axiosInstance = axios.create({
   baseURL: SERVER_URL,
-  withCredentials: true, // Ensures httpOnly cookies are sent automatically
+  withCredentials: true,
 })
 
-// Token refresh state management
-let isRefreshing = false
-let failedQueue: Array<{
-  resolve: (value?: unknown) => void
-  reject: (reason?: unknown) => void
-}> = []
-
-const processQueue = (error: AxiosError | null) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error)
-    } else {
-      prom.resolve()
-    }
-  })
-  failedQueue = []
-}
-
-// Request interceptor
+// Request interceptor — sets default headers
 axiosInstance.interceptors.request.use(
   (config) => {
     // For POST requests, transform JSON data to x-www-form-urlencoded format
@@ -41,9 +34,6 @@ axiosInstance.interceptors.request.use(
     // Set Accept header for all requests
     config.headers['Accept'] = 'application/json'
 
-    // Note: Bearer token is NOT needed here!
-    // Server routes handle adding Bearer tokens from httpOnly cookies
-
     return config
   },
   (error) => {
@@ -52,90 +42,18 @@ axiosInstance.interceptors.request.use(
   },
 )
 
-// Response interceptor with automatic token refresh on 401
+// Response interceptor — logging only, no auth logic
 axiosInstance.interceptors.response.use(
   (response) => response,
-  async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & {
-      _retry?: boolean
-    }
-
-    // Handle 401 errors (Unauthorized)
-    if (
-      (error.response?.status === 401 ||
-        (error.response?.status === 403 &&
-          (error.response?.data as any)?.error ===
-            'Forbidden : Token expired.')) &&
-      originalRequest &&
-      !originalRequest._retry
-    ) {
-      // Don't retry auth endpoints
-      if (
-        originalRequest.url?.includes('/api/auth/login') ||
-        originalRequest.url?.includes('/api/auth/refresh') ||
-        originalRequest.url?.includes('/api/auth/logout')
-      ) {
-        return Promise.reject(error)
-      }
-
-      // If already refreshing, queue this request
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject })
-        })
-          .then(() => axiosInstance(originalRequest))
-          .catch((err) => Promise.reject(err))
-      }
-
-      originalRequest._retry = true
-      isRefreshing = true
-
-      try {
-        // Determine the correct URL based on execution context
-        // On server-side, we need an absolute URL since there's no browser origin
-        const isServer = typeof window === 'undefined'
-        const refreshUrl = isServer
-          ? `${process.env.VITE_APP_URL || 'http://localhost:4500'}/api/auth/refresh`
-          : '/api/auth/refresh'
-
-        // Attempt to refresh the token
-        const refreshResponse = await axios.post(
-          refreshUrl,
-          {},
-          { withCredentials: true },
-        )
-
-        if (
-          refreshResponse.status === 200 &&
-          refreshResponse.data?.statusCode === 200
-        ) {
-          // Token refreshed successfully, process queued requests
-          processQueue(null)
-
-          // Retry the original request
-          return axiosInstance(originalRequest)
-        } else {
-          // Refresh failed
-          processQueue(error)
-          handleAuthFailure()
-          return Promise.reject(error)
-        }
-      } catch (refreshError) {
-        // Refresh request failed
-        processQueue(error)
-        handleAuthFailure()
-        return Promise.reject(refreshError)
-      } finally {
-        isRefreshing = false
-      }
-    }
-
-    // Log other errors
+  (error) => {
+    // Log non-auth errors for debugging
     try {
-      console.error(
-        'API Response Error:',
-        error?.response?.data || error.message,
-      )
+      if (error.response?.status !== 401 && error.response?.status !== 403) {
+        console.error(
+          'API Response Error:',
+          error?.response?.data || error.message,
+        )
+      }
     } catch (err) {
       console.error('Error handling response:', err)
     }
@@ -143,14 +61,5 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error)
   },
 )
-
-// Handle authentication failure - redirect to login
-function handleAuthFailure() {
-  console.error('Token refresh failed - redirecting to login')
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('admin_user_data')
-    window.location.href = '/login'
-  }
-}
 
 export default axiosInstance

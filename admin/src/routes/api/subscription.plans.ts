@@ -1,58 +1,45 @@
 import { createFileRoute } from '@tanstack/react-router'
 import axiosInstance from '@/lib/axios'
-import { getAccessTokenFromCookie } from '@/lib/server-cookies'
+import { withAuth, jsonResponse } from '@/lib/withAuth'
+import { handleApiError } from '@/helpers/handleApiError'
 
 export const Route = createFileRoute('/api/subscription/plans')({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        try {
-          // Get token from httpOnly cookie
-          const accessToken = getAccessTokenFromCookie(request)
+        return withAuth(request, async (accessToken, authHeaders) => {
+          try {
+            // Fetch plans from backend
+            const response = await axiosInstance.get(
+              `/admin/subscriptions/plans`,
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                },
+              },
+            )
 
-          if (!accessToken) {
-            return new Response(
-              JSON.stringify({
-                statusCode: 401,
-                message: 'Not authenticated',
-                error: true,
-              }),
-              { status: 401, headers: { 'Content-Type': 'application/json' } },
+            return jsonResponse(
+              {
+                statusCode: 200,
+                message: 'success',
+                plans: response.data?.plans || [],
+              },
+              200,
+              authHeaders,
+            )
+          } catch (error) {
+            const errorResponse = handleApiError(
+              error,
+              'Error fetching plans',
+            )
+            return jsonResponse(
+              errorResponse,
+              errorResponse.status || 500,
+              authHeaders,
             )
           }
-
-          // Fetch plans from backend
-          const response = await axiosInstance.get(
-            `/admin/subscriptions/plans`,
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-              },
-            },
-          )
-
-          return new Response(
-            JSON.stringify({
-              statusCode: 200,
-              message: 'success',
-              plans: response.data?.plans || [],
-            }),
-            { status: 200, headers: { 'Content-Type': 'application/json' } },
-          )
-        } catch (error: any) {
-          console.error('Error fetching plans:', error)
-          return new Response(
-            JSON.stringify({
-              statusCode: error.response?.status || 500,
-              message: error.response?.data?.message || 'Failed to fetch plans',
-              error: true,
-            }),
-            {
-              status: error.response?.status || 500,
-              headers: { 'Content-Type': 'application/json' },
-            },
-          )
-        }
+        })
       },
     },
   },
