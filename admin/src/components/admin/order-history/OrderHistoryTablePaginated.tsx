@@ -18,28 +18,10 @@ import { TablePagination } from './table/components/TablePagination'
 import { OrderItemsCell } from './table/components/OrderItemsCell'
 import { PrintBillDialog } from './shared/PrintBillDialog'
 import { Checkbox } from '@/components/ui/checkbox'
+import OrderTotalWithTooltip from './shared/OrderTotalWithTooltip'
 
 import { useMergeOrders } from '@/hooks/mutations/useMergeOrders'
 import useToast from '@/hooks/UseToast'
-import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
-
-// Simple component to display order total with tax
-const OrderTotal = ({ order }: { order: any }) => {
-  const subtotal = parseFloat(order.totalAmount || 0)
-  const discountAmount = parseFloat(order.discountAmount || order.discount_amount || 0)
-  
-  const { grandTotal, isLoading } = useOrderTaxCalculation({
-    subtotal,
-    discountAmount,
-    rid: order.rid || order.restaurant_id,
-  })
-  
-  return (
-    <div className="text-sm font-semibold">
-      ₹{(isLoading ? subtotal : grandTotal).toFixed(0)}
-    </div>
-  )
-}
 
 interface OrderHistoryTablePaginatedProps {
   items: any[]
@@ -368,7 +350,11 @@ export default function OrderHistoryTablePaginated({
 
                 {/* Amount */}
                 <TableCell className="py-3 px-3">
-                  <OrderTotal order={order} />
+                  <OrderTotalWithTooltip
+                    subtotal={parseFloat(order.totalAmount || 0)}
+                    discountAmount={parseFloat(order.discountAmount || order.discount_amount || 0)}
+                    rid={order.rid || order.restaurant_id}
+                  />
                 </TableCell>
 
                 {/* Table */}

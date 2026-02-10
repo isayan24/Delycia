@@ -1,5 +1,4 @@
 import { useMemo } from 'react'
-import { useRestaurantsQuery } from '@/hooks/queries/useRestaurantsQuery'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import { BillData, TaxBreakdown } from '../types'
 import { calculateBillTaxBreakdown } from '../utils/billCalculations'
@@ -18,21 +17,15 @@ interface UseBillTaxCalculationProps {
 export function useBillTaxCalculation({
   billData,
 }: UseBillTaxCalculationProps) {
-  // Get selected restaurant ID from context
-  const { selectedRid } = useRestaurantSelector()
+  // Get restaurant data from selector (already cached by TanStack Query)
+  const { restaurants, selectedRid, isLoadingRestaurants } = useRestaurantSelector()
   
   // Determine which restaurant to use (billData.rid takes priority)
   const restaurantId = billData.rid || (selectedRid ? parseInt(selectedRid) : 0)
 
-  const {
-    data: restaurantMap,
-    isLoading: isLoadingRestaurant,
-    error: restaurantError,
-  } = useRestaurantsQuery([restaurantId])
-
   const taxBreakdown = useMemo((): TaxBreakdown => {
     // Return zero values if data is not yet loaded
-    if (isLoadingRestaurant || !restaurantMap) {
+    if (isLoadingRestaurants) {
       return {
         subtotal: 0,
         taxAmount: 0,
@@ -43,7 +36,7 @@ export function useBillTaxCalculation({
 
     // Handle missing restaurant data
     const restaurantKey = restaurantId.toString()
-    const restaurant = restaurantMap[restaurantKey]
+    const restaurant = restaurants[restaurantKey]
 
     if (!restaurant) {
       console.error(`Restaurant not found for rid: ${restaurantId}`)
@@ -83,11 +76,11 @@ export function useBillTaxCalculation({
         totalAmount: billData.totalAmount,
       }
     }
-  }, [restaurantMap, isLoadingRestaurant, restaurantId, billData])
+  }, [restaurants, isLoadingRestaurants, restaurantId, billData])
 
   return {
     taxBreakdown,
-    isLoading: isLoadingRestaurant,
-    error: restaurantError,
+    isLoading: isLoadingRestaurants,
+    error: null,
   }
 }
