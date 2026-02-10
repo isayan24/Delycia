@@ -19,10 +19,11 @@ import { useAuth } from '@/hooks/useAuth'
 import { useCustomerSearch, UserSearchResult } from './hooks/useCustomerSearch'
 import { CustomerSearchDropdown } from './CustomerSearchDropdown'
 import { generateUsername } from '@/helpers/user/generateUsername'
-import ThermalBill from '@/components/admin/order-history/ThermalBill'
-import { BillData } from '@/components/admin/order-history/thermalBillUtils'
-import { handleShareToMobile } from '@/components/admin/order-history/thermalBillUtils'
+import ThermalBill from '@/components/billing/ThermalBill'
+import type { BillData } from '@/components/billing'
+import { handleShareToMobile } from '@/components/billing'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
+import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
 
 interface CustomerDetails {
   name: string
@@ -145,7 +146,14 @@ export default function AddCustomerDetails() {
 
   const subtotal = getTotalAmount()
   const validatedDiscount = Math.max(0, Math.min(discount, subtotal))
-  const finalAmount = subtotal - validatedDiscount
+  
+  // Calculate tax using the hook
+  const { grandTotal, taxAmount, taxPercent, isLoading: isTaxLoading } = useOrderTaxCalculation({
+    subtotal,
+    discountAmount: validatedDiscount,
+  })
+  
+  const finalAmount = grandTotal
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -179,9 +187,6 @@ export default function AddCustomerDetails() {
       showSuccess('Success', 'Order placed successfully')
 
       // Prepare bill data for thermal printer
-      const taxPercent = selectedRestaurant?.tax_percent || 0
-      const taxAmount = (subtotal * taxPercent) / 100
-      
       const thermalBillData: BillData = {
         orderId: `TBL-${table?.table_number || 'N/A'}`,
         restaurantName: '', // ThermalBill uses useRestaurantSelector
@@ -198,7 +203,7 @@ export default function AddCustomerDetails() {
         totalAmount: subtotal,
         discountAmount: validatedDiscount > 0 ? validatedDiscount : undefined,
         taxPercent: taxPercent,
-        taxAmount: Math.round(taxAmount * 100) / 100,
+        taxAmount: taxAmount,
         orderDate: new Date().toLocaleString('en-IN', {
           year: 'numeric',
           month: 'short',
@@ -263,7 +268,7 @@ export default function AddCustomerDetails() {
                 Table {table?.table_number || '#'}
               </p>
               <p className="text-lg font-bold text-orange-800">
-                ₹{finalAmount}
+                ₹{finalAmount.toFixed(2)}
               </p>
             </div>
           </div>
@@ -456,7 +461,7 @@ export default function AddCustomerDetails() {
                   </div>
                   <div className="flex justify-between items-center text-sm text-gray-600 mb-1">
                     <span>Subtotal:</span>
-                    <span className="font-medium">₹{subtotal}</span>
+                    <span className="font-medium">₹{subtotal.toFixed(2)}</span>
                   </div>
                   {validatedDiscount > 0 && (
                     <div className="flex justify-between items-center text-sm text-green-600 mb-1">
@@ -466,9 +471,15 @@ export default function AddCustomerDetails() {
                       </span>
                     </div>
                   )}
+                  {!isTaxLoading && taxAmount > 0 && (
+                    <div className="flex justify-between items-center text-sm text-gray-600 mb-1">
+                      <span>Tax ({taxPercent}%):</span>
+                      <span className="font-medium">₹{taxAmount.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center text-lg font-bold text-orange-800 pt-2 border-t border-orange-200">
                     <span>Total Amount:</span>
-                    <span>₹{finalAmount}</span>
+                    <span>₹{finalAmount.toFixed(2)}</span>
                   </div>
                 </div>
               </form>

@@ -78,7 +78,7 @@ export const getISTTimeComponents = (
 }
 
 // Format a date with time in IST for display in a consistent format
-export const formatISTDateTime = (utcTimeStr: string): string => {
+export const formatISTDateTime = (utcTimeStr: string | any): string | any => {
   try {
     const utcDate = new Date(utcTimeStr)
 

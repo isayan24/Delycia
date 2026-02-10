@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import OrderDetailsCard from './OrderDetailsCard'
 import {
   TransformedOrder,
@@ -61,8 +61,7 @@ const OrderDetailsList = memo(function OrderDetailsList({
     <div className="w-[60%] h-full flex flex-col">
       <OrderDetailsCard
         orderId={selectedOrder.orderId}
-        time={selectedOrder.time}
-        date={selectedOrder.date}
+        orderDate={selectedOrder.updatedAt}
         status={selectedOrder.status}
         customerName={selectedOrder.customerName}
         customer={selectedOrder.customer}
@@ -75,8 +74,7 @@ const OrderDetailsList = memo(function OrderDetailsList({
         tableNo={selectedOrder.tableNo}
         paymentStatus={selectedOrder.paymentStatus}
         discountAmount={selectedOrder.discountAmount}
-        taxPercent={selectedOrder.taxPercent}
-        taxAmount={selectedOrder.taxAmount}
+        rid={selectedOrder.rid}
       />
     </div>
   )

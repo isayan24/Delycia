@@ -10,11 +10,11 @@ import {
   calculateTimeElapsed,
 } from '../utils/orderProcessing'
 import { Printer } from 'lucide-react'
-import ThermalBill from '@/components/admin/order-history/ThermalBill'
+import ThermalBill from '@/components/billing/ThermalBill'
 import {
   orderToBillData,
   handleShareToMobile,
-} from '@/components/admin/order-history/thermalBillUtils'
+} from '@/components/billing'
 
 interface CompactOrderHeaderProps {
   order: ProcessedOrder
@@ -23,6 +23,7 @@ interface CompactOrderHeaderProps {
   onViewTimeline: (customerId: number) => void
   showCallButton?: boolean
   timeElapsed?: number
+  finalAmount?: number
 }
 
 export function CompactOrderHeader({
@@ -32,6 +33,7 @@ export function CompactOrderHeader({
   onViewTimeline,
   showCallButton = false,
   timeElapsed,
+  finalAmount,
 }: CompactOrderHeaderProps) {
   const [currentTimeElapsed, setCurrentTimeElapsed] = useState(
     calculateTimeElapsed(order.created_at),
@@ -152,7 +154,7 @@ export function CompactOrderHeader({
         {/* Order Total */}
         <div className="text-right flex-shrink-0">
           <p className="text-lg font-bold text-gray-900">
-            ₹{order.total_amount}
+            ₹{finalAmount !== undefined ? finalAmount.toFixed(2) : order.total_amount}
           </p>
           <p className="text-xs text-gray-500">ID: {order.customer_id}</p>
         </div>

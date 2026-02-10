@@ -143,13 +143,12 @@ export const Route = createFileRoute('/api/quick-bill')({
               addons: item.addons,
               tax_percent: taxPercent,
               tax_amount: taxAmount,
-            }))
+            })) 
 
             // Generate signature for the transformed order items
             const signature = signatureService.generateOrderSignature(
               transformedOrderItems,
             )
-
             // Make signed API call to orders endpoint using token from cookie
             const ordersResponse = await axiosInstance.post(
               cryptoConfig.getOrdersEndpoint(),

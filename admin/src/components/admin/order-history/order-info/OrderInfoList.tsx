@@ -1,6 +1,5 @@
-import React, { memo, useState, useCallback } from 'react'
+import { memo, useState, useCallback } from 'react'
 import OrderInfoCard from './OrderInfoCard'
-import { TransformedOrder } from '../utils/orderHistoryUtils'
 import { OrderInfoSkeleton } from '../LoadingSkeleton'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,8 +19,9 @@ import {
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { PrintBillDialog } from '../shared/PrintBillDialog'
-import { formatISTDateTime, getISTDateKey, getISTTimeComponents } from '../utils/historyDateUtils'
+import { formatISTDateTime } from '../utils/historyDateUtils'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
+import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
 
 interface OrderInfoListProps {
   orders: any[]
@@ -93,6 +93,52 @@ const LoadingState = memo(() => (
 ))
 LoadingState.displayName = 'LoadingState'
 
+// Order card wrapper with tax calculation
+const OrderCardWithTax = memo(({ 
+  order, 
+  index,
+  selectedOrderId,
+  onOrderSelect,
+  onPrintBill 
+}: { 
+  order: any
+  index: number
+  selectedOrderId: string | null
+  onOrderSelect: (orderId: string) => void
+  onPrintBill: (order: any) => void
+}) => {
+  // Calculate subtotal from items (prices already include quantity)
+  const subtotal = order.items.reduce((sum: number, item: any) => sum + item.price, 0)
+  const discountAmount = parseFloat(order.discountAmount || 0)
+  
+  // Use the tax calculation hook for consistent calculations
+  const { grandTotal, taxAmount, taxPercent } = useOrderTaxCalculation({
+    subtotal,
+    discountAmount,
+    rid: order.rid,
+  })
+
+  return (
+    <OrderInfoCard
+      key={`${order.cartId}-${index}`}
+      status={order.status} 
+      orderDate={order.updatedAt}
+      orderId={order.orderId}
+      customerName={order.customerName}
+      customer={order.customer}
+      items={order.items}
+      totalAmount={grandTotal}
+      discountAmount={discountAmount}
+      taxPercent={taxPercent}
+      taxAmount={taxAmount}
+      isSelected={selectedOrderId === order.id}
+      onClick={() => onOrderSelect(order.id)}
+      onPrint={() => onPrintBill(order)}
+    />
+  )
+})
+OrderCardWithTax.displayName = 'OrderCardWithTax'
+
 const OrderInfoList = memo(function OrderInfoList({
   orders,
   selectedOrderId,
@@ -120,7 +166,6 @@ const OrderInfoList = memo(function OrderInfoList({
   const [selectedOrderForBill, setSelectedOrderForBill] = useState<any>(null)
 
   const totalPages = pagination?.total_pages || 1
-  const totalOrders = pagination?.total_orders || 0
   const hasNextPage = pagination?.has_next_page || false
   const hasPrevPage = pagination?.has_prev_page || false
 
@@ -309,21 +354,13 @@ const OrderInfoList = memo(function OrderInfoList({
       <div className="flex-1 overflow-y-auto p-3">
         <div className="space-y-2">
           {orders.map((order, index) => (
-            <OrderInfoCard
+            <OrderCardWithTax
               key={`${order.cartId}-${index}`}
-              status={order.status} 
-              orderDate={order.updatedAt}
-              orderId={order.orderId}
-              customerName={order.customerName}
-              customer={order.customer}
-              items={order.items}
-              totalAmount={order.totalAmount}
-              discountAmount={order.discountAmount}
-              taxPercent={order.taxPercent}
-              taxAmount={order.taxAmount}
-              isSelected={selectedOrderId === order.id}
-              onClick={() => onOrderSelect(order.id)}
-              onPrint={() => handlePrintBill(order)}
+              order={order}
+              index={index}
+              selectedOrderId={selectedOrderId}
+              onOrderSelect={onOrderSelect}
+              onPrintBill={handlePrintBill}
             />
           ))}
         </div>

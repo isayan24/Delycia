@@ -17,8 +17,6 @@ export interface WebSocketOrderItem {
   special_instructions: string
   preparation_time?: number
   discount_amount?: number
-  tax_percent?: number
-  tax_amount?: number
   addons?: {
     name: string
     price: number
@@ -56,8 +54,6 @@ export interface ProcessedOrderItem {
   special_instructions: string
   preparation_time?: number
   discount_amount?: number
-  tax_percent?: number
-  tax_amount?: number
   addons?: {
     name: string
     price: number
@@ -80,8 +76,6 @@ export interface ProcessedOrder {
   items: ProcessedOrderItem[]
   total_amount: number
   discount_amount?: number // Total discount applied to this order
-  tax_percent?: number // Tax percentage applied to this order
-  tax_amount?: number // Tax amount applied to this order
   payment_status: string
   payment_method?: string
   order_status: string

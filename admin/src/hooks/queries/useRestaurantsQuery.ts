@@ -63,6 +63,12 @@ export function useRestaurantsQuery(
 
           if (response.data?.restaurant_info) {
             const restaurantInfo = response.data.restaurant_info
+            
+            // Validate tax_percent is present
+            if (restaurantInfo.tax_percent === null || restaurantInfo.tax_percent === undefined) {
+              console.warn(`Restaurant ${ridString} is missing tax_percent configuration`)
+            }
+            
             restaurantMap[ridString] = {
               id: restaurantInfo.id?.toString() || ridString,
               name:
@@ -76,7 +82,7 @@ export function useRestaurantsQuery(
               city: restaurantInfo.city,
               state: restaurantInfo.state,
               pincode: restaurantInfo.pincode?.toString(),
-              tax_percent: restaurantInfo.tax_percent || 0,
+              tax_percent: restaurantInfo.tax_percent ?? 0, // Default to 0 if missing
             }
           } else if (
             response.data?.restaurants &&

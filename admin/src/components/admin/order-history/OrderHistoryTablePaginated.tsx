@@ -11,9 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Printer } from 'lucide-react'
 import {
-  convertToISTWithTimezone,
   formatISTDateTime,
-  getISTDateKey,
 } from './utils/historyDateUtils'
 import { TableFilters } from './table/components/TableFilters'
 import { TablePagination } from './table/components/TablePagination'
@@ -23,7 +21,25 @@ import { Checkbox } from '@/components/ui/checkbox'
 
 import { useMergeOrders } from '@/hooks/mutations/useMergeOrders'
 import useToast from '@/hooks/UseToast'
-import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
+import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
+
+// Simple component to display order total with tax
+const OrderTotal = ({ order }: { order: any }) => {
+  const subtotal = parseFloat(order.totalAmount || 0)
+  const discountAmount = parseFloat(order.discountAmount || order.discount_amount || 0)
+  
+  const { grandTotal, isLoading } = useOrderTaxCalculation({
+    subtotal,
+    discountAmount,
+    rid: order.rid || order.restaurant_id,
+  })
+  
+  return (
+    <div className="text-sm font-semibold">
+      ₹{(isLoading ? subtotal : grandTotal).toFixed(0)}
+    </div>
+  )
+}
 
 interface OrderHistoryTablePaginatedProps {
   items: any[]
@@ -156,7 +172,6 @@ export default function OrderHistoryTablePaginated({
 
   // Print bill handler
   const handlePrintBill = useCallback((order: any) => {
-    console.log(order, 'order')
     const items = order.items
       ? typeof order.items === 'string'
         ? JSON.parse(order.items)
@@ -191,8 +206,7 @@ export default function OrderHistoryTablePaginated({
       discountAmount: parseFloat(
         order.discountAmount || order.discount_amount || 0,
       ),
-      taxPercent: parseFloat(order.taxPercent || order.tax_percent || 0),
-      taxAmount: parseFloat(order.taxAmount || order.tax_amount || 0),
+      rid: order.rid || order.restaurant_id,
       orderDate: formatISTDateTime(order.createdAt || order.created_at),
     }
 
@@ -354,16 +368,7 @@ export default function OrderHistoryTablePaginated({
 
                 {/* Amount */}
                 <TableCell className="py-3 px-3">
-                  <div className="text-sm font-semibold">
-                    ₹
-                    {(
-                      parseFloat(order.totalAmount || order.total_amount || 0) -
-                      parseFloat(
-                        order.discountAmount || order.discount_amount || 0,
-                      ) +
-                      parseFloat(order.taxAmount || order.tax_amount || 0)
-                    )?.toFixed(0)}
-                  </div>
+                  <OrderTotal order={order} />
                 </TableCell>
 
                 {/* Table */}

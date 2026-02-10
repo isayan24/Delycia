@@ -1,6 +1,8 @@
-import React, { memo, useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import CustomerAvatar from '../CustomerAvatar'
 import { CustomerInfo, TransformedOrderItem } from '../utils/orderHistoryUtils'
+import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
+import { formatISTDateTime } from '../utils/historyDateUtils'
 
 interface TimelineStep {
   label: string
@@ -11,8 +13,7 @@ interface TimelineStep {
 
 interface OrderDetailsCardProps {
   orderId: string
-  time: string
-  date: string
+  orderDate: Date
   status: 'DELIVERED' | 'CANCELLED'
   customerName: string
   customer?: CustomerInfo
@@ -26,8 +27,7 @@ interface OrderDetailsCardProps {
   tableNo: number | any
   paymentStatus: string
   discountAmount?: number
-  taxPercent?: number
-  taxAmount?: number
+  rid?: number
 }
 
 const getStatusColor = (status: string) => {
@@ -54,8 +54,7 @@ const getTimelineColor = (status: string) => {
 
 const OrderDetailsCard = memo(function OrderDetailsCard({
   orderId,
-  time,
-  date,
+  orderDate,
   status,
   customerName,
   customer,
@@ -69,26 +68,29 @@ const OrderDetailsCard = memo(function OrderDetailsCard({
   tableNo,
   paymentStatus,
   discountAmount,
-  taxPercent,
-  taxAmount,
+  rid,
 }: OrderDetailsCardProps) {
+  // Calculate subtotal from items
+  const subtotal = useMemo(
+    () => items.reduce((sum, item) => sum + item.price, 0),
+    [items],
+  )
+
+  // Calculate tax using the hook
+  const { grandTotal, taxAmount, taxPercent } = useOrderTaxCalculation({
+    subtotal,
+    discountAmount: discountAmount || 0,
+    rid,
+  })
+
   // Memoize calculations to prevent unnecessary recalculations
   const totalItems = useMemo(
     () => items.reduce((sum, item) => sum + item.quantity, 0),
     [items],
   )
-  const subtotal = useMemo(
-    () => items.reduce((sum, item) => sum + item.price, 0),
-    [items],
-  )
   const discount = useMemo(
     () => parseFloat(String(discountAmount || 0)),
     [discountAmount],
-  )
-  const tax = useMemo(() => parseFloat(String(taxAmount || 0)), [taxAmount])
-  const grandTotal = useMemo(
-    () => subtotal - discount + tax,
-    [subtotal, discount, tax],
   )
   const statusColorClass = useMemo(() => getStatusColor(status), [status])
   const timelineColorClass = useMemo(() => getTimelineColor(status), [status])
@@ -109,7 +111,7 @@ const OrderDetailsCard = memo(function OrderDetailsCard({
         </div>
         <div className="text-right">
           <div className="text-gray-600 mb-3">
-            {time} | {date}
+            {formatISTDateTime(orderDate)} 
           </div>
           <button className="px-4 py-2 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-50">
             Help
@@ -307,13 +309,13 @@ const OrderDetailsCard = memo(function OrderDetailsCard({
               </span>
             </div>
           )}
-          {taxAmount && parseFloat(String(taxAmount)) > 0 && (
+          {taxAmount > 0 && (
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm font-medium text-gray-600">
-                Tax ({taxPercent || 0}%)
+                Tax ({taxPercent}%)
               </span>
               <span className="text-sm font-medium text-gray-600">
-                +₹{tax.toFixed(2)}
+                +₹{taxAmount.toFixed(2)}
               </span>
             </div>
           )}

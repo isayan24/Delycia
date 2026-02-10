@@ -7,8 +7,10 @@ import { ProcessedOrder } from '@/types/WebSocketOrder'
 import { CompactOrderHeader } from '../order-ui-card/CompactOrderHeader'
 import { MobileOrderAccordion } from '../small-screen/MobileOrderAccordion'
 import { ProcessingCountdownDisplay } from '../countdown'
-import logger from '@/lib/logger-dynamic'
+
 import { calculateTimeElapsed } from '../utils/orderProcessing'
+import { OrderTaxBreakdown } from '@/components/common/OrderTaxBreakdown'
+import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
 
 interface ProcessingOrderCardProps {
   order: ProcessedOrder
@@ -37,6 +39,12 @@ export function ProcessingOrderCard({
   )
   const [, startTransition] = useTransition()
   const [isExtendingTime, setIsExtendingTime] = useState(false)
+
+  // Calculate final amount with tax
+  const { grandTotal, isLoading: isTaxLoading } = useOrderTaxCalculation({
+    subtotal: order.total_amount,
+    discountAmount: order.discount_amount ? parseFloat(String(order.discount_amount)) : 0,
+  })
 
   // Use actual preparation time from order data
   const totalPrepTime = order.preparation_time || 30 // Default to 30 minutes if not set
@@ -112,6 +120,7 @@ export function ProcessingOrderCard({
               onViewTimeline={onViewTimeline}
               showCallButton={false}
               timeElapsed={timeElapsed}
+              finalAmount={isTaxLoading ? order.total_amount : grandTotal}
             />
           </div>
         </div>
@@ -133,7 +142,7 @@ export function ProcessingOrderCard({
         <MobileOrderAccordion order={order} showSpecialInstructions={true} />
 
         {/* Desktop View - Compact Items List */}
-        <OrderDetailsDesktop order={order} />
+        <OrderDetailsDesktop order={order} finalAmount={isTaxLoading ? order.total_amount : grandTotal} />
 
         {/* Action Buttons - Touch Optimized */}
 
@@ -159,7 +168,7 @@ export function ProcessingOrderCard({
   )
 }
 
-const OrderDetailsDesktop = ({ order }: any) => {
+const OrderDetailsDesktop = ({ order, finalAmount }: { order: any; finalAmount: number }) => {
   return (
     <div className="hidden md:block">
       <div className="bg-gray-50 p-3 rounded-lg">
@@ -169,11 +178,7 @@ const OrderDetailsDesktop = ({ order }: any) => {
           </h4>
           <div className="text-right">
             <span className="text-sm font-semibold text-[1rem]">
-              ₹{(
-                parseFloat(String(order.total_amount)) -
-                (parseFloat(String(order.discount_amount)) || 0) +
-                (parseFloat(String(order.tax_amount)) || 0)
-              ).toFixed(2)}
+              ₹{finalAmount.toFixed(2)}
             </span>
           </div>
         </div>
@@ -209,32 +214,13 @@ const OrderDetailsDesktop = ({ order }: any) => {
         </div>
         {/* Bill Summary */}
         <div className="mt-2 pt-2 border-t space-y-1">
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Subtotal:</span>
-            <span>₹{order.total_amount.toFixed(2)}</span>
-          </div>
-          {order.discount_amount && parseFloat(String(order.discount_amount)) > 0 && (
-            <div className="flex justify-between text-sm text-green-600">
-              <span>Discount:</span>
-              <span>-₹{parseFloat(String(order.discount_amount)).toFixed(2)}</span>
-            </div>
-          )}
-          {order.tax_amount && parseFloat(String(order.tax_amount)) > 0 && (
-            <div className="flex justify-between text-sm text-gray-700">
-              <span>Tax ({order.tax_percent}%):</span>
-              <span>+₹{parseFloat(String(order.tax_amount)).toFixed(2)}</span>
-            </div>
-          )}
-          <div className="flex justify-between text-sm font-semibold pt-1 border-t">
-            <span>Grand Total:</span>
-            <span>
-              ₹{(
-                order.total_amount -
-                (parseFloat(String(order.discount_amount)) || 0) +
-                (parseFloat(String(order.tax_amount)) || 0)
-              ).toFixed(2)}
-            </span>
-          </div>
+         
+          <OrderTaxBreakdown 
+            totalAmount={order.total_amount} 
+            showDetails={true}
+            isPreTax={true}
+            discountAmount={order.discount_amount ? parseFloat(String(order.discount_amount)) : 0}
+          />
         </div>
         <div className="flex items-center gap-2 text-xs mt-2 pt-2 border-t">
           <div

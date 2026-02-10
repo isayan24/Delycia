@@ -56,7 +56,6 @@ export const useOrderHistoryQuery = ({
         params,
         withCredentials: true,
       })
-
       // The API returns data nested in response.data.data
       return response.data.data || response.data
     },

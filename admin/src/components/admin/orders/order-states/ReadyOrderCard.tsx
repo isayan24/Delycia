@@ -7,6 +7,8 @@ import { calculateTimeElapsed } from '../utils/orderProcessing'
 import { CompactOrderHeader } from '../order-ui-card/CompactOrderHeader'
 import { MobileOrderAccordion } from '../small-screen/MobileOrderAccordion'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { OrderTaxBreakdown } from '@/components/common/OrderTaxBreakdown'
+import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
 
 interface ReadyOrderCardProps {
   order: ProcessedOrder
@@ -25,6 +27,14 @@ export function ReadyOrderCard({
 }: ReadyOrderCardProps) {
   const [timeElapsed, setTimeElapsed] = useState(0)
   const isMobile = useIsMobile()
+
+  // Calculate final amount with tax
+  const { grandTotal, isLoading: isTaxLoading } = useOrderTaxCalculation({
+    subtotal: order.total_amount,
+    discountAmount: order.discount_amount ? parseFloat(String(order.discount_amount)) : 0,
+  })
+   
+  
   // Calculate time elapsed since order was placed using IST-aware function
   useEffect(() => {
     const updateElapsed = () => {
@@ -60,6 +70,7 @@ export function ReadyOrderCard({
               onViewTimeline={onViewTimeline}
               showCallButton={true}
               timeElapsed={timeElapsed}
+              finalAmount={isTaxLoading ? order.total_amount : grandTotal}
             />
           </div>
         </div>
@@ -91,7 +102,7 @@ export function ReadyOrderCard({
               </h4>
               <div className="text-right">
                 <span className="text-sm font-semibold">
-                  ₹{order.total_amount}
+                  ₹{(isTaxLoading ? order.total_amount : grandTotal).toFixed(2)}
                 </span>
               </div>
             </div>
@@ -127,32 +138,12 @@ export function ReadyOrderCard({
             </div>
             {/* Bill Summary */}
             <div className="mt-2 pt-2 border-t space-y-1">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Subtotal:</span>
-                <span>₹{order.total_amount.toFixed(2)}</span>
-              </div>
-              {order.discount_amount && parseFloat(String(order.discount_amount)) > 0 && (
-                <div className="flex justify-between text-sm text-green-600">
-                  <span>Discount:</span>
-                  <span>-₹{parseFloat(String(order.discount_amount)).toFixed(2)}</span>
-                </div>
-              )}
-              {order.tax_amount && parseFloat(String(order.tax_amount)) > 0 && (
-                <div className="flex justify-between text-sm text-gray-700">
-                  <span>Tax ({order.tax_percent}%):</span>
-                  <span>+₹{parseFloat(String(order.tax_amount)).toFixed(2)}</span>
-                </div>
-              )}
-              <div className="flex justify-between text-sm font-semibold pt-1 border-t">
-                <span>Grand Total:</span>
-                <span>
-                  ₹{(
-                    order.total_amount -
-                    (parseFloat(String(order.discount_amount)) || 0) +
-                    (parseFloat(String(order.tax_amount)) || 0)
-                  ).toFixed(2)}
-                </span>
-              </div>
+              <OrderTaxBreakdown 
+                totalAmount={order.total_amount} 
+                showDetails={true}
+                isPreTax={true}
+                discountAmount={order.discount_amount ? parseFloat(String(order.discount_amount)) : 0}
+              />
             </div>
             <div className="flex items-center gap-2 text-xs mt-2 pt-2 border-t">
               <div

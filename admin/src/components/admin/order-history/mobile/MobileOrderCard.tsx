@@ -1,6 +1,7 @@
-import React, { memo, useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import CustomerAvatar from '../CustomerAvatar'
 import { TransformedOrder } from '../utils/orderHistoryUtils'
+import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
 
 interface MobileOrderCardProps {
   order: TransformedOrder
@@ -22,6 +23,19 @@ const MobileOrderCard = memo(function MobileOrderCard({
   order,
   onClick,
 }: MobileOrderCardProps) {
+  // Calculate subtotal from items (prices already include quantity)
+  const subtotal = useMemo(
+    () => order.items.reduce((sum, item) => sum + item.price, 0),
+    [order.items],
+  )
+
+  // Use the tax calculation hook for consistent calculations
+  const { grandTotal, taxAmount } = useOrderTaxCalculation({
+    subtotal,
+    discountAmount: order.discountAmount || 0,
+    rid: order.rid,
+  })
+  
   // Memoize the formatted items to prevent recalculation
   const formattedItems = useMemo(() => {
     if (!order.items || order.items.length === 0) {
@@ -42,14 +56,6 @@ const MobileOrderCard = memo(function MobileOrderCard({
 
     return itemsText
   }, [order.items])
-
-  // Calculate grand total: subtotal - discount + tax
-  const grandTotal = useMemo(() => {
-    const subtotal = order.totalAmount
-    const discount = parseFloat(String(order.discountAmount || 0))
-    const tax = parseFloat(String(order.taxAmount || 0))
-    return subtotal - discount + tax
-  }, [order.totalAmount, order.discountAmount, order.taxAmount])
 
   const statusColorClass = useMemo(
     () => getStatusColor(order.status),
@@ -107,9 +113,9 @@ const MobileOrderCard = memo(function MobileOrderCard({
                 -₹{parseFloat(String(order.discountAmount)).toFixed(0)} off
               </div>
             )}
-          {order.taxAmount && parseFloat(String(order.taxAmount)) > 0 && (
+          {taxAmount > 0 && (
             <div className="text-xs text-gray-600">
-              +₹{parseFloat(String(order.taxAmount)).toFixed(0)} tax
+              +₹{taxAmount.toFixed(0)} tax
             </div>
           )}
           <span className="text-base font-semibold text-gray-900">

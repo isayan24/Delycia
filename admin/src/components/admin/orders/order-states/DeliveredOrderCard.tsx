@@ -16,17 +16,19 @@ import {
   formatTimeElapsed,
   formatOrderTime,
 } from '../utils/orderProcessing'
+import { OrderTaxBreakdown } from '@/components/common/OrderTaxBreakdown'
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
-import ThermalBill from '@/components/admin/order-history/ThermalBill'
+import ThermalBill from '@/components/billing/ThermalBill'
 import {
   orderToBillData,
   handleShareToMobile,
-} from '@/components/admin/order-history/thermalBillUtils'
+} from '@/components/billing'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
+import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
 
 interface DeliveredOrderCardProps {
   order: ProcessedOrder
@@ -45,6 +47,12 @@ export function DeliveredOrderCard({
   const [isOpen, setIsOpen] = useState(false)
   const [showThermalBill, setShowThermalBill] = useState(false)
   const { selectedRestaurant } = useRestaurantSelector()
+
+  // Calculate final amount with tax
+  const { grandTotal, isLoading: isTaxLoading } = useOrderTaxCalculation({
+    subtotal: order.total_amount,
+    discountAmount: order.discount_amount ? parseFloat(String(order.discount_amount)) : 0,
+  })
 
   // Calculate time elapsed since order was placed using IST-aware function
   useEffect(() => {
@@ -120,13 +128,7 @@ export function DeliveredOrderCard({
                     <Clock className="h-3 w-3" />
                     {formatTimeElapsed(timeElapsed)}
                   </span>
-                  <span>
-                    ₹{(
-                      order.total_amount -
-                      (parseFloat(String(order.discount_amount)) || 0) +
-                      (parseFloat(String(order.tax_amount)) || 0)
-                    ).toFixed(2)}
-                  </span>
+                  <span>₹{(isTaxLoading ? order.total_amount : grandTotal).toFixed(2)}</span>
                   <span>{order.items.length} items</span>
                 </div>
               </div>
@@ -177,7 +179,7 @@ export function DeliveredOrderCard({
                 </h4>
                 <div className="text-right">
                   <span className="text-sm font-semibold">
-                    ₹{order.total_amount}
+                    ₹{(isTaxLoading ? order.total_amount : grandTotal).toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -219,32 +221,13 @@ export function DeliveredOrderCard({
 
               {/* Bill Summary */}
               <div className="mt-2 pt-2 border-t space-y-1">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Subtotal:</span>
-                  <span>₹{order.total_amount.toFixed(2)}</span>
-                </div>
-                {order.discount_amount && parseFloat(String(order.discount_amount)) > 0 && (
-                  <div className="flex justify-between text-sm text-green-600">
-                    <span>Discount:</span>
-                    <span>-₹{parseFloat(String(order.discount_amount)).toFixed(2)}</span>
-                  </div>
-                )}
-                {order.tax_amount && parseFloat(String(order.tax_amount)) > 0 && (
-                  <div className="flex justify-between text-sm text-gray-700">
-                    <span>Tax ({order.tax_percent}%):</span>
-                    <span>+₹{parseFloat(String(order.tax_amount)).toFixed(2)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between text-sm font-semibold pt-1 border-t">
-                  <span>Grand Total:</span>
-                  <span>
-                    ₹{(
-                      order.total_amount -
-                      (parseFloat(String(order.discount_amount)) || 0) +
-                      (parseFloat(String(order.tax_amount)) || 0)
-                    ).toFixed(2)}
-                  </span>
-                </div>
+                 
+                <OrderTaxBreakdown 
+                  totalAmount={order.total_amount} 
+                  showDetails={true}
+                  isPreTax={true}
+                  discountAmount={order.discount_amount ? parseFloat(String(order.discount_amount)) : 0}
+                />
               </div>
 
               {/* Order Meta */}

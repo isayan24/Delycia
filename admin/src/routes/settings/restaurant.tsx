@@ -99,6 +99,33 @@ function RestaurantSettingsPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value, type } = e.target
+    
+    // Special validation for tax_percent
+    if (name === 'tax_percent') {
+      const numValue = parseFloat(value)
+      
+      // Validate range (0-100)
+      if (value !== '' && (isNaN(numValue) || numValue < 0 || numValue > 100)) {
+        showError('Invalid Tax Percentage', 'Tax percentage must be between 0 and 100')
+        return
+      }
+      
+      // Validate decimal places (max 2)
+      if (value.includes('.')) {
+        const decimalPlaces = value.split('.')[1]?.length || 0
+        if (decimalPlaces > 2) {
+          showError('Invalid Tax Percentage', 'Tax percentage can have at most 2 decimal places')
+          return
+        }
+      }
+      
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value === '' ? undefined : numValue,
+      }))
+      return
+    }
+    
     setFormData((prev) => ({
       ...prev,
       [name]: type === 'number' ? parseFloat(value) : value,
@@ -383,12 +410,17 @@ function RestaurantSettingsPage() {
                   value={formData.tax_percent ?? ''}
                   onChange={handleInputChange}
                   className="pr-8"
+                  placeholder="e.g., 5.00"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                   %
                 </span>
               </div>
             </div>
+            <p className="text-xs text-muted-foreground mt-2 ml-32">
+              Enter the GST/tax rate (0-100). This will be applied to all new orders. 
+              Example: 5.00 for 5% GST.
+            </p>
           </CardContent>
         </Card>
 

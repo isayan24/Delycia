@@ -56,8 +56,7 @@ export interface TransformedOrder {
   items: TransformedOrderItem[]
   totalAmount: number // This is the subtotal (pre-tax)
   discountAmount?: number | any
-  taxPercent?: number // GST rate % (e.g., 12.00 for 12%)
-  taxAmount?: number // Calculated tax amount (e.g., 22.80)
+  rid?: number // Restaurant ID
   createdAt: Date
   updatedAt: Date
   paymentMethod: string
@@ -88,12 +87,15 @@ export const mapOrderStatus = (
 }
 
 /**
- * Converts UTC timestamp to local time string
+ * Converts UTC timestamp to Indian Standard Time (IST) and formats as time string
+ * IST is UTC + 5 hours 30 minutes
  */
 export const formatTimeFromUTC = (utcTimestamp: string): string => {
   try {
     const date = new Date(utcTimestamp)
-    return format(date, 'h:mm a') // e.g., "9:22 PM"
+    // Add 5 hours and 30 minutes to convert UTC to IST
+    const istDate = new Date(date.getTime() + (5 * 60 + 30) * 60 * 1000)
+    return format(istDate, 'h:mm a') // e.g., "9:22 PM"
   } catch (error) {
     console.error('Error formatting time:', error)
     return 'Invalid time'
@@ -101,12 +103,15 @@ export const formatTimeFromUTC = (utcTimestamp: string): string => {
 }
 
 /**
- * Converts UTC timestamp to local date string
+ * Converts UTC timestamp to Indian Standard Time (IST) and formats as date string
+ * IST is UTC + 5 hours 30 minutes
  */
 export const formatDateFromUTC = (utcTimestamp: string): string => {
   try {
     const date = new Date(utcTimestamp)
-    return format(date, 'd MMMM') // e.g., "2 November"
+    // Add 5 hours and 30 minutes to convert UTC to IST
+    const istDate = new Date(date.getTime() + (5 * 60 + 30) * 60 * 1000)
+    return format(istDate, 'd MMMM') // e.g., "2 November"
   } catch (error) {
     console.error('Error formatting date:', error)
     return 'Invalid date'
@@ -308,6 +313,7 @@ export const transformOrderData = (apiOrders: any[]): TransformedOrder[] => {
           customerPhone: order.customer_phone || order.customer?.phone || 'N/A',
           items: transformedItems,
           totalAmount: parseFloat(order.total_amount) || 0,
+          rid: order.rid || order.restaurant_id,
           createdAt: new Date(order.created_at),
           updatedAt: new Date(order.updated_at),
           paymentMethod: order.payment_method,
@@ -318,8 +324,6 @@ export const transformOrderData = (apiOrders: any[]): TransformedOrder[] => {
           paymentStatus: order.payment_status,
           discountAmount: order.discount_amount || 0,
           tableZone: order.table_zone,
-          taxPercent: parseFloat(order.tax_percent) || 0,
-          taxAmount: parseFloat(order.tax_amount) || 0,
         }
       })
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
@@ -343,6 +347,7 @@ export const transformOrderData = (apiOrders: any[]): TransformedOrder[] => {
           customerPhone: firstItem.customer_phone || 'N/A',
           items: aggregateOrderItems(orderItems),
           totalAmount: calculateOrderTotal(orderItems),
+          rid: firstItem.rid || firstItem.restaurant_id,
           createdAt: new Date(firstItem.created_at),
           updatedAt: new Date(firstItem.updated_at),
           paymentMethod: firstItem.payment_method,

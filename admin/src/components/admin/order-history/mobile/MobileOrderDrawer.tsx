@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import {
   Drawer,
   DrawerClose,
@@ -14,6 +14,7 @@ import {
 } from '../utils/orderHistoryUtils'
 import CustomerAvatar from '../CustomerAvatar'
 import { X } from 'lucide-react'
+import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
 
 interface MobileOrderDrawerProps {
   order: TransformedOrder | null
@@ -50,6 +51,19 @@ const MobileOrderDrawer = memo(function MobileOrderDrawer({
   onClose,
   onPrintBill,
 }: MobileOrderDrawerProps) {
+  // Calculate subtotal from items (prices already include quantity)
+  const subtotal = useMemo(
+    () => order?.items.reduce((sum, item) => sum + item.price, 0) || 0,
+    [order?.items],
+  )
+
+  // Use the tax calculation hook for consistent calculations
+  const { grandTotal, taxAmount } = useOrderTaxCalculation({
+    subtotal,
+    discountAmount: order?.discountAmount || 0,
+    rid: order?.rid,
+  })
+
   // Memoize calculations
   const timeline = useMemo(
     () => (order ? generateOrderTimeline(order) : []),
@@ -234,7 +248,31 @@ const MobileOrderDrawer = memo(function MobileOrderDrawer({
                     <div className="flex-1">
                       <div className="font-medium text-gray-900 text-sm">
                         {item.quantity} x {item.name}
+
+                        {item.variant_name && (
+                        <span className="text-gray-600 font-normal">
+                          {' '}
+                          ({item.variant_name})
+                        </span>
+                      )}
                       </div>
+                      
+                      {item.addons && item.addons.length > 0 && (
+                        <div className="mt-1 space-y-0.5">
+                          {item.addons.map((addon: any, idx: number) => (
+                            <div
+                              key={idx}
+                              className="text-xs text-gray-500 pl-4 flex gap-1"
+                            >
+                              <span>+</span>
+                              <span>
+                                {addon.quantity} x {addon.name}
+                              </span>
+                              <span>(₹{addon.price})</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <div className="font-semibold text-gray-900">
                       ₹{item.price.toFixed(2)}
@@ -260,18 +298,20 @@ const MobileOrderDrawer = memo(function MobileOrderDrawer({
                   </span>
                 </div>
               )}
+            {taxAmount > 0 && (
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm text-gray-600">Tax:</span>
+                <span className="text-sm text-gray-600">
+                  +₹{taxAmount.toFixed(2)}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between items-center">
               <span className="text-lg font-semibold text-gray-900">
                 Total Amount
               </span>
               <span className="text-xl font-bold text-gray-900">
-                {order.discountAmount &&
-                parseFloat(String(order.discountAmount)) > 0
-                  ? `₹${(
-                      order.totalAmount -
-                      parseFloat(String(order.discountAmount))
-                    ).toFixed(2)}`
-                  : `₹${order.totalAmount.toFixed(2)}`}
+                ₹{grandTotal.toFixed(2)}
               </span>
             </div>
           </div>

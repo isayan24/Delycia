@@ -1,4 +1,4 @@
-import ThermalBill from '../ThermalBill'
+import { ThermalBill } from '@/components/billing'
 
 interface PrintBillDialogProps {
   open: boolean

@@ -9,11 +9,11 @@ import { ReadyOrderCard } from './order-states/ReadyOrderCard'
 import { DeliveredOrderCard } from './order-states/DeliveredOrderCard'
 import { useSoundContext } from '@/context/SoundContext'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
-import ThermalBill from '@/components/admin/order-history/ThermalBill'
+import ThermalBill from '@/components/billing/ThermalBill'
 import {
   orderToBillData,
   handleShareToMobile,
-} from '@/components/admin/order-history/thermalBillUtils'
+} from '@/components/billing'
 
 interface OrderTabsProps {
   activeTab: string

@@ -99,7 +99,6 @@ interface StaffOrder {
   customer_profile_pic: string | null
   order_total: number
   total_discount: number
-  tax_amount?:number;
   items: OrderItem[]
 }
 

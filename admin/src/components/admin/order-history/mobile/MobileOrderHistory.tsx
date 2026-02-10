@@ -4,8 +4,8 @@ import MobileOrderDrawer from './MobileOrderDrawer'
 import { OrderInfoSkeleton } from '../LoadingSkeleton'
 import { TransformedOrder } from '../utils/orderHistoryUtils'
 import { PrintBillDialog } from '../shared/PrintBillDialog'
-import { getISTDateKey } from '../utils/historyDateUtils'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
+import { formatISTDateTime } from '../utils/historyDateUtils'
 
 interface MobileOrderHistoryProps {
   orders: TransformedOrder[]
@@ -88,26 +88,28 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
       name: item.name,
       quantity: item.quantity,
       price: item.price,
+      variant_name: item.variant_name,
+      addons: item.addons,
     }))
 
     const billData = {
       orderId: order.orderId,
-      restaurantName: selectedRestaurant?.name,
+      restaurantName: selectedRestaurant?.name || '',
       tableNo: order.tableNo,
       customerName: order.customerName || order.customer?.name || 'Guest',
       customerId: String(order.customerId) || 'N/A',
-      customrPhone: order.customer?.phone || order.customerPhone || 'N/A',
+      customerPhone: order.customer?.phone || 'N/A',
       items: billItems,
-      discountAmount: parseFloat(order.discountAmount || 0),
-      totalAmount: order.totalAmount,
-      orderDate: getISTDateKey(order.createdAt),
+      discountAmount: parseFloat(String(order.discountAmount || 0)),
+      totalAmount: 0, // Will be calculated
+      orderDate: formatISTDateTime(order.createdAt),
       paymentMethod: order.paymentMethod,
       paymentStatus: order.paymentStatus,
     }
 
     setSelectedOrderForBill(billData)
     setShowBillDialog(true)
-  }, [])
+  }, [selectedRestaurant])
 
   // Show loading state
   if (loading) {
