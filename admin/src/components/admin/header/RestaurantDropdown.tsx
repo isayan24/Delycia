@@ -2,6 +2,11 @@
 
 import * as React from 'react'
 import { Check, ChevronsUpDown, Loader2, Store } from 'lucide-react'
+import {
+  useRestaurantSettingsQuery,
+  useUpdateRestaurantMutation,
+} from '@/hooks/queries/useRestaurantSettingsQueries'
+import { Switch } from '@/components/ui/switch'
 
 import {
   DropdownMenu,
@@ -43,6 +48,14 @@ export function RestaurantDropdown() {
     isLoadingRestaurants: isLoadingFromCache,
     isUpdating,
   } = useRestaurantSelector()
+
+  // Restaurant active status from settings query
+  const rid = currentRestaurant?.id?.toString()
+  const { data: settingsData } = useRestaurantSettingsQuery(rid)
+  const isActive = settingsData?.restaurant_info?.is_active === 1
+  const restaurantId = settingsData?.restaurant_info?.id
+
+  const toggleMutation = useUpdateRestaurantMutation()
 
   // Progress messages for each stage
   const progressMessages: Record<LocalSwitchStage, string> = {
@@ -140,10 +153,15 @@ export function RestaurantDropdown() {
                   </>
                 ) : (
                   <>
-                    <span className="font-medium">
+                    <span className="font-medium truncate">
                       {currentRestaurant?.name || 'Select Restaurant'}
                     </span>
-                    <span className="text-[.6rem] text-zinc-500 truncate">
+                    <span className="text-[.6rem] text-zinc-500 truncate flex items-center gap-1">
+                      <span
+                        className={`inline-block w-1.5 h-1.5 rounded-full ${
+                          isActive ? 'bg-green-500' : 'bg-red-400'
+                        }`}
+                      />
                       {currentRestaurant?.address ||
                         currentRestaurant?.city ||
                         'Location'}
@@ -157,6 +175,25 @@ export function RestaurantDropdown() {
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-[14rem]">
+            {/* Quick Active / Inactive Toggle */}
+            {restaurantId && (
+              <div className="flex items-center justify-between px-2 py-2 border-b mb-1">
+                <span className="text-xs font-medium text-gray-600">
+                  {isActive ? 'Active' : 'Inactive'}
+                </span>
+                <Switch
+                  checked={isActive}
+                  disabled={toggleMutation.isPending}
+                  onCheckedChange={(checked) => {
+                    toggleMutation.mutate({
+                      id: restaurantId,
+                      is_active: checked ? 1 : 0,
+                    })
+                  }}
+                  className="data-[state=checked]:bg-green-500 scale-75"
+                />
+              </div>
+            )}
             {restaurants.map((restaurant) => (
               <DropdownMenuItem
                 key={restaurant?.id}

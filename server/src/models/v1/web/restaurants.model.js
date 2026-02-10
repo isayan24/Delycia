@@ -4,6 +4,8 @@ import userValidations from "../../../validations/user.validations.js";
 import others from "../../../utils/others.js";
 import embeddingModel from "./embedding.model.js";
 
+const TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d:[0-5]\d$/;
+
 const create_restaurant = async (req) => {
   try {
     const {
@@ -87,11 +89,12 @@ const update_restaurant = async (req) => {
     );
 
     if (!access.length) {
-      // Check if super admin (optional, depending on requirements, assuming role > 90 is super admin)
       if (req.user.role < 90) {
         return apiResponse.error(403, "You do not have permission to update this restaurant.");
       }
     }
+
+    // --- Field Validations ---
 
     if (params.username && !userValidations.isValidUsername(params.username))
       return apiResponse.error(
@@ -112,18 +115,60 @@ const update_restaurant = async (req) => {
         );
     }
 
-    // Validations for specifics
     if (params.tax_percent !== undefined) {
       if (isNaN(params.tax_percent) || params.tax_percent < 0 || params.tax_percent > 100)
         return apiResponse.error(400, "Invalid tax percentage.");
     }
 
-    const values = [...Object.values(params), id];
-    const setClause = Object.keys(params)
-      .map((key) => `${key} =?`)
-      .join(",");
+    // online_orders: must be 0 or 1
+    if (params.online_orders !== undefined) {
+      const val = Number(params.online_orders);
+      if (val !== 0 && val !== 1)
+        return apiResponse.error(400, "online_orders must be 0 or 1.");
+      params.online_orders = val;
+    }
 
-    if (!setClause) return apiResponse.error(400, "No fields to update.");
+    // open_time / close_time: must match HH:MM:SS
+    if (params.open_time !== undefined) {
+      if (typeof params.open_time !== "string" || !TIME_REGEX.test(params.open_time))
+        return apiResponse.error(400, "open_time must be in HH:MM:SS format.");
+    }
+    if (params.close_time !== undefined) {
+      if (typeof params.close_time !== "string" || !TIME_REGEX.test(params.close_time))
+        return apiResponse.error(400, "close_time must be in HH:MM:SS format.");
+    }
+
+    // active_days: bitmask 0–127
+    if (params.active_days !== undefined) {
+      const val = Number(params.active_days);
+      if (!Number.isInteger(val) || val < 0 || val > 127)
+        return apiResponse.error(400, "active_days must be an integer between 0 and 127.");
+      params.active_days = val;
+    }
+
+    // is_active: must be 0 or 1
+    if (params.is_active !== undefined) {
+      const val = Number(params.is_active);
+      if (val !== 0 && val !== 1)
+        return apiResponse.error(400, "is_active must be 0 or 1.");
+      params.is_active = val;
+    }
+
+    // is_veg_only: must be 0 or 1
+    if (params.is_veg_only !== undefined) {
+      const val = Number(params.is_veg_only);
+      if (val !== 0 && val !== 1)
+        return apiResponse.error(400, "is_veg_only must be 0 or 1.");
+      params.is_veg_only = val;
+    }
+
+    // --- Build and execute update ---
+
+    const keys = Object.keys(params);
+    if (!keys.length) return apiResponse.error(400, "No fields to update.");
+
+    const setClause = keys.map((key) => `${key} = ?`).join(", ");
+    const values = [...Object.values(params), id];
 
     const [{ changedRows }] = await pool.query(
       `UPDATE restaurants SET ${setClause} WHERE id = ?`,
@@ -182,12 +227,14 @@ const get_restaurant = async (req, admin = true) => {
     } else {
       if (rid) {
         q = `SELECT id,name,username,phone_number,email,address,city,state,pincode,
-              is_veg_only,description,logo,banner,tax_percent,latitude,longitude,is_active 
+              is_veg_only,description,logo,banner,tax_percent,latitude,longitude,is_active,
+              online_orders,open_time,close_time,active_days
               FROM restaurants WHERE id = ?`;
         params = [rid];
       } else {
         q = `SELECT id,name,username,phone_number,email,address,city,state,pincode,
-              is_veg_only,description,logo,banner,tax_percent,latitude,longitude,is_active 
+              is_veg_only,description,logo,banner,tax_percent,latitude,longitude,is_active,
+              online_orders,open_time,close_time,active_days
               FROM restaurants`;
         params = [];
       }

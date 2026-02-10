@@ -33,6 +33,10 @@ export interface RestaurantInfo {
   longitude: string | null
   commission_percent: number
   is_active: number // 0 or 1
+  online_orders: number // 0 or 1
+  open_time: string | null // HH:MM:SS
+  close_time: string | null // HH:MM:SS
+  active_days: number // bitmask 0–127
   created_at: string
 }
 
@@ -54,6 +58,10 @@ export interface UpdateRestaurantParams {
   state?: string
   pincode?: string
   fssai_license?: string
+  online_orders?: number
+  open_time?: string
+  close_time?: string
+  active_days?: number
 }
 
 export interface RestaurantSettingsResponse {

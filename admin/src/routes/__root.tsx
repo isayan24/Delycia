@@ -31,6 +31,7 @@ import RouteBreadcrumbs from '@/components/common/RouteBreadcrumbs'
 import { SubscriptionGuard } from '@/components/admin/settings/SubscriptionGuard'
 import { NotificationToastManager } from '@/components/common/NotificationToastManager'
 import { NotificationBell } from '@/components/common/NotificationBell'
+import { RestaurantActiveToggle } from '@/components/admin/header/RestaurantActiveToggle'
 
 // Note: We don't define beforeLoad here because we get auth from component
 // and pass it via router instantiation in the app setup
@@ -142,7 +143,8 @@ function RootComponent() {
                     <SidebarTrigger className="-ml-1" />
                     {/* <Separator orientation="vertical" className="mr-2 h-4" /> */}
                     <RouteBreadcrumbs />
-                    <div className="ml-auto">
+                    <div className="ml-auto flex items-center gap-3">
+                      <RestaurantActiveToggle />
                       <NotificationBell />
                     </div>
                   </header>

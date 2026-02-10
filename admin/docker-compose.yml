@@ -30,3 +30,20 @@ services:
       - NODE_ENV=production
       - HOST=0.0.0.0
       - PORT=4500
+    develop:
+      watch:
+        # Sync source code changes
+        - action: sync
+          path: ./src
+          target: /app/src
+          ignore:
+            - node_modules/
+        
+        # Sync package.json and rebuild
+        - action: rebuild
+          path: package.json
+        
+        # Sync other config files
+        - action: sync
+          path: ./public
+          target: /app/public

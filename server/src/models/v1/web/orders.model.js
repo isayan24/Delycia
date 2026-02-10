@@ -25,7 +25,7 @@ const create_orders = async (req) => {
   try {
     await conn.beginTransaction();
     q =
-      "INSERT INTO orders (rid, cart_id, customer_id, item_id, variant_id, quantity, payment_method, special_instructions, delivery_type, discount_amount, total_amount, tax_percent, tax_amount, table_id, party_size, order_status, placed_by_staff_id, placed_by_role_id) VALUES ?";
+      "INSERT INTO orders (rid, cart_id, customer_id, item_id, variant_id, quantity, payment_method, special_instructions, delivery_type, discount_amount, total_amount, table_id, party_size, order_status, placed_by_staff_id, placed_by_role_id) VALUES ?";
     const values = orders.map((order) => [
       order.rid,
       cart_id,
@@ -38,8 +38,6 @@ const create_orders = async (req) => {
       order.delivery_type,
       order.discount_amount,
       order.total_amount,
-      order.tax_percent || 0,
-      order.tax_amount || 0,
       order.table_id || null,
       order.party_size || 1,
       order.order_status || "pending",
@@ -91,7 +89,6 @@ const create_orders = async (req) => {
     // Decrement Stock for each item
     for (const order of orders) {
       if (order.item_id && order.quantity) {
-        await conn.query("UPDATE inventories SET stock = GREATEST(0, stock - ?) WHERE id = ?", [order.quantity, order.item_id]);
 
         // Check for Stock Alerts (Real-time trigger)
         const [stockCheck] = await conn.query("SELECT stock, name FROM inventories WHERE id = ?", [order.item_id]);
@@ -224,14 +221,9 @@ const get_orders = async (req) => {
           img: order.item_images // Send raw string to frontend
         },
         // Ensure addons is an array
-        addons: order.addons || [],
-        // Ensure tax fields are included
-        tax_percent: order.tax_percent || 0,
-        tax_amount: order.tax_amount || 0,
+        addons: order.addons || []
       };
     });
-
-    // console.log(processedOrders, 'processedOrders \n\n\n\n\n')
 
     return apiResponse.success(200, "success", { orders: processedOrders });
   } catch (error) {
@@ -271,8 +263,6 @@ const getOrders24Hours = async (rid) => {
         o.customer_id,
         SUM(o.total_amount) AS total_amount,
         SUM(o.discount_amount) AS discount_amount,
-        AVG(o.tax_percent) AS tax_percent,
-        SUM(o.tax_amount) AS tax_amount,
         COUNT(o.id) AS order_count,
         u.name,
         u.phone_number,
@@ -294,8 +284,6 @@ const getOrders24Hours = async (rid) => {
             'preparation_time', o.preparation_time,
             'delivery_type', o.delivery_type,
             'discount_amount', o.discount_amount,
-            'tax_percent', o.tax_percent,
-            'tax_amount', o.tax_amount,
             'updated_at', o.updated_at,
             'table_id', o.table_id,
             'table_zone', t.zone,
@@ -704,8 +692,6 @@ const get_paginated_orders = async (req) => {
         u.profile_pic AS customer_profile_pic,
         SUM(o.total_amount) AS total_amount,
         SUM(o.discount_amount) AS discount_amount,
-        AVG(o.tax_percent) AS tax_percent,
-        SUM(o.tax_amount) AS tax_amount,
         JSON_ARRAYAGG(
           JSON_OBJECT(
             'id', o.id,
@@ -764,8 +750,6 @@ const get_paginated_orders = async (req) => {
 // Settle all orders for a specific customer at a table
 const settleCustomerOrders = async (req) => {
   const { customer_id, table_id, rid } = req.body;
-
-  console.log(customer_id, table_id, rid, "customer_id, table_id, rid")
 
   if (!customer_id || !table_id || !rid) {
     return apiResponse.error(400, "customer_id, table_id, and rid are required");

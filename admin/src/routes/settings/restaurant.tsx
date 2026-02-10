@@ -16,6 +16,9 @@ import {
   Percent,
   Power,
   Leaf,
+  Globe,
+  Clock,
+  CalendarDays,
 } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import { Input } from '@/components/ui/input'
@@ -88,6 +91,10 @@ function RestaurantSettingsPage() {
         state: restaurant.state || '',
         pincode: restaurant.pincode || '',
         fssai_license: restaurant.fssai_license || '',
+        online_orders: restaurant.online_orders ?? 0,
+        open_time: restaurant.open_time || '00:00:00',
+        close_time: restaurant.close_time || '00:00:00',
+        active_days: restaurant.active_days,
       })
     }
   }, [restaurant])
@@ -99,33 +106,39 @@ function RestaurantSettingsPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value, type } = e.target
-    
+
     // Special validation for tax_percent
     if (name === 'tax_percent') {
       const numValue = parseFloat(value)
-      
+
       // Validate range (0-100)
       if (value !== '' && (isNaN(numValue) || numValue < 0 || numValue > 100)) {
-        showError('Invalid Tax Percentage', 'Tax percentage must be between 0 and 100')
+        showError(
+          'Invalid Tax Percentage',
+          'Tax percentage must be between 0 and 100',
+        )
         return
       }
-      
+
       // Validate decimal places (max 2)
       if (value.includes('.')) {
         const decimalPlaces = value.split('.')[1]?.length || 0
         if (decimalPlaces > 2) {
-          showError('Invalid Tax Percentage', 'Tax percentage can have at most 2 decimal places')
+          showError(
+            'Invalid Tax Percentage',
+            'Tax percentage can have at most 2 decimal places',
+          )
           return
         }
       }
-      
+
       setFormData((prev) => ({
         ...prev,
         [name]: value === '' ? undefined : numValue,
       }))
       return
     }
-    
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === 'number' ? parseFloat(value) : value,
@@ -383,6 +396,184 @@ function RestaurantSettingsPage() {
           </Card>
         </div>
 
+        {/* Online Orders + Operating Hours Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Online Orders Card */}
+          <Card className="border-2 border-sky-200 hover:border-sky-400 transition-colors">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Globe className="w-5 h-5 text-sky-600" />
+                Online Orders
+              </CardTitle>
+              <CardDescription>
+                {formData.online_orders === 1
+                  ? 'Customers can place orders online.'
+                  : 'Only QR/table ordering is available.'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <Label
+                  htmlFor="online_orders"
+                  className={`font-semibold ${formData.online_orders === 1 ? 'text-sky-700' : 'text-gray-500'}`}
+                >
+                  {formData.online_orders === 1 ? 'Enabled' : 'Disabled'}
+                </Label>
+                <Switch
+                  id="online_orders"
+                  checked={formData.online_orders === 1}
+                  onCheckedChange={(checked) =>
+                    handleSwitchChange('online_orders', checked)
+                  }
+                  className="data-[state=checked]:bg-sky-500"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Operating Hours Card */}
+          <Card className="border-2 border-orange-200 hover:border-orange-400 transition-colors">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Clock className="w-5 h-5 text-orange-600" />
+                Operating Hours
+              </CardTitle>
+              <CardDescription>
+                Set when your restaurant opens and closes each day.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="open_time" className="text-sm">
+                    Opening Time
+                  </Label>
+                  <Input
+                    id="open_time"
+                    name="open_time"
+                    type="time"
+                    value={
+                      formData.open_time
+                        ? formData.open_time.substring(0, 5)
+                        : '10:00'
+                    }
+                    onChange={(e) => {
+                      const val = e.target.value
+                      if (!val) return
+                      // Normalize to HH:MM:SS — browser returns HH:MM
+                      const normalized =
+                        val.length === 5 ? `${val}:00` : val.substring(0, 8)
+                      setFormData((prev) => ({
+                        ...prev,
+                        open_time: normalized,
+                      }))
+                    }}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="close_time" className="text-sm">
+                    Closing Time
+                  </Label>
+                  <Input
+                    id="close_time"
+                    name="close_time"
+                    type="time"
+                    value={
+                      formData.close_time
+                        ? formData.close_time.substring(0, 5)
+                        : '22:00'
+                    }
+                    onChange={(e) => {
+                      const val = e.target.value
+                      if (!val) return
+                      // Normalize to HH:MM:SS — browser returns HH:MM
+                      const normalized =
+                        val.length === 5 ? `${val}:00` : val.substring(0, 8)
+                      setFormData((prev) => ({
+                        ...prev,
+                        close_time: normalized,
+                      }))
+                    }}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Active Days Card */}
+        <Card className="border-2 border-indigo-200 hover:border-indigo-400 transition-colors">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <CalendarDays className="w-5 h-5 text-indigo-600" />
+              Active Days
+            </CardTitle>
+            <CardDescription>
+              Select the days your restaurant is open. The restaurant will
+              automatically show as closed on unselected days.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: 'Sun', bit: 1 },
+                { label: 'Mon', bit: 2 },
+                { label: 'Tue', bit: 4 },
+                { label: 'Wed', bit: 8 },
+                { label: 'Thu', bit: 16 },
+                { label: 'Fri', bit: 32 },
+                { label: 'Sat', bit: 64 },
+              ].map((day) => {
+                const isSelected =
+                  ((formData.active_days ?? 127) & day.bit) !== 0
+                return (
+                  <button
+                    key={day.label}
+                    type="button"
+                    onClick={() => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        active_days: isSelected
+                          ? (prev.active_days ?? 127) & ~day.bit
+                          : (prev.active_days ?? 127) | day.bit,
+                      }))
+                    }}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium border-2 transition-all ${
+                      isSelected
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                        : 'bg-white text-gray-500 border-gray-200 hover:border-indigo-300 hover:text-indigo-600'
+                    }`}
+                  >
+                    {day.label}
+                  </button>
+                )
+              })}
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              {(() => {
+                const days = [
+                  { label: 'Sun', bit: 1 },
+                  { label: 'Mon', bit: 2 },
+                  { label: 'Tue', bit: 4 },
+                  { label: 'Wed', bit: 8 },
+                  { label: 'Thu', bit: 16 },
+                  { label: 'Fri', bit: 32 },
+                  { label: 'Sat', bit: 64 },
+                ]
+                const activeDays = days
+                  .filter((d) => ((formData.active_days ?? 127) & d.bit) !== 0)
+                  .map((d) => d.label)
+                if (activeDays.length === 7) return 'Open all days of the week.'
+                if (activeDays.length === 0)
+                  return 'No days selected — restaurant will always show as closed.'
+                return `Open on: ${activeDays.join(', ')}`
+              })()}
+            </p>
+          </CardContent>
+        </Card>
+
         {/* Tax Card */}
         <Card className="border-2 border-amber-200 hover:border-amber-400 transition-colors">
           <CardHeader className="pb-3">
@@ -418,8 +609,8 @@ function RestaurantSettingsPage() {
               </div>
             </div>
             <p className="text-xs text-muted-foreground mt-2 ml-32">
-              Enter the GST/tax rate (0-100). This will be applied to all new orders. 
-              Example: 5.00 for 5% GST.
+              Enter the GST/tax rate (0-100). This will be applied to all new
+              orders. Example: 5.00 for 5% GST.
             </p>
           </CardContent>
         </Card>
