@@ -9,9 +9,11 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useEffect } from 'react'
 import axios from 'axios'
 import { queryKeys } from '@/lib/queryKeys'
 import sessionService, { UserData } from '@/services/sessionService'
+import tokenService from '@/services/tokenService'
 
 export interface LoginCredentials {
   country_code: string
@@ -65,10 +67,12 @@ export function useAuthQuery() {
     staleTime: 5 * 60 * 1000, // 5 minutes
     // Background refetch to keep session alive
     refetchInterval: 10 * 60 * 1000, // 10 minutes
-    // Don't refetch on window focus to reduce API calls
-    refetchOnWindowFocus: false,
+    // Refetch on window focus to ensure fresh data
+    refetchOnWindowFocus: true,
     // Retry on network errors
     retry: 1,
+    // Keep previous data while refetching to prevent UI flicker
+    placeholderData: (previousData) => previousData,
   })
 
   // Login mutation
@@ -134,6 +138,24 @@ export function useAuthQuery() {
   const logout = async (): Promise<void> => {
     await logoutMutation.mutateAsync()
   }
+
+  // Setup token refresh interceptors and logout callback
+  useEffect(() => {
+    tokenService.setupInterceptors()
+    tokenService.setOnLogout(() => {
+      // Clear session service
+      sessionService.clearSession()
+      // Clear auth cache
+      queryClient.setQueryData(queryKeys.auth.user(), null)
+      // Clear all cached data
+      queryClient.clear()
+      // Redirect to home
+      if (typeof window !== 'undefined') {
+        window.location.href = '/'
+      }
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return {
     // User data

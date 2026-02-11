@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import axiosInstance from '@/lib/axios'
+import axios from 'axios'
 
 interface UpdateUserVariables {
   uid: string
@@ -15,7 +16,7 @@ export const useUpdateUserMutation = () => {
 
   return useMutation({
     mutationFn: async (variables: UpdateUserVariables) => {
-      const response = await axiosInstance.post('/user/update', variables)
+      const response = await axios.post('/api/user/update', variables)
       return response.data
     },
     onSuccess: () => {

@@ -37,7 +37,7 @@ function UserProfileLayout() {
   // Update Name
   const onNameSubmit = async (values: z.infer<typeof updateNameSchema>) => {
     setIsNameSubmit(true)
-    console.log(values, 'values')
+    
     try {
       const uid = user?._id
       if (!uid) throw new Error('User not found')
@@ -74,11 +74,12 @@ function UserProfileLayout() {
         return { status: 500, message: 'Failed to upload' }
       }
 
-      // 2. Update User Profile
-      await updateUserMutation.mutateAsync({
+      if (user?._id) {
+       await updateUserMutation.mutateAsync({
         uid: user._id,
         profile_pic: downloadLink,
       })
+      } 
 
       toast.success('Profile picture uploaded successfully')
       return { status: 200, message: downloadLink }

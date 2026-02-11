@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as OrderPlacedRouteImport } from './routes/order-placed'
 import { Route as DelyciasRouteImport } from './routes/delycias'
+import { Route as ClearCookiesRouteImport } from './routes/clear-cookies'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CategoryRouteImport } from './routes/category'
 import { Route as CartRouteImport } from './routes/cart'
@@ -32,10 +33,10 @@ import { Route as ApiRestaurantCheckoutRouteImport } from './routes/api/restaura
 import { Route as ApiAuthVerifyMagicRouteImport } from './routes/api/auth/verify-magic'
 import { Route as ApiAuthSessionRouteImport } from './routes/api/auth/session'
 import { Route as ApiAuthRequestMagicLinkRouteImport } from './routes/api/auth/request-magic-link'
+import { Route as ApiAuthRefreshRouteImport } from './routes/api/auth/refresh'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
 import { Route as ApiAppTempSessionRouteImport } from './routes/api/app.temp-session'
-import { Route as ApiUsersAuthRefreshRouteImport } from './routes/api/users.auth.refresh'
 import { Route as ApiUsersAuthHandleAuthRouteImport } from './routes/api/users.auth.handleAuth'
 
 const OrdersRoute = OrdersRouteImport.update({
@@ -51,6 +52,11 @@ const OrderPlacedRoute = OrderPlacedRouteImport.update({
 const DelyciasRoute = DelyciasRouteImport.update({
   id: '/delycias',
   path: '/delycias',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClearCookiesRoute = ClearCookiesRouteImport.update({
+  id: '/clear-cookies',
+  path: '/clear-cookies',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CheckoutRoute = CheckoutRouteImport.update({
@@ -153,6 +159,11 @@ const ApiAuthRequestMagicLinkRoute = ApiAuthRequestMagicLinkRouteImport.update({
   path: '/api/auth/request-magic-link',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthRefreshRoute = ApiAuthRefreshRouteImport.update({
+  id: '/api/auth/refresh',
+  path: '/api/auth/refresh',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthLogoutRoute = ApiAuthLogoutRouteImport.update({
   id: '/api/auth/logout',
   path: '/api/auth/logout',
@@ -168,11 +179,6 @@ const ApiAppTempSessionRoute = ApiAppTempSessionRouteImport.update({
   path: '/api/app/temp-session',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiUsersAuthRefreshRoute = ApiUsersAuthRefreshRouteImport.update({
-  id: '/auth/refresh',
-  path: '/auth/refresh',
-  getParentRoute: () => ApiUsersRoute,
-} as any)
 const ApiUsersAuthHandleAuthRoute = ApiUsersAuthHandleAuthRouteImport.update({
   id: '/auth/handleAuth',
   path: '/auth/handleAuth',
@@ -184,6 +190,7 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/category': typeof CategoryRoute
   '/checkout': typeof CheckoutRoute
+  '/clear-cookies': typeof ClearCookiesRoute
   '/delycias': typeof DelyciasRoute
   '/order-placed': typeof OrderPlacedRoute
   '/orders': typeof OrdersRoute
@@ -201,19 +208,20 @@ export interface FileRoutesByFullPath {
   '/api/app/temp-session': typeof ApiAppTempSessionRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/refresh': typeof ApiAuthRefreshRoute
   '/api/auth/request-magic-link': typeof ApiAuthRequestMagicLinkRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/auth/verify-magic': typeof ApiAuthVerifyMagicRoute
   '/api/restaurant/checkout': typeof ApiRestaurantCheckoutRoute
   '/api/user/update': typeof ApiUserUpdateRoute
   '/api/users/auth/handleAuth': typeof ApiUsersAuthHandleAuthRoute
-  '/api/users/auth/refresh': typeof ApiUsersAuthRefreshRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cart': typeof CartRoute
   '/category': typeof CategoryRoute
   '/checkout': typeof CheckoutRoute
+  '/clear-cookies': typeof ClearCookiesRoute
   '/delycias': typeof DelyciasRoute
   '/order-placed': typeof OrderPlacedRoute
   '/orders': typeof OrdersRoute
@@ -231,13 +239,13 @@ export interface FileRoutesByTo {
   '/api/app/temp-session': typeof ApiAppTempSessionRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/refresh': typeof ApiAuthRefreshRoute
   '/api/auth/request-magic-link': typeof ApiAuthRequestMagicLinkRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/auth/verify-magic': typeof ApiAuthVerifyMagicRoute
   '/api/restaurant/checkout': typeof ApiRestaurantCheckoutRoute
   '/api/user/update': typeof ApiUserUpdateRoute
   '/api/users/auth/handleAuth': typeof ApiUsersAuthHandleAuthRoute
-  '/api/users/auth/refresh': typeof ApiUsersAuthRefreshRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -245,6 +253,7 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/category': typeof CategoryRoute
   '/checkout': typeof CheckoutRoute
+  '/clear-cookies': typeof ClearCookiesRoute
   '/delycias': typeof DelyciasRoute
   '/order-placed': typeof OrderPlacedRoute
   '/orders': typeof OrdersRoute
@@ -262,13 +271,13 @@ export interface FileRoutesById {
   '/api/app/temp-session': typeof ApiAppTempSessionRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/refresh': typeof ApiAuthRefreshRoute
   '/api/auth/request-magic-link': typeof ApiAuthRequestMagicLinkRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/auth/verify-magic': typeof ApiAuthVerifyMagicRoute
   '/api/restaurant/checkout': typeof ApiRestaurantCheckoutRoute
   '/api/user/update': typeof ApiUserUpdateRoute
   '/api/users/auth/handleAuth': typeof ApiUsersAuthHandleAuthRoute
-  '/api/users/auth/refresh': typeof ApiUsersAuthRefreshRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -277,6 +286,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/category'
     | '/checkout'
+    | '/clear-cookies'
     | '/delycias'
     | '/order-placed'
     | '/orders'
@@ -294,19 +304,20 @@ export interface FileRouteTypes {
     | '/api/app/temp-session'
     | '/api/auth/login'
     | '/api/auth/logout'
+    | '/api/auth/refresh'
     | '/api/auth/request-magic-link'
     | '/api/auth/session'
     | '/api/auth/verify-magic'
     | '/api/restaurant/checkout'
     | '/api/user/update'
     | '/api/users/auth/handleAuth'
-    | '/api/users/auth/refresh'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/cart'
     | '/category'
     | '/checkout'
+    | '/clear-cookies'
     | '/delycias'
     | '/order-placed'
     | '/orders'
@@ -324,19 +335,20 @@ export interface FileRouteTypes {
     | '/api/app/temp-session'
     | '/api/auth/login'
     | '/api/auth/logout'
+    | '/api/auth/refresh'
     | '/api/auth/request-magic-link'
     | '/api/auth/session'
     | '/api/auth/verify-magic'
     | '/api/restaurant/checkout'
     | '/api/user/update'
     | '/api/users/auth/handleAuth'
-    | '/api/users/auth/refresh'
   id:
     | '__root__'
     | '/'
     | '/cart'
     | '/category'
     | '/checkout'
+    | '/clear-cookies'
     | '/delycias'
     | '/order-placed'
     | '/orders'
@@ -354,13 +366,13 @@ export interface FileRouteTypes {
     | '/api/app/temp-session'
     | '/api/auth/login'
     | '/api/auth/logout'
+    | '/api/auth/refresh'
     | '/api/auth/request-magic-link'
     | '/api/auth/session'
     | '/api/auth/verify-magic'
     | '/api/restaurant/checkout'
     | '/api/user/update'
     | '/api/users/auth/handleAuth'
-    | '/api/users/auth/refresh'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -368,6 +380,7 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   CategoryRoute: typeof CategoryRoute
   CheckoutRoute: typeof CheckoutRoute
+  ClearCookiesRoute: typeof ClearCookiesRoute
   DelyciasRoute: typeof DelyciasRoute
   OrderPlacedRoute: typeof OrderPlacedRoute
   OrdersRoute: typeof OrdersRoute
@@ -385,6 +398,7 @@ export interface RootRouteChildren {
   ApiAppTempSessionRoute: typeof ApiAppTempSessionRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
+  ApiAuthRefreshRoute: typeof ApiAuthRefreshRoute
   ApiAuthRequestMagicLinkRoute: typeof ApiAuthRequestMagicLinkRoute
   ApiAuthSessionRoute: typeof ApiAuthSessionRoute
   ApiAuthVerifyMagicRoute: typeof ApiAuthVerifyMagicRoute
@@ -412,6 +426,13 @@ declare module '@tanstack/react-router' {
       path: '/delycias'
       fullPath: '/delycias'
       preLoaderRoute: typeof DelyciasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clear-cookies': {
+      id: '/clear-cookies'
+      path: '/clear-cookies'
+      fullPath: '/clear-cookies'
+      preLoaderRoute: typeof ClearCookiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checkout': {
@@ -554,6 +575,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthRequestMagicLinkRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/refresh': {
+      id: '/api/auth/refresh'
+      path: '/api/auth/refresh'
+      fullPath: '/api/auth/refresh'
+      preLoaderRoute: typeof ApiAuthRefreshRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/logout': {
       id: '/api/auth/logout'
       path: '/api/auth/logout'
@@ -574,13 +602,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/app/temp-session'
       preLoaderRoute: typeof ApiAppTempSessionRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/api/users/auth/refresh': {
-      id: '/api/users/auth/refresh'
-      path: '/auth/refresh'
-      fullPath: '/api/users/auth/refresh'
-      preLoaderRoute: typeof ApiUsersAuthRefreshRouteImport
-      parentRoute: typeof ApiUsersRoute
     }
     '/api/users/auth/handleAuth': {
       id: '/api/users/auth/handleAuth'
@@ -606,12 +627,10 @@ const ApiRestaurantRouteWithChildren = ApiRestaurantRoute._addFileChildren(
 
 interface ApiUsersRouteChildren {
   ApiUsersAuthHandleAuthRoute: typeof ApiUsersAuthHandleAuthRoute
-  ApiUsersAuthRefreshRoute: typeof ApiUsersAuthRefreshRoute
 }
 
 const ApiUsersRouteChildren: ApiUsersRouteChildren = {
   ApiUsersAuthHandleAuthRoute: ApiUsersAuthHandleAuthRoute,
-  ApiUsersAuthRefreshRoute: ApiUsersAuthRefreshRoute,
 }
 
 const ApiUsersRouteWithChildren = ApiUsersRoute._addFileChildren(
@@ -623,6 +642,7 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   CategoryRoute: CategoryRoute,
   CheckoutRoute: CheckoutRoute,
+  ClearCookiesRoute: ClearCookiesRoute,
   DelyciasRoute: DelyciasRoute,
   OrderPlacedRoute: OrderPlacedRoute,
   OrdersRoute: OrdersRoute,
@@ -640,6 +660,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAppTempSessionRoute: ApiAppTempSessionRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
+  ApiAuthRefreshRoute: ApiAuthRefreshRoute,
   ApiAuthRequestMagicLinkRoute: ApiAuthRequestMagicLinkRoute,
   ApiAuthSessionRoute: ApiAuthSessionRoute,
   ApiAuthVerifyMagicRoute: ApiAuthVerifyMagicRoute,

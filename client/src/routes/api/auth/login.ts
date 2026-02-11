@@ -23,7 +23,7 @@ export const Route = createFileRoute('/api/auth/login')({
             country_code: country_code || '+91',
             phone_number,
           }
-          console.log(payload, 'payload \n\n\n')
+          
           const response = await axiosInstance.post(
             `/users/auth/handleAuth`,
             payload,
@@ -42,12 +42,48 @@ export const Route = createFileRoute('/api/auth/login')({
             const access_token = backendUser.access_token
             const refresh_token = backendUser.refresh_token
 
-            const userData = {
+            // Fetch complete user profile data using the access token
+            let completeUserData = {
               _id: backendUser.uid || backendUser._id,
               id: backendUser.id,
               country_code: backendUser.country_code,
               phone_number: backendUser.phone_number,
               role: backendUser.role || 0,
+              name: backendUser.name,
+              username: backendUser.username,
+              email: backendUser.email,
+              profile_pic: backendUser.profile_pic,
+            }
+
+            // Try to fetch complete user data from /users endpoint
+            try {
+              const userResponse = await axiosInstance.get(
+                `/users?id=${backendUser.id}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${access_token}`,
+                    Accept: 'application/json',
+                  },
+                },
+              )
+
+              if (userResponse.data?.user) {
+                const userData = userResponse.data.user
+                completeUserData = {
+                  _id: userData.uid || userData._id,
+                  id: userData.id,
+                  country_code: userData.country_code,
+                  phone_number: userData.phone_number,
+                  role: userData.role || 0,
+                  name: userData.name,
+                  username: userData.username,
+                  email: userData.email,
+                  profile_pic: userData.profile_pic,
+                }
+              }
+            } catch (userFetchError) {
+              console.warn('Could not fetch complete user data, using basic data:', userFetchError)
+              // Continue with basic user data from login response
             }
 
             const isProduction = process.env.NODE_ENV === 'production'
@@ -81,7 +117,7 @@ export const Route = createFileRoute('/api/auth/login')({
                 statusCode: 200,
                 message: 'Login successful',
                 data: {
-                  user: userData,
+                  user: completeUserData,
                 },
               }),
               { status: 200, headers },

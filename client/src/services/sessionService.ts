@@ -29,7 +29,7 @@ class SessionService {
   }
 
   /**
-   * Set user data in memory and cookie (for persistence across reloads)
+   * Set user data in memory and localStorage (for persistence across reloads)
    */
   setUserData(userData: UserData): void {
     try {
@@ -43,7 +43,13 @@ class SessionService {
 
       this.userDataCache = userData
       if (typeof window !== 'undefined') {
-        localStorage.setItem(USER_DATA_KEY, JSON.stringify(userData))
+        try {
+          localStorage.setItem(USER_DATA_KEY, JSON.stringify(userData))
+          console.log('[SessionService] User data saved to localStorage')
+        } catch (storageError) {
+          console.error('[SessionService] Failed to save to localStorage:', storageError)
+          // Continue even if localStorage fails (e.g., in private browsing mode)
+        }
       }
 
       // Dispatch event for other tabs/components
@@ -53,7 +59,7 @@ class SessionService {
         )
       }
     } catch (error) {
-      console.error('Failed to set user data:', error)
+      console.error('[SessionService] Failed to set user data:', error)
     }
   }
 
@@ -69,14 +75,22 @@ class SessionService {
       if (typeof window !== 'undefined') {
         const storedValue = localStorage.getItem(USER_DATA_KEY)
         if (storedValue) {
-          this.userDataCache = JSON.parse(storedValue)
-          return this.userDataCache
+          try {
+            this.userDataCache = JSON.parse(storedValue)
+            console.log('[SessionService] User data loaded from localStorage')
+            return this.userDataCache
+          } catch (parseError) {
+            console.error('[SessionService] Failed to parse stored user data:', parseError)
+            // Clear corrupted data
+            localStorage.removeItem(USER_DATA_KEY)
+            return null
+          }
         }
       }
 
       return null
     } catch (error) {
-      console.error('Failed to get user data:', error)
+      console.error('[SessionService] Failed to get user data:', error)
       return null
     }
   }
@@ -89,9 +103,10 @@ class SessionService {
       this.userDataCache = null
       if (typeof window !== 'undefined') {
         localStorage.removeItem(USER_DATA_KEY)
+        console.log('[SessionService] Session cleared')
       }
     } catch (error) {
-      console.error('Failed to clear session:', error)
+      console.error('[SessionService] Failed to clear session:', error)
     }
   }
 }

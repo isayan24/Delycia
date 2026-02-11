@@ -165,7 +165,7 @@ export default function FoodItemInfo({
     }
 
     updateSelectedItems([...selectedItems, cartId])
-    showSuccess('Success', 'Added to cart')
+    showSuccess('Success', 'Item added to cart')
   }
 
   return (
