@@ -20,7 +20,7 @@ import { Route as UserPRouteImport } from './routes/user/p'
 import { Route as UserLoginlocalRouteImport } from './routes/user/loginlocal'
 import { Route as UserDashboardRouteImport } from './routes/user/dashboard'
 import { Route as ResUsernameRouteImport } from './routes/res.$username'
-import { Route as ApiVerifyRouteImport } from './routes/api/verify'
+import { Route as AuthMagicRouteImport } from './routes/auth/magic'
 import { Route as ApiUsersRouteImport } from './routes/api/users'
 import { Route as ApiReverificationCodeRouteImport } from './routes/api/reverification-code'
 import { Route as ApiRestaurantRouteImport } from './routes/api/restaurant'
@@ -29,7 +29,9 @@ import { Route as ApiInventoryRouteImport } from './routes/api/inventory'
 import { Route as ApiCategoriesRouteImport } from './routes/api/categories'
 import { Route as ApiUserUpdateRouteImport } from './routes/api/user.update'
 import { Route as ApiRestaurantCheckoutRouteImport } from './routes/api/restaurant.checkout'
+import { Route as ApiAuthVerifyMagicRouteImport } from './routes/api/auth/verify-magic'
 import { Route as ApiAuthSessionRouteImport } from './routes/api/auth/session'
+import { Route as ApiAuthRequestMagicLinkRouteImport } from './routes/api/auth/request-magic-link'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
 import { Route as ApiAppTempSessionRouteImport } from './routes/api/app.temp-session'
@@ -91,9 +93,9 @@ const ResUsernameRoute = ResUsernameRouteImport.update({
   path: '/res/$username',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiVerifyRoute = ApiVerifyRouteImport.update({
-  id: '/api/verify',
-  path: '/api/verify',
+const AuthMagicRoute = AuthMagicRouteImport.update({
+  id: '/auth/magic',
+  path: '/auth/magic',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiUsersRoute = ApiUsersRouteImport.update({
@@ -136,9 +138,19 @@ const ApiRestaurantCheckoutRoute = ApiRestaurantCheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => ApiRestaurantRoute,
 } as any)
+const ApiAuthVerifyMagicRoute = ApiAuthVerifyMagicRouteImport.update({
+  id: '/api/auth/verify-magic',
+  path: '/api/auth/verify-magic',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSessionRoute = ApiAuthSessionRouteImport.update({
   id: '/api/auth/session',
   path: '/api/auth/session',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthRequestMagicLinkRoute = ApiAuthRequestMagicLinkRouteImport.update({
+  id: '/api/auth/request-magic-link',
+  path: '/api/auth/request-magic-link',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthLogoutRoute = ApiAuthLogoutRouteImport.update({
@@ -181,7 +193,7 @@ export interface FileRoutesByFullPath {
   '/api/restaurant': typeof ApiRestaurantRouteWithChildren
   '/api/reverification-code': typeof ApiReverificationCodeRoute
   '/api/users': typeof ApiUsersRouteWithChildren
-  '/api/verify': typeof ApiVerifyRoute
+  '/auth/magic': typeof AuthMagicRoute
   '/res/$username': typeof ResUsernameRoute
   '/user/dashboard': typeof UserDashboardRoute
   '/user/loginlocal': typeof UserLoginlocalRoute
@@ -189,7 +201,9 @@ export interface FileRoutesByFullPath {
   '/api/app/temp-session': typeof ApiAppTempSessionRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/request-magic-link': typeof ApiAuthRequestMagicLinkRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
+  '/api/auth/verify-magic': typeof ApiAuthVerifyMagicRoute
   '/api/restaurant/checkout': typeof ApiRestaurantCheckoutRoute
   '/api/user/update': typeof ApiUserUpdateRoute
   '/api/users/auth/handleAuth': typeof ApiUsersAuthHandleAuthRoute
@@ -209,7 +223,7 @@ export interface FileRoutesByTo {
   '/api/restaurant': typeof ApiRestaurantRouteWithChildren
   '/api/reverification-code': typeof ApiReverificationCodeRoute
   '/api/users': typeof ApiUsersRouteWithChildren
-  '/api/verify': typeof ApiVerifyRoute
+  '/auth/magic': typeof AuthMagicRoute
   '/res/$username': typeof ResUsernameRoute
   '/user/dashboard': typeof UserDashboardRoute
   '/user/loginlocal': typeof UserLoginlocalRoute
@@ -217,7 +231,9 @@ export interface FileRoutesByTo {
   '/api/app/temp-session': typeof ApiAppTempSessionRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/request-magic-link': typeof ApiAuthRequestMagicLinkRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
+  '/api/auth/verify-magic': typeof ApiAuthVerifyMagicRoute
   '/api/restaurant/checkout': typeof ApiRestaurantCheckoutRoute
   '/api/user/update': typeof ApiUserUpdateRoute
   '/api/users/auth/handleAuth': typeof ApiUsersAuthHandleAuthRoute
@@ -238,7 +254,7 @@ export interface FileRoutesById {
   '/api/restaurant': typeof ApiRestaurantRouteWithChildren
   '/api/reverification-code': typeof ApiReverificationCodeRoute
   '/api/users': typeof ApiUsersRouteWithChildren
-  '/api/verify': typeof ApiVerifyRoute
+  '/auth/magic': typeof AuthMagicRoute
   '/res/$username': typeof ResUsernameRoute
   '/user/dashboard': typeof UserDashboardRoute
   '/user/loginlocal': typeof UserLoginlocalRoute
@@ -246,7 +262,9 @@ export interface FileRoutesById {
   '/api/app/temp-session': typeof ApiAppTempSessionRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/request-magic-link': typeof ApiAuthRequestMagicLinkRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
+  '/api/auth/verify-magic': typeof ApiAuthVerifyMagicRoute
   '/api/restaurant/checkout': typeof ApiRestaurantCheckoutRoute
   '/api/user/update': typeof ApiUserUpdateRoute
   '/api/users/auth/handleAuth': typeof ApiUsersAuthHandleAuthRoute
@@ -268,7 +286,7 @@ export interface FileRouteTypes {
     | '/api/restaurant'
     | '/api/reverification-code'
     | '/api/users'
-    | '/api/verify'
+    | '/auth/magic'
     | '/res/$username'
     | '/user/dashboard'
     | '/user/loginlocal'
@@ -276,7 +294,9 @@ export interface FileRouteTypes {
     | '/api/app/temp-session'
     | '/api/auth/login'
     | '/api/auth/logout'
+    | '/api/auth/request-magic-link'
     | '/api/auth/session'
+    | '/api/auth/verify-magic'
     | '/api/restaurant/checkout'
     | '/api/user/update'
     | '/api/users/auth/handleAuth'
@@ -296,7 +316,7 @@ export interface FileRouteTypes {
     | '/api/restaurant'
     | '/api/reverification-code'
     | '/api/users'
-    | '/api/verify'
+    | '/auth/magic'
     | '/res/$username'
     | '/user/dashboard'
     | '/user/loginlocal'
@@ -304,7 +324,9 @@ export interface FileRouteTypes {
     | '/api/app/temp-session'
     | '/api/auth/login'
     | '/api/auth/logout'
+    | '/api/auth/request-magic-link'
     | '/api/auth/session'
+    | '/api/auth/verify-magic'
     | '/api/restaurant/checkout'
     | '/api/user/update'
     | '/api/users/auth/handleAuth'
@@ -324,7 +346,7 @@ export interface FileRouteTypes {
     | '/api/restaurant'
     | '/api/reverification-code'
     | '/api/users'
-    | '/api/verify'
+    | '/auth/magic'
     | '/res/$username'
     | '/user/dashboard'
     | '/user/loginlocal'
@@ -332,7 +354,9 @@ export interface FileRouteTypes {
     | '/api/app/temp-session'
     | '/api/auth/login'
     | '/api/auth/logout'
+    | '/api/auth/request-magic-link'
     | '/api/auth/session'
+    | '/api/auth/verify-magic'
     | '/api/restaurant/checkout'
     | '/api/user/update'
     | '/api/users/auth/handleAuth'
@@ -353,7 +377,7 @@ export interface RootRouteChildren {
   ApiRestaurantRoute: typeof ApiRestaurantRouteWithChildren
   ApiReverificationCodeRoute: typeof ApiReverificationCodeRoute
   ApiUsersRoute: typeof ApiUsersRouteWithChildren
-  ApiVerifyRoute: typeof ApiVerifyRoute
+  AuthMagicRoute: typeof AuthMagicRoute
   ResUsernameRoute: typeof ResUsernameRoute
   UserDashboardRoute: typeof UserDashboardRoute
   UserLoginlocalRoute: typeof UserLoginlocalRoute
@@ -361,7 +385,9 @@ export interface RootRouteChildren {
   ApiAppTempSessionRoute: typeof ApiAppTempSessionRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
+  ApiAuthRequestMagicLinkRoute: typeof ApiAuthRequestMagicLinkRoute
   ApiAuthSessionRoute: typeof ApiAuthSessionRoute
+  ApiAuthVerifyMagicRoute: typeof ApiAuthVerifyMagicRoute
   ApiUserUpdateRoute: typeof ApiUserUpdateRoute
 }
 
@@ -444,11 +470,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResUsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/verify': {
-      id: '/api/verify'
-      path: '/api/verify'
-      fullPath: '/api/verify'
-      preLoaderRoute: typeof ApiVerifyRouteImport
+    '/auth/magic': {
+      id: '/auth/magic'
+      path: '/auth/magic'
+      fullPath: '/auth/magic'
+      preLoaderRoute: typeof AuthMagicRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/users': {
@@ -507,11 +533,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRestaurantCheckoutRouteImport
       parentRoute: typeof ApiRestaurantRoute
     }
+    '/api/auth/verify-magic': {
+      id: '/api/auth/verify-magic'
+      path: '/api/auth/verify-magic'
+      fullPath: '/api/auth/verify-magic'
+      preLoaderRoute: typeof ApiAuthVerifyMagicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/session': {
       id: '/api/auth/session'
       path: '/api/auth/session'
       fullPath: '/api/auth/session'
       preLoaderRoute: typeof ApiAuthSessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/request-magic-link': {
+      id: '/api/auth/request-magic-link'
+      path: '/api/auth/request-magic-link'
+      fullPath: '/api/auth/request-magic-link'
+      preLoaderRoute: typeof ApiAuthRequestMagicLinkRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/logout': {
@@ -592,7 +632,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiRestaurantRoute: ApiRestaurantRouteWithChildren,
   ApiReverificationCodeRoute: ApiReverificationCodeRoute,
   ApiUsersRoute: ApiUsersRouteWithChildren,
-  ApiVerifyRoute: ApiVerifyRoute,
+  AuthMagicRoute: AuthMagicRoute,
   ResUsernameRoute: ResUsernameRoute,
   UserDashboardRoute: UserDashboardRoute,
   UserLoginlocalRoute: UserLoginlocalRoute,
@@ -600,7 +640,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAppTempSessionRoute: ApiAppTempSessionRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
+  ApiAuthRequestMagicLinkRoute: ApiAuthRequestMagicLinkRoute,
   ApiAuthSessionRoute: ApiAuthSessionRoute,
+  ApiAuthVerifyMagicRoute: ApiAuthVerifyMagicRoute,
   ApiUserUpdateRoute: ApiUserUpdateRoute,
 }
 export const routeTree = rootRouteImport

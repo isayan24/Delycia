@@ -18,8 +18,16 @@ export const Route = createFileRoute('/api/user/update')({
 
           const accessToken = getAccessTokenFromCookie(request)
 
+          if (!accessToken) {
+            console.error('[API /api/user/update] No access token found')
+            return Response.json(
+              { error: 'Unauthorized - No access token' },
+              { status: 401 },
+            )
+          }
+
           if (username || name) {
-            await axiosInstance.patch(
+            const response = await axiosInstance.patch(
               `/users`,
               {
                 uid,
@@ -43,13 +51,23 @@ export const Route = createFileRoute('/api/user/update')({
               { headers: { Authorization: `Bearer ${accessToken}` } },
             )
           }
+          
           return Response.json(
-            { message: 'User updated successfully' },
+            { 
+              success: true,
+              message: 'User updated successfully',
+              data: { uid, username, name, profile_pic }
+            },
             { status: 200 },
           )
-        } catch (error) {
+        } catch (error: any) {
+          console.error('[API /api/user/update] Error:', error.response?.data || error.message)
           return Response.json(
-            { error: 'Failed to update user' },
+            { 
+              success: false,
+              error: 'Failed to update user',
+              message: error.response?.data?.message || error.message 
+            },
             { status: 500 },
           )
         }

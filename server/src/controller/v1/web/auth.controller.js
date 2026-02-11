@@ -1,5 +1,4 @@
 import auth from "../../../models/v1/web/auth.model.js";
-import validator from "../../../validations/user.validations.js";
 import authUtil from "../../../utils/auth.js";
 import jwt from "jsonwebtoken";
 
@@ -28,22 +27,36 @@ const refresh = async (req, res) => {
   }
 };
 
-const sendOTP = async (req, res) => {
-  const response = await auth.sendOTP(req);
+/**
+ * Request a magic login link to be sent via WhatsApp
+ */
+const requestLoginLink = async (req, res) => {
+  const response = await auth.requestLoginLink(req);
   res.status(response.statusCode).json(response);
 };
-const verifyOTP = async (req, res) => {
-  const response = await auth.verifyOTP(req);
-  res.status(response.statusCode).json(response);
+
+/**
+ * Verify magic link token and authenticate user
+ */
+const verifyMagicLink = async (req, res) => {
+  const response = await auth.verifyMagicLink(req);
+  if (response.statusCode === 200 && response.data) {
+    authUtil.setCookies(res, "access_token", response.data.access_token, 7);
+    authUtil.setCookies(res, "refresh_token", response.data.refresh_token, 30);
+  }
+  return res.status(response.statusCode).json(response);
 };
+
 const admin_login = async (req, res) => {
   const response = await auth.admin_login(req);
   res.status(response.statusCode).json(response);
 };
+
 const waiter_auth = async (req, res) => {
   const response = await auth.waiter_auth(req);
   res.status(response.statusCode).json(response);
 };
+
 const create_admin = async (req, res) => {
   const response = await auth.create_admin(req);
   res.status(response.statusCode).json(response);
@@ -52,8 +65,8 @@ const create_admin = async (req, res) => {
 export default {
   handleAuth,
   refresh,
-  sendOTP,
-  verifyOTP,
+  requestLoginLink,
+  verifyMagicLink,
   admin_login,
   waiter_auth,
   create_admin,

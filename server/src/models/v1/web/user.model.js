@@ -93,7 +93,7 @@ const getUserByName = async (name, rid = null) => {
 // Update user Info
 const updateUser = async (data) => {
   try {
-    const { uid, ...params } = data;
+    const { uid, ...params } = data; 
 
     // Remove undefined/null values from params
     Object.keys(params).forEach(key =>

@@ -1,12 +1,10 @@
 // components/Checkout.tsx
 'use client'
 
-import { NameInputStep } from '@/components/steps/NameInputStep'
-import { ThemeColors } from '@/types/loginTypes'
 import { Form } from '@/components/ui/form'
 import { checkoutSchema } from '@/schemas/checkoutSchema'
 import { zodResolver } from '@hookform/resolvers/zod'
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useRouter } from '@/lib/next-compat'
@@ -14,18 +12,18 @@ import { useItemStore } from '@/store/order-store'
 import CheckoutSidebar from './CheckoutSIdebar'
 import PaymentButtons from './PaymentButtons'
 import { useCheckoutMutation } from '@/hooks/mutations/useCheckoutMutation'
-import { useUpdateUserMutation } from '@/hooks/mutations/useUserMutations'
 import EmptyCheckout from './EmptyCheckout'
 import { useAuthQuery } from '@/hooks/queries/useAuthQuery'
 import SpecialInstructionArea from './SpecialInstructionArea'
 import { getCookie, setCookie } from 'cookies-next'
 import useToast from '@/hooks/UseToast'
 import { useLoginDialogStore } from '@/store/useLoginDialogStore'
-import { getUser } from '@/helpers/getUser'
 import TableNotFoundCard from './TableNotFoundCard'
 import { parseAndValidateQRCode } from '@/utils/qrCodeParser'
 import QRCodeScanner from './QRCodeScanner'
 import PartySizeSelector from './PartySizeSelector'
+import { NameCollectionDialog } from '@/components/checkout/NameCollectionDialog'
+import { useNameCollection } from '@/hooks/useNameCollection'
 import {
   Dialog,
   DialogContent,
@@ -42,33 +40,29 @@ export default function Checkout() {
   const rid = (getCookie('rid') as string) || null
   const table = (getCookie('table') as string) || null
   const { showSuccess, showError } = useToast()
-  const [userDetails, setUserDetails] = useState<any>({})
-  const { openLoginDialog, openLoginDialogWithCheckout } = useLoginDialogStore()
+  const { openLoginDialog } = useLoginDialogStore()
 
   const { user, isLoading } = useAuthQuery()
 
+  // Name collection hook - production-ready approach
+  const {
+    needsName,
+    showDialog: showNameDialog,
+    openDialog: openNameDialog,
+    closeDialog: closeNameDialog,
+    handleNameCollected,
+    userId,
+  } = useNameCollection()
+
   // QR Scanner state management
   const [showQRScanner, setShowQRScanner] = useState<boolean>(false)
-  const [scannerError, setScannerError] = useState<string | null>(null)
 
   // Party size state
   const [partySize, setPartySize] = useState<number>(0)
   const [showPartySizeError, setShowPartySizeError] = useState(false)
 
   useEffect(() => {
-    if (user) {
-      const getUserDetails = async () => {
-        try {
-          const userData = await getUser()
-          if (userData?.user) {
-            setUserDetails(userData.user)
-          }
-        } catch (error) {
-          console.error(error)
-        }
-      }
-      getUserDetails()
-    }
+    // No longer needed - useNameCollection handles name checking
   }, [user])
 
   const form = useForm<z.infer<typeof checkoutSchema>>({
@@ -91,28 +85,6 @@ export default function Checkout() {
   }, [showCartItems, selectedItems])
 
   const checkoutMutation = useCheckoutMutation()
-  const updateUserMutation = useUpdateUserMutation()
-
-  const handleCheckoutComplete = async (userData: any) => {
-    try {
-      if (!user?._id) return
-
-      await updateUserMutation.mutateAsync({
-        uid: user._id,
-        name: userData.fullName,
-        username:
-          userData.fullName.toLowerCase().replace(/\s+/g, '') +
-          user?.phone_number?.slice(-2),
-      })
-
-      setUserDetails((prev: any) => ({ ...prev, name: userData.fullName }))
-      const currentValues = form.getValues()
-      await processCheckout(currentValues)
-    } catch (error) {
-      console.error('Error updating user data:', error)
-      showError('Error', 'Failed to update user data. Please try again.')
-    }
-  }
 
   const processCheckout = async (values: any) => {
     setIsCheckoutLoading(true)
@@ -147,26 +119,6 @@ export default function Checkout() {
     }
   }
 
-  // Placeholder theme for NameInputStep
-  const defaultTheme: ThemeColors = {
-    primary: 'from-orange-500 to-orange-600',
-    primaryHover: 'hover:from-orange-600 hover:to-orange-700',
-    accent: 'bg-orange-500',
-    accentHover: 'hover:bg-orange-600',
-    ring: 'focus:ring-2 focus:ring-orange-500',
-    border: 'border-orange-200',
-    bg: 'bg-orange-50',
-  }
-
-  const [showNameInput, setShowNameInput] = useState(false)
-  const [fullName, setFullName] = useState('')
-
-  const handleNameSubmit = async () => {
-    if (!fullName.trim()) return
-    await handleCheckoutComplete({ fullName })
-    setShowNameInput(false)
-  }
-
   const handleSubmit = async (values: any) => {
     // Validate party size first
     if (partySize === 0) {
@@ -175,34 +127,31 @@ export default function Checkout() {
     }
     setShowPartySizeError(false)
 
+    // Check if user is authenticated
     if (!user) {
-      console.log('no user found \n\n\n')
+      console.log('No user found - opening login dialog')
       openLoginDialog()
-      console.log(
-        'No user found, maybe for network issue, or actually not exist!!',
-      )
-    } else if (values && userDetails?.name) {
-      console.log(values, 'values checkout \n\n\n')
-      await processCheckout(values)
-    } else {
-      // User exists but name is missing
-      setShowNameInput(true)
+      return
     }
-  }
 
-  // Note: We keep handleTableSet in case you later add a small flow to set the cookie.
-  const handleTableSet = (t: string) => {
-    setCookie('table', t, { path: '/' })
-    try {
-      router.refresh()
-    } catch {
-      window.location.reload()
+    // Check if user needs to provide name
+    if (needsName) {
+      console.log('User needs name - opening name collection dialog')
+      // Open name dialog with callback to proceed with checkout after name is collected
+      openNameDialog(() => {
+        console.log('Name collected - proceeding with checkout')
+        processCheckout(values)
+      })
+      return
     }
+
+    // User is authenticated and has name - proceed with checkout
+    console.log('User authenticated with name - proceeding with checkout')
+    await processCheckout(values)
   }
 
   // Handle invalid QR scan
   const handleScanError = (error: string) => {
-    setScannerError(error)
     console.error('QR scan error:', error)
   }
 
@@ -215,7 +164,6 @@ export default function Checkout() {
       if (!validationResult.isValid) {
         // Show error but keep scanner open
         const errorMsg = validationResult.error || 'Invalid QR code'
-        setScannerError(errorMsg)
         handleScanError(errorMsg)
         showError(
           'Invalid QR Code',
@@ -230,7 +178,6 @@ export default function Checkout() {
 
         // Close scanner
         setShowQRScanner(false)
-        setScannerError(null)
 
         // Show success message
         showSuccess(
@@ -247,7 +194,6 @@ export default function Checkout() {
       }
     } catch (error) {
       console.error('Error processing QR code:', error)
-      setScannerError('Failed to process QR code')
       showError('Error', 'Failed to process QR code. Please try again.')
     }
   }
@@ -255,13 +201,11 @@ export default function Checkout() {
   // Handle scanner close
   const handleScannerClose = () => {
     setShowQRScanner(false)
-    setScannerError(null)
   }
 
   // Handle manual scanner trigger from TableNotFoundCard
   const handleOpenScanner = () => {
     setShowQRScanner(true)
-    setScannerError(null)
   }
 
   return (
@@ -337,25 +281,15 @@ export default function Checkout() {
             </div>
           </section>
 
-          {/* Name Input Dialog */}
-          <Dialog open={showNameInput} onOpenChange={setShowNameInput}>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Complete Profile</DialogTitle>
-                <DialogDescription>
-                  Please enter your name to complete the order.
-                </DialogDescription>
-              </DialogHeader>
-              <NameInputStep
-                fullName={fullName}
-                setFullName={setFullName}
-                isLoading={isCheckoutLoading}
-                theme={defaultTheme}
-                onSubmit={handleNameSubmit}
-                onEditPhone={() => setShowNameInput(false)}
-              />
-            </DialogContent>
-          </Dialog>
+          {/* Name Collection Dialog - Production Ready */}
+          {userId && (
+            <NameCollectionDialog
+              isOpen={showNameDialog}
+              onClose={closeNameDialog}
+              onSuccess={handleNameCollected}
+              userId={userId}
+            />
+          )}
         </form>
       )}
     </Form>
