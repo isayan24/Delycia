@@ -4,14 +4,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { fileToBase64 } from "@/helpers/fileToBase64";
 import UseOptimizeImage from "@/hooks/UseOptimizeImage";
 import { Loader2, Save, Upload, User, X } from "lucide-react";
-import Image from "@/lib/next-compat";
-import React, { useEffect, useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
+import { useFileUploadMutation, useFileDeleteMutation } from "@/hooks/mutations/useFileUploadMutation";
+import { extractFileIdFromUrl } from "@/helpers/image/imagekitHelpers";
 
 interface UserProfile {
   image?: string | null;
-}
-interface UserData {
-  profile_pic?: string;
 }
 
 export default function ProfileImage({
@@ -26,9 +24,12 @@ export default function ProfileImage({
     image: userData?.profile_pic || null,
   });
 
+  // ImageKit mutations
+  const uploadMutation = useFileUploadMutation();
+  const deleteMutation = useFileDeleteMutation();
+
   const handleAvatarChange = (e: any) => {
     const file = e.target.files[0];
-    console.log(file);
     setAvatar(file);
     setAvatarPreview(URL.createObjectURL(file));
   };
@@ -39,23 +40,53 @@ export default function ProfileImage({
         console.error("No file selected");
         return;
       }
+      
       setIsLoading(true);
+      
+      // Convert file to base64
       const base64Avatar = await fileToBase64(avatar);
       const base64Data = base64Avatar.split(",")[1];
-      if (base64Data) {
-        const res = await onProfilePictureUpload(base64Data, userData.uid);
+      
+      if (!base64Data) {
+        console.error("Failed to convert file to base64");
+        return;
+      }
 
-        if (res?.status === 200) {
-          setAvatarPreview("");
-          setProfile({
-            image: res.message, // Update the profile image with the returned download link
-          });
-        } else {
-          console.log("Failed to upload profile picture:", res?.message);
-        }
+      // Delete old profile picture if exists
+      if (profile.image) {
+        const fileId = extractFileIdFromUrl(profile.image);
+        if (fileId) {
+          try {
+            await deleteMutation.mutateAsync({ img_id: fileId });
+          } catch (deleteError) {
+            // Log error but don't block upload
+            console.warn("[ProfileImage] Failed to delete old profile picture:", deleteError);
+          }
+        } 
+      }
+
+      // Upload new image to ImageKit
+      const uploadResult = await uploadMutation.mutateAsync({
+        base64Image: base64Data,
+        fileName: `profile_${userData._id}_${Date.now()}.jpg`,
+        folder: '/profile-pictures',
+      });
+
+      // Update user profile with new URL
+      const res = await onProfilePictureUpload(uploadResult.url, userData._id);
+
+      if (res?.status === 200) {
+        // Update local state
+        setAvatarPreview("");
+        setProfile({
+          image: uploadResult.url,
+        });
+      } else {
+        console.error("Failed to update profile picture:", res?.message);
       }
     } catch (error) {
-      console.log("Error converting file to base64", error);
+      console.error("[ProfileImage] Error uploading profile picture:", error);
+      // TODO: Show error toast/notification to user
     } finally {
       setIsLoading(false);
     }

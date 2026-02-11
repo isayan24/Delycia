@@ -27,6 +27,7 @@ import { Route as ApiReverificationCodeRouteImport } from './routes/api/reverifi
 import { Route as ApiRestaurantRouteImport } from './routes/api/restaurant'
 import { Route as ApiOrdersRouteImport } from './routes/api/orders'
 import { Route as ApiInventoryRouteImport } from './routes/api/inventory'
+import { Route as ApiImagekitRouteImport } from './routes/api/imagekit'
 import { Route as ApiCategoriesRouteImport } from './routes/api/categories'
 import { Route as ApiUserUpdateRouteImport } from './routes/api/user.update'
 import { Route as ApiRestaurantCheckoutRouteImport } from './routes/api/restaurant.checkout'
@@ -129,6 +130,11 @@ const ApiInventoryRoute = ApiInventoryRouteImport.update({
   path: '/api/inventory',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiImagekitRoute = ApiImagekitRouteImport.update({
+  id: '/api/imagekit',
+  path: '/api/imagekit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCategoriesRoute = ApiCategoriesRouteImport.update({
   id: '/api/categories',
   path: '/api/categories',
@@ -195,6 +201,7 @@ export interface FileRoutesByFullPath {
   '/order-placed': typeof OrderPlacedRoute
   '/orders': typeof OrdersRoute
   '/api/categories': typeof ApiCategoriesRoute
+  '/api/imagekit': typeof ApiImagekitRoute
   '/api/inventory': typeof ApiInventoryRoute
   '/api/orders': typeof ApiOrdersRoute
   '/api/restaurant': typeof ApiRestaurantRouteWithChildren
@@ -226,6 +233,7 @@ export interface FileRoutesByTo {
   '/order-placed': typeof OrderPlacedRoute
   '/orders': typeof OrdersRoute
   '/api/categories': typeof ApiCategoriesRoute
+  '/api/imagekit': typeof ApiImagekitRoute
   '/api/inventory': typeof ApiInventoryRoute
   '/api/orders': typeof ApiOrdersRoute
   '/api/restaurant': typeof ApiRestaurantRouteWithChildren
@@ -258,6 +266,7 @@ export interface FileRoutesById {
   '/order-placed': typeof OrderPlacedRoute
   '/orders': typeof OrdersRoute
   '/api/categories': typeof ApiCategoriesRoute
+  '/api/imagekit': typeof ApiImagekitRoute
   '/api/inventory': typeof ApiInventoryRoute
   '/api/orders': typeof ApiOrdersRoute
   '/api/restaurant': typeof ApiRestaurantRouteWithChildren
@@ -291,6 +300,7 @@ export interface FileRouteTypes {
     | '/order-placed'
     | '/orders'
     | '/api/categories'
+    | '/api/imagekit'
     | '/api/inventory'
     | '/api/orders'
     | '/api/restaurant'
@@ -322,6 +332,7 @@ export interface FileRouteTypes {
     | '/order-placed'
     | '/orders'
     | '/api/categories'
+    | '/api/imagekit'
     | '/api/inventory'
     | '/api/orders'
     | '/api/restaurant'
@@ -353,6 +364,7 @@ export interface FileRouteTypes {
     | '/order-placed'
     | '/orders'
     | '/api/categories'
+    | '/api/imagekit'
     | '/api/inventory'
     | '/api/orders'
     | '/api/restaurant'
@@ -385,6 +397,7 @@ export interface RootRouteChildren {
   OrderPlacedRoute: typeof OrderPlacedRoute
   OrdersRoute: typeof OrdersRoute
   ApiCategoriesRoute: typeof ApiCategoriesRoute
+  ApiImagekitRoute: typeof ApiImagekitRoute
   ApiInventoryRoute: typeof ApiInventoryRoute
   ApiOrdersRoute: typeof ApiOrdersRoute
   ApiRestaurantRoute: typeof ApiRestaurantRouteWithChildren
@@ -533,6 +546,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiInventoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/imagekit': {
+      id: '/api/imagekit'
+      path: '/api/imagekit'
+      fullPath: '/api/imagekit'
+      preLoaderRoute: typeof ApiImagekitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/categories': {
       id: '/api/categories'
       path: '/api/categories'
@@ -647,6 +667,7 @@ const rootRouteChildren: RootRouteChildren = {
   OrderPlacedRoute: OrderPlacedRoute,
   OrdersRoute: OrdersRoute,
   ApiCategoriesRoute: ApiCategoriesRoute,
+  ApiImagekitRoute: ApiImagekitRoute,
   ApiInventoryRoute: ApiInventoryRoute,
   ApiOrdersRoute: ApiOrdersRoute,
   ApiRestaurantRoute: ApiRestaurantRouteWithChildren,

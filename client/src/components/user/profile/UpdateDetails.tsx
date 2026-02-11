@@ -1,13 +1,11 @@
 'use client'
-import React, { useEffect, useState } from 'react'
+import  { useEffect, useState } from 'react'
 import { z } from 'zod'
 import { updateNameSchema } from '@/schemas/updateProfileSchema'
 import ProfileImage from './ProfileImage'
 import UpdateName from './UpdateName'
 import { useAuthQuery } from '@/hooks/queries/useAuthQuery'
 import { getUser } from '@/helpers/getUser'
-import { Flame, Headset } from 'lucide-react'
-import ProfileHeader from '../../home/AboutUs'
 import Signout from '@/components/smallComponents/Signout'
 
 interface UpdateDetailsProps {

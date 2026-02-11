@@ -7,7 +7,6 @@ import { useAuthQuery } from '@/hooks/queries/useAuthQuery'
 import { useState, useEffect } from 'react'
 import useToast from '@/hooks/UseToast'
 import { useUpdateUserMutation } from '@/hooks/mutations/useUserMutations'
-import { useFileUploadMutation } from '@/hooks/mutations/useFileUploadMutation'
 
 const searchSchema = z.object({
   error: z.string().optional(),
@@ -32,7 +31,6 @@ function UserProfileLayout() {
   }, [searchParams])
 
   const updateUserMutation = useUpdateUserMutation()
-  const fileUploadMutation = useFileUploadMutation()
 
   // Update Name
   const onNameSubmit = async (values: z.infer<typeof updateNameSchema>) => {
@@ -59,33 +57,24 @@ function UserProfileLayout() {
   }
 
   // Update Profile picture
-  const onProfilePictureUpload = async (values: string) => {
+  const onProfilePictureUpload = async (imageUrl: string, uid: string) => {
     try {
-      // 1. Upload file
-      const uploadResponse = await fileUploadMutation.mutateAsync({
-        fileName: 'image.png',
-        fileData: values,
-      })
-
-      const downloadLink = uploadResponse?.downloadLink
-
-      if (!downloadLink) {
-        toast.error('Failed to upload profile picture')
-        return { status: 500, message: 'Failed to upload' }
+      // Update user profile with the new ImageKit URL
+      if (!uid) {
+        showError('Error','User ID not found')
+        return { status: 400, message: 'User ID not found' }
       }
 
-      if (user?._id) {
-       await updateUserMutation.mutateAsync({
-        uid: user._id,
-        profile_pic: downloadLink,
+      await updateUserMutation.mutateAsync({
+        uid: uid,
+        profile_pic: imageUrl,
       })
-      } 
 
-      toast.success('Profile picture uploaded successfully')
-      return { status: 200, message: downloadLink }
+      showSuccess('Updated','Profile picture updated successfully')
+      return { status: 200, message: imageUrl }
     } catch (error) {
-      console.error('Error during upload:', error)
-      toast.error('An error occurred while uploading')
+      console.error('Error updating profile picture:', error)
+      showError('Error','Failed to update profile picture')
       return { status: 500, message: 'An error occurred' }
     }
   }
