@@ -1,7 +1,5 @@
 // getUser.ts
 'use client'
-import { getCookie } from 'cookies-next'
-import { createTempSession } from './createTempSession'
 import sessionService from '@/services/sessionService'
 import axios from 'axios'
 
@@ -25,12 +23,6 @@ export const getUser = async () => {
 
     if (data?.isAuthenticated && data?.data?.user) {
       const userData = data.data.user
-
-      const tableCode = getCookie('code')
-
-      if (tableCode) {
-        await createTempSession(userData, tableCode)
-      }
 
       return { user: userData }
     }

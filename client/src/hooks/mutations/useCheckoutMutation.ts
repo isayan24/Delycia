@@ -1,5 +1,4 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import axiosInstance from '@/lib/axios' // Using client axios instance
 import { queryKeys } from '@/lib/queryKeys'
 import axios from 'axios'
 
@@ -12,6 +11,7 @@ interface CheckoutVariables {
   totalPrice: number
   customer_id: string | number
   party_size: number
+  table_id?: number // Optional table ID
 }
 
 export const useCheckoutMutation = () => {

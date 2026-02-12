@@ -24,6 +24,7 @@ import { Route as UserDashboardRouteImport } from './routes/user/dashboard'
 import { Route as ResUsernameRouteImport } from './routes/res.$username'
 import { Route as AuthMagicRouteImport } from './routes/auth/magic'
 import { Route as ApiUsersRouteImport } from './routes/api/users'
+import { Route as ApiTablesRouteImport } from './routes/api/tables'
 import { Route as ApiReverificationCodeRouteImport } from './routes/api/reverification-code'
 import { Route as ApiRestaurantRouteImport } from './routes/api/restaurant'
 import { Route as ApiOrdersRouteImport } from './routes/api/orders'
@@ -114,6 +115,11 @@ const AuthMagicRoute = AuthMagicRouteImport.update({
 const ApiUsersRoute = ApiUsersRouteImport.update({
   id: '/api/users',
   path: '/api/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTablesRoute = ApiTablesRouteImport.update({
+  id: '/api/tables',
+  path: '/api/tables',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiReverificationCodeRoute = ApiReverificationCodeRouteImport.update({
@@ -213,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/api/orders': typeof ApiOrdersRoute
   '/api/restaurant': typeof ApiRestaurantRouteWithChildren
   '/api/reverification-code': typeof ApiReverificationCodeRoute
+  '/api/tables': typeof ApiTablesRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/auth/magic': typeof AuthMagicRoute
   '/res/$username': typeof ResUsernameRoute
@@ -246,6 +253,7 @@ export interface FileRoutesByTo {
   '/api/orders': typeof ApiOrdersRoute
   '/api/restaurant': typeof ApiRestaurantRouteWithChildren
   '/api/reverification-code': typeof ApiReverificationCodeRoute
+  '/api/tables': typeof ApiTablesRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/auth/magic': typeof AuthMagicRoute
   '/res/$username': typeof ResUsernameRoute
@@ -280,6 +288,7 @@ export interface FileRoutesById {
   '/api/orders': typeof ApiOrdersRoute
   '/api/restaurant': typeof ApiRestaurantRouteWithChildren
   '/api/reverification-code': typeof ApiReverificationCodeRoute
+  '/api/tables': typeof ApiTablesRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/auth/magic': typeof AuthMagicRoute
   '/res/$username': typeof ResUsernameRoute
@@ -315,6 +324,7 @@ export interface FileRouteTypes {
     | '/api/orders'
     | '/api/restaurant'
     | '/api/reverification-code'
+    | '/api/tables'
     | '/api/users'
     | '/auth/magic'
     | '/res/$username'
@@ -348,6 +358,7 @@ export interface FileRouteTypes {
     | '/api/orders'
     | '/api/restaurant'
     | '/api/reverification-code'
+    | '/api/tables'
     | '/api/users'
     | '/auth/magic'
     | '/res/$username'
@@ -381,6 +392,7 @@ export interface FileRouteTypes {
     | '/api/orders'
     | '/api/restaurant'
     | '/api/reverification-code'
+    | '/api/tables'
     | '/api/users'
     | '/auth/magic'
     | '/res/$username'
@@ -415,6 +427,7 @@ export interface RootRouteChildren {
   ApiOrdersRoute: typeof ApiOrdersRoute
   ApiRestaurantRoute: typeof ApiRestaurantRouteWithChildren
   ApiReverificationCodeRoute: typeof ApiReverificationCodeRoute
+  ApiTablesRoute: typeof ApiTablesRoute
   ApiUsersRoute: typeof ApiUsersRouteWithChildren
   AuthMagicRoute: typeof AuthMagicRoute
   ResUsernameRoute: typeof ResUsernameRoute
@@ -536,6 +549,13 @@ declare module '@tanstack/react-router' {
       path: '/api/users'
       fullPath: '/api/users'
       preLoaderRoute: typeof ApiUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/tables': {
+      id: '/api/tables'
+      path: '/api/tables'
+      fullPath: '/api/tables'
+      preLoaderRoute: typeof ApiTablesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/reverification-code': {
@@ -693,6 +713,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiOrdersRoute: ApiOrdersRoute,
   ApiRestaurantRoute: ApiRestaurantRouteWithChildren,
   ApiReverificationCodeRoute: ApiReverificationCodeRoute,
+  ApiTablesRoute: ApiTablesRoute,
   ApiUsersRoute: ApiUsersRouteWithChildren,
   AuthMagicRoute: AuthMagicRoute,
   ResUsernameRoute: ResUsernameRoute,

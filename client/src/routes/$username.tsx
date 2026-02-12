@@ -6,8 +6,7 @@ import HomePage from '@/components/home/HomePage'
 import { fetchRestaurantByUsername } from '@/hooks/queries/useRestaurantsQuery'
 
 const searchSchema = z.object({
-  table: z.string().optional(),
-  code: z.string().optional(),
+  table: z.any().optional(),
 })
 
 export const Route = createFileRoute('/$username')({
@@ -79,10 +78,12 @@ function UsernameMenuPage() {
     }
   }, [restaurant])
 
-  // Handle table and code parameters
+  // Handle table parameters
   useEffect(() => {
-    if (searchParams.table) {
-      setCookie('table', searchParams.table, {
+    const { table } = searchParams
+    if (table) {
+      console.log(`[Menu] Setting table cookie: ${table}`)
+      setCookie('table', table, {
         maxAge: 7200,
         httpOnly: false,
         secure: process.env.NODE_ENV === 'production',
@@ -90,16 +91,6 @@ function UsernameMenuPage() {
         path: '/',
       })
     }
-
-    // if (searchParams.code) {
-    //   setCookie('code', searchParams.code, {
-    //     maxAge: 7200,
-    //     httpOnly: false,
-    //     secure: process.env.NODE_ENV === 'production',
-    //     sameSite: 'lax',
-    //     path: '/',
-    //   })
-    // }
   }, [searchParams])
 
   return <HomePage />

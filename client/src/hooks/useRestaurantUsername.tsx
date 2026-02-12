@@ -1,35 +1,33 @@
-"use client";
-import { useState, useEffect } from "react";
+'use client'
+import { useState, useEffect } from 'react'
 
 export const useRestaurantUsername = (): string | null => {
-  const [username, setUsername] = useState<string | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [username, setUsername] = useState<string | null>(null)
+  const [isInitialized, setIsInitialized] = useState(false)
 
   // Initialize from localStorage on mount (client-side only)
   useEffect(() => {
     if (!isInitialized) {
-      const storedUsername = localStorage.getItem('currentRestaurantUsername');
-      console.log('[useRestaurantUsername] Initial load:', storedUsername || 'none');
-      setUsername(storedUsername);
-      setIsInitialized(true);
+      const storedUsername = localStorage.getItem('currentRestaurantUsername')
+      setUsername(storedUsername)
+      setIsInitialized(true)
     }
-  }, [isInitialized]);
+  }, [isInitialized])
 
   // Listen for storage changes from other tabs/windows
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'currentRestaurantUsername') {
-        console.log('[useRestaurantUsername] Storage changed:', e.newValue || 'cleared');
-        setUsername(e.newValue);
+        setUsername(e.newValue)
       }
-    };
+    }
 
-    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('storage', handleStorageChange)
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
+      window.removeEventListener('storage', handleStorageChange)
+    }
+  }, [])
 
-  return username;
-};
+  return username
+}

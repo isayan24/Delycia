@@ -14,6 +14,7 @@ export const Route = createFileRoute('/api/restaurant/checkout')({
             const {
               rid,
               table,
+              table_id, // Add table_id
               special_instruction,
               orderItems,
               // totalPrice,
@@ -50,6 +51,7 @@ export const Route = createFileRoute('/api/restaurant/checkout')({
                 special_instructions: special_instruction,
                 total_amount: item.price || 0,
                 table_no: table || null, // Add table number to each order item,
+                table_id: table_id || null, // Add table_id
                 party_size: party_size || 1,
                 addons: item.addons || [],
               }))
@@ -88,7 +90,8 @@ export const Route = createFileRoute('/api/restaurant/checkout')({
                   alive: false,
                   details: {
                     step: 'authentication',
-                    message: 'Customer details are required for order processing',
+                    message:
+                      'Customer details are required for order processing',
                   },
                 },
                 400,

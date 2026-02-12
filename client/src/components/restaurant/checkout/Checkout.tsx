@@ -24,6 +24,9 @@ import QRCodeScanner from './QRCodeScanner'
 import PartySizeSelector from './PartySizeSelector'
 import { NameCollectionDialog } from '@/components/checkout/NameCollectionDialog'
 import { useNameCollection } from '@/hooks/useNameCollection'
+import { useTableQuery } from '@/hooks/queries/useTableQuery'
+import { useRestaurantUsername } from '@/hooks/useRestaurantUsername' // Import hook
+import { useRestaurantByUsername } from '@/hooks/queries/useRestaurantsQuery' // Import hook
 import {
   Dialog,
   DialogContent,
@@ -37,10 +40,23 @@ export default function Checkout() {
   const selectedItems = useItemStore((state) => state.selectedItems)
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false)
   const router = useRouter()
-  const rid = (getCookie('rid') as string) || null
+
+  // 1. Get username from local storage
+  const username = useRestaurantUsername()
+
+  // 2. Fetch restaurant details to get RID
+  const { restaurant } = useRestaurantByUsername(username || undefined)
+  const rid = restaurant?.id ? String(restaurant.id) : null
+
   const table = (getCookie('table') as string) || null
   const { showSuccess, showError } = useToast()
   const { openLoginDialog } = useLoginDialogStore()
+
+  // 3. Fetch table details using derived RID
+  const { table: tableDetails, isLoading: isTableLoading } = useTableQuery(
+    rid,
+    table,
+  )
 
   const { user, isLoading } = useAuthQuery()
 
@@ -97,6 +113,7 @@ export default function Checkout() {
       await checkoutMutation.mutateAsync({
         rid,
         table,
+        table_id: tableDetails?.id, // Pass table_id
         paymentMethod: values.paymentMethod,
         special_instruction: values.special_instruction,
         orderItems: filteredCartItems,
@@ -113,7 +130,7 @@ export default function Checkout() {
       router.push('/orders')
     } catch (err) {
       showError('Error in order', 'Failed to place order, please try again')
-      console.log(err)
+      console.error(err)
     } finally {
       setIsCheckoutLoading(false)
     }
@@ -129,24 +146,20 @@ export default function Checkout() {
 
     // Check if user is authenticated
     if (!user) {
-      console.log('No user found - opening login dialog')
       openLoginDialog()
       return
     }
 
     // Check if user needs to provide name
     if (needsName) {
-      console.log('User needs name - opening name collection dialog')
       // Open name dialog with callback to proceed with checkout after name is collected
       openNameDialog(() => {
-        console.log('Name collected - proceeding with checkout')
         processCheckout(values)
       })
       return
     }
 
     // User is authenticated and has name - proceed with checkout
-    console.log('User authenticated with name - proceeding with checkout')
     await processCheckout(values)
   }
 
@@ -215,7 +228,7 @@ export default function Checkout() {
       ) : (
         <form
           onSubmit={form.handleSubmit(handleSubmit)}
-          className="p-5 space-y-6 mx-auto flex gap-10 max-[1550px]:flex-col relative max-[700px]:mb-[7rem]"
+          className="p-5 space-y-6 mx-auto flex gap-10 max-[1550px]:flex-col relative max-[700px]:mb-28"
         >
           <section className="space-y-2 w-[50rem] max-[1000px]:w-full">
             <div
@@ -229,7 +242,17 @@ export default function Checkout() {
                 {table ? (
                   <div className="mt-2 px-3 py-1 bg-green-50 border border-green-200 rounded-lg">
                     <p className="text-sm text-green-700">
-                      <span className="font-medium">Table Number:</span> {table}
+                      {tableDetails && (
+                        <>
+                          <span className="font-medium">Table Number:</span>{' '}
+                          {tableDetails.table_number}
+                          <span className="mx-2">|</span>
+                          <span className="font-medium">Zone:</span>{' '}
+                          {tableDetails.zone}
+                          {/* <span className="mx-2">|</span> */}
+                          {/* <span className="font-medium">Capacity:</span> {tableDetails.capacity} */}
+                        </>
+                      )}
                     </p>
                   </div>
                 ) : (
@@ -275,7 +298,9 @@ export default function Checkout() {
               <CheckoutSidebar
                 totalPrice={totalPrice}
                 selectedItems={filteredCartItems}
-                isCheckoutLoading={isCheckoutLoading || isLoading}
+                isCheckoutLoading={
+                  isCheckoutLoading || isLoading || isTableLoading
+                }
                 disableButton={table ? false : true}
               />
             </div>

@@ -48,6 +48,39 @@ const tableModel = {
     }
   },
 
+  // Get specific table details by restaurant ID and table ID
+  get_table_details: async (req) => {
+    const { rid, tableId } = req.query;
+    if (!rid || !tableId) return apiResponse.error(400, "rid and tableId are required");
+
+    try {
+      const [tables] = await pool.query(
+        `SELECT t.*, 
+          COALESCE(SUM(distinct_orders.party_size), 0) AS party_size
+         FROM tables t 
+         LEFT JOIN (
+           SELECT DISTINCT table_id, cart_id, party_size, rid
+           FROM orders
+           WHERE order_status NOT IN ('cancelled', 'settled')
+             AND created_at >= NOW() - INTERVAL 2 HOUR
+         ) AS distinct_orders 
+           ON distinct_orders.table_id = t.id 
+           AND distinct_orders.rid = t.rid
+         WHERE t.rid = ? AND t.id = ?
+         GROUP BY t.id`,
+        [rid, tableId]
+      );
+
+      if (tables.length === 0) {
+        return apiResponse.error(404, "Table not found");
+      }
+
+      return apiResponse.success(200, "success", { table: tables[0] });
+    } catch (err) {
+      return apiResponse.error(500, err.message);
+    }
+  },
+
   // Create a new table
   create: async (req) => {
     const {

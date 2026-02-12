@@ -8,6 +8,10 @@ const get_all_zone = async (req, res) => {
   const response = await tableModel.get_all_zone(req);
   res.status(response.statusCode).json(response);
 };
+const get_table_details = async (req, res) => {
+  const response = await tableModel.get_table_details(req);
+  res.status(response.statusCode).json(response);
+};
 
 const create_table = async (req, res) => {
   const response = await tableModel.create(req);
@@ -26,6 +30,7 @@ const delete_table = async (req, res) => {
 
 export default {
   get_all_tables,
+  get_table_details,
   get_all_zone,
   create_table,
   update_table,
