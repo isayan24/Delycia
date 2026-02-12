@@ -12,11 +12,11 @@ import {
   CheckCircle,
 } from 'lucide-react'
 import { ImageLoader } from '../image-loader'
-import { useRestaurantQuery } from '@/hooks/queries/useRestaurantsQuery'
+import { useRestaurantByUsername } from '@/hooks/queries/useRestaurantsQuery'
 import { Link } from '@tanstack/react-router'
 
-export default function ResLanding({ rid }: any) {
-  const { restaurant, loading, error } = useRestaurantQuery(rid)
+export default function ResLanding({ username }: { username: string }) {
+  const { restaurant, loading, error } = useRestaurantByUsername(username)
 
   if (loading) {
     return (
@@ -238,7 +238,10 @@ export default function ResLanding({ rid }: any) {
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to={`/?rid=${restaurant.id}`}>
+            <Link
+              to="/$username"
+              params={{ username: restaurant.username }}
+            >
               <button className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-4 px-8 rounded-2xl shadow-md transition-all duration-300 transform hover:scale-105 flex items-center justify-center space-x-3">
                 <Globe size={24} />
                 <span className="text-lg">View Our Menu</span>

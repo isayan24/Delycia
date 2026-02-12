@@ -27,6 +27,11 @@ export const queryKeys = {
       ['inventory', { rid, categoryId }] as const,
     allItems: (rid: string | null) =>
       ['inventory', { rid, type: 'all' }] as const,
+    // Username-based keys
+    byCategoryUsername: (username: string | null, categoryId?: string) =>
+      ['inventory', { username, categoryId }] as const,
+    allItemsUsername: (username: string | null) =>
+      ['inventory', { username, type: 'all' }] as const,
   },
 
   // Orders queries
@@ -40,6 +45,7 @@ export const queryKeys = {
   categories: {
     all: ['categories'] as const,
     byRid: (rid: string | null) => ['categories', { rid }] as const,
+    byUsername: (username: string | null) => ['categories', { username }] as const,
   },
 
   // Restaurant queries
@@ -47,6 +53,8 @@ export const queryKeys = {
     all: ['restaurants'] as const,
     detail: (rid: string | number | null | undefined) =>
       ['restaurant', { rid }] as const,
+    byUsername: (username: string | undefined) =>
+      ['restaurant', { username }] as const,
   },
 
   // Auth queries

@@ -187,7 +187,22 @@ const update_restaurant = async (req) => {
 
 const get_restaurant = async (req, admin = true) => {
   try {
-    let { rid } = req.query;
+    let { rid, username } = req.query;
+
+    // Priority: rid > username
+    // If no rid but username is provided, resolve username to rid
+    if (!rid && username) {
+      const [[restaurant]] = await pool.query(
+        "SELECT id FROM restaurants WHERE username = ?",
+        [username]
+      );
+      
+      if (!restaurant) {
+        return apiResponse.error(404, "Restaurant not found");
+      }
+      
+      rid = restaurant.id;
+    }
 
     if (admin) {
       const userId = req.user.id;

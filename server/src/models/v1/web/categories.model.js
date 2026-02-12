@@ -52,7 +52,21 @@ const createCategory = async (req) => {
 
 const getCategories = async (req) => {
   try {
-    const { id, rid } = req.query;
+    let { id, rid, username } = req.query;
+
+    // If username is provided, resolve it to rid
+    if (username && !rid) {
+      const [restaurants] = await pool.query(
+        "SELECT id FROM restaurants WHERE username = ?",
+        [username]
+      );
+      
+      if (restaurants.length === 0) {
+        return apiResponse.error(404, "Restaurant not found");
+      }
+      
+      rid = restaurants[0].id;
+    }
 
     let q;
     let params = [];
@@ -78,7 +92,7 @@ const getCategories = async (req) => {
       // CHANGED: For admin only - get all categories with restaurant info
       const power = await others.getPower(req);
       if (power < 90) {
-        return apiResponse.error(401, "Restaurant ID (rid) is required for non-admin users");
+        return apiResponse.error(401, "Restaurant ID (rid) or username is required for non-admin users");
       }
 
       q = `

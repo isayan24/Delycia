@@ -3,7 +3,6 @@ import { Restaurant } from '@/types/Restaurant'
 import { MapPin, ChefHat, Heart } from 'lucide-react'
 import React, { useState, useEffect } from 'react'
 import { useAuthQuery } from '@/hooks/queries/useAuthQuery'
-import { useRouter } from '@/lib/next-compat'
 import { Link } from '@tanstack/react-router'
 // import Banner from "../../../public/";
 
@@ -11,7 +10,6 @@ export default function ResCard({ restaurant }: { restaurant: Restaurant }) {
   const [isClicked, setIsClicked] = useState(false)
   const [isLiked, setIsLiked] = useState(false)
   const { isAuthenticated } = useAuthQuery()
-  const router = useRouter()
 
   // Load like state from localStorage on component mount
   useEffect(() => {
@@ -71,21 +69,39 @@ export default function ResCard({ restaurant }: { restaurant: Restaurant }) {
     setIsLiked(newLikedState)
     saveLikeState(newLikedState)
   }
-
-  const handleViewMenuClick = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    router.push(`/?rid=${restaurant.id}`)
-  }
+ 
+ 
 
   return (
-    <Link
-      to={`/res/${restaurant.username || restaurant.id}?id=${restaurant.id}`}
-      onClick={handleCardClick}
-      className={`group block !overflow-hidden rounded-2xl w-full max-w-sm mx-auto shadow-md transform transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2 touch-manipulation ${
-        isClicked ? 'scale-[0.98] translate-y-1' : ''
-      }`}
-    >
+    <>
+      {restaurant.username ? (
+        <Link
+          to="/res/$username"
+          params={{ username: restaurant.username }}
+          onClick={handleCardClick}
+          data-restaurant-id={restaurant.id}
+          className={`group block !overflow-hidden rounded-2xl w-full max-w-sm mx-auto shadow-md transform transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2 touch-manipulation ${
+            isClicked ? 'scale-[0.98] translate-y-1' : ''
+          }`}
+        >
+          {renderCardContent()}
+        </Link>
+      ) : (
+        <div
+          onClick={handleCardClick}
+          data-restaurant-id={restaurant.id}
+          className={`group block !overflow-hidden rounded-2xl w-full max-w-sm mx-auto shadow-md transform transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2 touch-manipulation cursor-pointer ${
+            isClicked ? 'scale-[0.98] translate-y-1' : ''
+          }`}
+        >
+          {renderCardContent()}
+        </div>
+      )}
+    </>
+  )
+
+  function renderCardContent() {
+    return (
       <div
         className={`bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-300 group-hover:shadow-xl border border-gray-100 group-hover:border-orange-200 w-full relative ${
           isClicked ? 'shadow-2xl border-orange-300 bg-orange-50/30' : ''
@@ -194,16 +210,27 @@ export default function ResCard({ restaurant }: { restaurant: Restaurant }) {
             </span>
           </div>
 
-          {/* Action Button */}
-          <div className="flex items-center justify-between">
+          {/* Action Buttons */}
+          <div className="flex items-center justify-between gap-2">
             <div className="text-xs text-gray-500">@{restaurant.username}</div>
 
-            <button
-              onClick={handleViewMenuClick}
-              className={`bg-gradient-to-r from-orange-500 to-orange-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold group-hover:from-orange-600 group-hover:to-orange-700 transition-all duration-300 shadow-lg min-h-[44px] flex items-center justify-center `}
-            >
-              View Menu
-            </button>
+            <div className="flex gap-2">
+              <Link
+                to="/res/$username"
+                params={{ username: restaurant.username }}
+                className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold hover:from-blue-600 hover:to-blue-800 transition-all duration-300 shadow-lg min-h-[44px] flex items-center justify-center"
+              >
+                Details
+              </Link>
+              
+              <Link
+                to="/$username"
+                params={{ username: restaurant.username }}
+                className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-300 shadow-lg min-h-[44px] flex items-center justify-center"
+              >
+                Menu
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -222,6 +249,6 @@ export default function ResCard({ restaurant }: { restaurant: Restaurant }) {
         {/* Shimmer Effect */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none"></div>
       </div>
-    </Link>
-  )
+    )
+  }
 }

@@ -1,5 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
-'use client'
 import React, { useCallback, useState, useMemo, useEffect } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import HomeCategoryItems from './HomeCategoryItems'

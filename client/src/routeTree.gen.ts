@@ -16,6 +16,7 @@ import { Route as ClearCookiesRouteImport } from './routes/clear-cookies'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CategoryRouteImport } from './routes/category'
 import { Route as CartRouteImport } from './routes/cart'
+import { Route as UsernameRouteImport } from './routes/$username'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UserPRouteImport } from './routes/user/p'
 import { Route as UserLoginlocalRouteImport } from './routes/user/loginlocal'
@@ -73,6 +74,11 @@ const CategoryRoute = CategoryRouteImport.update({
 const CartRoute = CartRouteImport.update({
   id: '/cart',
   path: '/cart',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UsernameRoute = UsernameRouteImport.update({
+  id: '/$username',
+  path: '/$username',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -193,6 +199,7 @@ const ApiUsersAuthHandleAuthRoute = ApiUsersAuthHandleAuthRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$username': typeof UsernameRoute
   '/cart': typeof CartRoute
   '/category': typeof CategoryRoute
   '/checkout': typeof CheckoutRoute
@@ -225,6 +232,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$username': typeof UsernameRoute
   '/cart': typeof CartRoute
   '/category': typeof CategoryRoute
   '/checkout': typeof CheckoutRoute
@@ -258,6 +266,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$username': typeof UsernameRoute
   '/cart': typeof CartRoute
   '/category': typeof CategoryRoute
   '/checkout': typeof CheckoutRoute
@@ -292,6 +301,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$username'
     | '/cart'
     | '/category'
     | '/checkout'
@@ -324,6 +334,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$username'
     | '/cart'
     | '/category'
     | '/checkout'
@@ -356,6 +367,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/$username'
     | '/cart'
     | '/category'
     | '/checkout'
@@ -389,6 +401,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  UsernameRoute: typeof UsernameRoute
   CartRoute: typeof CartRoute
   CategoryRoute: typeof CategoryRoute
   CheckoutRoute: typeof CheckoutRoute
@@ -467,6 +480,13 @@ declare module '@tanstack/react-router' {
       path: '/cart'
       fullPath: '/cart'
       preLoaderRoute: typeof CartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$username': {
+      id: '/$username'
+      path: '/$username'
+      fullPath: '/$username'
+      preLoaderRoute: typeof UsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -659,6 +679,7 @@ const ApiUsersRouteWithChildren = ApiUsersRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  UsernameRoute: UsernameRoute,
   CartRoute: CartRoute,
   CategoryRoute: CategoryRoute,
   CheckoutRoute: CheckoutRoute,

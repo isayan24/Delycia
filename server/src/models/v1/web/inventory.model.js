@@ -4,9 +4,23 @@ import others from "../../../utils/others.js";
 import embeddingModel from "./embedding.model.js";
 
 const getItems = async (req) => {
-  const { category_id, id, rid } = req.query || {};
+  let { category_id, id, rid, username } = req.query || {};
 
   try {
+    // If username is provided, resolve it to rid
+    if (username && !rid) {
+      const [restaurants] = await pool.query(
+        "SELECT id FROM restaurants WHERE username = ?",
+        [username]
+      );
+      
+      if (restaurants.length === 0) {
+        return apiResponse.error(404, "Restaurant not found");
+      }
+      
+      rid = restaurants[0].id;
+    }
+
     let q = "";
     const params = [];
 

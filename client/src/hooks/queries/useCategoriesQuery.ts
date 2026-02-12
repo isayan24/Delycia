@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import { useRestaurantId } from '@/hooks/useRestaurantId'
+import { useRestaurantUsername } from '@/hooks/useRestaurantUsername'
 import axios from 'axios'
 import { queryKeys } from '@/lib/queryKeys'
 
 export const useCategoriesQuery = () => {
-  const rid = useRestaurantId()
+  const username = useRestaurantUsername()
 
   const {
     data: categories = [],
@@ -12,14 +12,22 @@ export const useCategoriesQuery = () => {
     error,
     refetch,
   } = useQuery({
-    queryKey: queryKeys.categories.byRid(rid),
+    queryKey: queryKeys.categories.byUsername(username),
     queryFn: async () => {
+      if (!username) {
+        console.warn('[useCategoriesQuery] No username available')
+        return []
+      }
+
       // Use local API route which proxies to backend
-      const url = rid ? `/api/categories?rid=${rid}` : '/api/categories'
+      const url = `/api/categories?username=${username}`
+      console.log('[useCategoriesQuery] Fetching categories for:', username)
       const response = await axios.get(url)
       return response.data.categories || []
     },
-    enabled: !!rid,
+    enabled: !!username, // Only run query if username exists
+    retry: false, // Don't retry on failure
+    staleTime: 5 * 60 * 1000, // 5 minutes
   })
 
   return {

@@ -1,16 +1,21 @@
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
-import { useRestaurantId } from '@/hooks/useRestaurantId'
+import { useRestaurantUsername } from '@/hooks/useRestaurantUsername'
 import { queryKeys } from '@/lib/queryKeys'
 
 // Fetcher functions - use local API routes which proxy to backend
 export const fetchInventoryItems = async (
-  rid: string | null,
+  username: string | null,
   categoryId?: string,
 ) => {
+  if (!username) {
+    console.warn('[fetchInventoryItems] No username available')
+    return []
+  }
+
   const params: Record<string, string> = {}
 
-  if (rid) params.rid = rid
+  params.username = username
   if (categoryId) params.category_id = categoryId
 
   // Use local API route which proxies to backend
@@ -23,7 +28,7 @@ export const fetchInventoryItems = async (
 
 // Hook for fetching items by category
 export const useInventoryQuery = (categoryId?: string) => {
-  const rid = useRestaurantId()
+  const username = useRestaurantUsername()
 
   const {
     data: items = [],
@@ -31,9 +36,11 @@ export const useInventoryQuery = (categoryId?: string) => {
     error,
     refetch,
   } = useQuery({
-    queryKey: queryKeys.inventory.byCategory(rid, categoryId),
-    queryFn: () => fetchInventoryItems(rid, categoryId),
-    enabled: !!categoryId, // Only fetch if categoryId is provided (matching legacy behavior)
+    queryKey: queryKeys.inventory.byCategoryUsername(username, categoryId),
+    queryFn: () => fetchInventoryItems(username, categoryId),
+    enabled: !!categoryId && !!username, // Only fetch if both categoryId and username exist
+    retry: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   })
 
   return {
@@ -46,7 +53,7 @@ export const useInventoryQuery = (categoryId?: string) => {
 
 // Hook for fetching all items
 export const useAllInventoryQuery = () => {
-  const rid = useRestaurantId()
+  const username = useRestaurantUsername()
 
   const {
     data: allItems = [],
@@ -54,11 +61,11 @@ export const useAllInventoryQuery = () => {
     error,
     refetch: fetchAllItems,
   } = useQuery({
-    queryKey: queryKeys.inventory.allItems(rid),
-    queryFn: () => fetchInventoryItems(rid),
-    // Always enabled if we are calling this hook, or legacy relied on rid!=null?
-    // Legacy: useEffect checks if rid !== null.
-    enabled: rid !== null,
+    queryKey: queryKeys.inventory.allItemsUsername(username),
+    queryFn: () => fetchInventoryItems(username),
+    enabled: !!username, // Only fetch if username exists
+    retry: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   })
 
   return {

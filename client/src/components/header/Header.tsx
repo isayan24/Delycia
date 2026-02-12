@@ -9,6 +9,7 @@ import { useAuthQuery } from '@/hooks/queries/useAuthQuery'
 import { ImageLoader } from '../image-loader'
 import { useLoginDialogStore } from '@/store/useLoginDialogStore'
 import { LogIn, LogOut, User } from 'lucide-react'
+import { useRestaurantUsername } from '@/hooks/useRestaurantUsername'
 import { Link } from '@tanstack/react-router'
 
 export default function Header() {
@@ -17,6 +18,7 @@ export default function Header() {
   const isMobile = useMediaQuery('(max-width: 700px)', false)
   const is800px = useMediaQuery('(max-width: 800px)', false)
   const searchParams = useSearchParams()
+  const restaurantUsername = useRestaurantUsername()
 
   const { user, logout, isAuthenticated } = useAuthQuery()
   const { openLoginDialog } = useLoginDialogStore()
@@ -66,7 +68,12 @@ export default function Header() {
   }
 
   const navItems = [
-    { id: 'home', label: 'Home', icon: '🏠', href: '/' },
+    {
+      id: 'home',
+      label: 'Home',
+      icon: '🏠',
+      href: restaurantUsername ? `/${restaurantUsername}` : '/',
+    },
     {
       id: 'delycias',
       label: 'All Delycias',
@@ -76,7 +83,9 @@ export default function Header() {
     { id: 'orders', label: 'Orders', icon: '📦', href: '/orders' },
   ]
 
-  const home = pathname === '/'
+  const home =
+    pathname === '/' ||
+    (restaurantUsername && pathname === `/${restaurantUsername}`)
 
   return (
     <header
@@ -84,7 +93,13 @@ export default function Header() {
     >
       <div className="flex items-center justify-between h-full px-6 max-w-7xl mx-auto">
         {/* Logo Section - Left */}
-        <Link to="/" className="flex items-center space-x-4">
+        <Link
+          to={restaurantUsername ? '/$username' : '/'}
+          params={
+            restaurantUsername ? { username: restaurantUsername } : undefined
+          }
+          className="flex items-center space-x-4"
+        >
           <div
             className={`w-10 h-10 bg-gradient-to-br ${home ? 'from-green-400 to-green-600' : 'from-orange-400 to-orange-600'}  rounded-xl flex items-center justify-center shadow-lg`}
           >
@@ -103,7 +118,7 @@ export default function Header() {
             return (
               <Link
                 key={item.id}
-                to={item.href}
+                to={item.href as any}
                 className={`${is800px ? 'space-x-2 px-2' : 'space-x-2 px-4'} flex items-center py-2 rounded-full transition-all duration-300 ${
                   isActive
                     ? !home
