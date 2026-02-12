@@ -35,9 +35,9 @@ function UserProfileLayout() {
   // Update Name
   const onNameSubmit = async (values: z.infer<typeof updateNameSchema>) => {
     setIsNameSubmit(true)
-    
+    console.log(user, 'user')
     try {
-      const uid = user?._id
+      const uid = user?.uid
       if (!uid) throw new Error('User not found')
 
       await updateUserMutation.mutateAsync({
@@ -61,7 +61,7 @@ function UserProfileLayout() {
     try {
       // Update user profile with the new ImageKit URL
       if (!uid) {
-        showError('Error','User ID not found')
+        showError('Error', 'User ID not found')
         return { status: 400, message: 'User ID not found' }
       }
 
@@ -70,11 +70,11 @@ function UserProfileLayout() {
         profile_pic: imageUrl,
       })
 
-      showSuccess('Updated','Profile picture updated successfully')
+      showSuccess('Updated', 'Profile picture updated successfully')
       return { status: 200, message: imageUrl }
     } catch (error) {
       console.error('Error updating profile picture:', error)
-      showError('Error','Failed to update profile picture')
+      showError('Error', 'Failed to update profile picture')
       return { status: 500, message: 'An error occurred' }
     }
   }

@@ -1,11 +1,10 @@
 'use client'
-import  { useEffect, useState } from 'react'
+import 'react'
 import { z } from 'zod'
 import { updateNameSchema } from '@/schemas/updateProfileSchema'
 import ProfileImage from './ProfileImage'
 import UpdateName from './UpdateName'
 import { useAuthQuery } from '@/hooks/queries/useAuthQuery'
-import { getUser } from '@/helpers/getUser'
 import Signout from '@/components/smallComponents/Signout'
 
 interface UpdateDetailsProps {
@@ -19,29 +18,11 @@ export default function UpdateDetails({
   onProfilePictureUpload,
   isNameSubmit,
 }: UpdateDetailsProps) {
-  const { user } = useAuthQuery()
-  const [userData, setUserData] = useState<any | null>(null)
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const data = await getUser()
-        if (data?.user) {
-          setUserData(data.user)
-        }
-      } catch (err) {
-        console.error(err)
-      }
-    }
-
-    if (user) {
-      fetchUserData()
-    }
-  }, [user])
+  const { user: userData } = useAuthQuery()
 
   return (
     <main>
-      <div className="flex flex-col p-5 max-w-[50rem] mx-auto max-[500px]:p-3">
+      <div className="flex flex-col p-5 max-w-200 mx-auto max-[500px]:p-3">
         <div className="my-5"></div>
         <div className="flex-1">
           <div className="">

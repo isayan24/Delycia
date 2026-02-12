@@ -1,10 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 'use client'
-import React from 'react'
 import { usePathname, useSearchParams } from '@/lib/next-compat'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { useItemStore } from '@/store/order-store'
-import { getUser } from '@/helpers/getUser'
 import { useAuthQuery } from '@/hooks/queries/useAuthQuery'
 import { ImageLoader } from '../image-loader'
 import { useLoginDialogStore } from '@/store/useLoginDialogStore'
@@ -20,31 +18,8 @@ export default function Header() {
   const searchParams = useSearchParams()
   const restaurantUsername = useRestaurantUsername()
 
-  const { user, logout, isAuthenticated } = useAuthQuery()
+  const { user: userData, logout, isAuthenticated } = useAuthQuery()
   const { openLoginDialog } = useLoginDialogStore()
-
-  const [userData, setUserData] = React.useState<{
-    username?: string
-    name?: any
-    profile_pic?: string
-  } | null>(null)
-
-  React.useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const data = await getUser()
-        if (data?.user) {
-          setUserData(data.user)
-        }
-      } catch (err) {
-        console.error(err)
-      }
-    }
-
-    if (user) {
-      fetchUserData()
-    }
-  }, [user])
 
   // Don't show header on category pages
   // if (

@@ -6,7 +6,6 @@ import {
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
-import * as React from 'react'
 
 // Providers
 import AuthProvider from '@/context/AuthProvider'
@@ -18,6 +17,7 @@ import CartWrapper from '@/components/restaurant/cart/CartWrapper'
 import MobileNav from '@/components/navigation/MobileNav'
 import LoginWrapper from '@/components/smallComponents/LoginWrapper'
 import HeaderWrapper from '@/components/header/HeaderWrapper'
+import { InitialLoader } from '@/components/loader/InitialLoader'
 
 // Global Styles
 import '../styles.css'
@@ -87,6 +87,7 @@ function RootComponent() {
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
             <StoreProvider>
+              <InitialLoader />
               <HeaderWrapper />
               <div className="relative min-h-screen flex flex-col">
                 <Toaster position="top-center" />

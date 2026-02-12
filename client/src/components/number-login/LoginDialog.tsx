@@ -1,13 +1,3 @@
-'use client'
-/**
- * Login Dialog Component
- *
- * Multi-step login dialog for WhatsApp magic link authentication.
- * Steps: Phone Input → Magic Link Sent
- * 
- * NOTE: Name input step (step 2) is no longer used - name collection moved to checkout
- */
-
 import React, { useEffect, useState } from 'react'
 import { FastForward } from 'lucide-react'
 import { ProgressBar } from '../smallComponents/ProgressBar'
@@ -86,15 +76,15 @@ export const LoginDialog: React.FC<LoginDialogProps> = ({
   }
 
   return (
-    <div 
+    <div
       className={`fixed inset-0 bg-black/70 flex items-center justify-center z-99999 p-2 transition-opacity duration-300 ${
         isAnimating ? 'opacity-100' : 'opacity-0'
       }`}
     >
-      <div 
+      <div
         className={`bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all duration-500 ease-out ${
-          isAnimating 
-            ? 'translate-y-0 opacity-100 scale-100' 
+          isAnimating
+            ? 'translate-y-0 opacity-100 scale-100'
             : '-translate-y-8 opacity-0 scale-95'
         }`}
       >

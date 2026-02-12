@@ -1,7 +1,7 @@
 'use client'
 
 export interface UserData {
-  _id: string
+  uid: string
   id: number | string
   country_code: string
   phone_number: string
@@ -47,7 +47,10 @@ class SessionService {
           localStorage.setItem(USER_DATA_KEY, JSON.stringify(userData))
           console.log('[SessionService] User data saved to localStorage')
         } catch (storageError) {
-          console.error('[SessionService] Failed to save to localStorage:', storageError)
+          console.error(
+            '[SessionService] Failed to save to localStorage:',
+            storageError,
+          )
           // Continue even if localStorage fails (e.g., in private browsing mode)
         }
       }
@@ -80,7 +83,10 @@ class SessionService {
             console.log('[SessionService] User data loaded from localStorage')
             return this.userDataCache
           } catch (parseError) {
-            console.error('[SessionService] Failed to parse stored user data:', parseError)
+            console.error(
+              '[SessionService] Failed to parse stored user data:',
+              parseError,
+            )
             // Clear corrupted data
             localStorage.removeItem(USER_DATA_KEY)
             return null

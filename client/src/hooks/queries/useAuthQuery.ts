@@ -11,6 +11,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import axios from 'axios'
+import axiosInstance from '@/lib/axios'
 import { queryKeys } from '@/lib/queryKeys'
 import sessionService, { UserData } from '@/services/sessionService'
 import tokenService from '@/services/tokenService'
@@ -26,21 +27,25 @@ export interface LoginCredentials {
  */
 const fetchSession = async (): Promise<UserData | null> => {
   try {
-    const response = await axios.get('/api/auth/session')
+    // Use axiosInstance which has the correct baseURL (/api/v1)
+    // /users endpoint maps to user.controller.getUser
+    const response = await axiosInstance.get('/users')
 
-    if (response.data?.isAuthenticated && response.data?.data?.user) {
-      const userData = response.data.data.user
+    if (response.data?.status === true && response.data?.user) {
+      const userData = response.data.user
       // Sync to localStorage for persistence across refreshes
       sessionService.setUserData(userData)
       return userData
     }
 
-    // Clear localStorage if server says not authenticated
-    sessionService.clearSession()
     return null
   } catch (error) {
-    // On error, clear session and return null
-    sessionService.clearSession()
+    if (
+      axios.isAxiosError(error) &&
+      (error.response?.status === 401 || error.response?.status === 403)
+    ) {
+      sessionService.clearSession()
+    }
     return null
   }
 }
@@ -73,6 +78,8 @@ export function useAuthQuery() {
     retry: 1,
     // Keep previous data while refetching to prevent UI flicker
     placeholderData: (previousData) => previousData,
+    // Disable on server to prevent hydration mismatch (server has no localStorage)
+    enabled: typeof window !== 'undefined',
   })
 
   // Login mutation
