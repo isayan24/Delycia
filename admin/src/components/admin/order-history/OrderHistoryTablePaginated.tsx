@@ -10,9 +10,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Printer } from 'lucide-react'
-import {
-  formatISTDateTime,
-} from './utils/historyDateUtils'
+import { formatISTDateTime } from './utils/historyDateUtils'
+import { formatDateTime } from '@/utils/dateUtils'
 import { TableFilters } from './table/components/TableFilters'
 import { TablePagination } from './table/components/TablePagination'
 import { OrderItemsCell } from './table/components/OrderItemsCell'
@@ -189,7 +188,7 @@ export default function OrderHistoryTablePaginated({
         order.discountAmount || order.discount_amount || 0,
       ),
       rid: order.rid || order.restaurant_id,
-      orderDate: formatISTDateTime(order.createdAt || order.created_at),
+      orderDate: formatDateTime(order.createdAt || order.created_at),
     }
 
     setSelectedOrderForBill(billData)
@@ -228,23 +227,31 @@ export default function OrderHistoryTablePaginated({
         <TableHeader>
           <TableRow className="bg-gray-50">
             {isSelectionMode && <TableHead className="w-[50px]"></TableHead>}
-            <TableHead className="py-3 text-sm font-semibold w-[100px]">
+            <TableHead className="py-2 px-2 text-xs sm:text-sm font-semibold w-[80px]">
               ID
             </TableHead>
-            <TableHead className="py-3 text-sm font-semibold">Items</TableHead>
-            <TableHead className="py-3 text-sm font-semibold">
+            <TableHead className="py-2 px-2 text-xs sm:text-sm font-semibold">
+              Items
+            </TableHead>
+            <TableHead className="py-2 px-2 text-xs sm:text-sm font-semibold">
               Customer
             </TableHead>
-            <TableHead className="py-3 text-sm font-semibold">Status</TableHead>
-            <TableHead className="py-3 text-sm font-semibold">
+            <TableHead className="py-2 px-2 text-xs sm:text-sm font-semibold">
+              Status
+            </TableHead>
+            <TableHead className="py-2 px-2 text-xs sm:text-sm font-semibold hidden lg:table-cell">
               Discount
             </TableHead>
-            <TableHead className="py-3 text-sm font-semibold">Amount</TableHead>
-            <TableHead className="py-3 text-sm font-semibold">Table</TableHead>
-            <TableHead className="py-3 text-sm font-semibold">
+            <TableHead className="py-2 px-2 text-xs sm:text-sm font-semibold">
+              Amount
+            </TableHead>
+            <TableHead className="py-2 px-2 text-xs sm:text-sm font-semibold hidden md:table-cell">
+              Table
+            </TableHead>
+            <TableHead className="py-2 px-2 text-xs sm:text-sm font-semibold hidden sm:table-cell">
               Date & Time
             </TableHead>
-            <TableHead className="py-3 text-sm font-semibold">
+            <TableHead className="py-2 px-2 text-xs sm:text-sm font-semibold text-right">
               Actions
             </TableHead>
           </TableRow>
@@ -282,14 +289,14 @@ export default function OrderHistoryTablePaginated({
                 )}
 
                 {/* ID */}
-                <TableCell className="py-3 px-3">
-                  <div className="font-mono text-xs text-gray-500">
+                <TableCell className="py-2 px-2">
+                  <div className="font-mono text-[10px] sm:text-xs text-gray-500 truncate max-w-[60px] sm:max-w-none">
                     #{order.orderId || order.id || 'N/A'}
                   </div>
                 </TableCell>
 
                 {/* Items */}
-                <TableCell className="py-3 px-3 max-w-[200px]">
+                <TableCell className="py-2 px-2 max-w-[150px] sm:max-w-[200px]">
                   <OrderItemsCell
                     order={order}
                     expandedOrders={expandedOrders}
@@ -298,15 +305,15 @@ export default function OrderHistoryTablePaginated({
                 </TableCell>
 
                 {/* Customer */}
-                <TableCell className="py-3 px-3">
-                  <div className="text-sm">
-                    <div className="font-medium">
+                <TableCell className="py-2 px-2">
+                  <div className="text-xs sm:text-sm">
+                    <div className="truncate max-w-[80px] sm:max-w-none">
                       {order.customerName ||
                         order.customer_name ||
                         order.customer?.name ||
                         'N/A'}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-[10px] text-gray-500 hidden sm:block">
                       {order.customerId ||
                         order.customer_id ||
                         order.customer?.phone ||
@@ -316,13 +323,14 @@ export default function OrderHistoryTablePaginated({
                 </TableCell>
 
                 {/* Status */}
-                <TableCell className="py-3 px-3">
+                <TableCell className="py-2 px-2">
                   <Badge
-                    className={`px-2.5 py-1 text-xs ${
+                    variant="outline"
+                    className={`px-1.5 py-0.5 text-[10px] sm:text-xs font-[500] uppercase tracking-wider ${
                       order.order_status === 'completed' ||
                       order.status === 'DELIVERED'
-                        ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                        : 'bg-red-100 text-red-800 hover:bg-red-200'
+                        ? 'bg-green-50 text-green-700 border-green-200'
+                        : 'bg-red-50 text-red-700 border-red-200'
                     }`}
                   >
                     {order.order_status === 'completed' ||
@@ -333,61 +341,64 @@ export default function OrderHistoryTablePaginated({
                 </TableCell>
 
                 {/* Discount */}
-                <TableCell className="py-3 px-3">
+                <TableCell className="py-2 px-2 hidden lg:table-cell">
                   {(() => {
                     const discountValue = parseFloat(
                       order.discountAmount || order.discount_amount || 0,
                     )
                     return discountValue > 0 ? (
-                      <div className="text-sm text-green-600 font-medium">
+                      <div className="text-xs sm:text-sm text-green-600 font-medium">
                         -₹{discountValue.toFixed(0)}
                       </div>
                     ) : (
-                      <div className="text-xs text-gray-400">---</div>
+                      <div className="text-[10px] text-gray-400">---</div>
                     )
                   })()}
                 </TableCell>
 
                 {/* Amount */}
-                <TableCell className="py-3 px-3">
-                  <OrderTotalWithTooltip
-                    subtotal={parseFloat(order.totalAmount || 0)}
-                    discountAmount={parseFloat(order.discountAmount || order.discount_amount || 0)}
-                    rid={order.rid || order.restaurant_id}
-                  />
+                <TableCell className="py-2 px-2">
+                  <div className="scale-90 origin-left sm:scale-100">
+                    <OrderTotalWithTooltip
+                      subtotal={parseFloat(order.totalAmount || 0)}
+                      discountAmount={parseFloat(
+                        order.discountAmount || order.discount_amount || 0,
+                      )}
+                      rid={order.rid || order.restaurant_id}
+                    />
+                  </div>
                 </TableCell>
 
                 {/* Table */}
-                <TableCell className="py-3 px-3 text-sm">
+                <TableCell className="py-2 px-2 hidden md:table-cell">
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium">
+                    <span className="text-xs sm:text-sm">
                       {order.tableZone || ''}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">
                       {order.tableNo ? `Table ${order.tableNo}` : 'N/A'}
                     </span>
                   </div>
                 </TableCell>
 
                 {/* Date & Time */}
-                <TableCell className="py-3 px-3">
-                  <div className="text-xs text-gray-600">
-                    {formatISTDateTime(
-                      order.createdAt || order.created_at || '',
-                    )}
+                <TableCell className="py-2 px-2 hidden sm:table-cell">
+                  <div className="text-[10px] sm:text-xs text-gray-600 leading-tight">
+                    {formatDateTime(order.createdAt || order.created_at)}
                   </div>
                 </TableCell>
 
                 {/* Actions */}
-                <TableCell className="py-3 px-3">
+                <TableCell className="py-2 px-2 text-right">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => handlePrintBill(order)}
-                    className="h-8 px-3 text-sm gap-1.5"
+                    className="h-7 w-7 sm:h-8 sm:w-auto sm:px-3 p-0 sm:gap-1.5"
+                    title="Print Bill"
                   >
-                    <Printer className="w-4 h-4" />
-                    Print
+                    <Printer className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline text-xs">Print</span>
                   </Button>
                 </TableCell>
               </TableRow>

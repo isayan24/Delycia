@@ -1,12 +1,13 @@
 import { ProcessedOrder } from '@/types/WebSocketOrder'
 import { BillData, BillItem } from '../types'
+import { formatOrderDateTime } from '@/components/admin/orders/utils/orderProcessing'
 
 /**
  * Convert ProcessedOrder to BillData format for thermal printer
  */
 export function orderToBillData(
   order: ProcessedOrder,
-  restaurantName: string
+  restaurantName: string,
 ): BillData {
   const items: BillItem[] = order.items.map((item) => ({
     name: item.display_name || 'Unknown Item',
@@ -17,13 +18,7 @@ export function orderToBillData(
   }))
 
   // Format date to readable string
-  const orderDate = new Date(order.created_at).toLocaleString('en-IN', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  const orderDate = order.dateAndTime || formatOrderDateTime(order.created_at)
 
   // Get table number(s)
   const tableNo =
@@ -46,7 +41,6 @@ export function orderToBillData(
     orderDate,
     paymentMethod: order.payment_method || 'N/A',
     paymentStatus: order.payment_status || 'Pending',
-    rid: order.rid,
   }
 }
 

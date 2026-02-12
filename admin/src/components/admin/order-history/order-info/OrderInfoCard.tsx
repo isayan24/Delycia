@@ -2,11 +2,11 @@ import React, { memo, useMemo, useCallback } from 'react'
 import { TransformedOrderItem, CustomerInfo } from '../utils/orderHistoryUtils'
 import CustomerAvatar from '../CustomerAvatar'
 import { Printer } from 'lucide-react'
-import { formatISTDateTime } from '../utils/historyDateUtils'
+import { formatDateTime } from '@/utils/dateUtils'
 
 interface OrderInfoCardProps {
   status: 'DELIVERED' | 'CANCELLED'
-  rating?: number 
+  rating?: number
   orderDate: string
   orderId: string
   customerName: string
@@ -34,14 +34,14 @@ const getStatusColor = (status: string) => {
 
 const OrderInfoCard = memo(function OrderInfoCard({
   status,
-  rating, 
+  rating,
   orderDate,
   orderId,
   customerName,
   customer,
   items,
   totalAmount,
-  discountAmount, 
+  discountAmount,
   taxAmount,
   isSelected = false,
   onClick,
@@ -70,7 +70,7 @@ const OrderInfoCard = memo(function OrderInfoCard({
 
     return itemsText
   }, [items])
- 
+
   // Memoize the click handler to prevent unnecessary re-renders
   const handleClick = useCallback(() => {
     if (onClick) {
@@ -117,9 +117,7 @@ const OrderInfoCard = memo(function OrderInfoCard({
           )}
         </div>
         <div className="text-right text-gray-500">
-          <div className="text-sm"> 
-            {formatISTDateTime(orderDate)} 
-          </div>
+          <div className="text-sm">{formatDateTime(orderDate)}</div>
         </div>
       </div>
 
@@ -151,11 +149,13 @@ const OrderInfoCard = memo(function OrderInfoCard({
           </p>
         </div>
         <div className="flex-shrink-0 text-right">
-          {discountAmount !== 0 && discountAmount && parseFloat(String(discountAmount)) > 0 && (
-            <div className="text-xs text-green-600 font-medium whitespace-nowrap">
-              -₹{parseFloat(String(discountAmount)).toFixed(2)} off
-            </div>
-          )}
+          {discountAmount !== 0 &&
+            discountAmount &&
+            parseFloat(String(discountAmount)) > 0 && (
+              <div className="text-xs text-green-600 font-medium whitespace-nowrap">
+                -₹{parseFloat(String(discountAmount)).toFixed(2)} off
+              </div>
+            )}
           {taxAmount && parseFloat(String(taxAmount)) > 0 && (
             <div className="text-xs text-gray-600 whitespace-nowrap">
               +₹{parseFloat(String(taxAmount)).toFixed(2)} tax

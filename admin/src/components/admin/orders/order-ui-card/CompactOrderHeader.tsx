@@ -1,38 +1,23 @@
 import React, { useState, useEffect } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Phone, Clock } from 'lucide-react'
+import { Clock, Printer } from 'lucide-react'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import { ProcessedOrder } from '@/types/WebSocketOrder'
-import {
-  formatOrderTime,
-  formatTimeElapsed,
-  calculateTimeElapsed,
-} from '../utils/orderProcessing'
-import { Printer } from 'lucide-react'
 import ThermalBill from '@/components/billing/ThermalBill'
-import {
-  orderToBillData,
-  handleShareToMobile,
-} from '@/components/billing'
+import { orderToBillData, handleShareToMobile } from '@/components/billing'
+import { calculateTimeElapsed, formatTimeElapsed } from '@/utils/dateUtils'
+import { formatOrderTime } from '../utils/orderProcessing'
 
 interface CompactOrderHeaderProps {
   order: ProcessedOrder
   statusBadge: React.ReactNode
-  onCall: (customerId: number) => void
-  onViewTimeline: (customerId: number) => void
-  showCallButton?: boolean
-  timeElapsed?: number
   finalAmount?: number
 }
 
 export function CompactOrderHeader({
   order,
   statusBadge,
-  onCall,
-  onViewTimeline,
-  showCallButton = false,
-  timeElapsed,
   finalAmount,
 }: CompactOrderHeaderProps) {
   const [currentTimeElapsed, setCurrentTimeElapsed] = useState(
@@ -93,23 +78,25 @@ export function CompactOrderHeader({
   const orderType = getOrderTypeDisplay()
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {/* Status and Order Type Row */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 flex-wrap">
           {statusBadge}
-          <Badge className={`${orderType.color} font-medium text-xs`}>
+          <Badge
+            className={`${orderType.color} border-none font-semibold text-[10px] md:text-xs uppercase tracking-wider px-2 py-0.5 rounded-md`}
+          >
             {orderType.icon} {orderType.text}
           </Badge>
         </div>
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-gray-500 hover:text-gray-900"
+          className="h-7 w-7 text-gray-400 hover:text-gray-900 shrink-0"
           onClick={() => setShowThermalBill(true)}
           title="Print Bill"
         >
-          <Printer className="h-4 w-4" />
+          <Printer className="h-3.5 w-3.5 md:h-4 md:w-4" />
         </Button>
       </div>
 
@@ -126,37 +113,44 @@ export function CompactOrderHeader({
       )}
 
       {/* Customer Info Row */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3 flex-1 min-w-0">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 flex-1 min-w-0">
           {/* Customer Avatar */}
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-linear-to-br from-indigo-400 to-violet-500 rounded-full flex items-center justify-center text-white font-semibold text-xs md:text-sm shrink-0 shadow-sm border border-white/20">
             {order.customer_name.charAt(0).toUpperCase()}
           </div>
 
           {/* Customer Details */}
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-900 truncate">
+            <p className="text-sm md:text-base font-semibold text-gray-900 truncate leading-tight">
               {order.customer_name}
             </p>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span className="truncate">{order.customer_phone_masked}</span>
-            </div>
-            <div className="flex items-center gap-1 text-xs text-gray-500">
-              <Clock className="h-3 w-3" />
-              <span>
-                {formatOrderTime(order.created_at)} (
-                {formatTimeElapsed(currentTimeElapsed)})
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] md:text-xs text-gray-500 mt-0.5">
+              <span className="font-semibold text-gray-600 shrink-0">
+                {order.customer_phone_masked}
               </span>
+              <div className="flex items-center gap-1 shrink-0">
+                <Clock className="h-2.5 w-2.5 md:h-3 md:w-3" />
+                <span>
+                  {formatOrderTime(order.created_at)} (
+                  {formatTimeElapsed(currentTimeElapsed)})
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Order Total */}
-        <div className="text-right flex-shrink-0">
-          <p className="text-lg font-bold text-gray-900">
-            ₹{finalAmount !== undefined ? finalAmount.toFixed(2) : order.total_amount}
+        <div className="text-right shrink-0">
+          <p className="text-sm md:text-lg font-semibold text-gray-900 leading-none">
+            ₹
+            {finalAmount !== undefined
+              ? finalAmount.toFixed(2)
+              : order.total_amount}
           </p>
-          <p className="text-xs text-gray-500">ID: {order.customer_id}</p>
+          <p className="text-[10px] md:text-xs text-gray-400 font-semibold mt-1 uppercase tracking-tighter">
+            ID: {order.customer_id}
+          </p>
         </div>
       </div>
     </div>

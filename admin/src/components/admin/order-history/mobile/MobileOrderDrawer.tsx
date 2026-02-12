@@ -98,7 +98,7 @@ const MobileOrderDrawer = memo(function MobileOrderDrawer({
                 ID: {order.orderId}
               </DrawerTitle>
               <DrawerDescription className="text-sm text-gray-600 mt-1">
-                {order.time} | {order.date}
+                {order.dateAndTime}
               </DrawerDescription>
             </div>
             <div className="flex items-center gap-2">
@@ -248,15 +248,14 @@ const MobileOrderDrawer = memo(function MobileOrderDrawer({
                     <div className="flex-1">
                       <div className="font-medium text-gray-900 text-sm">
                         {item.quantity} x {item.name}
-
                         {item.variant_name && (
-                        <span className="text-gray-600 font-normal">
-                          {' '}
-                          ({item.variant_name})
-                        </span>
-                      )}
+                          <span className="text-gray-600 font-normal">
+                            {' '}
+                            ({item.variant_name})
+                          </span>
+                        )}
                       </div>
-                      
+
                       {item.addons && item.addons.length > 0 && (
                         <div className="mt-1 space-y-0.5">
                           {item.addons.map((addon: any, idx: number) => (

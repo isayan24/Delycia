@@ -19,9 +19,9 @@ import {
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { PrintBillDialog } from '../shared/PrintBillDialog'
-import { formatISTDateTime } from '../utils/historyDateUtils'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
+import { formatDateTime } from '@/utils/dateUtils'
 
 interface OrderInfoListProps {
   orders: any[]
@@ -94,49 +94,54 @@ const LoadingState = memo(() => (
 LoadingState.displayName = 'LoadingState'
 
 // Order card wrapper with tax calculation
-const OrderCardWithTax = memo(({ 
-  order, 
-  index,
-  selectedOrderId,
-  onOrderSelect,
-  onPrintBill 
-}: { 
-  order: any
-  index: number
-  selectedOrderId: string | null
-  onOrderSelect: (orderId: string) => void
-  onPrintBill: (order: any) => void
-}) => {
-  // Calculate subtotal from items (prices already include quantity)
-  const subtotal = order.items.reduce((sum: number, item: any) => sum + item.price, 0)
-  const discountAmount = parseFloat(order.discountAmount || 0)
-  
-  // Use the tax calculation hook for consistent calculations
-  const { grandTotal, taxAmount, taxPercent } = useOrderTaxCalculation({
-    subtotal,
-    discountAmount,
-    rid: order.rid,
-  })
+const OrderCardWithTax = memo(
+  ({
+    order,
+    index,
+    selectedOrderId,
+    onOrderSelect,
+    onPrintBill,
+  }: {
+    order: any
+    index: number
+    selectedOrderId: string | null
+    onOrderSelect: (orderId: string) => void
+    onPrintBill: (order: any) => void
+  }) => {
+    // Calculate subtotal from items (prices already include quantity)
+    const subtotal = order.items.reduce(
+      (sum: number, item: any) => sum + item.price,
+      0,
+    )
+    const discountAmount = parseFloat(order.discountAmount || 0)
 
-  return (
-    <OrderInfoCard
-      key={`${order.cartId}-${index}`}
-      status={order.status} 
-      orderDate={order.updatedAt}
-      orderId={order.orderId}
-      customerName={order.customerName}
-      customer={order.customer}
-      items={order.items}
-      totalAmount={grandTotal}
-      discountAmount={discountAmount}
-      taxPercent={taxPercent}
-      taxAmount={taxAmount}
-      isSelected={selectedOrderId === order.id}
-      onClick={() => onOrderSelect(order.id)}
-      onPrint={() => onPrintBill(order)}
-    />
-  )
-})
+    // Use the tax calculation hook for consistent calculations
+    const { grandTotal, taxAmount, taxPercent } = useOrderTaxCalculation({
+      subtotal,
+      discountAmount,
+      rid: order.rid,
+    })
+
+    return (
+      <OrderInfoCard
+        key={`${order.cartId}-${index}`}
+        status={order.status}
+        orderDate={order.updatedAt}
+        orderId={order.orderId}
+        customerName={order.customerName}
+        customer={order.customer}
+        items={order.items}
+        totalAmount={grandTotal}
+        discountAmount={discountAmount}
+        taxPercent={taxPercent}
+        taxAmount={taxAmount}
+        isSelected={selectedOrderId === order.id}
+        onClick={() => onOrderSelect(order.id)}
+        onPrint={() => onPrintBill(order)}
+      />
+    )
+  },
+)
 OrderCardWithTax.displayName = 'OrderCardWithTax'
 
 const OrderInfoList = memo(function OrderInfoList({
@@ -199,7 +204,7 @@ const OrderInfoList = memo(function OrderInfoList({
       totalAmount: order.totalAmount,
       taxPercent: order.taxPercent || 0,
       taxAmount: order.taxAmount || 0,
-      orderDate: formatISTDateTime(order.createdAt),
+      orderDate: formatDateTime(order.createdAt),
     }
 
     setSelectedOrderForBill(billData)

@@ -8,6 +8,7 @@ import {
   DeliveryType,
   OrderStatus,
 } from '@/types/WebSocketOrder'
+import { formatDateTime, formatTimeNew } from '@/utils/dateUtils'
 
 /**
  * Groups orders by customer_id (needed for processWebSocketOrders)
@@ -44,32 +45,32 @@ function calculateTotalDiscount(items: ProcessedOrderItem[]): number {
 /**
  * Calculates aggregated tax amount and average tax percent from processed order items
  */
-function calculateTaxTotals(items: ProcessedOrderItem[]): {
-  tax_amount: number
-  tax_percent: number
-} {
-  const totalTaxAmount = items.reduce((total, item) => {
-    const tax = parseFloat(String(item.tax_amount || 0))
-    return total + tax
-  }, 0)
+// function calculateTaxTotals(items: ProcessedOrderItem[]): {
+//   tax_amount: number
+//   tax_percent: number
+// } {
+//   const totalTaxAmount = items.reduce((total, item) => {
+//     const tax = parseFloat(String(item.tax_amount || 0))
+//     return total + tax
+//   }, 0)
 
-  // Calculate average tax percent (weighted by tax amount)
-  const itemsWithTax = items.filter(
-    (item) => item.tax_percent && item.tax_amount,
-  )
-  const avgTaxPercent =
-    itemsWithTax.length > 0
-      ? itemsWithTax.reduce(
-          (sum, item) => sum + (parseFloat(String(item.tax_percent)) || 0),
-          0,
-        ) / itemsWithTax.length
-      : 0
+//   // Calculate average tax percent (weighted by tax amount)
+//   const itemsWithTax = items.filter(
+//     (item) => item.tax_percent && item.tax_amount,
+//   )
+//   const avgTaxPercent =
+//     itemsWithTax.length > 0
+//       ? itemsWithTax.reduce(
+//           (sum, item) => sum + (parseFloat(String(item.tax_percent)) || 0),
+//           0,
+//         ) / itemsWithTax.length
+//       : 0
 
-  return {
-    tax_amount: totalTaxAmount,
-    tax_percent: avgTaxPercent,
-  }
-}
+//   return {
+//     tax_amount: totalTaxAmount,
+//     tax_percent: avgTaxPercent,
+//   }
+// }
 
 /**
  * Masks phone number for privacy (needed for processWebSocketOrders)
@@ -182,133 +183,29 @@ export function formatOrderTime(dateString: string): string {
     return dateString
   }
 }
-
-/**
- * Formats date for order display in IST
- */
-export function formatOrderDate(dateString: string): string {
+export function formatOrderDateTime(dateString: string): string {
   try {
-    // Convert UTC to IST
+    // Convert UTC to IST first
     const istDate = convertUTCToIST(dateString)
 
-    // Get current IST date for comparison
-    const nowUTC = new Date()
-    const nowIST = convertUTCToIST(nowUTC.toISOString())
-
-    const todayIST = new Date(
-      nowIST.getFullYear(),
-      nowIST.getMonth(),
-      nowIST.getDate(),
-    )
-    const yesterdayIST = new Date(todayIST)
-    yesterdayIST.setDate(yesterdayIST.getDate() - 1)
-
-    const orderDateIST = new Date(
-      istDate.getFullYear(),
-      istDate.getMonth(),
-      istDate.getDate(),
-    )
-
-    if (orderDateIST.getTime() === todayIST.getTime()) {
-      return 'Today'
-    } else if (orderDateIST.getTime() === yesterdayIST.getTime()) {
-      return 'Yesterday'
-    } else {
-      return istDate.toLocaleDateString('en-IN', {
-        day: 'numeric',
-        month: 'short',
-      })
-    }
+    // Format the IST time
+    return istDate.toLocaleString('en-IN', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    })
   } catch (error) {
-    console.error('Error formatting order date:', error)
+    console.error('Error formatting order time:', error)
     return dateString
   }
 }
 
 /**
- * Calculates time elapsed since order was placed in minutes (handles UTC to IST conversion)
+ * Formats date for order display in IST
  */
-export function calculateTimeElapsed(orderTime: string): number {
-  try {
-    // Parse the UTC order time
-    // const orderDate = new Date(orderTime);
-
-    const orderDate = convertUTCToIST(orderTime)
-    // Get current time
-    const now = new Date()
-
-    // Calculate difference in milliseconds
-    const diffInMs = now.getTime() - orderDate.getTime()
-
-    // Convert to minutes
-    return Math.floor(diffInMs / (1000 * 60))
-  } catch (error) {
-    console.error('Error calculating time elapsed:', error)
-    return 0
-  }
-}
-
-/**
- * Calculates remaining preparation time with precise seconds
- */
-export function calculateRemainingTime(
-  orderTime: string,
-  prepTime: number,
-  startTime?: string,
-): { minutes: number; seconds: number; totalSeconds: number } {
-  // Use preparation start time if available, otherwise use order time
-  const baseTime = startTime || orderTime
-  const baseDate = convertUTCToIST(baseTime)
-  const now = new Date()
-
-  // Calculate elapsed time in seconds
-  const elapsedSeconds = Math.floor((now.getTime() - baseDate.getTime()) / 1000)
-  const totalPrepSeconds = prepTime * 60
-  const remainingSeconds = Math.max(0, totalPrepSeconds - elapsedSeconds)
-
-  return {
-    minutes: Math.floor(remainingSeconds / 60),
-    seconds: remainingSeconds % 60,
-    totalSeconds: remainingSeconds,
-  }
-}
-
-/**
- * Formats remaining time as MM:SS
- */
-export function formatRemainingTime(
-  remainingTime: { minutes: number; seconds: number } | number,
-): string {
-  // Handle both old number format and new object format for backward compatibility
-  if (typeof remainingTime === 'number') {
-    if (remainingTime <= 0) return '00:00'
-    const mins = Math.floor(remainingTime)
-    const secs = Math.floor((remainingTime - mins) * 60)
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-  }
-
-  const { minutes, seconds } = remainingTime
-  if (minutes <= 0 && seconds <= 0) return '00:00'
-
-  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-}
-
-/**
- // mark Formats time elapsed as "X mins ago" or "X hours ago"
- */
-export function formatTimeElapsed(minutes: number): string {
-  if (minutes < 60) {
-    return `${minutes} mins ago`
-  } else {
-    const hours = Math.floor(minutes / 60)
-    const remainingMins = minutes % 60
-    if (remainingMins === 0) {
-      return `${hours} hour${hours > 1 ? 's' : ''} ago`
-    } else {
-      return `${hours}h ${remainingMins}m ago`
-    }
-  }
-}
 
 /**
  * Calculates remaining time for order acceptance (5 minutes from order placement)
@@ -406,10 +303,13 @@ export function processWebSocketOrders(
               ? JSON.parse(order.items)
               : order.items
           items.forEach((item: any) => {
-            allItems.push(item)
+            allItems.push({
+              ...item,
+              formattedTime: formatOrderTime(item.created_at),
+              dateAndTime: formatOrderDateTime(item.created_at),
+            })
           })
         })
-
         // Group items by their created_at timestamp (order time)
         const itemsByOrderTime = groupItemsByOrderTime(allItems)
 
@@ -433,16 +333,19 @@ export function processWebSocketOrders(
                 special_instructions: item.special_instructions || '',
                 preparation_time: item.preparation_time,
                 discount_amount: item.discount_amount,
-                tax_percent: item.tax_percent,
-                tax_amount: item.tax_amount,
+                // tax_percent: item.tax_percent,
+                // tax_amount: item.tax_amount,
                 addons: item.addons,
+                formattedTime: item.formattedTime,
+                dateAndTime: item.dateAndTime,
               }),
             )
 
             // Calculate totals and metadata for this specific order time
             const totalAmount = calculateOrderTotals(processedItems)
             const totalDiscount = calculateTotalDiscount(processedItems)
-            const { tax_amount, tax_percent } = calculateTaxTotals(processedItems)
+            // const { tax_amount, tax_percent } =
+            // calculateTaxTotals(processedItems)
             const paymentStatus = getGroupPaymentStatus(processedItems)
             // Get unique table IDs
             const uniqueTableIds = processedItems
@@ -481,8 +384,8 @@ export function processWebSocketOrders(
               items: processedItems,
               total_amount: totalAmount,
               discount_amount: totalDiscount > 0 ? totalDiscount : undefined,
-              tax_percent: tax_percent > 0 ? tax_percent : undefined,
-              tax_amount: tax_amount > 0 ? tax_amount : undefined,
+              // tax_percent: tax_percent > 0 ? tax_percent : undefined,
+              // tax_amount: tax_amount > 0 ? tax_amount : undefined,
               payment_status: paymentStatus,
               order_status: orderStatus, // Use the derived order status
               delivery_type: deliveryType,
@@ -495,6 +398,8 @@ export function processWebSocketOrders(
                   : uniqueTableNumbers,
               preparation_time: preparationTime,
               table_zone: processedItems[0]?.table_zone,
+              formattedTime: processedItems[0]?.formattedTime,
+              dateAndTime: processedItems[0]?.dateAndTime,
             }
 
             processedOrders.push(processedOrder)

@@ -1,4 +1,5 @@
 import { ProcessedOrder } from '@/types/WebSocketOrder'
+import { formatDateTime } from '@/utils/dateUtils'
 
 export interface BillItem {
   name: string
@@ -41,13 +42,7 @@ export function orderToBillData(
   }))
 
   // Format date to readable string
-  const orderDate = new Date(order.created_at).toLocaleString('en-IN', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  const orderDate = formatDateTime(order.created_at)
 
   // Get table number(s)
   const tableNo =
@@ -67,8 +62,6 @@ export function orderToBillData(
     items,
     totalAmount: order.total_amount,
     discountAmount: order.discount_amount,
-    taxPercent: order.tax_percent,
-    taxAmount: order.tax_amount,
     orderDate,
     paymentMethod: order.payment_method || 'N/A',
     paymentStatus: order.payment_status || 'Pending',

@@ -14,6 +14,7 @@ import {
 import { NavMain } from '@/components/nav-main'
 import { NavSecondary } from '@/components/nav-secondary'
 import { NavUser } from '@/components/nav-user'
+import { useRouterState } from '@tanstack/react-router'
 import {
   Sidebar,
   SidebarContent,
@@ -21,6 +22,7 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { RestaurantDropdown } from '@/components/admin/header/RestaurantDropdown'
@@ -128,6 +130,16 @@ const navSecondary = [
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAdminAuthQuery()
+  const { isMobile, setOpenMobile } = useSidebar()
+  const { pathname } = useRouterState({ select: (s) => s.location })
+
+  // Automatically close sidebar on mobile when pathname changes
+  React.useEffect(() => {
+    if (isMobile) {
+      setOpenMobile(false)
+    }
+  }, [pathname, isMobile, setOpenMobile])
+
   // Format user data for NavUser
   const userData = {
     name: user?.name || user?.username || 'Guest',

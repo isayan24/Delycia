@@ -22,6 +22,8 @@ export interface WebSocketOrderItem {
     price: number
     quantity: number
   }[]
+  formattedTime?: string
+  dateAndTime?: string
 }
 
 export interface WebSocketOrder {
@@ -33,6 +35,8 @@ export interface WebSocketOrder {
   email: string
   created_at: string
   items: WebSocketOrderItem[]
+  formattedTime?: string
+  dateAndTime?: string
 }
 
 // Processed Order Types - For component consumption
@@ -59,6 +63,8 @@ export interface ProcessedOrderItem {
     price: number
     quantity: number
   }[]
+  formattedTime?: string
+  dateAndTime?: string
 }
 
 export interface ProcessedOrder {
@@ -90,6 +96,8 @@ export interface ProcessedOrder {
   is_delivery: boolean
   table_zone?: string // Zone name like 'Ground floor'
   unique_table_numbers: number[]
+  formattedTime?: string
+  dateAndTime?: string
 }
 
 // Utility Types

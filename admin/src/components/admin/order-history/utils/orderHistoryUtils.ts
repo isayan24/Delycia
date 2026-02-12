@@ -1,5 +1,5 @@
-import { format } from 'date-fns'
 import { User } from '@/types/user.types'
+import { formatDateTime, formatTimeNew } from '@/utils/dateUtils'
 
 // API Order interface based on the console data structure
 export interface ApiOrder {
@@ -48,8 +48,9 @@ export interface TransformedOrder {
   id: string
   orderId: string
   status: 'DELIVERED' | 'CANCELLED'
-  time: string
-  date: string
+  dateAndTime: string
+  startDate: string
+  endDate: string
   customerId: number
   customerName: string
   customer?: CustomerInfo
@@ -86,37 +87,7 @@ export const mapOrderStatus = (
   }
 }
 
-/**
- * Converts UTC timestamp to Indian Standard Time (IST) and formats as time string
- * IST is UTC + 5 hours 30 minutes
- */
-export const formatTimeFromUTC = (utcTimestamp: string): string => {
-  try {
-    const date = new Date(utcTimestamp)
-    // Add 5 hours and 30 minutes to convert UTC to IST
-    const istDate = new Date(date.getTime() + (5 * 60 + 30) * 60 * 1000)
-    return format(istDate, 'h:mm a') // e.g., "9:22 PM"
-  } catch (error) {
-    console.error('Error formatting time:', error)
-    return 'Invalid time'
-  }
-}
-
-/**
- * Converts UTC timestamp to Indian Standard Time (IST) and formats as date string
- * IST is UTC + 5 hours 30 minutes
- */
-export const formatDateFromUTC = (utcTimestamp: string): string => {
-  try {
-    const date = new Date(utcTimestamp)
-    // Add 5 hours and 30 minutes to convert UTC to IST
-    const istDate = new Date(date.getTime() + (5 * 60 + 30) * 60 * 1000)
-    return format(istDate, 'd MMMM') // e.g., "2 November"
-  } catch (error) {
-    console.error('Error formatting date:', error)
-    return 'Invalid date'
-  }
-}
+// review
 
 /**
  * Groups array of items by a specific key
@@ -305,8 +276,9 @@ export const transformOrderData = (apiOrders: any[]): TransformedOrder[] => {
           id: order.cart_id,
           orderId: order.cart_id.toUpperCase(),
           status: mapOrderStatus(order.order_status),
-          time: formatTimeFromUTC(order.created_at),
-          date: formatDateFromUTC(order.created_at),
+          dateAndTime: formatDateTime(order.created_at),
+          startDate: formatTimeNew(order.created_at),
+          endDate: formatTimeNew(order.updated_at),
           customerId: order.customer_id,
           customerName:
             order.customer_name || generateCustomerName(order.customer_id),
@@ -340,8 +312,9 @@ export const transformOrderData = (apiOrders: any[]): TransformedOrder[] => {
           id: cartId,
           orderId: cartId.toUpperCase(),
           status: mapOrderStatus(firstItem.order_status),
-          time: formatTimeFromUTC(firstItem.created_at),
-          date: formatDateFromUTC(firstItem.created_at),
+          dateAndTime: formatDateTime(firstItem.created_at),
+          startDate: formatTimeNew(firstItem.created_at),
+          endDate: formatTimeNew(firstItem.updated_at),
           customerId: firstItem.customer_id,
           customerName: generateCustomerName(firstItem.customer_id),
           customerPhone: firstItem.customer_phone || 'N/A',
@@ -370,7 +343,7 @@ export const generateOrderTimeline = (order: TransformedOrder) => {
   const timeline = [
     {
       label: 'Placed',
-      time: order.time,
+      time: order.startDate,
       completed: true,
     },
   ]
@@ -378,13 +351,13 @@ export const generateOrderTimeline = (order: TransformedOrder) => {
   if (order.status === 'DELIVERED') {
     timeline.push({
       label: 'Delivered',
-      time: formatTimeFromUTC(order.updatedAt.toISOString()),
+      time: order.endDate,
       completed: true,
     })
   } else if (order.status === 'CANCELLED') {
     timeline.push({
       label: 'Cancelled',
-      time: formatTimeFromUTC(order.updatedAt.toISOString()),
+      time: order.endDate,
       completed: true,
     })
   }

@@ -1,19 +1,13 @@
-import React, { useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-import { Volume2, VolumeX, Printer } from 'lucide-react'
+import { Volume2, VolumeX } from 'lucide-react'
 import { ProcessedOrder } from '@/types/WebSocketOrder'
 import { PendingOrderCard } from './order-states/PendingOrderCard'
 import { ProcessingOrderCard } from './order-states/ProcessingOrderCard'
 import { ReadyOrderCard } from './order-states/ReadyOrderCard'
 import { DeliveredOrderCard } from './order-states/DeliveredOrderCard'
+import { CancelledOrderCard } from './order-states/CancelledOrderCard'
 import { useSoundContext } from '@/context/SoundContext'
-import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
-import ThermalBill from '@/components/billing/ThermalBill'
-import {
-  orderToBillData,
-  handleShareToMobile,
-} from '@/components/billing'
 
 interface OrderTabsProps {
   activeTab: string
@@ -29,7 +23,6 @@ interface OrderTabsProps {
   handleMarkReady: (order: ProcessedOrder) => void
   handleMarkDelivered: (order: ProcessedOrder) => void
   handleCall: (order: ProcessedOrder) => void
-  handleViewTimeline: (order: ProcessedOrder) => void
   handleExtendTime: (order: ProcessedOrder, additionalMinutes: number) => void
   // Transition states
   isAcceptingOrder: boolean
@@ -51,7 +44,6 @@ export default function OrderTabs({
   handleMarkReady,
   handleMarkDelivered,
   handleCall,
-  handleViewTimeline,
   handleExtendTime,
   isAcceptingOrder,
   isRejectingOrder,
@@ -59,59 +51,68 @@ export default function OrderTabs({
   isMarkDelivered,
 }: OrderTabsProps) {
   const { isSoundEnabled, toggleSound } = useSoundContext()
-  const { selectedRestaurant } = useRestaurantSelector()
-  const [cancelledBillOpen, setCancelledBillOpen] = useState<string | null>(
-    null,
-  )
 
   return (
-    <Tabs
-      value={activeTab}
-      onValueChange={onTabChange}
-      className="w-full overflow-auto"
-    >
-      <TabsList className="grid w-full grid-cols-5 max-[500px]:grid-cols-3 max-[500px]:space-y-3">
-        <TabsTrigger value="pending" className="relative">
-          Pending
-          {pendingOrders.length > 0 && (
-            <span className="ml-2 bg-yellow-500 text-white text-xs rounded-full px-2 py-0.5">
-              {pendingOrders.length}
-            </span>
-          )}
-        </TabsTrigger>
-        <TabsTrigger value="preparing" className="relative">
-          Preparing
-          {processingOrders.length > 0 && (
-            <span className="ml-2 bg-orange-500 text-white text-xs rounded-full px-2 py-0.5">
-              {processingOrders.length}
-            </span>
-          )}
-        </TabsTrigger>
-        <TabsTrigger value="ready" className="relative">
-          Ready
-          {readyOrders.length > 0 && (
-            <span className="ml-2 bg-blue-500 text-white text-xs rounded-full px-2 py-0.5">
-              {readyOrders.length}
-            </span>
-          )}
-        </TabsTrigger>
-        <TabsTrigger value="delivered" className="relative">
-          Delivered
-          {deliveredOrders.length > 0 && (
-            <span className="ml-2 bg-gray-500 text-white text-xs rounded-full px-2 py-0.5">
-              {deliveredOrders.length}
-            </span>
-          )}
-        </TabsTrigger>
-        <TabsTrigger value="cancelled" className="relative">
-          Cancelled
-          {cancelledOrders.length > 0 && (
-            <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
-              {cancelledOrders.length}
-            </span>
-          )}
-        </TabsTrigger>
-      </TabsList>
+    <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
+      <div className="relative mb-6">
+        <TabsList className="flex w-full items-center justify-start h-auto p-1 bg-gray-100/80 backdrop-blur-sm rounded-xl border border-gray-200/50 overflow-x-auto no-scrollbar scroll-smooth">
+          <TabsTrigger
+            value="pending"
+            className="shrink-0 min-w-max px-4 py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg gap-2"
+          >
+            <span>Pending</span>
+            {pendingOrders.length > 0 && (
+              <span className="bg-amber-100 text-amber-600 text-[10px] font-bold rounded-full h-5 min-w-5 flex items-center justify-center border border-amber-200">
+                {pendingOrders.length}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger
+            value="preparing"
+            className="shrink-0 min-w-max px-4 py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg gap-2"
+          >
+            <span>Preparing</span>
+            {processingOrders.length > 0 && (
+              <span className="bg-orange-100 text-orange-600 text-[10px] font-bold rounded-full h-5 min-w-5 flex items-center justify-center border border-orange-200">
+                {processingOrders.length}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger
+            value="ready"
+            className="shrink-0 min-w-max px-4 py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg gap-2"
+          >
+            <span>Ready</span>
+            {readyOrders.length > 0 && (
+              <span className="bg-blue-100 text-blue-600 text-[10px] font-bold rounded-full h-5 min-w-5 flex items-center justify-center border border-blue-200">
+                {readyOrders.length}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger
+            value="delivered"
+            className="shrink-0 min-w-max px-4 py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg gap-2"
+          >
+            <span>Delivered</span>
+            {deliveredOrders.length > 0 && (
+              <span className="bg-emerald-100 text-emerald-600 text-[10px] font-bold rounded-full h-5 min-w-5 flex items-center justify-center border border-emerald-200">
+                {deliveredOrders.length}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger
+            value="cancelled"
+            className="shrink-0 min-w-max px-4 py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg gap-2"
+          >
+            <span>Cancelled</span>
+            {cancelledOrders.length > 0 && (
+              <span className="bg-rose-100 text-rose-600 text-[10px] font-bold rounded-full h-5 min-w-5 flex items-center justify-center border border-rose-200">
+                {cancelledOrders.length}
+              </span>
+            )}
+          </TabsTrigger>
+        </TabsList>
+      </div>
 
       {/* Pending Orders Tab */}
       <TabsContent value="pending" className="space-y-4">
@@ -176,8 +177,6 @@ export default function OrderTabs({
                 key={`processing-${order.customer_id}-${order.created_at}-${order.preparation_time}-${order.time_extended || 0}`}
                 order={order}
                 onMarkReady={() => handleMarkReady(order)}
-                onCall={() => handleCall(order)}
-                onViewTimeline={() => handleViewTimeline(order)}
                 onExtendTime={handleExtendTime}
                 isMarkingReadyTransition={isMarkingReady}
                 handleMarkDelivered={handleMarkDelivered}
@@ -204,8 +203,6 @@ export default function OrderTabs({
                 key={`ready-${order.customer_id}-${order.created_at}`}
                 order={order}
                 onMarkDelivered={() => handleMarkDelivered(order)}
-                onCall={() => handleCall(order)}
-                onViewTimeline={() => handleViewTimeline(order)}
                 isMarkDelivered={isMarkDelivered}
               />
             ))}
@@ -229,7 +226,6 @@ export default function OrderTabs({
                 key={`delivered-${order.customer_id}-${order.created_at}`}
                 order={order}
                 onCall={() => handleCall(order)}
-                onViewTimeline={() => handleViewTimeline(order)}
                 showCallButton={false}
               />
             ))}
@@ -249,83 +245,10 @@ export default function OrderTabs({
         ) : (
           <div className="grid gap-4">
             {cancelledOrders.map((order) => (
-              <div
+              <CancelledOrderCard
                 key={`cancelled-${order.customer_id}-${order.created_at}`}
-                className="p-4 border rounded-lg bg-red-50"
-              >
-                {/* Thermal Bill Popup for this cancelled order */}
-                <ThermalBill
-                  isOpen={
-                    cancelledBillOpen ===
-                    `${order.customer_id}-${order.created_at}`
-                  }
-                  onClose={() => setCancelledBillOpen(null)}
-                  billData={orderToBillData(
-                    order,
-                    selectedRestaurant?.name || '',
-                  )}
-                  showPrintButton={true}
-                  showDownloadButton={true}
-                  showShareButton={true}
-                  onShareToMobile={handleShareToMobile}
-                />
-
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-semibold text-red-800">
-                      Order Cancelled
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Customer: {order.customer_name} | Total: ₹
-                      {order.discount_amount && order.discount_amount > 0 ? (
-                        <span>
-                          {order.total_amount - order.discount_amount}
-                        </span>
-                      ) : (
-                        order.total_amount
-                      )}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() =>
-                        setCancelledBillOpen(
-                          `${order.customer_id}-${order.created_at}`,
-                        )
-                      }
-                      className="h-8 w-8 p-0"
-                      title="Print Bill"
-                    >
-                      <Printer className="h-4 w-4" />
-                    </Button>
-                    <span className="text-xs text-red-600 bg-red-100 px-2 py-1 rounded">
-                      ❌ Cancelled
-                    </span>
-                  </div>
-                </div>
-                <div className="mt-2 text-sm text-gray-600 space-y-1">
-                  {order.items.map((item, index) => (
-                    <div key={index}>
-                      <div className="flex justify-between">
-                        <span>
-                          {item.quantity}x {item.display_name}
-                        </span>
-                      </div>
-                      {item.addons && item.addons.length > 0 && (
-                        <div className="ml-4 flex flex-col gap-0 text-xs text-gray-500">
-                          {item.addons.map((addon, aIndex) => (
-                            <span key={aIndex}>
-                              + {addon.quantity} x {addon.name}: ₹{addon.price}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
+                order={order}
+              />
             ))}
           </div>
         )}

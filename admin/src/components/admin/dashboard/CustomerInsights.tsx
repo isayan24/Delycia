@@ -18,8 +18,8 @@ import {
 } from '@/components/ui/table'
 import { useCustomerOrdersQuery } from '@/hooks/queries/useDashboardQueries'
 import { useDateFilterStore } from '@/store/useDateFilterStore'
-import { formatISTDateTime } from '../order-history/utils/historyDateUtils'
 import { Link } from '@tanstack/react-router'
+import { formatDateTime } from '@/utils/dateUtils'
 
 interface CustomerActivityProps {
   rid: string
@@ -131,7 +131,7 @@ const CustomerActivityTable: React.FC<CustomerActivityProps> = ({ rid }) => {
                   <TableCell>
                     <div className="flex items-center gap-1 text-gray-600 text-xs">
                       <Calendar className="w-3 h-3" />
-                      {formatISTDateTime(row.lastOrderDate)}
+                      {formatDateTime(row.lastOrderDate)}
                     </div>
                   </TableCell>
                   <TableCell>

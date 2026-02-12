@@ -17,7 +17,7 @@ interface OrderTotalWithTooltipProps {
 
 /**
  * Reusable component that displays order total with optional tax breakdown tooltip
- * 
+ *
  * @param subtotal - Pre-tax subtotal amount
  * @param discountAmount - Optional discount amount
  * @param rid - Optional restaurant ID
@@ -28,14 +28,15 @@ const OrderTotalWithTooltip = memo(function OrderTotalWithTooltip({
   subtotal,
   discountAmount = 0,
   rid,
-  className = 'text-sm font-semibold',
+  className = 'text-sm',
   showTooltip = true,
 }: OrderTotalWithTooltipProps) {
-  const { grandTotal, taxAmount, taxPercent, isLoading } = useOrderTaxCalculation({
-    subtotal,
-    discountAmount,
-    rid,
-  })
+  const { grandTotal, taxAmount, taxPercent, isLoading } =
+    useOrderTaxCalculation({
+      subtotal,
+      discountAmount,
+      rid,
+    })
 
   const displayAmount = isLoading ? subtotal : grandTotal
   const formattedAmount = `₹${displayAmount.toFixed(0)}`
@@ -49,7 +50,9 @@ const OrderTotalWithTooltip = memo(function OrderTotalWithTooltip({
     <TooltipProvider>
       <Tooltip delayDuration={200}>
         <TooltipTrigger asChild>
-          <div className={`${className} cursor-help hover:text-blue-600 transition-colors`}>
+          <div
+            className={`${className} cursor-help hover:text-blue-600 transition-colors`}
+          >
             {formattedAmount}
           </div>
         </TooltipTrigger>

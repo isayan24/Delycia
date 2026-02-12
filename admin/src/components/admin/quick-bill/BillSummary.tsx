@@ -101,8 +101,7 @@ export default function BillSummary({
 
       if (res.data && (res.data.success || res.data.status === 201)) {
         showSuccess('Success', 'Order placed successfully')
-
-        console.log(res.data)
+        // fix use orderDate: new Date().toLocaleString(), instead of other date formatter
         // Prepare bill data for printing
         const billData = {
           orderId: res.data.order_id || 'New',
@@ -120,7 +119,14 @@ export default function BillSummary({
           totalAmount: subtotal,
           taxPercent: selectedRestaurant?.tax_percent || 0,
           taxAmount: (subtotal * (selectedRestaurant?.tax_percent || 0)) / 100,
-          orderDate: new Date().toLocaleString(),
+          orderDate: new Date().toLocaleString('en-IN', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+          }),
           paymentMethod: 'Cash',
           paymentStatus: 'Paid',
         }

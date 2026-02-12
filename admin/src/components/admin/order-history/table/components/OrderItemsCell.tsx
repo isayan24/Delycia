@@ -30,16 +30,19 @@ export function OrderItemsCell({
     <div className="space-y-0.5">
       {itemsToShow.map((item: any, index: number) => (
         <div key={index} className="text-sm">
-          <div className="font-medium text-gray-900">
+          <div
+            className=" text-gray-900 truncate max-w-[120px] sm:max-w-none"
+            title={item.name || item.item_name}
+          >
             {item.name || item.item_name || 'Unknown Item'}
             {item.variant_name && (
-              <span className="text-gray-500 text-xs font-normal ml-1">
+              <span className="text-gray-500 text-[10px] sm:text-xs font-normal ml-1">
                 [{item.variant_name}]
               </span>
             )}
           </div>
           {item.quantity > 1 && (
-            <div className="text-xs text-blue-600 font-medium mt-0.5">
+            <div className="text-[10px] sm:text-xs text-blue-600 mt-0">
               Qty: {item.quantity}
             </div>
           )}
@@ -54,13 +57,13 @@ export function OrderItemsCell({
             if (!addons || addons.length === 0) return null
 
             return (
-              <div className="ml-2 flex flex-col gap-0.5 mt-0.5">
+              <div className="ml-1 sm:ml-2 flex flex-col gap-0 mt-0.5">
                 {addons.map((addon: any, addonIndex: number) => (
                   <span
                     key={addonIndex}
-                    className="text-[0.7rem] text-gray-500 block"
+                    className="text-[0.65rem] sm:text-[0.7rem] text-gray-500 block leading-tight"
                   >
-                    + {addon.quantity} {addon.name} ({addon.price})
+                    + {addon.quantity} {addon.name}
                   </span>
                 ))}
               </div>

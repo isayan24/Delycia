@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import WebSocketManager from '@/services/WebSocketManager'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { Order } from '@/types/webSocket.types'
+import { formatDateTime, formatTimeNew } from '@/utils/dateUtils'
 
 interface ConnectionState {
   isConnected: boolean
@@ -39,10 +40,6 @@ interface UseWebSocketManagerReturn extends ConnectionState {
  *
  * useEffect(() => {
  *   const handleOrders = (data) => console.log('Orders:', data)
- *   subscribe('all_orders', handleOrders)
- *   return () => unsubscribe('all_orders', handleOrders)
- * }, [])
- * ```
  */
 export function useWebSocketManager(): UseWebSocketManagerReturn {
   const { user, isAuthenticated } = useAdminAuthQuery()
@@ -65,7 +62,11 @@ export function useWebSocketManager(): UseWebSocketManagerReturn {
   // Subscribe to order updates
   useEffect(() => {
     const handleOrdersUpdate = (data: any) => {
-      const newOrders = data.orders || []
+      const newOrders = (data.orders || []).map((order: any) => ({
+        ...order,
+        dateAndTime: formatDateTime(order.created_at),
+        formattedTime: formatTimeNew(order.created_at),
+      }))
       setOrders(newOrders)
     }
 

@@ -24,6 +24,7 @@ import type { BillData } from '@/components/billing'
 import { handleShareToMobile } from '@/components/billing'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
+import { formatDateTime } from '@/utils/dateUtils'
 
 interface CustomerDetails {
   name: string
@@ -146,13 +147,18 @@ export default function AddCustomerDetails() {
 
   const subtotal = getTotalAmount()
   const validatedDiscount = Math.max(0, Math.min(discount, subtotal))
-  
+
   // Calculate tax using the hook
-  const { grandTotal, taxAmount, taxPercent, isLoading: isTaxLoading } = useOrderTaxCalculation({
+  const {
+    grandTotal,
+    taxAmount,
+    taxPercent,
+    isLoading: isTaxLoading,
+  } = useOrderTaxCalculation({
     subtotal,
     discountAmount: validatedDiscount,
   })
-  
+
   const finalAmount = grandTotal
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -202,15 +208,7 @@ export default function AddCustomerDetails() {
         })),
         totalAmount: subtotal,
         discountAmount: validatedDiscount > 0 ? validatedDiscount : undefined,
-        taxPercent: taxPercent,
-        taxAmount: taxAmount,
-        orderDate: new Date().toLocaleString('en-IN', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
+        orderDate: formatDateTime(new Date()),
         paymentMethod: 'Pending',
         paymentStatus: 'Pending',
       }
@@ -474,7 +472,9 @@ export default function AddCustomerDetails() {
                   {!isTaxLoading && taxAmount > 0 && (
                     <div className="flex justify-between items-center text-sm text-gray-600 mb-1">
                       <span>Tax ({taxPercent}%):</span>
-                      <span className="font-medium">₹{taxAmount.toFixed(2)}</span>
+                      <span className="font-medium">
+                        ₹{taxAmount.toFixed(2)}
+                      </span>
                     </div>
                   )}
                   <div className="flex justify-between items-center text-lg font-bold text-orange-800 pt-2 border-t border-orange-200">

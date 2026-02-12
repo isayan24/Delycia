@@ -77,9 +77,19 @@ export default function OrderHistoryMain() {
       <div className="h-full flex flex-col gap-2">
         <Tabs defaultValue="table" className="flex-1 flex flex-col min-h-0">
           <div className="flex-none bg-white   shadow-sm mb-2 p-2 flex items-center justify-between">
-            <TabsList className="grid w-[200px] grid-cols-2">
-              <TabsTrigger value="table">Table</TabsTrigger>
-              <TabsTrigger value="grid">Grid</TabsTrigger>
+            <TabsList className="flex items-center justify-start h-auto p-1 bg-gray-100/80 backdrop-blur-sm rounded-xl border border-gray-200/50 w-fit">
+              <TabsTrigger
+                value="table"
+                className="px-4 py-1.5 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg"
+              >
+                Table
+              </TabsTrigger>
+              <TabsTrigger
+                value="grid"
+                className="px-4 py-1.5 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg"
+              >
+                Grid
+              </TabsTrigger>
             </TabsList>
 
             <OrderHistoryHeader
@@ -136,7 +146,7 @@ export default function OrderHistoryMain() {
           {/* Table View */}
           <TabsContent
             value="table"
-            className="flex-1 min-h-0 mt-0 shadow-sm bg-white overflow-hidden flex flex-col data-[state=inactive]:hidden"
+            className="flex-1 min-h-0 mt-0 shadow-sm  bg-white overflow-hidden flex flex-col data-[state=inactive]:hidden"
           >
             <OrderHistoryTablePaginated
               items={orderHistory}

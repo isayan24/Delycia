@@ -1,8 +1,7 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { AlertCircle } from 'lucide-react'
 import { ProcessedOrder } from '@/types/WebSocketOrder'
 import { PrepTimeSelector } from '../order-ui-card/PrepTimeSelector'
 import { CompactOrderHeader } from '../order-ui-card/CompactOrderHeader'
@@ -31,9 +30,10 @@ export function PendingOrderCard({
   // Calculate final amount with tax
   const { grandTotal, isLoading: isTaxLoading } = useOrderTaxCalculation({
     subtotal: order.total_amount,
-    discountAmount: order.discount_amount ? parseFloat(String(order.discount_amount)) : 0,
+    discountAmount: order.discount_amount
+      ? parseFloat(String(order.discount_amount))
+      : 0,
   })
- 
 
   const handleAccept = () => {
     onAccept(order, prepTime)
@@ -42,10 +42,6 @@ export function PendingOrderCard({
   const handlePrepTimeChange = (newTime: number) => {
     setPrepTime(Math.max(5, newTime))
   }
-
-  const handleCall = (customerId: number) => {}
-
-  const handleViewTimeline = (customerId: number) => {}
 
   // Order expiration is now handled by CountdownDisplay component
 
@@ -57,9 +53,10 @@ export function PendingOrderCard({
   const statusBadge = (
     <Badge
       variant="secondary"
-      className="bg-yellow-100 text-yellow-800 font-medium"
+      className="bg-yellow-100/80 text-yellow-800 font-semibold text-[10px] md:text-xs px-2 py-0.5 rounded-md border border-yellow-200/50 flex items-center gap-1 h-5 md:h-6"
     >
-      ⏳ PENDING
+      <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse" />
+      PENDING
     </Badge>
   )
 
@@ -72,9 +69,6 @@ export function PendingOrderCard({
             <CompactOrderHeader
               order={order}
               statusBadge={statusBadge}
-              onCall={handleCall}
-              onViewTimeline={handleViewTimeline}
-              showCallButton={false}
               finalAmount={isTaxLoading ? order.total_amount : grandTotal}
             />
           </div>
@@ -91,7 +85,7 @@ export function PendingOrderCard({
               <div className="bg-yellow-50 border border-yellow-200 px-3 py-2 rounded-lg ">
                 <div className="flex items-center gap-2 text-yellow-800">
                   <div className="w-2 h-2 bg-yellow-500 rounded-full" />
-                  <span className="text-sm font-medium">
+                  <span className="text-sm md:text-base font-semibold">
                     Special Instructions: {order.items[0]?.special_instructions}
                   </span>
                 </div>
@@ -106,10 +100,10 @@ export function PendingOrderCard({
         <div className="hidden md:block">
           <div className="bg-gray-50 p-3 rounded-lg">
             <div className="flex justify-between items-center mb-2">
-              <h4 className="font-medium text-sm">
+              <h4 className="font-semibold text-xs md:text-sm text-gray-700 uppercase tracking-tight">
                 Order Items ({order.items.length})
               </h4>
-              <span className="text-sm font-semibold">
+              <span className="text-xs md:text-sm font-semibold text-gray-900">
                 ₹{(isTaxLoading ? order.total_amount : grandTotal).toFixed(2)}
               </span>
             </div>
@@ -117,45 +111,57 @@ export function PendingOrderCard({
               {order.items.slice(0, 3).map((item, index) => (
                 <div
                   key={index}
-                  className="flex justify-between items-center text-sm"
+                  className="flex justify-between items-center text-sm md:text-base"
                 >
-                  <span className="flex-1 truncate">
-                    {item.quantity}x {item.display_name}
+                  <span className="flex-1 truncate font-semibold text-gray-800">
+                    <span className="text-gray-400 font-semibold mr-1.5">
+                      {item.quantity}x
+                    </span>{' '}
+                    {item.display_name}
                   </span>
-                  <span className="font-medium">₹{item.total_amount}</span>
+                  <span className="font-semibold text-gray-900 ml-2">
+                    ₹{item.total_amount}
+                  </span>
                 </div>
               ))}
               {order.items.length > 3 && (
-                <p className="text-xs text-gray-600 font-medium">
+                <p className="text-[11px] md:text-xs text-gray-500 font-semibold pt-1">
                   +{order.items.length - 3} more items...
                 </p>
               )}
             </div>
             {/* Bill Summary */}
             <div className="mt-2 pt-2 border-t space-y-1">
-              {order.discount_amount && parseFloat(String(order.discount_amount)) > 0 && (
-                <div className="flex justify-between text-sm text-green-600">
-                  <span>Discount:</span>
-                  <span>-₹{parseFloat(String(order.discount_amount)).toFixed(2)}</span>
-                </div>
-              )}
-              <OrderTaxBreakdown 
-                totalAmount={order.total_amount} 
+              {order.discount_amount &&
+                parseFloat(String(order.discount_amount)) > 0 && (
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>Discount:</span>
+                    <span>
+                      -₹{parseFloat(String(order.discount_amount)).toFixed(2)}
+                    </span>
+                  </div>
+                )}
+              <OrderTaxBreakdown
+                totalAmount={order.total_amount}
                 showDetails={true}
                 isPreTax={true}
-                discountAmount={order.discount_amount ? parseFloat(String(order.discount_amount)) : 0}
+                discountAmount={
+                  order.discount_amount
+                    ? parseFloat(String(order.discount_amount))
+                    : 0
+                }
               />
             </div>
-            <div className="flex items-center gap-2 text-xs mt-2 pt-2 border-t">
+            <div className="flex items-center gap-2 text-[11px] md:text-xs mt-2 pt-2 border-t border-gray-200/50">
               <div
-                className={`w-2 h-2 rounded-full ${order.payment_status.toLowerCase() === 'paid' ? 'bg-green-500' : 'bg-red-500'}`}
+                className={`w-1.5 h-1.5 rounded-full ${order.payment_status.toLowerCase() === 'paid' ? 'bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]' : 'bg-red-500 shadow-[0_0_5px_rgba(239,68,68,0.5)]'}`}
               />
               <span
-                className={
+                className={`font-semibold uppercase tracking-tight ${
                   order.payment_status.toLowerCase() === 'paid'
-                    ? 'text-green-700'
-                    : 'text-red-700'
-                }
+                    ? 'text-green-600'
+                    : 'text-red-500'
+                }`}
               >
                 {order.payment_status.toLowerCase() === 'paid'
                   ? 'Paid'
@@ -173,18 +179,18 @@ export function PendingOrderCard({
           />
         </div>
 
-        {/* fix Action Buttons - Touch Optimized */}
+        {/* Action Buttons - Touch Optimized */}
         <div className="flex gap-2 pt-2">
           <Button
             variant="outline"
-            className="flex-1 border-red-300 text-red-600 hover:text-red-600 hover:bg-red-50 min-h-[44px] text-md max-[700px]:text-sm"
+            className="flex-1 h-10 text-xs md:text-sm font-semibold border-gray-200 hover:bg-gray-50 rounded-xl"
             onClick={() => onReject(order)}
             disabled={isRejectingOrder}
           >
             Reject
           </Button>
           <Button
-            className="flex-1 bg-green-600 hover:bg-green-700 text-white min-h-[44px] text-md max-[700px]:text-sm"
+            className="flex-2 h-10 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl shadow-sm shadow-green-100"
             onClick={handleAccept}
             disabled={isAcceptingOrder}
           >
@@ -193,6 +199,7 @@ export function PendingOrderCard({
               onExpired={() => onReject(order)}
               renderAs="button"
               buttonText="Accept Order"
+              className="text-sm md:text-base font-semibold uppercase tracking-wide"
             />
           </Button>
         </div>

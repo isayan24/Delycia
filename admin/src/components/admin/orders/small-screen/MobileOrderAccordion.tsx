@@ -74,17 +74,24 @@ export function MobileOrderAccordion({
 
             {/* Order Summary - Mobile */}
             <div className="bg-green-50 p-3 rounded-lg space-y-1">
-              {order.discount_amount && parseFloat(String(order.discount_amount)) > 0 && (
-                <div className="flex justify-between text-sm text-green-600">
-                  <span>Discount:</span>
-                  <span>-₹{parseFloat(String(order.discount_amount)).toFixed(2)}</span>
-                </div>
-              )}
-              <OrderTaxBreakdown 
-                totalAmount={order.total_amount} 
+              {order.discount_amount &&
+                parseFloat(String(order.discount_amount)) > 0 && (
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>Discount:</span>
+                    <span>
+                      -₹{parseFloat(String(order.discount_amount)).toFixed(2)}
+                    </span>
+                  </div>
+                )}
+              <OrderTaxBreakdown
+                totalAmount={order.total_amount}
                 showDetails={true}
                 isPreTax={true}
-                discountAmount={order.discount_amount ? parseFloat(String(order.discount_amount)) : 0}
+                discountAmount={
+                  order.discount_amount
+                    ? parseFloat(String(order.discount_amount))
+                    : 0
+                }
               />
               <div className="flex items-center gap-2 text-xs pt-1 border-t">
                 <div
@@ -104,7 +111,6 @@ export function MobileOrderAccordion({
               </div>
             </div>
           </AccordionContent>
-          z
         </AccordionItem>
       </Accordion>
     </div>

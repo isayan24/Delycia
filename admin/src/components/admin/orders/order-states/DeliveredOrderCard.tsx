@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -11,11 +11,6 @@ import {
   Printer,
 } from 'lucide-react'
 import { ProcessedOrder } from '@/types/WebSocketOrder'
-import {
-  calculateTimeElapsed,
-  formatTimeElapsed,
-  formatOrderTime,
-} from '../utils/orderProcessing'
 import { OrderTaxBreakdown } from '@/components/common/OrderTaxBreakdown'
 import {
   Collapsible,
@@ -23,24 +18,20 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import ThermalBill from '@/components/billing/ThermalBill'
-import {
-  orderToBillData,
-  handleShareToMobile,
-} from '@/components/billing'
+import { orderToBillData, handleShareToMobile } from '@/components/billing'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
+import { calculateTimeElapsed, formatTimeElapsed } from '@/utils/dateUtils'
 
 interface DeliveredOrderCardProps {
   order: ProcessedOrder
   onCall: (customerId: number) => void
-  onViewTimeline: (customerId: number) => void
   showCallButton?: boolean
 }
 
 export function DeliveredOrderCard({
   order,
   onCall,
-  onViewTimeline,
   showCallButton = true,
 }: DeliveredOrderCardProps) {
   const [timeElapsed, setTimeElapsed] = useState(0)
@@ -51,7 +42,9 @@ export function DeliveredOrderCard({
   // Calculate final amount with tax
   const { grandTotal, isLoading: isTaxLoading } = useOrderTaxCalculation({
     subtotal: order.total_amount,
-    discountAmount: order.discount_amount ? parseFloat(String(order.discount_amount)) : 0,
+    discountAmount: order.discount_amount
+      ? parseFloat(String(order.discount_amount))
+      : 0,
   })
 
   // Calculate time elapsed since order was placed using IST-aware function
@@ -102,33 +95,49 @@ export function DeliveredOrderCard({
       />
 
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CardContent className="p-3">
+        <CardContent className="p-2 md:p-3">
+          {/* Mobile Table/Type Header - Visible at Top for compactness */}
+          <div className="md:hidden mb-2 flex items-center gap-2">
+            <Badge
+              variant="secondary"
+              className="bg-green-100/80 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded-md border border-green-200/50 uppercase tracking-tight"
+            >
+              {getOrderTypeDisplay()}
+            </Badge>
+            <div className="h-1 flex-1 border-b border-gray-100" />
+          </div>
+
           {/* Compact Overview */}
           <div className="flex items-center justify-between">
             {/* Customer Info */}
-            <div className="flex items-center gap-3 flex-1">
-              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckCircle className="h-4 w-4 text-green-600" />
+            <div className="flex items-center gap-2 md:gap-3 flex-1">
+              <div className="w-8 h-8 md:w-9 md:h-9 bg-green-100 rounded-full flex items-center justify-center shrink-0 shadow-sm border border-green-200/30">
+                <CheckCircle className="h-4 w-4 md:h-5 md:w-5 text-green-600" />
               </div>
 
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-medium text-sm truncate">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-semibold text-sm md:text-base truncate max-w-[120px] md:max-w-none">
                     {order.customer_name}
                   </h3>
                   <Badge
                     variant="secondary"
-                    className="bg-green-100 text-green-700 text-xs px-2 py-0.5"
+                    className="hidden md:flex bg-green-50 text-green-700 text-[10px] md:text-xs font-semibold px-2 py-0.5 rounded-md border border-green-200/50"
                   >
                     {getOrderTypeDisplay()}
                   </Badge>
                 </div>
-                <div className="flex items-center gap-3 text-xs text-gray-600 mt-0.5">
+                <div className="flex items-center gap-3 text-[10px] md:text-xs text-gray-500 mt-0.5">
                   <span className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
                     {formatTimeElapsed(timeElapsed)}
                   </span>
-                  <span>₹{(isTaxLoading ? order.total_amount : grandTotal).toFixed(2)}</span>
+                  <span className="font-semibold text-gray-700">
+                    ₹
+                    {(isTaxLoading ? order.total_amount : grandTotal).toFixed(
+                      2,
+                    )}
+                  </span>
                   <span>{order.items.length} items</span>
                 </div>
               </div>
@@ -174,12 +183,15 @@ export function DeliveredOrderCard({
             {/* Order Details */}
             <div className="bg-gray-50 p-3 rounded-lg">
               <div className="flex justify-between items-center mb-2">
-                <h4 className="font-medium text-sm">
+                <h4 className="font-semibold text-xs md:text-sm text-gray-700 uppercase tracking-tight">
                   Order Items ({order.items.length})
                 </h4>
                 <div className="text-right">
-                  <span className="text-sm font-semibold">
-                    ₹{(isTaxLoading ? order.total_amount : grandTotal).toFixed(2)}
+                  <span className="text-xs md:text-sm font-semibold text-gray-900">
+                    ₹
+                    {(isTaxLoading ? order.total_amount : grandTotal).toFixed(
+                      2,
+                    )}
                   </span>
                 </div>
               </div>
@@ -188,13 +200,16 @@ export function DeliveredOrderCard({
                 {order.items.map((item, index) => (
                   <div
                     key={index}
-                    className="flex justify-between items-center text-sm"
+                    className="flex justify-between items-center text-sm md:text-base"
                   >
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-3 w-3 text-green-600" />
-                      <div className="flex-1">
-                        <span className="block">
-                          {item.quantity}x {item.display_name}
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <CheckCircle className="h-3.5 w-3.5 text-green-600 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <span className="block truncate font-semibold text-gray-800">
+                          <span className="text-gray-400 font-semibold mr-1">
+                            {item.quantity}x
+                          </span>{' '}
+                          {item.display_name}
                         </span>
                         {/* Render Addons */}
                         {item.addons && item.addons.length > 0 && (
@@ -203,7 +218,7 @@ export function DeliveredOrderCard({
                               (addon: any, addonIndex: number) => (
                                 <span
                                   key={addonIndex}
-                                  className="text-xs text-gray-500 block"
+                                  className="text-[11px] md:text-xs text-gray-500 block leading-tight"
                                 >
                                   + {addon.quantity} x {addon.name}: ₹
                                   {addon.price}
@@ -214,34 +229,39 @@ export function DeliveredOrderCard({
                         )}
                       </div>
                     </div>
-                    <span className="font-medium">₹{item.total_amount}</span>
+                    <span className="font-semibold text-gray-900 ml-2">
+                      ₹{item.total_amount}
+                    </span>
                   </div>
                 ))}
               </div>
 
               {/* Bill Summary */}
               <div className="mt-2 pt-2 border-t space-y-1">
-                 
-                <OrderTaxBreakdown 
-                  totalAmount={order.total_amount} 
+                <OrderTaxBreakdown
+                  totalAmount={order.total_amount}
                   showDetails={true}
                   isPreTax={true}
-                  discountAmount={order.discount_amount ? parseFloat(String(order.discount_amount)) : 0}
+                  discountAmount={
+                    order.discount_amount
+                      ? parseFloat(String(order.discount_amount))
+                      : 0
+                  }
                 />
               </div>
 
               {/* Order Meta */}
-              <div className="flex items-center justify-between text-xs mt-3 pt-2 border-t">
+              <div className="flex items-center justify-between text-[11px] md:text-xs mt-3 pt-2 border-t border-gray-200/50">
                 <div className="flex items-center gap-2">
                   <div
-                    className={`w-2 h-2 rounded-full ${order.payment_status.toLowerCase() === 'paid' ? 'bg-green-500' : 'bg-red-500'}`}
+                    className={`w-1.5 h-1.5 rounded-full ${order.payment_status.toLowerCase() === 'paid' ? 'bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]' : 'bg-red-500 shadow-[0_0_5px_rgba(239,68,68,0.5)]'}`}
                   />
                   <span
-                    className={
+                    className={`font-semibold uppercase tracking-tight ${
                       order.payment_status.toLowerCase() === 'paid'
-                        ? 'text-green-700'
-                        : 'text-red-700'
-                    }
+                        ? 'text-green-600'
+                        : 'text-red-500'
+                    }`}
                   >
                     {order.payment_status.toLowerCase() === 'paid'
                       ? 'Paid'
@@ -252,24 +272,34 @@ export function DeliveredOrderCard({
             </div>
 
             {/* Customer Details */}
-            <div className="bg-blue-50 p-3 rounded-lg">
-              <h4 className="font-medium text-sm mb-2">Customer Details</h4>
-              <div className="space-y-1 text-sm">
+            <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100/50">
+              <h4 className="font-semibold text-xs md:text-sm text-blue-700 uppercase tracking-tight mb-2">
+                Customer Details
+              </h4>
+              <div className="space-y-1.5 text-xs md:text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Name:</span>
-                  <span>{order.customer_name}</span>
+                  <span className="text-gray-500">Name:</span>
+                  <span className="font-semibold text-gray-900">
+                    {order.customer_name}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Phone:</span>
-                  <span>{order.customer_phone_masked}</span>
+                  <span className="text-gray-500">Phone:</span>
+                  <span className="font-semibold text-gray-900">
+                    {order.customer_phone_masked}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Order Time:</span>
-                  <span>{formatOrderTime(order.created_at)}</span>
+                  <span className="font-semibold text-gray-900">
+                    {order.formattedTime}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Customer ID:</span>
-                  <span>#{order.customer_id}</span>
+                  <span className="font-semibold text-gray-900">
+                    #{order.customer_id}
+                  </span>
                 </div>
               </div>
             </div>

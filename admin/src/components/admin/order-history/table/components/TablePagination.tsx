@@ -50,12 +50,14 @@ export function TablePagination({
   const pageNumbers = getPageNumbers()
 
   return (
-    <div className="border-t bg-white px-4 pt-2 flex items-center justify-between">
+    <div className="border-t border-gray-100 bg-white px-4 py-3 flex items-center justify-between">
       {/* Page Info */}
-      <div className="text-sm text-gray-500">
-        Page {currentPage} of {totalPages}
+      <div className="text-xs sm:text-sm text-gray-500 font-medium">
+        <span className="bg-gray-100 px-2 py-1 rounded-lg mr-2">
+          Page {currentPage} of {totalPages}
+        </span>
         {totalOrders !== undefined && perPage && (
-          <span className="hidden sm:inline ml-1">
+          <span className="hidden sm:inline text-gray-400">
             • Showing {Math.min((currentPage - 1) * perPage + 1, totalOrders)}-
             {Math.min(currentPage * perPage, totalOrders)} of {totalOrders}
           </span>
@@ -63,19 +65,19 @@ export function TablePagination({
       </div>
 
       {/* Pagination Controls */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         <Button
           variant="outline"
           size="sm"
           onClick={onPrevPage}
           disabled={!hasPrevPage || loading}
-          className="h-8 w-8 p-0"
+          className="h-9 w-9 p-0 rounded-xl border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-30 transition-all"
         >
           <ChevronLeft className="w-4 h-4" />
           <span className="sr-only">Previous</span>
         </Button>
 
-        <div className="flex items-center gap-1">
+        <div className="hidden sm:flex items-center gap-1.5">
           {pageNumbers[0] > 1 && (
             <>
               <Button
@@ -83,12 +85,12 @@ export function TablePagination({
                 size="sm"
                 onClick={() => onPageChange(1)}
                 disabled={loading}
-                className="h-8 w-8 p-0"
+                className="h-9 w-9 p-0 rounded-xl border-gray-200 text-gray-600 hover:bg-gray-50 transition-all"
               >
                 1
               </Button>
               {pageNumbers[0] > 2 && (
-                <span className="px-1 text-gray-400">...</span>
+                <span className="px-1 text-gray-400 font-bold">...</span>
               )}
             </>
           )}
@@ -100,7 +102,11 @@ export function TablePagination({
               size="sm"
               onClick={() => onPageChange(page)}
               disabled={loading}
-              className="h-8 w-8 p-0"
+              className={`h-9 w-9 p-0 rounded-xl transition-all font-semibold ${
+                currentPage === page
+                  ? 'bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-sm shadow-emerald-200'
+                  : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+              }`}
             >
               {page}
             </Button>
@@ -109,14 +115,14 @@ export function TablePagination({
           {pageNumbers[pageNumbers.length - 1] < totalPages && (
             <>
               {pageNumbers[pageNumbers.length - 1] < totalPages - 1 && (
-                <span className="px-1 text-gray-400">...</span>
+                <span className="px-1 text-gray-400 font-bold">...</span>
               )}
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => onPageChange(totalPages)}
                 disabled={loading}
-                className="h-8 w-8 p-0"
+                className="h-9 w-9 p-0 rounded-xl border-gray-200 text-gray-600 hover:bg-gray-50 transition-all"
               >
                 {totalPages}
               </Button>
@@ -129,7 +135,7 @@ export function TablePagination({
           size="sm"
           onClick={onNextPage}
           disabled={!hasNextPage || loading}
-          className="h-8 w-8 p-0"
+          className="h-9 w-9 p-0 rounded-xl border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-30 transition-all"
         >
           <ChevronRight className="w-4 h-4" />
           <span className="sr-only">Next</span>

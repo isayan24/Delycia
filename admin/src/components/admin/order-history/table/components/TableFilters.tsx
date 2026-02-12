@@ -14,7 +14,7 @@ import {
   Merge,
 } from 'lucide-react'
 import { format } from 'date-fns'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface TableFiltersProps {
   search: string
@@ -45,6 +45,35 @@ export function TableFilters({
   const [endDate, setEndDate] = useState<Date | undefined>(undefined)
   const [isStartDateOpen, setIsStartDateOpen] = useState(false)
   const [isEndDateOpen, setIsEndDateOpen] = useState(false)
+  const filterRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Check if click is outside the filter container
+      // We also check if the click target is NOT an descendant of a popover (like the calendar)
+      const target = event.target as HTMLElement
+      const isInsidePopover = target.closest(
+        '[data-radix-popper-content-wrapper]',
+      )
+
+      if (
+        filterRef.current &&
+        !filterRef.current.contains(target) &&
+        !isInsidePopover &&
+        showFilters
+      ) {
+        setShowFilters(false)
+      }
+    }
+
+    if (showFilters) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showFilters])
 
   const handleApplyDateRange = () => {
     const start = startDate ? format(startDate, 'yyyy-MM-dd') : undefined
@@ -60,22 +89,22 @@ export function TableFilters({
   }
 
   return (
-    <div className="flex items-center gap-2 w-full">
+    <div className="flex items-center gap-2 w-full relative" ref={filterRef}>
       {/* Search Bar - Takes available space */}
-      <div className="relative flex-1">
-        <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+      <div className="relative flex-1 group">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
         <Input
-          placeholder="Search orders by item name, customer name..."
+          placeholder="Search items, customers..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-8 h-8 text-xs w-full"
+          className="pl-9 h-10 text-sm w-full bg-gray-50/50 border-gray-200 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all rounded-xl"
         />
         {search && (
           <button
             onClick={() => onSearchChange('')}
-            className="absolute right-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="w-4 h-4" />
           </button>
         )}
       </div>
@@ -84,24 +113,24 @@ export function TableFilters({
       <Button
         variant={showFilters ? 'secondary' : 'outline'}
         onClick={() => setShowFilters(!showFilters)}
-        className="gap-1.5 h-8 text-xs px-2.5 shrink-0"
+        className={`gap-2 h-10 text-sm px-3 sm:px-4 shrink-0 transition-all rounded-xl border-gray-200 ${
+          showFilters
+            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+            : 'bg-white text-gray-600 hover:bg-gray-50'
+        }`}
       >
-        <Filter className="w-3.5 h-3.5" />
-        <span className="hidden sm:inline">
+        <Filter className="w-4 h-4" />
+        <span className="hidden xs:inline">
           {showFilters ? 'Hide' : 'Filter'}
         </span>
       </Button>
 
-      {/* Expanded Filters - Absolute/Popover or expanded row? 
-          User asked for "make these btns compact". 
-          Let's make them show in a compact row if expanded, or just integrate them if space allows.
-          Given typical table layouts, a popover or a second tight row is best. 
-          Let's try a tight second row first, or if "compact" means "small buttons", let's adjust sizes.
-          The user pointed to the whole file, including date pickers.
-       */}
-
+      {/* Expanded Filters - Absolute Dropdown on Mobile */}
       {showFilters && (
-        <div className="absolute top-full left-0 right-0 z-10 mt-1 p-2 bg-white border rounded-lg shadow-lg flex flex-col gap-2 sm:flex-row sm:items-center sm:static sm:w-auto sm:border-0 sm:shadow-none sm:p-0 sm:mt-0 sm:bg-transparent animate-in fade-in zoom-in-95 duration-200">
+        <div className="absolute top-12 left-0 right-0 z-50 mt-1 p-3 bg-white border border-gray-200 rounded-xl shadow-xl flex flex-col gap-3 sm:flex-row sm:items-center sm:static sm:w-auto sm:border-0 sm:shadow-none sm:p-0 sm:mt-0 sm:bg-transparent animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="text-xs font-semibold text-gray-400 sm:hidden px-1">
+            Filter Orders
+          </div>
           {/* Start Date */}
           <Popover open={isStartDateOpen} onOpenChange={setIsStartDateOpen}>
             <PopoverTrigger asChild>
@@ -172,27 +201,29 @@ export function TableFilters({
       )}
 
       {/* Merge Actions - Integrated */}
-      <div className="flex items-center border-l pl-2 ml-1">
+      <div className="flex items-center border-l border-gray-100 pl-3 ml-1">
         {!isSelectionMode ? (
           <Button
             variant="outline"
             size="sm"
             onClick={toggleSelectionMode}
-            className="gap-1.5 h-8 text-xs px-2.5"
+            className="gap-2 h-10 text-sm px-3 sm:px-4 rounded-xl border-gray-200 text-gray-600 hover:bg-gray-50 transition-all"
           >
-            <Merge className="w-3.5 h-3.5" />
-            Merge
+            <Merge className="w-4 h-4" />
+            <span className="hidden xs:inline">Merge</span>
           </Button>
         ) : (
           <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-2 duration-300">
-            <span className="text-xs text-gray-500 font-medium whitespace-nowrap hidden sm:inline">
-              {selectedCount > 0 ? `${selectedCount} selected` : 'Select'}
+            <span className="text-xs text-gray-500 font-medium whitespace-nowrap hidden lg:inline">
+              {selectedCount > 0
+                ? `${selectedCount} selected`
+                : 'Select orders'}
             </span>
             <Button
               variant="ghost"
               size="sm"
               onClick={toggleSelectionMode}
-              className="h-8 px-2 text-xs text-gray-600 hover:text-gray-900"
+              className="h-10 px-3 text-sm text-gray-600 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
             >
               Cancel
             </Button>
@@ -200,9 +231,9 @@ export function TableFilters({
               size="sm"
               onClick={onMerge}
               disabled={isMergePending || selectedCount < 2}
-              className="gap-1.5 h-8 text-xs px-2.5"
+              className="gap-2 h-10 text-sm px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm transition-all"
             >
-              <Merge className="w-3.5 h-3.5" />
+              <Merge className="w-4 h-4" />
               {isMergePending ? 'Merging...' : 'Merge'}
             </Button>
           </div>

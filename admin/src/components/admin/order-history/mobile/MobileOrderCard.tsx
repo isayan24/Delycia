@@ -35,7 +35,7 @@ const MobileOrderCard = memo(function MobileOrderCard({
     discountAmount: order.discountAmount || 0,
     rid: order.rid,
   })
-  
+
   // Memoize the formatted items to prevent recalculation
   const formattedItems = useMemo(() => {
     if (!order.items || order.items.length === 0) {
@@ -75,7 +75,7 @@ const MobileOrderCard = memo(function MobileOrderCard({
           {order.status}
         </span>
         <div className="text-right text-gray-500 text-xs">
-          {order.time} | {order.date}
+          {order.dateAndTime}
         </div>
       </div>
 

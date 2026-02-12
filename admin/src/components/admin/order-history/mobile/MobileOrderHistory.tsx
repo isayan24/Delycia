@@ -6,6 +6,7 @@ import { TransformedOrder } from '../utils/orderHistoryUtils'
 import { PrintBillDialog } from '../shared/PrintBillDialog'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import { formatISTDateTime } from '../utils/historyDateUtils'
+import { formatDateTime } from '@/utils/dateUtils'
 
 interface MobileOrderHistoryProps {
   orders: TransformedOrder[]
@@ -83,33 +84,36 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
     setSelectedOrder(null)
   }
 
-  const handlePrintBill = useCallback((order: TransformedOrder) => {
-    const billItems = order.items.map((item) => ({
-      name: item.name,
-      quantity: item.quantity,
-      price: item.price,
-      variant_name: item.variant_name,
-      addons: item.addons,
-    }))
+  const handlePrintBill = useCallback(
+    (order: TransformedOrder) => {
+      const billItems = order.items.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+        variant_name: item.variant_name,
+        addons: item.addons,
+      }))
 
-    const billData = {
-      orderId: order.orderId,
-      restaurantName: selectedRestaurant?.name || '',
-      tableNo: order.tableNo,
-      customerName: order.customerName || order.customer?.name || 'Guest',
-      customerId: String(order.customerId) || 'N/A',
-      customerPhone: order.customer?.phone || 'N/A',
-      items: billItems,
-      discountAmount: parseFloat(String(order.discountAmount || 0)),
-      totalAmount: 0, // Will be calculated
-      orderDate: formatISTDateTime(order.createdAt),
-      paymentMethod: order.paymentMethod,
-      paymentStatus: order.paymentStatus,
-    }
+      const billData = {
+        orderId: order.orderId,
+        restaurantName: selectedRestaurant?.name || '',
+        tableNo: order.tableNo,
+        customerName: order.customerName || order.customer?.name || 'Guest',
+        customerId: String(order.customerId) || 'N/A',
+        customerPhone: order.customer?.phone || 'N/A',
+        items: billItems,
+        discountAmount: parseFloat(String(order.discountAmount || 0)),
+        totalAmount: 0, // Will be calculated
+        orderDate: formatDateTime(order.createdAt),
+        paymentMethod: order.paymentMethod,
+        paymentStatus: order.paymentStatus,
+      }
 
-    setSelectedOrderForBill(billData)
-    setShowBillDialog(true)
-  }, [selectedRestaurant])
+      setSelectedOrderForBill(billData)
+      setShowBillDialog(true)
+    },
+    [selectedRestaurant],
+  )
 
   // Show loading state
   if (loading) {

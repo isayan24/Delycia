@@ -221,7 +221,6 @@ export default function OrdersMain() {
       await axios.patch('/api/orders', apiData)
       showSuccess('Success', 'Time extended successfully')
 
-      // fix Update local state immediately for better UX
       setOrdersWithState((prevOrders) =>
         prevOrders.map((prevOrder) => {
           if (

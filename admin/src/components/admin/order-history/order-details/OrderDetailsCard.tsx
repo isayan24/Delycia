@@ -2,7 +2,7 @@ import { memo, useMemo } from 'react'
 import CustomerAvatar from '../CustomerAvatar'
 import { CustomerInfo, TransformedOrderItem } from '../utils/orderHistoryUtils'
 import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
-import { formatISTDateTime } from '../utils/historyDateUtils'
+import { formatDateTime } from '@/utils/dateUtils'
 
 interface TimelineStep {
   label: string
@@ -110,9 +110,7 @@ const OrderDetailsCard = memo(function OrderDetailsCard({
           </span>
         </div>
         <div className="text-right">
-          <div className="text-gray-600 mb-3">
-            {formatISTDateTime(orderDate)} 
-          </div>
+          <div className="text-gray-600 mb-3">{formatDateTime(orderDate)}</div>
           <button className="px-4 py-2 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-50">
             Help
           </button>

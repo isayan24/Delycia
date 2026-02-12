@@ -1,31 +1,30 @@
-
-import React, { useState, useEffect, useRef, memo } from "react";
 import {
-  calculateTimeElapsed,
   calculateRemainingTime,
+  calculateTimeElapsed,
   formatRemainingTime,
-} from "../utils/orderProcessing";
+} from '@/utils/dateUtils'
+import React, { useState, useEffect, useRef, memo } from 'react'
 
 interface ProcessingCountdownDisplayProps {
-  orderTime: string;
-  preparationTime: number;
-  preparationStartedAt?: string;
-  isActive?: boolean;
-  onTimeExpired?: () => void;
-  className?: string;
-  renderAs?: "text" | "button";
-  buttonText?: string;
+  orderTime: string
+  preparationTime: number
+  preparationStartedAt?: string
+  isActive?: boolean
+  onTimeExpired?: () => void
+  className?: string
+  renderAs?: 'text' | 'button'
+  buttonText?: string
 }
 
 interface ProcessingCountdownValue {
-  timeElapsed: number;
+  timeElapsed: number
   remainingTime: {
-    minutes: number;
-    seconds: number;
-    totalSeconds: number;
-  };
-  isExpired: boolean;
-  formattedRemaining: string;
+    minutes: number
+    seconds: number
+    totalSeconds: number
+  }
+  isExpired: boolean
+  formattedRemaining: string
 }
 
 /**
@@ -40,74 +39,74 @@ const ProcessingCountdownDisplay: React.FC<ProcessingCountdownDisplayProps> =
       preparationStartedAt,
       isActive = true,
       onTimeExpired,
-      className = "",
-      renderAs = "text",
-      buttonText = "Order Ready",
+      className = '',
+      renderAs = 'text',
+      buttonText = 'Order Ready',
     }) => {
       const [countdown, setCountdown] = useState<ProcessingCountdownValue>(
         () => {
           // Use preparation_started_at if available, otherwise fall back to orderTime
-          const startTime = preparationStartedAt || orderTime;
-          const elapsed = calculateTimeElapsed(startTime);
+          const startTime = preparationStartedAt || orderTime
+          const elapsed = calculateTimeElapsed(startTime)
           const remaining = calculateRemainingTime(
             startTime,
             preparationTime,
-            preparationStartedAt
-          );
+            preparationStartedAt,
+          )
           return {
             timeElapsed: elapsed,
             remainingTime: remaining,
             isExpired: remaining.totalSeconds <= 0,
             formattedRemaining: formatRemainingTime(remaining),
-          };
-        }
-      );
+          }
+        },
+      )
 
-      const animationFrameRef = useRef<number>(0);
-      const lastUpdateRef = useRef<number>(0);
-      const expiredCallbackFiredRef = useRef<boolean>(false);
-      const isTabVisibleRef = useRef<boolean>(true);
+      const animationFrameRef = useRef<number>(0)
+      const lastUpdateRef = useRef<number>(0)
+      const expiredCallbackFiredRef = useRef<boolean>(false)
+      const isTabVisibleRef = useRef<boolean>(true)
 
       // Tab visibility detection for performance optimization
       useEffect(() => {
         const handleVisibilityChange = () => {
-          isTabVisibleRef.current = !document.hidden;
-        };
+          isTabVisibleRef.current = !document.hidden
+        }
 
-        document.addEventListener("visibilitychange", handleVisibilityChange);
+        document.addEventListener('visibilitychange', handleVisibilityChange)
         return () =>
           document.removeEventListener(
-            "visibilitychange",
-            handleVisibilityChange
-          );
-      }, []);
+            'visibilitychange',
+            handleVisibilityChange,
+          )
+      }, [])
 
       // Optimized countdown update function
       const updateCountdown = () => {
-        if (!isActive) return;
+        if (!isActive) return
 
-        const now = Date.now();
+        const now = Date.now()
 
         // Update only once per second
         if (now - lastUpdateRef.current >= 1000) {
           // Use preparation_started_at if available, otherwise fall back to orderTime
-          const startTime = preparationStartedAt || orderTime;
-          const elapsed = calculateTimeElapsed(startTime);
+          const startTime = preparationStartedAt || orderTime
+          const elapsed = calculateTimeElapsed(startTime)
           const remaining = calculateRemainingTime(
             startTime,
             preparationTime,
-            preparationStartedAt
-          );
+            preparationStartedAt,
+          )
 
           const newCountdownValue: ProcessingCountdownValue = {
             timeElapsed: elapsed,
             remainingTime: remaining,
             isExpired: remaining.totalSeconds <= 0,
             formattedRemaining: formatRemainingTime(remaining),
-          };
+          }
 
-          setCountdown(newCountdownValue);
-          lastUpdateRef.current = now;
+          setCountdown(newCountdownValue)
+          lastUpdateRef.current = now
 
           // Handle time expiration callback
           if (
@@ -115,86 +114,85 @@ const ProcessingCountdownDisplay: React.FC<ProcessingCountdownDisplayProps> =
             !expiredCallbackFiredRef.current &&
             onTimeExpired
           ) {
-            expiredCallbackFiredRef.current = true;
-            onTimeExpired();
+            expiredCallbackFiredRef.current = true
+            onTimeExpired()
           }
         }
 
         // Continue animation loop if component is active
         if (isActive) {
           // Reduce update frequency when tab is not visible
-          const delay = isTabVisibleRef.current ? 0 : 5000;
+          const delay = isTabVisibleRef.current ? 0 : 5000
 
           if (delay > 0) {
             setTimeout(() => {
-              animationFrameRef.current =
-                requestAnimationFrame(updateCountdown);
-            }, delay);
+              animationFrameRef.current = requestAnimationFrame(updateCountdown)
+            }, delay)
           } else {
-            animationFrameRef.current = requestAnimationFrame(updateCountdown);
+            animationFrameRef.current = requestAnimationFrame(updateCountdown)
           }
         }
-      };
+      }
 
       // Start countdown animation
       useEffect(() => {
         if (isActive) {
-          animationFrameRef.current = requestAnimationFrame(updateCountdown);
+          animationFrameRef.current = requestAnimationFrame(updateCountdown)
         }
 
         return () => {
           if (animationFrameRef.current) {
-            cancelAnimationFrame(animationFrameRef.current);
+            cancelAnimationFrame(animationFrameRef.current)
           }
-        };
-      }, [isActive, orderTime, preparationTime]); // Only re-run if key props change
+        }
+      }, [isActive, orderTime, preparationTime]) // Only re-run if key props change
 
       // Cleanup on unmount
       useEffect(() => {
         return () => {
           if (animationFrameRef.current) {
-            cancelAnimationFrame(animationFrameRef.current);
+            cancelAnimationFrame(animationFrameRef.current)
           }
-        };
-      }, []);
+        }
+      }, [])
 
       // Reset expired callback when orderTime changes
       useEffect(() => {
-        expiredCallbackFiredRef.current = false;
-      }, [orderTime]);
+        expiredCallbackFiredRef.current = false
+      }, [orderTime])
 
       // Determine styling based on remaining time
       const getCountdownStyles = () => {
         if (countdown.isExpired) {
-          return "text-orange-600 font-bold ";
+          return 'text-orange-600 font-bold '
         }
         if (countdown.remainingTime.totalSeconds <= 300) {
           // 5 minutes warning
-          return "text-yellow-600 font-semibold ";
+          return 'text-yellow-600 font-semibold '
         }
-        return "text-green-600 ";
-      };
+        return 'text-green-600 '
+      }
 
       // Render as button (for action buttons)
-      if (renderAs === "button") {
+      if (renderAs === 'button') {
         return (
-          <span className={className}>
+          <span className="max-[500px]:text-sm text-md">
             {countdown.isExpired
               ? buttonText
               : `${buttonText} (${countdown.formattedRemaining})`}
           </span>
-        );
+        )
       }
 
       // Render as text (for status display)
       return (
         <span className={`${getCountdownStyles()} ${className}`}>
-          {countdown.isExpired ? "TIME UP" : countdown.formattedRemaining}
+          {countdown.isExpired ? 'TIME UP' : countdown.formattedRemaining}
         </span>
-      );
-    }
-  );
+      )
+    },
+  )
 
-ProcessingCountdownDisplay.displayName = "ProcessingCountdownDisplay";
+ProcessingCountdownDisplay.displayName = 'ProcessingCountdownDisplay'
 
-export default ProcessingCountdownDisplay;
+export default ProcessingCountdownDisplay

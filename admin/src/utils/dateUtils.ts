@@ -1,164 +1,133 @@
-// import { format, startOfDay, endOfDay, subDays, startOfMonth, endOfMonth, subMonths } from 'date-fns';
+import { convertUTCToIST } from '@/components/admin/orders/utils/orderProcessing'
 
-// export type DateFilterType = 'today' | 'yesterday' | 'last7days' | 'lastMonth' | 'custom';
+/**
+ * Formats a date string or Date object to a consistent locale format (en-IN).
+ * Example: "Feb 12, 2026, 11:03 PM"
+ */
+export const formatDateTime = (
+  date: string | Date | undefined | null,
+): string => {
+  if (!date) return 'N/A'
 
-// export interface DateRange {
-//   startDate: string;
-//   endDate: string;
-// }
+  try {
+    const d = new Date(date)
+    if (isNaN(d.getTime())) return 'N/A'
 
-// export class DateRangeCalculator {
-//   static today(): DateRange {
-//     const today = new Date();
-//     const start = startOfDay(today);
-//     const end = endOfDay(today);
-    
-//     return {
-//       startDate: format(start, 'yyyy-MM-dd'),
-//       endDate: format(end, 'yyyy-MM-dd')
-//     };
-//   }
+    return d.toLocaleString('en-IN', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    })
+  } catch (error) {
+    console.error('Error formatting date:', error)
+    return 'N/A'
+  }
+}
 
-//   static yesterday(): DateRange {
-//     const yesterday = subDays(new Date(), 1);
-//     const start = startOfDay(yesterday);
-//     const end = endOfDay(yesterday);
-    
-//     return {
-//       startDate: format(start, 'yyyy-MM-dd'),
-//       endDate: format(end, 'yyyy-MM-dd')
-//     };
-//   }
+export const formatTimeNew = (
+  date: string | Date | undefined | null,
+): string => {
+  if (!date) return 'N/A'
 
-//   static last7Days(): DateRange {
-//     const today = new Date();
-//     const start = startOfDay(subDays(today, 6)); // Include today, so 6 days back
-//     const end = endOfDay(today);
-    
-//     return {
-//       startDate: format(start, 'yyyy-MM-dd'),
-//       endDate: format(end, 'yyyy-MM-dd')
-//     };
-//   }
+  try {
+    const d = new Date(date)
+    if (isNaN(d.getTime())) return 'N/A'
 
-//   static lastMonth(): DateRange {
-//     const lastMonth = subMonths(new Date(), 1);
-//     const start = startOfMonth(lastMonth);
-//     const end = endOfMonth(lastMonth);
-    
-//     return {
-//       startDate: format(start, 'yyyy-MM-dd'),
-//       endDate: format(end, 'yyyy-MM-dd')
-//     };
-//   }
+    return d.toLocaleString('en-IN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    })
+  } catch (error) {
+    console.error('Error formatting date:', error)
+    return 'N/A'
+  }
+}
 
-//   static custom(startDate: Date, endDate: Date): DateRange {
-//     const start = startOfDay(startDate);
-//     const end = endOfDay(endDate);
-    
-//     return {
-//       startDate: format(start, 'yyyy-MM-dd'),
-//       endDate: format(end, 'yyyy-MM-dd')
-//     };
-//   }
+/**
+ * Calculates time elapsed since order was placed in minutes (handles UTC to IST conversion)
+ */
+export function calculateTimeElapsed(orderTime: string): number {
+  try {
+    // Parse the UTC order time
+    // const orderDate = new Date(orderTime);
 
-//   static getDateRange(filterType: DateFilterType, customStart?: Date, customEnd?: Date): DateRange {
-//     switch (filterType) {
-//       case 'today':
-//         return this.today();
-//       case 'yesterday':
-//         return this.yesterday();
-//       case 'last7days':
-//         return this.last7Days();
-//       case 'lastMonth':
-//         return this.lastMonth();
-//       case 'custom':
-//         if (!customStart || !customEnd) {
-//           throw new Error('Custom date range requires both start and end dates');
-//         }
-//         return this.custom(customStart, customEnd);
-//       default:
-//         return this.last7Days(); // Default fallback
-//     }
-//   }
+    const orderDate = convertUTCToIST(orderTime)
+    // Get current time
+    const now = new Date()
 
-//   static formatDisplayRange(filterType: DateFilterType, customStart?: Date, customEnd?: Date): string {
-//     const range = this.getDateRange(filterType, customStart, customEnd);
-    
-//     switch (filterType) {
-//       case 'today':
-//         return `Today (${format(new Date(), 'MMM dd, yyyy')})`;
-//       case 'yesterday':
-//         return `Yesterday (${format(subDays(new Date(), 1), 'MMM dd, yyyy')})`;
-//       case 'last7days':
-//         return `Last 7 Days (${format(subDays(new Date(), 6), 'MMM dd')} - ${format(new Date(), 'MMM dd, yyyy')})`;
-//       case 'lastMonth':
-//         const lastMonth = subMonths(new Date(), 1);
-//         return `Last Month (${format(startOfMonth(lastMonth), 'MMM dd')} - ${format(endOfMonth(lastMonth), 'MMM dd, yyyy')})`;
-//       case 'custom':
-//         if (!customStart || !customEnd) return 'Custom Range';
-//         return `${format(customStart, 'MMM dd')} - ${format(customEnd, 'MMM dd, yyyy')}`;
-//       default:
-//         return 'Last 7 Days';
-//     }
-//   }
+    // Calculate difference in milliseconds
+    const diffInMs = now.getTime() - orderDate.getTime()
 
-//   static validateDateRange(startDate: Date, endDate: Date): { isValid: boolean; error?: string } {
-//     if (startDate > endDate) {
-//       return { isValid: false, error: 'End date must be after start date' };
-//     }
+    // Convert to minutes
+    return Math.floor(diffInMs / (1000 * 60))
+  } catch (error) {
+    console.error('Error calculating time elapsed:', error)
+    return 0
+  }
+}
 
-//     const today = new Date();
-//     if (startDate > today || endDate > today) {
-//       return { isValid: false, error: 'Dates cannot be in the future' };
-//     }
+/**
+ * Calculates remaining preparation time with precise seconds
+ */
+export function calculateRemainingTime(
+  orderTime: string,
+  prepTime: number,
+  startTime?: string,
+): { minutes: number; seconds: number; totalSeconds: number } {
+  // Use preparation start time if available, otherwise use order time
+  const baseTime = startTime || orderTime
+  const baseDate = convertUTCToIST(baseTime)
+  const now = new Date()
 
-//     // Check if range is too large (more than 1 year)
-//     const oneYearAgo = subDays(today, 365);
-//     if (startDate < oneYearAgo) {
-//       return { isValid: false, error: 'Date range cannot exceed 1 year' };
-//     }
+  // Calculate elapsed time in seconds
+  const elapsedSeconds = Math.floor((now.getTime() - baseDate.getTime()) / 1000)
+  const totalPrepSeconds = prepTime * 60
+  const remainingSeconds = Math.max(0, totalPrepSeconds - elapsedSeconds)
 
-//     return { isValid: true };
-//   }
-// }
+  return {
+    minutes: Math.floor(remainingSeconds / 60),
+    seconds: remainingSeconds % 60,
+    totalSeconds: remainingSeconds,
+  }
+}
 
-// // Session storage keys
-// export const DATE_FILTER_STORAGE_KEY = 'dashboard_date_filter';
-// export const CUSTOM_DATE_STORAGE_KEY = 'dashboard_custom_dates';
+/**
+ * Formats remaining time as MM:SS
+ */
+export function formatRemainingTime(
+  remainingTime: { minutes: number; seconds: number } | number,
+): string {
+  // Handle both old number format and new object format for backward compatibility
+  if (typeof remainingTime === 'number') {
+    if (remainingTime <= 0) return '00:00'
+    const mins = Math.floor(remainingTime)
+    const secs = Math.floor((remainingTime - mins) * 60)
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
 
-// export interface StoredDateFilter {
-//   selectedFilter: DateFilterType;
-//   customStartDate?: string;
-//   customEndDate?: string;
-// }
+  const { minutes, seconds } = remainingTime
+  if (minutes <= 0 && seconds <= 0) return '00:00'
 
-// export class DateFilterStorage {
-//   static save(filter: StoredDateFilter): void {
-//     try {
-//       sessionStorage.setItem(DATE_FILTER_STORAGE_KEY, JSON.stringify(filter));
-//     } catch (error) {
-//       console.warn('Failed to save date filter to session storage:', error);
-//     }
-//   }
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+}
 
-//   static load(): StoredDateFilter | null {
-//     try {
-//       const stored = sessionStorage.getItem(DATE_FILTER_STORAGE_KEY);
-//       if (stored) {
-//         return JSON.parse(stored);
-//       }
-//     } catch (error) {
-//       console.warn('Failed to load date filter from session storage:', error);
-//     }
-//     return null;
-//   }
-
-//   static clear(): void {
-//     try {
-//       sessionStorage.removeItem(DATE_FILTER_STORAGE_KEY);
-//     } catch (error) {
-//       console.warn('Failed to clear date filter from session storage:', error);
-//     }
-//   }
-// }
+/**
+ // mark Formats time elapsed as "X mins ago" or "X hours ago"
+ */
+export function formatTimeElapsed(minutes: number): string {
+  if (minutes < 60) {
+    return `${minutes} mins ago`
+  } else {
+    const hours = Math.floor(minutes / 60)
+    const remainingMins = minutes % 60
+    if (remainingMins === 0) {
+      return `${hours} hour${hours > 1 ? 's' : ''} ago`
+    } else {
+      return `${hours}h ${remainingMins}m ago`
+    }
+  }
+}
