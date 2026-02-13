@@ -35,22 +35,11 @@ export function MobileOrderAccordion({
     <div className="md:hidden">
       <Accordion type="single" collapsible>
         <AccordionItem value="order-details" className="border-none">
-          <AccordionTrigger className="py-2 px-3 bg-gray-50 rounded-lg hover:bg-gray-100 text-sm font-medium">
+          <AccordionTrigger className="py-2 px-3 bg-gray-50 rounded-lg hover:bg-gray-100 text-xs font-[400]">
             View Order Details ({order.items.length} items)
           </AccordionTrigger>
           <AccordionContent className="pt-3">
             {/* Special Instructions - Mobile */}
-            {showSpecialInstructions && hasSpecialInstructions && (
-              <div className="bg-amber-50 border border-amber-200 p-2 rounded-lg mb-2">
-                <div className="flex items-center gap-2 text-amber-800 mb-1">
-                  <AlertCircle className="h-4 w-4" />
-                  <span className="text-sm font-medium">
-                    Special Instructions:{' '}
-                    {getSpecialInstructionsItems()[0]?.special_instructions}
-                  </span>
-                </div>
-              </div>
-            )}
 
             {/* Order Items - Mobile */}
             <div className="space-y-1 mb-2 p-2 bg-gray-50 rounded">

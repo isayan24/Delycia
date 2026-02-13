@@ -1,15 +1,16 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, Volume2, VolumeX, X } from 'lucide-react'
+import { Volume2, VolumeX, X } from 'lucide-react'
 import { ProcessedOrder } from '@/types/WebSocketOrder'
 import { formatOrderTime } from '../utils/orderProcessing'
 import { OrderHeader } from '../order-ui-card/OrderHeader'
 import { OrderItems } from '../order-ui-card/OrderItems'
-import { OrderSummary } from '../order-ui-card/OrderSummary'
 import { PrepTimeSelector } from '../order-ui-card/PrepTimeSelector'
 import { useSoundContext } from '@/context/SoundContext'
 import { CountdownDisplay } from '../countdown'
+import { OrderTaxBreakdown } from '@/components/common/OrderTaxBreakdown'
+import { Badge } from '@/components/ui/badge'
 
 interface OrderPopupProps {
   order: ProcessedOrder
@@ -135,15 +136,36 @@ export function OrderPopup({
             {/* Order Items */}
             <OrderItems items={order.items} />
 
-            {/* Order Summary */}
-            <OrderSummary
-              itemCount={order.items.length}
-              subtotal={order.total_amount}
-              taxes={0.0}
-              discount={order.discount_amount || 0}
-              total={order.total_amount - (order.discount_amount || 0)}
-              isPaid={order.payment_status.toLowerCase() === 'paid'}
-            />
+            {/* Order Summary using OrderTaxBreakdown for consistency */}
+            <div className="space-y-1 py-3 border-t">
+              <div className="flex justify-between text-sm mb-1">
+                <span>{order.items.length} item</span>
+                <span>₹{order.total_amount.toFixed(2)}</span>
+              </div>
+
+              <OrderTaxBreakdown
+                rid={order.rid}
+                totalAmount={order.total_amount}
+                showDetails={true}
+                isPreTax={true}
+                discountAmount={
+                  order.discount_amount
+                    ? parseFloat(String(order.discount_amount))
+                    : 0
+                }
+              />
+
+              {order.payment_status.toLowerCase() === 'paid' && (
+                <div className="flex justify-end pt-1">
+                  <Badge
+                    variant="secondary"
+                    className="bg-blue-100 text-blue-800 text-[10px]"
+                  >
+                    PAID
+                  </Badge>
+                </div>
+              )}
+            </div>
 
             {/* Prep Time Selector */}
             <PrepTimeSelector

@@ -84,15 +84,17 @@ export function DeliveredOrderCard({
   return (
     <Card className="w-full shadow-sm border-l-4 border-l-green-400 bg-green-50/20 hover:shadow-md transition-shadow">
       {/* Thermal Bill Popup */}
-      <ThermalBill
-        isOpen={showThermalBill}
-        onClose={() => setShowThermalBill(false)}
-        billData={orderToBillData(order, selectedRestaurant?.name || '')}
-        showPrintButton={true}
-        showDownloadButton={true}
-        showShareButton={true}
-        onShareToMobile={handleShareToMobile}
-      />
+      {showThermalBill && (
+        <ThermalBill
+          isOpen={showThermalBill}
+          onClose={() => setShowThermalBill(false)}
+          billData={orderToBillData(order, selectedRestaurant?.name || '')}
+          showPrintButton={true}
+          showDownloadButton={true}
+          showShareButton={true}
+          onShareToMobile={handleShareToMobile}
+        />
+      )}
 
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CardContent className="p-2 md:p-3">
@@ -251,24 +253,6 @@ export function DeliveredOrderCard({
               </div>
 
               {/* Order Meta */}
-              <div className="flex items-center justify-between text-[11px] md:text-xs mt-3 pt-2 border-t border-gray-200/50">
-                <div className="flex items-center gap-2">
-                  <div
-                    className={`w-1.5 h-1.5 rounded-full ${order.payment_status.toLowerCase() === 'paid' ? 'bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]' : 'bg-red-500 shadow-[0_0_5px_rgba(239,68,68,0.5)]'}`}
-                  />
-                  <span
-                    className={`font-semibold uppercase tracking-tight ${
-                      order.payment_status.toLowerCase() === 'paid'
-                        ? 'text-green-600'
-                        : 'text-red-500'
-                    }`}
-                  >
-                    {order.payment_status.toLowerCase() === 'paid'
-                      ? 'Paid'
-                      : 'Payment Pending'}
-                  </span>
-                </div>
-              </div>
             </div>
 
             {/* Customer Details */}

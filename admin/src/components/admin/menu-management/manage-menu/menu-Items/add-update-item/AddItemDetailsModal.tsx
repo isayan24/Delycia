@@ -343,7 +343,7 @@ export default function AddItemDetailsModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-0">
-      <div className="bg-white rounded-lg w-full max-w-7xl h-[95vh] sm:h-[90vh] flex overflow-hidden">
+      <div className="bg-white rounded-lg w-full max-w-7xl h-[90vh] sm:h-[90vh] flex overflow-hidden">
         {/* Preview Section */}
         <ItemPreviewSection
           previewData={

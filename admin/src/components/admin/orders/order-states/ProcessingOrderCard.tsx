@@ -52,18 +52,6 @@ export function ProcessingOrderCard({
     order.items[0]?.updated_at ||
     order.created_at
 
-  const hasSpecialInstructions = order.items.some(
-    (item) =>
-      item.special_instructions && item.special_instructions.trim() !== '',
-  )
-
-  const getSpecialInstructionsItems = () => {
-    return order.items.filter(
-      (item) =>
-        item.special_instructions && item.special_instructions.trim() !== '',
-    )
-  }
-
   const handleMarkReady = () => {
     onMarkReady(order)
   }
@@ -117,18 +105,9 @@ export function ProcessingOrderCard({
         </div>
 
         {/* Special Instructions - Compact (Mobile Only) */}
-        {hasSpecialInstructions && (
-          <div className="bg-amber-50/50 border border-amber-100 p-2 rounded-lg mb-1 max-[768px]:hidden flex items-start gap-2">
-            <AlertCircle className="h-3.5 w-3.5 text-amber-600 mt-0.5 shrink-0" />
-            <span className="text-xs md:text-sm text-amber-800 leading-tight">
-              <span className="font-semibold">Instructions:</span>{' '}
-              {getSpecialInstructionsItems()[0]?.special_instructions}
-            </span>
-          </div>
-        )}
 
         {/* Mobile Accordion for Details */}
-        <MobileOrderAccordion order={order} showSpecialInstructions={true} />
+        <MobileOrderAccordion order={order} />
 
         {/* Desktop View - Compact Items List */}
         <OrderDetailsDesktop
@@ -181,10 +160,8 @@ const OrderDetailsDesktop = ({
           {order.items.slice(0, 3).map((item: any, index: any) => (
             <Fragment key={index}>
               <div className="flex justify-between items-center text-sm md:text-base">
-                <span className="flex-1 truncate font-semibold text-gray-800">
-                  <span className="text-gray-400 font-semibold mr-1.5">
-                    {item.quantity}x
-                  </span>{' '}
+                <span className="flex-1 truncate text-gray-800">
+                  <span className="text-gray-400 mr-1.5">{item.quantity}x</span>{' '}
                   {item.display_name}
                 </span>
                 <span className="font-semibold text-gray-900 ml-2">
@@ -226,7 +203,7 @@ const OrderDetailsDesktop = ({
             }
           />
         </div>
-        <div className="flex items-center gap-2 text-[11px] md:text-xs mt-2 pt-2 border-t border-gray-200/50">
+        {/* <div className="flex items-center gap-2 text-[11px] md:text-xs mt-2 pt-2 border-t border-gray-200/50">
           <div
             className={`w-1.5 h-1.5 rounded-full ${order.payment_status.toLowerCase() === 'paid' ? 'bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]' : 'bg-red-500 shadow-[0_0_5px_rgba(239,68,68,0.5)]'}`}
           />
@@ -241,7 +218,7 @@ const OrderDetailsDesktop = ({
               ? 'Paid'
               : 'Payment Pending'}
           </span>
-        </div>
+        </div> */}
       </div>
     </div>
   )

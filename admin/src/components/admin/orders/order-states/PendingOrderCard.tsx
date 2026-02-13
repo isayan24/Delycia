@@ -43,13 +43,6 @@ export function PendingOrderCard({
     setPrepTime(Math.max(5, newTime))
   }
 
-  // Order expiration is now handled by CountdownDisplay component
-
-  const hasSpecialInstructions = order.items.some(
-    (item) =>
-      item.special_instructions && item.special_instructions.trim() !== '',
-  )
-
   const statusBadge = (
     <Badge
       variant="secondary"
@@ -75,32 +68,15 @@ export function PendingOrderCard({
         </div>
 
         {/* Special Instructions - Compact (Mobile Only) */}
-        <div className="max-[768px]:hidden">
-          {hasSpecialInstructions &&
-            order.items.some(
-              (item) =>
-                item.special_instructions &&
-                item.special_instructions.trim() !== '',
-            ) && (
-              <div className="bg-yellow-50 border border-yellow-200 px-3 py-2 rounded-lg ">
-                <div className="flex items-center gap-2 text-yellow-800">
-                  <div className="w-2 h-2 bg-yellow-500 rounded-full" />
-                  <span className="text-sm md:text-base font-semibold">
-                    Special Instructions: {order.items[0]?.special_instructions}
-                  </span>
-                </div>
-              </div>
-            )}
-        </div>
 
         {/* Mobile Accordion for Details */}
-        <MobileOrderAccordion order={order} showSpecialInstructions={true} />
+        <MobileOrderAccordion order={order} showSpecialInstructions={false} />
 
         {/* Desktop View - Compact Items List */}
         <div className="hidden md:block">
           <div className="bg-gray-50 p-3 rounded-lg">
             <div className="flex justify-between items-center mb-2">
-              <h4 className="font-semibold text-xs md:text-sm text-gray-700 uppercase tracking-tight">
+              <h4 className="font-[500] text-xs md:text-sm text-gray-700 uppercase tracking-tight">
                 Order Items ({order.items.length})
               </h4>
               <span className="text-xs md:text-sm font-semibold text-gray-900">
@@ -113,8 +89,8 @@ export function PendingOrderCard({
                   key={index}
                   className="flex justify-between items-center text-sm md:text-base"
                 >
-                  <span className="flex-1 truncate font-semibold text-gray-800">
-                    <span className="text-gray-400 font-semibold mr-1.5">
+                  <span className="flex-1 truncate font-[500] text-gray-800">
+                    <span className="text-gray-400 font-[500] mr-1.5">
                       {item.quantity}x
                     </span>{' '}
                     {item.display_name}
@@ -151,22 +127,6 @@ export function PendingOrderCard({
                     : 0
                 }
               />
-            </div>
-            <div className="flex items-center gap-2 text-[11px] md:text-xs mt-2 pt-2 border-t border-gray-200/50">
-              <div
-                className={`w-1.5 h-1.5 rounded-full ${order.payment_status.toLowerCase() === 'paid' ? 'bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]' : 'bg-red-500 shadow-[0_0_5px_rgba(239,68,68,0.5)]'}`}
-              />
-              <span
-                className={`font-semibold uppercase tracking-tight ${
-                  order.payment_status.toLowerCase() === 'paid'
-                    ? 'text-green-600'
-                    : 'text-red-500'
-                }`}
-              >
-                {order.payment_status.toLowerCase() === 'paid'
-                  ? 'Paid'
-                  : 'Payment Pending'}
-              </span>
             </div>
           </div>
         </div>

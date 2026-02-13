@@ -41,6 +41,7 @@ export function orderToBillData(
     orderDate,
     paymentMethod: order.payment_method || 'N/A',
     paymentStatus: order.payment_status || 'Pending',
+    specialInstructions: order.items[0]?.special_instructions || undefined,
   }
 }
 

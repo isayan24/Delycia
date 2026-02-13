@@ -26,6 +26,7 @@ export interface BillData {
   paymentMethod: string
   paymentStatus: string
   rid?: number
+  specialInstructions?: string
 }
 
 export interface TaxBreakdown {

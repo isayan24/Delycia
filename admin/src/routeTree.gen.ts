@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SupportRouteImport } from './routes/support'
 import { Route as StaffRouteImport } from './routes/staff'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ReportsRouteImport } from './routes/reports'
@@ -41,6 +42,7 @@ import { Route as ApiWaiterOrdersRouteImport } from './routes/api/waiter-orders'
 import { Route as ApiVariantsRouteImport } from './routes/api/variants'
 import { Route as ApiUsersRouteImport } from './routes/api/users'
 import { Route as ApiTablesRouteImport } from './routes/api/tables'
+import { Route as ApiSupportRouteImport } from './routes/api/support'
 import { Route as ApiSubscriptionRouteImport } from './routes/api/subscription'
 import { Route as ApiStaffReportsRouteImport } from './routes/api/staff-reports'
 import { Route as ApiRestaurantRouteImport } from './routes/api/restaurant'
@@ -86,6 +88,11 @@ import { Route as DemoStartSsrFullSsrRouteImport } from './routes/demo/start.ssr
 import { Route as DemoStartSsrDataOnlyRouteImport } from './routes/demo/start.ssr.data-only'
 import { Route as ApiCategoryTemplatesCuisineRouteImport } from './routes/api/category/templates/$cuisine'
 
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StaffRoute = StaffRouteImport.update({
   id: '/staff',
   path: '/staff',
@@ -244,6 +251,11 @@ const ApiUsersRoute = ApiUsersRouteImport.update({
 const ApiTablesRoute = ApiTablesRouteImport.update({
   id: '/api/tables',
   path: '/api/tables',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSupportRoute = ApiSupportRouteImport.update({
+  id: '/api/support',
+  path: '/api/support',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSubscriptionRoute = ApiSubscriptionRouteImport.update({
@@ -481,6 +493,7 @@ export interface FileRoutesByFullPath {
   '/reports': typeof ReportsRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/staff': typeof StaffRouteWithChildren
+  '/support': typeof SupportRoute
   '/api/addons': typeof ApiAddonsRoute
   '/api/category': typeof ApiCategoryRouteWithChildren
   '/api/crm': typeof ApiCrmRouteWithChildren
@@ -494,6 +507,7 @@ export interface FileRoutesByFullPath {
   '/api/restaurant': typeof ApiRestaurantRoute
   '/api/staff-reports': typeof ApiStaffReportsRouteWithChildren
   '/api/subscription': typeof ApiSubscriptionRouteWithChildren
+  '/api/support': typeof ApiSupportRoute
   '/api/tables': typeof ApiTablesRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/variants': typeof ApiVariantsRoute
@@ -553,6 +567,7 @@ export interface FileRoutesByTo {
   '/affiliate': typeof AffiliateRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/support': typeof SupportRoute
   '/api/addons': typeof ApiAddonsRoute
   '/api/category': typeof ApiCategoryRouteWithChildren
   '/api/crm': typeof ApiCrmRouteWithChildren
@@ -566,6 +581,7 @@ export interface FileRoutesByTo {
   '/api/restaurant': typeof ApiRestaurantRoute
   '/api/staff-reports': typeof ApiStaffReportsRouteWithChildren
   '/api/subscription': typeof ApiSubscriptionRouteWithChildren
+  '/api/support': typeof ApiSupportRoute
   '/api/tables': typeof ApiTablesRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/variants': typeof ApiVariantsRoute
@@ -632,6 +648,7 @@ export interface FileRoutesById {
   '/reports': typeof ReportsRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/staff': typeof StaffRouteWithChildren
+  '/support': typeof SupportRoute
   '/api/addons': typeof ApiAddonsRoute
   '/api/category': typeof ApiCategoryRouteWithChildren
   '/api/crm': typeof ApiCrmRouteWithChildren
@@ -645,6 +662,7 @@ export interface FileRoutesById {
   '/api/restaurant': typeof ApiRestaurantRoute
   '/api/staff-reports': typeof ApiStaffReportsRouteWithChildren
   '/api/subscription': typeof ApiSubscriptionRouteWithChildren
+  '/api/support': typeof ApiSupportRoute
   '/api/tables': typeof ApiTablesRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/variants': typeof ApiVariantsRoute
@@ -712,6 +730,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/settings'
     | '/staff'
+    | '/support'
     | '/api/addons'
     | '/api/category'
     | '/api/crm'
@@ -725,6 +744,7 @@ export interface FileRouteTypes {
     | '/api/restaurant'
     | '/api/staff-reports'
     | '/api/subscription'
+    | '/api/support'
     | '/api/tables'
     | '/api/users'
     | '/api/variants'
@@ -784,6 +804,7 @@ export interface FileRouteTypes {
     | '/affiliate'
     | '/dashboard'
     | '/login'
+    | '/support'
     | '/api/addons'
     | '/api/category'
     | '/api/crm'
@@ -797,6 +818,7 @@ export interface FileRouteTypes {
     | '/api/restaurant'
     | '/api/staff-reports'
     | '/api/subscription'
+    | '/api/support'
     | '/api/tables'
     | '/api/users'
     | '/api/variants'
@@ -862,6 +884,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/settings'
     | '/staff'
+    | '/support'
     | '/api/addons'
     | '/api/category'
     | '/api/crm'
@@ -875,6 +898,7 @@ export interface FileRouteTypes {
     | '/api/restaurant'
     | '/api/staff-reports'
     | '/api/subscription'
+    | '/api/support'
     | '/api/tables'
     | '/api/users'
     | '/api/variants'
@@ -941,6 +965,7 @@ export interface RootRouteChildren {
   ReportsRoute: typeof ReportsRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
   StaffRoute: typeof StaffRouteWithChildren
+  SupportRoute: typeof SupportRoute
   ApiAddonsRoute: typeof ApiAddonsRoute
   ApiCategoryRoute: typeof ApiCategoryRouteWithChildren
   ApiCrmRoute: typeof ApiCrmRouteWithChildren
@@ -954,6 +979,7 @@ export interface RootRouteChildren {
   ApiRestaurantRoute: typeof ApiRestaurantRoute
   ApiStaffReportsRoute: typeof ApiStaffReportsRouteWithChildren
   ApiSubscriptionRoute: typeof ApiSubscriptionRouteWithChildren
+  ApiSupportRoute: typeof ApiSupportRoute
   ApiTablesRoute: typeof ApiTablesRoute
   ApiUsersRoute: typeof ApiUsersRouteWithChildren
   ApiVariantsRoute: typeof ApiVariantsRoute
@@ -976,6 +1002,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/staff': {
       id: '/staff'
       path: '/staff'
@@ -1198,6 +1231,13 @@ declare module '@tanstack/react-router' {
       path: '/api/tables'
       fullPath: '/api/tables'
       preLoaderRoute: typeof ApiTablesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/support': {
+      id: '/api/support'
+      path: '/api/support'
+      fullPath: '/api/support'
+      preLoaderRoute: typeof ApiSupportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/subscription': {
@@ -1725,6 +1765,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReportsRoute: ReportsRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,
   StaffRoute: StaffRouteWithChildren,
+  SupportRoute: SupportRoute,
   ApiAddonsRoute: ApiAddonsRoute,
   ApiCategoryRoute: ApiCategoryRouteWithChildren,
   ApiCrmRoute: ApiCrmRouteWithChildren,
@@ -1738,6 +1779,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiRestaurantRoute: ApiRestaurantRoute,
   ApiStaffReportsRoute: ApiStaffReportsRouteWithChildren,
   ApiSubscriptionRoute: ApiSubscriptionRouteWithChildren,
+  ApiSupportRoute: ApiSupportRoute,
   ApiTablesRoute: ApiTablesRoute,
   ApiUsersRoute: ApiUsersRouteWithChildren,
   ApiVariantsRoute: ApiVariantsRoute,

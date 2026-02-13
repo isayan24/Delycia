@@ -35,6 +35,7 @@ export interface WebSocketOrder {
   email: string
   created_at: string
   items: WebSocketOrderItem[]
+  rid?: number
   formattedTime?: string
   dateAndTime?: string
 }
@@ -96,6 +97,7 @@ export interface ProcessedOrder {
   is_delivery: boolean
   table_zone?: string // Zone name like 'Ground floor'
   unique_table_numbers: number[]
+  rid?: number
   formattedTime?: string
   dateAndTime?: string
 }

@@ -32,15 +32,17 @@ export function CancelledOrderCard({ order }: CancelledOrderCardProps) {
   return (
     <Card className="w-full shadow-sm border-l-4 border-l-red-400 bg-red-50/20 hover:shadow-md transition-shadow">
       {/* Thermal Bill Popup */}
-      <ThermalBill
-        isOpen={showThermalBill}
-        onClose={() => setShowThermalBill(false)}
-        billData={orderToBillData(order, selectedRestaurant?.name || '')}
-        showPrintButton={true}
-        showDownloadButton={true}
-        showShareButton={true}
-        onShareToMobile={handleShareToMobile}
-      />
+      {showThermalBill && (
+        <ThermalBill
+          isOpen={showThermalBill}
+          onClose={() => setShowThermalBill(false)}
+          billData={orderToBillData(order, selectedRestaurant?.name || '')}
+          showPrintButton={true}
+          showDownloadButton={true}
+          showShareButton={true}
+          onShareToMobile={handleShareToMobile}
+        />
+      )}
 
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CardContent className="p-2 md:p-3">

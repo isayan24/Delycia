@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import jwt from 'jsonwebtoken'
 import axiosInstance from '@/lib/axios'
-import { withAuth, jsonResponse } from '@/lib/withAuth'
+import { withAuth, jsonResponse, isTokenExpiredError } from '@/lib/withAuth'
 
 export const Route = createFileRoute('/api/auth/session')({
   server: {
@@ -87,6 +87,7 @@ export const Route = createFileRoute('/api/auth/session')({
               // If we received a 200 OK but no user data found in expected format
               throw new Error('User data not found in response')
             } catch (userError: any) {
+              if (isTokenExpiredError(userError)) throw userError
               console.error('Failed to fetch user data:', userError.message)
               // User requested to remove fallback to limited data.
               // If backend fetch fails, we treat it as a failed session validation or server error.

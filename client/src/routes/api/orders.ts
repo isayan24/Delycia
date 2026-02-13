@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import axiosInstance from '@/lib/axios'
-import { withAuth, jsonResponse } from '@/lib/withAuth'
+import { withAuth, jsonResponse, isTokenExpiredError } from '@/lib/withAuth'
 
 export const Route = createFileRoute('/api/orders')({
   server: {
@@ -16,6 +16,7 @@ export const Route = createFileRoute('/api/orders')({
             })
             return jsonResponse(response.data, 200, authHeaders)
           } catch (error: any) {
+            if (isTokenExpiredError(error)) throw error
             console.error('Error fetching orders:', error)
             return jsonResponse(
               { error: 'Failed to fetch orders' },

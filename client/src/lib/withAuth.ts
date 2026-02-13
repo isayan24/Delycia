@@ -31,6 +31,22 @@ interface WithAuthOptions {
 }
 
 /**
+ * Check if an error is a token expiration error (401 or 403 with "Token expired").
+ */
+export function isTokenExpiredError(error: any): boolean {
+  const status = error?.response?.status
+  const errorMessage =
+    error?.response?.data?.error || error?.response?.data?.message || ''
+
+  return (
+    status === 401 ||
+    (status === 403 &&
+      typeof errorMessage === 'string' &&
+      errorMessage.includes('Token expired'))
+  )
+}
+
+/**
  * Execute a BFF handler with automatic token refresh on 401/403.
  *
  * @param request - The incoming Request object from TanStack Start
@@ -68,17 +84,7 @@ export async function withAuth(
     // First attempt with current access token
     return await fn(accessToken, new Headers())
   } catch (error: any) {
-    // Check if this is a token expiration error (401 or 403 with "Token expired")
-    const status = error?.response?.status
-    const errorMessage =
-      error?.response?.data?.error || error?.response?.data?.message || ''
-    const isTokenExpired =
-      status === 401 ||
-      (status === 403 &&
-        typeof errorMessage === 'string' &&
-        errorMessage.includes('Token expired'))
-
-    if (!isTokenExpired) {
+    if (!isTokenExpiredError(error)) {
       // Not an auth error — rethrow
       throw error
     }

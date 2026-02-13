@@ -397,6 +397,7 @@ export function processWebSocketOrders(
                   ? uniqueVisualTableNumbers
                   : uniqueTableNumbers,
               preparation_time: preparationTime,
+              rid: firstOrder.rid,
               table_zone: processedItems[0]?.table_zone,
               formattedTime: processedItems[0]?.formattedTime,
               dateAndTime: processedItems[0]?.dateAndTime,

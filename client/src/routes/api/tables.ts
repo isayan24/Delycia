@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { jsonResponse, withAuth } from '@/lib/withAuth'
+import { jsonResponse, withAuth, isTokenExpiredError } from '@/lib/withAuth'
 import axiosInstance from '@/lib/axios'
 
 export const Route = createFileRoute('/api/tables')({
@@ -34,6 +34,7 @@ export const Route = createFileRoute('/api/tables')({
 
               return jsonResponse(response.data, 200)
             } catch (error: any) {
+              if (isTokenExpiredError(error)) throw error
               console.error('Error fetching tables:', error)
               return jsonResponse(
                 { error: error.message || 'Failed to fetch tables' },

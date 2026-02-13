@@ -125,7 +125,6 @@ export const useGlobalOrderPopupStore = create<GlobalOrderPopupState>(
             border: '1px solid #22c55e',
             color: '#22c55e',
           },
-          icon: '✅',
         })
 
         // Hide popup after successful acceptance
@@ -157,8 +156,11 @@ export const useGlobalOrderPopupStore = create<GlobalOrderPopupState>(
         get().markOrderAsProcessed(order)
 
         toast.success('Order Rejected', {
-          style: { backgroundColor: '#fffbeb', border: '1px solid #f59e0b' },
-          icon: '❌',
+          style: {
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fb2c36',
+            color: '#fb2c36',
+          },
         })
 
         // Hide popup

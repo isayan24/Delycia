@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Menu, Plus, Trash2 } from 'lucide-react'
+import { Menu, Plus, Trash2, Users } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useTablesAndZones } from '@/hooks/queries/useTablesQuery'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
@@ -19,6 +19,8 @@ import TableCard from './TableCard'
 import TableOrdersPopup from './TableOrdersPopup'
 import EditTableDialog from './EditTableDialog'
 import DeleteTableDialog from './DeleteTableDialog'
+import { motion, AnimatePresence } from 'motion/react'
+import { Badge } from '@/components/ui/badge'
 
 export default function ShowTables({
   selectTable,
@@ -26,7 +28,7 @@ export default function ShowTables({
   handleShowDeleteTables,
 }: ShowTablesProps) {
   const { user } = useAdminAuthQuery()
-  const [activeZone, setActiveZone] = useState<string>('All')
+  const [activeZone, setActiveZone] = useState<string>('all')
 
   // Popup state
   const [selectedPopupTable, setSelectedPopupTable] = useState<any>(null)
@@ -45,7 +47,7 @@ export default function ShowTables({
     refetch,
   } = useTablesAndZones(user?.selected_rid)
 
-  // pass the refetch function to the store
+  // Pass the refetch function to the store
   useEffect(() => {
     if (user?.selected_rid) {
       const refetchAsync = async () => {
@@ -58,199 +60,223 @@ export default function ShowTables({
     }
   }, [user?.selected_rid, setRefetchTablesFunction, refetch])
 
-  // Extract unique zones for tabs
-  const uniqueZones = useMemo(() => {
-    try {
-      if (!zones || !Array.isArray(zones)) {
-        return ['All']
-      }
-      const zoneNames = zones
-        .filter((zone) => zone && typeof zone.zone === 'string')
-        .map((zone) => zone.zone)
-        .filter(Boolean)
-      return ['All', ...zoneNames]
-    } catch (error) {
-      console.error('Error processing zones:', error)
-      return ['All']
-    }
+  // Process zones for tabs
+  const safeZones = useMemo(() => {
+    if (!zones || !Array.isArray(zones)) return []
+    return zones
+      .filter((z) => z && z.zone)
+      .sort((a, b) => a.zone.localeCompare(b.zone))
   }, [zones])
-
-  // Ensure activeZone is valid
-  useEffect(() => {
-    if (uniqueZones.length > 0 && !uniqueZones.includes(activeZone)) {
-      setActiveZone('All')
-    }
-  }, [uniqueZones, activeZone])
-
-  // Filter tables based on activeZone
-  const filteredTables = useMemo(() => {
-    if (activeZone === 'All') {
-      return tables
-    }
-    return tables.filter((table: any) => table.zone === activeZone)
-  }, [tables, activeZone])
-
-  // Safe table data with fallback values
-  const safeFilteredTables = useMemo(() => {
-    try {
-      if (!filteredTables || !Array.isArray(filteredTables)) {
-        return []
-      }
-      return filteredTables
-        .filter(
-          (table) =>
-            table &&
-            typeof table.id !== 'undefined' &&
-            typeof table.table_number === 'string' &&
-            typeof table.status === 'string',
-        )
-        .sort((a, b) => parseInt(a.table_number) - parseInt(b.table_number))
-    } catch (error) {
-      console.error('Error processing filtered tables:', error)
-      return []
-    }
-  }, [filteredTables])
 
   const handleTableLongPress = (table: any) => {
     setSelectedPopupTable(table)
     setIsPopupOpen(true)
   }
 
-  // Helper to render tables for a specific zone
-  const renderTablesForZone = (zoneName: string) => {
-    const zoneTables = safeFilteredTables.filter(
-      (table) => table.zone === zoneName,
-    )
-
-    if (zoneTables.length === 0) return null
-
+  if (loading && user?.selected_rid) {
     return (
-      <div key={zoneName} className="mb-8 last:mb-0">
-        <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4 px-1">
-          {zoneName}
-        </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
-          {zoneTables.map((table) => (
-            <TableCard
-              key={table.id}
-              table={table}
-              onSelect={selectTable}
-              onLongPress={handleTableLongPress}
-              onEdit={setEditingTable}
-              onDelete={setDeletingTable}
-            />
+      <div className="flex flex-col p-4 sm:p-6 bg-[#fcfcfd] dark:bg-gray-950 min-h-full">
+        <div className="flex justify-between items-center mb-8">
+          <Skeleton className="h-10 w-32 rounded-xl" />
+          <div className="flex gap-2">
+            <Skeleton className="h-10 w-10 rounded-xl" />
+            <Skeleton className="h-10 w-10 rounded-xl" />
+          </div>
+        </div>
+        <div className="flex gap-2 mb-8 overflow-hidden">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-11 w-24 rounded-2xl shrink-0" />
+          ))}
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => (
+            <Skeleton key={i} className="aspect-3/4 rounded-2xl" />
           ))}
         </div>
       </div>
     )
   }
 
+  if (error && !loading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 min-h-[400px]">
+        <div className="p-4 bg-red-50 dark:bg-red-950/20 rounded-full mb-4">
+          <Trash2 className="h-8 w-8 text-red-500" />
+        </div>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+          Failed to load tables
+        </h3>
+        <p className="text-gray-500 dark:text-gray-400 text-center max-w-xs mb-6">
+          Something went wrong while fetching the table data.
+        </p>
+        <Button
+          onClick={() => refetch()}
+          variant="outline"
+          className="rounded-xl"
+        >
+          Try Again
+        </Button>
+      </div>
+    )
+  }
+
   return (
-    <div className="dark:bg-gray-900 p-4 md:p-6 h-full overflow-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <span>🍽️</span> Tables
-        </h1>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-48" align="end" forceMount>
-            <DropdownMenuItem
-              onClick={handleShowAddTables}
-              className="cursor-pointer"
+    <div className="h-full flex flex-col overflow-y-auto no-scrollbar bg-[#fcfcfd] dark:bg-gray-950 p-4 sm:p-6">
+      {/* Header Section */}
+      <div className="flex items-center justify-between mb-8 shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-primary/10 rounded-2xl shadow-inner">
+            <Users className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
+              Tables
+            </h1>
+            <div className="flex items-center gap-2 mt-0.5">
+              <Badge
+                variant="outline"
+                className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50 text-[10px] font-bold"
+              >
+                {tables.filter((t) => t.status === 'available').length}{' '}
+                AVAILABLE
+              </Badge>
+              <Badge
+                variant="outline"
+                className="bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400 border-orange-200 dark:border-orange-800/50 text-[10px] font-bold"
+              >
+                {tables.filter((t) => t.status === 'occupied').length} OCCUPIED
+              </Badge>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-xl h-10 w-10 border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm hover:translate-y-[-2px] transition-all"
+            onClick={handleShowAddTables}
+          >
+            <Plus className="h-5 w-5" />
+          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-xl h-10 w-10 border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm hover:translate-y-[-2px] transition-all"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-48 p-1 rounded-xl shadow-2xl border-gray-200 dark:border-gray-800 backdrop-blur-lg bg-white/90 dark:bg-gray-900/90"
             >
-              <Plus className="h-4 w-4 mr-2" />
-              <span>Add Tables</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={handleShowDeleteTables}
-              className="cursor-pointer text-red-600 hover:!text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/20"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              <span>Delete Tables</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <DropdownMenuItem
+                onClick={handleShowAddTables}
+                className="rounded-lg py-2.5 cursor-pointer"
+              >
+                <Plus className="h-4 w-4 mr-2" /> Add Tables
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={handleShowDeleteTables}
+                className="focus:bg-red-50 dark:focus:bg-red-950 text-red-700! rounded-lg py-2.5 cursor-pointer"
+              >
+                <Trash2 className="h-4 w-4 mr-2" /> Delete View
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
-      {loading && user?.selected_rid && (
-        <div className="space-y-4">
-          <div className="flex gap-2 mb-4">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-10 w-24" />
+      {/* Modern Tabs Section */}
+      <Tabs value={activeZone} onValueChange={setActiveZone} className="w-full">
+        <div className="mb-10 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+          <TabsList className="h-11 p-1 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-100 dark:border-gray-800 rounded-2xl gap-1 w-max sm:w-auto inline-flex shadow-sm flex-shrink-0">
+            <TabsTrigger
+              value="all"
+              className="px-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg transition-all text-sm font-semibold"
+            >
+              All
+            </TabsTrigger>
+            {safeZones.map((zone) => (
+              <TabsTrigger
+                key={zone.zone}
+                value={zone.zone}
+                className="px-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg transition-all text-sm font-semibold"
+              >
+                {zone.zone}
+              </TabsTrigger>
             ))}
-          </div>
-          <Skeleton className="h-4 w-32 mb-4" />
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <Card key={i} className="border-gray-200">
-                <CardContent className="p-4 text-center">
-                  <Skeleton className="h-6 w-16 mx-auto mb-2" />
-                  <Skeleton className="h-8 w-8 mx-auto mb-2" />
-                  <Skeleton className="h-4 w-12 mx-auto mb-1" />
-                  <Skeleton className="h-3 w-16 mx-auto" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          </TabsList>
         </div>
-      )}
 
-      {error && !loading && (
-        <div className="flex justify-center items-center py-12">
-          <div className="text-red-500 dark:text-red-400">
-            Error loading tables. Please try again.
-          </div>
-        </div>
-      )}
-
-      {!loading && !error && user?.restaurant_rids?.[0] && (
-        <>
-          <Tabs
-            value={activeZone}
-            onValueChange={setActiveZone}
-            className="mb-6"
-          >
-            <TabsList className="flex flex-wrap h-auto gap-1 bg-transparent p-0 justify-start">
-              {uniqueZones.map((zone) => (
-                <TabsTrigger
-                  key={zone}
-                  value={zone}
-                  className="rounded-full px-4 py-2 border data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:bg-white data-[state=inactive]:hover:bg-gray-50 dark:data-[state=inactive]:bg-gray-800"
-                >
-                  {zone}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
-            <TabsContent value="All" className="mt-4">
-              {safeFilteredTables.length === 0 ? (
-                <div className="flex justify-center items-center py-12 text-gray-500">
-                  No tables available.
+        <AnimatePresence mode="wait">
+          <TabsContent value="all" className="outline-none mt-0">
+            <motion.div
+              key="all"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="space-y-12"
+            >
+              {safeZones.length === 0 && tables.length === 0 ? (
+                <div className="py-20 text-center text-gray-500 font-medium italic">
+                  No tables found
                 </div>
               ) : (
-                uniqueZones
-                  .filter((z) => z !== 'All')
-                  .map((zone) => renderTablesForZone(zone))
-              )}
-            </TabsContent>
+                safeZones.map((zone, zoneIdx) => {
+                  const zoneTables = tables.filter((t) => t.zone === zone.zone)
+                  if (zoneTables.length === 0) return null
 
-            {uniqueZones
-              .filter((z) => z !== 'All')
-              .map((zone) => (
-                <TabsContent key={zone} value={zone} className="mt-4">
-                  {safeFilteredTables.length === 0 ? (
-                    <div className="flex justify-center items-center py-12 text-gray-500">
-                      No tables in {zone}.
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
-                      {safeFilteredTables.map((table) => (
+                  return (
+                    <motion.div
+                      key={zone.zone}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: zoneIdx * 0.1, duration: 0.4 }}
+                      className="space-y-6"
+                    >
+                      <div className="flex items-center gap-4">
+                        <h2 className="text-sm font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">
+                          {zone.zone}
+                        </h2>
+                        <div className="h-px flex-1 bg-gray-100 dark:bg-gray-800/50" />
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6">
+                        {zoneTables.map((table) => (
+                          <TableCard
+                            key={table.id}
+                            table={table}
+                            onSelect={selectTable}
+                            onLongPress={handleTableLongPress}
+                            onEdit={setEditingTable}
+                            onDelete={setDeletingTable}
+                          />
+                        ))}
+                      </div>
+                    </motion.div>
+                  )
+                })
+              )}
+
+              {/* Handle tables without a zone if any */}
+              {tables.filter((t) => !t.zone).length > 0 && (
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4">
+                    <h2 className="text-sm font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">
+                      Unassigned
+                    </h2>
+                    <div className="h-px flex-1 bg-gray-100 dark:bg-gray-800/50" />
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6">
+                    {tables
+                      .filter((t) => !t.zone)
+                      .map((table) => (
                         <TableCard
                           key={table.id}
                           table={table}
@@ -260,14 +286,52 @@ export default function ShowTables({
                           onDelete={setDeletingTable}
                         />
                       ))}
-                    </div>
-                  )}
-                </TabsContent>
-              ))}
-          </Tabs>
-        </>
-      )}
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </TabsContent>
 
+          {safeZones.map((zone) => {
+            const zoneTables = tables.filter((t) => t.zone === zone.zone)
+            return (
+              <TabsContent
+                key={zone.zone}
+                value={zone.zone}
+                className="outline-none mt-0"
+              >
+                <motion.div
+                  key={zone.zone}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.4, ease: 'easeOut' }}
+                  className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6"
+                >
+                  {zoneTables.length === 0 ? (
+                    <div className="col-span-full py-20 text-center text-gray-500 font-medium italic">
+                      No tables found in {zone.zone}
+                    </div>
+                  ) : (
+                    zoneTables.map((table) => (
+                      <TableCard
+                        key={table.id}
+                        table={table}
+                        onSelect={selectTable}
+                        onLongPress={handleTableLongPress}
+                        onEdit={setEditingTable}
+                        onDelete={setDeletingTable}
+                      />
+                    ))
+                  )}
+                </motion.div>
+              </TabsContent>
+            )
+          })}
+        </AnimatePresence>
+      </Tabs>
+
+      {/* Overlays & Dialogs */}
       <TableOrdersPopup
         isOpen={isPopupOpen}
         onClose={() => setIsPopupOpen(false)}

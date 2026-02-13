@@ -1,35 +1,18 @@
-import React, { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import {
   Receipt,
   MapPin,
-  Clock,
   Users,
   CheckCircle,
   Edit3,
   Trash2,
-  Plus,
-  Minus,
-  AlertCircle,
+  ChevronLeft,
+  UtensilsCrossed,
 } from 'lucide-react'
 import { useTableStore } from '@/store/useTableStore'
 import PartySizeSelector from './PartySizeSelector'
-
-interface OrderItem {
-  item: {
-    id: string
-    name: string
-    price: number
-    description?: string
-    image?: string
-    category_id: string
-  }
-  quantity: number
-  totalPrice: number
-}
 
 export default function PreviewOrder() {
   const {
@@ -37,7 +20,6 @@ export default function PreviewOrder() {
     orderItems,
     clearAllItems,
     changeState,
-    updateQuantity,
     getTotalAmount,
     partySize,
   } = useTableStore()
@@ -60,141 +42,158 @@ export default function PreviewOrder() {
     changeState(3)
   }
 
+  const totalAmount = getTotalAmount()
+
   return (
-    <div className="h-full bg-gray-50 dark:bg-gray-900 relative">
-      {/* Fixed Top Action Buttons */}
-      <div className="fixed top-0 left-0 right-0 z-10 bg-white dark:bg-gray-900  p-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-1 ">
-            <Receipt className="w-4 h-4 text-primary text-[1rem] md:h-6 md:w-6" />
-            <h1 className="text-[1rem] md:text-lg text-gray-900 dark:text-white">
-              Order Preview
-            </h1>
+    <div className="h-full flex flex-col bg-[#fcfcfd] dark:bg-gray-950">
+      {/* Sticky Header */}
+      <div className="shrink-0 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-4 py-3">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onEditOrder}
+              className="p-1.5 -ml-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+            </button>
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-primary/10 rounded-lg">
+                <Receipt className="w-4 h-4 text-primary" />
+              </div>
+              <h1 className="text-base font-bold text-gray-900 dark:text-white">
+                Order Preview
+              </h1>
+            </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={onCancelOrder}>
-              <Trash2 className="h-4 w-4 mr-2" />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onCancelOrder}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 rounded-xl text-xs h-8 px-3"
+            >
+              <Trash2 className="h-3.5 w-3.5 mr-1.5" />
               Cancel
             </Button>
-            <Button variant="outline" size="sm" onClick={onEditOrder}>
-              <Edit3 className="h-4 w-4 mr-2" />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onEditOrder}
+              className="rounded-xl text-xs h-8 px-3 border-gray-200 dark:border-gray-700"
+            >
+              <Edit3 className="h-3.5 w-3.5 mr-1.5" />
               Edit
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Main Content with padding for fixed elements */}
-      <div className="pt-20 pb-24 p-4 h-full overflow-hidden">
-        <div className="max-w-4xl mx-auto space-y-3 overflow-auto h-full">
-          {/* Table Information */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-primary/10 rounded-full">
-                    <MapPin className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold">
-                      Table {table?.table_number || '#'}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Ground Floor
-                    </p>
-                  </div>
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto no-scrollbar">
+        <div className="max-w-4xl mx-auto p-4 space-y-4 pb-6">
+          {/* Table Information Card */}
+          <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden shadow-sm">
+            <div className="p-4">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
+                  <MapPin className="h-5 w-5 text-primary" />
                 </div>
-                <div className="text-right">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Users className="h-4 w-4" />
-                    {/* <span>{totalItems} items</span> */}
-                  </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                    Table {table?.table_number || '#'}
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {table?.zone || 'Ground Floor'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 dark:bg-gray-800 px-2.5 py-1.5 rounded-lg">
+                  <UtensilsCrossed className="h-3.5 w-3.5" />
+                  <span>{orderItems.length} items</span>
                 </div>
               </div>
+
+              <Separator className="mb-4" />
+
               {/* Party Size Selector */}
-              <div className="pt-3 border-t">
-                <PartySizeSelector showError={showPartySizeError} />
-              </div>
-            </CardContent>
-          </Card>
+              <PartySizeSelector showError={showPartySizeError} />
+            </div>
+          </div>
 
-          {/* Order Items */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-md font-medium">
-                <Receipt className="h-5 w-5" />
+          {/* Order Items Card */}
+          <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden shadow-sm">
+            <div className="px-4 py-3 border-b border-gray-50 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30">
+              <h2 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                <Receipt className="h-4 w-4" />
                 Order Items ({orderItems.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="space-y-0">
-                {orderItems.map((orderItem, index) => (
-                  <div key={orderItem.id}>
-                    <div className="p-4 flex items-center gap-4">
-                      {/* Item Details */}
-                      <div className="flex-1 min-w-0">
-                        <h4 className=" text-lg max-[768px]:text-md">
-                          {orderItem.quantity} x {orderItem.name}
-                        </h4>
-
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant="secondary">
-                            ₹{orderItem.price} each
-                          </Badge>
-                        </div>
-                      </div>
-                      {/* Item Total */}
-                      <div className="text-right">
-                        <p className="text-lg  max-[768px]:text-md">
-                          ₹{orderItem.totalPrice.toFixed(2)}
-                        </p>
-                      </div>
+              </h2>
+            </div>
+            <div>
+              {orderItems.map((orderItem, index) => (
+                <div key={orderItem.id}>
+                  <div className="px-4 py-3.5 flex items-center gap-3">
+                    {/* Item Details */}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">
+                        <span className="text-primary font-bold">
+                          {orderItem.quantity}×
+                        </span>{' '}
+                        {orderItem.name}
+                      </h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        ₹{orderItem.price} each
+                      </p>
                     </div>
-                    {index < orderItems.length - 1 && <Separator />}
+                    {/* Item Total */}
+                    <div className="text-right shrink-0">
+                      <p className="text-sm font-bold text-gray-900 dark:text-white">
+                        ₹{orderItem.totalPrice.toFixed(2)}
+                      </p>
+                    </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Order Summary */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-medium">
-                    ₹{getTotalAmount().toFixed(2)}
-                  </span>
+                  {index < orderItems.length - 1 && (
+                    <Separator className="mx-4" />
+                  )}
                 </div>
-                {/* Todo: add gst/tax as needed */}
-                {/* <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Tax (8%)</span>
-                  <span className="font-medium">₹{(getTotalAmount() * 0.08).toFixed(2)}</span>
-                </div> */}
-                <Separator />
-                <div className="flex justify-between items-center text-lg font-bold">
-                  <span>Total Amount</span>
-                  <span>₹{getTotalAmount().toFixed(2)}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              ))}
+            </div>
+          </div>
 
-          {/* Order Summary Stats */}
+          {/* Price Summary Card */}
+          <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden shadow-sm">
+            <div className="p-4 space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Subtotal
+                </span>
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  ₹{totalAmount.toFixed(2)}
+                </span>
+              </div>
+              {/* Todo: add gst/tax as needed */}
+              <Separator />
+              <div className="flex justify-between items-center">
+                <span className="text-base font-black text-gray-900 dark:text-white">
+                  Total Amount
+                </span>
+                <span className="text-xl font-black text-primary tracking-tight">
+                  ₹{totalAmount.toFixed(2)}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Fixed Bottom Confirm Button */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 bg-white dark:bg-gray-900 border-t p-2">
+      {/* Sticky Bottom Confirm Button */}
+      <div className="shrink-0 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
         <div className="max-w-4xl mx-auto">
           <Button
-            className="w-full bg-green-600 hover:bg-green-700 text-white"
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl h-12 text-base font-bold shadow-lg shadow-emerald-600/20 transition-all hover:shadow-emerald-600/30 hover:translate-y-[-1px] active:translate-y-0"
             size="lg"
             onClick={onConfirmOrder}
           >
             <CheckCircle className="h-5 w-5 mr-2" />
-            Confirm Order ₹{getTotalAmount().toFixed(2)}
+            Confirm Order ₹{totalAmount.toFixed(2)}
           </Button>
         </div>
       </div>

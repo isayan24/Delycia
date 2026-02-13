@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import axiosInstance from '@/lib/axios'
-import { withAuth, jsonResponse } from '@/lib/withAuth'
+import { withAuth, jsonResponse, isTokenExpiredError } from '@/lib/withAuth'
 
 export const Route = createFileRoute('/api/user/update')({
   server: {
@@ -42,23 +42,27 @@ export const Route = createFileRoute('/api/user/update')({
                 { headers: { Authorization: `Bearer ${accessToken}` } },
               )
             }
-            
+
             return jsonResponse(
-              { 
+              {
                 success: true,
                 message: 'User updated successfully',
-                data: { uid, username, name, profile_pic }
+                data: { uid, username, name, profile_pic },
               },
               200,
               authHeaders,
             )
           } catch (error: any) {
-            console.error('[API /api/user/update] Error:', error.response?.data || error.message)
+            if (isTokenExpiredError(error)) throw error
+            console.error(
+              '[API /api/user/update] Error:',
+              error.response?.data || error.message,
+            )
             return jsonResponse(
-              { 
+              {
                 success: false,
                 error: 'Failed to update user',
-                message: error.response?.data?.message || error.message 
+                message: error.response?.data?.message || error.message,
               },
               500,
               authHeaders,

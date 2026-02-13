@@ -179,32 +179,38 @@ const OverviewPage: React.FC<OverviewPageProps> = ({ rid }) => {
                   <Skeleton className="h-3 sm:h-4 w-20 sm:w-32" />
                 </div>
               ) : (
-                <>
+                <div className="relative h-full flex flex-col">
                   {card.id === 'sales' && (
-                    <div className="absolute top-1 right-1 sm:top-2 sm:right-2 z-10">
+                    <div
+                      className="absolute top-1 right-1 sm:top-2 sm:right-2 z-20"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <DateFilterComponent compact hideCustomRange />
                     </div>
                   )}
-                  <div className="p-2 sm:p-4 flex flex-col items-center text-center pt-4 sm:pt-8">
-                    <card.icon
-                      className={`w-5 h-5 sm:w-8 sm:h-8 mb-2 sm:mb-3 ${card.iconColor} ${card.id === 'sales' ? 'opacity-0 sm:opacity-100' : ''}`}
-                    />
-                    <h3 className="text-base sm:text-2xl font-bold text-gray-800">
-                      {card.title}
-                    </h3>
-                    <p className="text-gray-500 text-[10px] sm:text-sm font-medium">
-                      {card.subtitle}
-                    </p>
-                  </div>
-                  <Link
-                    to={card.actionLink}
-                    className={`block w-full py-1 sm:py-2 text-center text-[10px] sm:text-xs font-semibold ${card.accentColor} hover:opacity-90 transition-opacity flex items-center justify-center gap-1 rounded-b-xl`}
-                  >
-                    <span className="hidden sm:inline">{card.actionText}</span>
-                    <span className="sm:hidden">View</span>
-                    <ArrowRight className="w-2 h-2 sm:w-3 sm:h-3" />
+                  <Link to={card.actionLink} className="flex-1 flex flex-col">
+                    <div className="p-2 sm:p-4 flex flex-col items-center text-center pt-4 sm:pt-8 flex-1">
+                      <card.icon
+                        className={`w-5 h-5 sm:w-8 sm:h-8 mb-2 sm:mb-3 ${card.iconColor} ${card.id === 'sales' ? 'opacity-0 sm:opacity-100' : ''}`}
+                      />
+                      <h3 className="text-base sm:text-2xl font-bold text-gray-800">
+                        {card.title}
+                      </h3>
+                      <p className="text-gray-500 text-[10px] sm:text-sm font-medium">
+                        {card.subtitle}
+                      </p>
+                    </div>
+                    <div
+                      className={`block w-full py-1 sm:py-2 text-center text-[10px] sm:text-xs font-semibold ${card.accentColor} hover:opacity-90 transition-opacity flex items-center justify-center gap-1 rounded-b-xl`}
+                    >
+                      <span className="hidden sm:inline">
+                        {card.actionText}
+                      </span>
+                      <span className="sm:hidden">View</span>
+                      <ArrowRight className="w-2 h-2 sm:w-3 sm:h-3" />
+                    </div>
                   </Link>
-                </>
+                </div>
               )}
             </motion.div>
           )

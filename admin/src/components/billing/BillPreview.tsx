@@ -127,6 +127,31 @@ export function BillPreview({
         </div>
       </div>
 
+      {/* Special Instructions */}
+      {billData.specialInstructions && billData.specialInstructions.trim() && (
+        <div
+          className="py-2 mb-2"
+          style={{
+            borderBottom: '1px dashed #000',
+            padding: '6px 0',
+            marginBottom: '8px',
+          }}
+        >
+          <div
+            style={{
+              fontWeight: 'bold',
+              fontSize: '11px',
+              marginBottom: '4px',
+            }}
+          >
+            NOTE:
+          </div>
+          <div style={{ fontSize: '11px', fontStyle: 'italic' }}>
+            {billData.specialInstructions}
+          </div>
+        </div>
+      )}
+
       {/* Subtotal */}
       <div className="py-1" style={{ padding: '4px 0' }}>
         <div className="flex justify-between" style={{ fontSize: '12px' }}>

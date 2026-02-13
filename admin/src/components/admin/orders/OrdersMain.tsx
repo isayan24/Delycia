@@ -339,7 +339,6 @@ export default function OrdersMain() {
           handleMarkReady={handleMarkReady}
           handleMarkDelivered={handleMarkDelivered}
           handleCall={handleCall}
-          handleViewTimeline={handleViewTimeline}
           handleExtendTime={handleExtendTime}
           isAcceptingOrder={isAcceptingOrder}
           isRejectingOrder={isRejectingOrder}

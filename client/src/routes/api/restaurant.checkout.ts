@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import axiosInstance from '@/lib/axios'
 import cryptoConfig from '@/lib/crypto/config'
 import signatureService from '@/lib/crypto/signatureService'
-import { withAuth, jsonResponse } from '@/lib/withAuth'
+import { withAuth, jsonResponse, isTokenExpiredError } from '@/lib/withAuth'
 
 export const Route = createFileRoute('/api/restaurant/checkout')({
   server: {
@@ -59,7 +59,6 @@ export const Route = createFileRoute('/api/restaurant/checkout')({
               const signature = signatureService.generateOrderSignature(
                 transformedOrderItems,
               )
-
               const ordersResponse = await axiosInstance.post(
                 cryptoConfig.getOrdersEndpoint(),
                 transformedOrderItems,
@@ -98,7 +97,9 @@ export const Route = createFileRoute('/api/restaurant/checkout')({
                 authHeaders,
               )
             }
-          } catch (error) {
+          } catch (error: any) {
+            if (isTokenExpiredError(error)) throw error
+
             const errorMessage =
               error instanceof Error ? error.message : 'Unknown error'
 

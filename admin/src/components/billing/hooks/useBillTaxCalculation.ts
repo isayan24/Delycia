@@ -10,7 +10,7 @@ interface UseBillTaxCalculationProps {
 /**
  * Custom hook for calculating bill tax breakdown
  * Automatically fetches restaurant data using the rid from billData or selected restaurant
- * 
+ *
  * @param billData - Bill data containing items and amounts
  * @returns Tax breakdown with loading and error states
  */
@@ -18,8 +18,9 @@ export function useBillTaxCalculation({
   billData,
 }: UseBillTaxCalculationProps) {
   // Get restaurant data from selector (already cached by TanStack Query)
-  const { restaurants, selectedRid, isLoadingRestaurants } = useRestaurantSelector()
-  
+  const { restaurants, selectedRid, isLoadingRestaurants } =
+    useRestaurantSelector()
+
   // Determine which restaurant to use (billData.rid takes priority)
   const restaurantId = billData.rid || (selectedRid ? parseInt(selectedRid) : 0)
 
@@ -34,12 +35,22 @@ export function useBillTaxCalculation({
       }
     }
 
+    // Handle missing restaurant ID (not yet loaded or not set)
+    if (!restaurantId) {
+      return {
+        subtotal: billData.totalAmount,
+        taxAmount: 0,
+        taxPercent: 0,
+        totalAmount: billData.totalAmount,
+      }
+    }
+
     // Handle missing restaurant data
     const restaurantKey = restaurantId.toString()
     const restaurant = restaurants[restaurantKey]
 
     if (!restaurant) {
-      console.error(`Restaurant not found for rid: ${restaurantId}`)
+      console.warn(`Restaurant not found for rid: ${restaurantId}`)
       return {
         subtotal: billData.totalAmount,
         taxAmount: 0,
@@ -52,7 +63,9 @@ export function useBillTaxCalculation({
     const taxPercent = restaurant.tax_percent ?? 0
 
     if (taxPercent < 0 || taxPercent > 100) {
-      console.error(`Invalid tax_percent for rid ${restaurantId}: ${taxPercent}`)
+      console.error(
+        `Invalid tax_percent for rid ${restaurantId}: ${taxPercent}`,
+      )
       return {
         subtotal: billData.totalAmount,
         taxAmount: 0,

@@ -168,39 +168,42 @@ export default function SelectOrder() {
   }
 
   return (
-    <div className="flex flex-col h-full overflow-hidden relative max-w-4xl mx-auto">
-      <header className="py-4 px-1 border-b flex-none">
+    <div className="flex flex-col h-full overflow-hidden relative max-w-4xl mx-auto bg-[#fcfcfd] dark:bg-gray-950">
+      <header className="py-4 px-4 border-b border-gray-100 dark:border-gray-800 flex-none bg-white dark:bg-gray-900">
         <OrderHeader />
       </header>
 
-      <Tabs value={categoryId} className="flex-1 flex flex-col min-h-0 px-5s">
-        <TabsList className="bg-white! mb-4 overflow-auto w-full rounded-none justify-start text-sm flex-none">
-          {categories.length > 0 &&
-            categories.map((category: Category) => (
-              <TabsTrigger
-                value={category.id}
-                key={category.id}
-                onClick={() => setCategoryId(category.id)}
-              >
-                {category.name}
-              </TabsTrigger>
-            ))}
-        </TabsList>
+      <Tabs value={categoryId} className="flex-1 flex flex-col min-h-0">
+        <div className="overflow-x-auto no-scrollbar border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-4">
+          <TabsList className="bg-transparent! h-auto py-2 overflow-auto w-full rounded-none justify-start gap-1 flex-none">
+            {categories.length > 0 &&
+              categories.map((category: Category) => (
+                <TabsTrigger
+                  value={category.id}
+                  key={category.id}
+                  onClick={() => setCategoryId(category.id)}
+                  className="rounded-full px-4 py-1.5 text-sm font-medium data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all"
+                >
+                  {category.name}
+                </TabsTrigger>
+              ))}
+          </TabsList>
+        </div>
 
         {categories.map((category: Category) => (
           <TabsContent
             key={category.id}
             value={category.id}
-            className="mt-0 p-2 overflow-y-auto flex-1 h-full pb-4"
+            className="mt-0 px-4 py-4 overflow-y-auto flex-1 h-full"
           >
             {items.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">
+              <div className="text-center py-12">
+                <p className="text-muted-foreground text-sm">
                   No items available in this category
                 </p>
               </div>
             ) : (
-              <div className="space-y-0 border rounded-md shadow-sm">
+              <div className="border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden bg-white dark:bg-gray-900 shadow-sm">
                 {items.map((item: Item, index) => {
                   return (
                     <InventoryItemRow
@@ -222,24 +225,30 @@ export default function SelectOrder() {
 
       {/* Order Summary and Add to Order Button */}
       {orderItems.length > 0 && (
-        <div className="flex-none w-full bg-white dark:bg-gray-900 border-t p-2 z-50">
+        <div className="flex-none w-full bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 p-4 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
           <div className="max-w-4xl mx-auto">
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center justify-between mb-3">
               <div>
-                <h3 className="font-semibold text-lg">Order Summary</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="font-bold text-base text-gray-900 dark:text-white">
+                  Order Summary
+                </h3>
+                <p className="text-xs text-muted-foreground">
                   {orderItems.length} item{orderItems.length > 1 ? 's' : ''}{' '}
                   selected
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-bold max-[500px]:text-lg">
+                <p className="text-2xl font-black max-[500px]:text-lg text-gray-900 dark:text-white tracking-tight">
                   ₹{totalAmount}
                 </p>
               </div>
             </div>
 
-            <Button className="w-full" size="lg" onClick={handleSubmitOrder}>
+            <Button
+              className="w-full rounded-xl h-12 text-base font-bold shadow-lg"
+              size="lg"
+              onClick={handleSubmitOrder}
+            >
               <ShoppingCart className="mr-2 h-5 w-5" />
               Add to Order ({orderItems.length} items)
             </Button>

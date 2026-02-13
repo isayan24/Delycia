@@ -51,7 +51,7 @@ function CRMPage() {
   }
 
   return (
-    <div className="bg-gray-50/50 font-sans px-3 py-2 md:py-4">
+    <div className="font-sans px-3 py-2 md:py-4">
       <div className="  space-y-2">
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)] border border-gray-100/80">

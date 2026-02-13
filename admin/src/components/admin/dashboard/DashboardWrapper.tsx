@@ -114,19 +114,6 @@ export const DashboardWrapper: React.FC<DashboardWrapperProps> = ({
 
   // Authentication is handled by the parent component
 
-  // Performance monitoring cleanup
-  useEffect(() => {
-    return () => {
-      // Log performance insights on unmount
-      if (process.env.NODE_ENV === 'development') {
-        const insights = performanceMonitor.getInsights()
-        if (insights.recommendations.length > 0) {
-          console.log('Dashboard Performance Insights:', insights)
-        }
-      }
-    }
-  }, [])
-
   // Handle page visibility changes for performance optimization
   useEffect(() => {
     const handleVisibilityChange = () => {

@@ -123,7 +123,7 @@ const navMain = [
 const navSecondary = [
   {
     title: 'Support',
-    url: '#',
+    url: '/support',
     icon: LifeBuoy,
   },
 ]

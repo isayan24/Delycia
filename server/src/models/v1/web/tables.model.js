@@ -23,7 +23,8 @@ const tableModel = {
            ON distinct_orders.table_id = t.id 
            AND distinct_orders.rid = t.rid
          WHERE t.rid = ?
-         GROUP BY t.id`,
+         GROUP BY t.id
+         ORDER BY CAST(t.table_number AS UNSIGNED)`,
         [rid]
       );
 

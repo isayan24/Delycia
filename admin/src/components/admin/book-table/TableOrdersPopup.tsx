@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Users, CheckCircle2, DollarSign } from 'lucide-react'
+import { Users, CheckCircle2, IndianRupee } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -194,12 +194,12 @@ export default function TableOrdersPopup({
           </DialogTitle>
           <DialogDescription />
 
-          <div className="relative flex flex-col items-center gap-6 animate-in zoom-in-95 duration-300">
+          <div className="relative flex flex-col items-center gap-4 sm:gap-6 animate-in zoom-in-95 duration-300">
             {/* 1. Table Visual Card (Centered & Popped) */}
             <div
               className={`
-              w-64 aspect-[4/3] rounded-3xl flex flex-col items-center justify-center
-              shadow-2xl scale-110 transform transition-all relative
+              w-48 sm:w-64 aspect-4/3 rounded-2xl sm:rounded-3xl flex flex-col items-center justify-center
+              shadow-2xl sm:scale-110 transform transition-all relative
               ${getStatusColor(tableData.status)}
               ${tableData.status !== 'available' ? 'border-dashed border-2' : 'border'}
             `}
@@ -207,13 +207,15 @@ export default function TableOrdersPopup({
               <div className="absolute top-4 right-4 opacity-50">
                 {/* Decorative dots or pattern could go here */}
               </div>
-              <div className="text-3xl font-black text-gray-900 dark:text-gray-100 mb-2">
+              <div className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-gray-100 mb-1 sm:mb-2">
                 {tableData.table_number}
               </div>
-              <div className="flex flex-col items-center gap-2">
-                <div className="text-4xl">{getTableIcon(tableData.status)}</div>
-                <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 font-medium">
-                  <Users className="h-5 w-5" />
+              <div className="flex flex-col items-center gap-1 sm:gap-2">
+                <div className="text-3xl sm:text-4xl">
+                  {getTableIcon(tableData.status)}
+                </div>
+                <div className="flex items-center gap-1 sm:gap-1.5 text-gray-600 dark:text-gray-400 font-medium text-sm sm:text-base">
+                  <Users className="h-4 w-4 sm:h-5 sm:w-5" />
                   {tableData.status === 'occupied' ? (
                     <span>
                       {tableData.party_size || customers.length || '-'}/
@@ -223,7 +225,7 @@ export default function TableOrdersPopup({
                     <span>{tableData.capacity || 4}</span>
                   )}
                 </div>
-                <span className="text-lg font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">
+                <span className="text-base sm:text-lg font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wide">
                   {getStatusText(tableData.status)}
                 </span>
               </div>
@@ -245,7 +247,7 @@ export default function TableOrdersPopup({
                       key={customer.customer_id}
                       onClick={() => handleAvatarClick(customer.customer_id)}
                       className={`
-                          relative h-10 w-10 rounded-full p-0.5 transition-all duration-300
+                          relative h-8 w-8 sm:h-10 sm:w-10 rounded-full p-0.5 transition-all duration-300
                           ${
                             selectedCustomerId === customer.customer_id
                               ? 'ring-1 ring-orange-400 ring-offset-1 ring-offset-transparent scale-105 z-10'
@@ -282,11 +284,11 @@ export default function TableOrdersPopup({
 
               {/* Make Available Button - Circular/Pill style as per image */}
               {tableData.status !== 'available' && (
-                <div className="h-14 flex items-center ml-2">
+                <div className="h-12 sm:h-14 flex items-center ml-2">
                   <Button
                     onClick={handleMakeEmptyClick}
                     disabled={updateTableStatusMutation.isPending}
-                    className="rounded-full h-12 px-6 bg-green-500 hover:bg-green-600 text-white shadow-lg border-2 border-white/20"
+                    className="rounded-full h-10 sm:h-12 px-4 sm:px-6 bg-green-500 hover:bg-green-600 text-white shadow-lg border-2 border-white/20 text-sm sm:text-base"
                   >
                     <CheckCircle2 className="h-4 w-4 mr-2" />
                     Make Available
@@ -306,14 +308,14 @@ export default function TableOrdersPopup({
                   right: 0,
                 }}
               >
-                <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-xl p-6 border border-gray-100 dark:border-gray-800">
+                <div className="bg-white dark:bg-gray-900 rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-6 border border-gray-100 dark:border-gray-800">
                   {/* User Header */}
-                  <div className="flex justify-between items-start mb-6">
+                  <div className="flex justify-between items-start mb-4 sm:mb-6">
                     <div>
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                      <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
                         {selectedCustomer.name}
                       </h3>
-                      <p className="text-orange-500 text-sm font-medium mt-1">
+                      <p className="text-orange-500 text-xs sm:text-sm font-medium mt-0.5 sm:mt-1">
                         {
                           selectedCustomer.orders.filter(
                             (o) => o.order_status !== 'cancelled',
@@ -419,7 +421,7 @@ export default function TableOrdersPopup({
                       disabled={settleCustomerMutation.isPending}
                       className="w-full bg-green-500 hover:bg-green-600 text-white"
                     >
-                      <DollarSign className="h-4 w-4 mr-2" />
+                      <IndianRupee className="h-4 w-4 mr-2" />
                       {settleCustomerMutation.isPending
                         ? 'Settling...'
                         : 'Settle & Remove Customer'}

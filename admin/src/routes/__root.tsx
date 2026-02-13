@@ -8,11 +8,7 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { Outlet } from '@tanstack/react-router'
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { Toaster } from 'sonner'
 import { SoundProvider } from '../context/SoundContext'
 import { GlobalOrderPopupManager } from '@/components/admin/orders/GlobalOrderPopupManager'
@@ -26,12 +22,10 @@ import type { RouterContext } from '@/middleware/auth'
 import { shouldShowUIComponents } from '@/middleware/auth'
 import { AppSidebar } from '@/components/app-sidebar'
 import { useRoleBasedUI } from '@/components/user-roles/useRoleBasedUI'
+import AdminHeader from '@/components/admin/header/AdminHeader'
 import WaiterHeader from '@/components/admin/header/WaiterHeader'
-import RouteBreadcrumbs from '@/components/common/RouteBreadcrumbs'
 import { SubscriptionGuard } from '@/components/admin/settings/SubscriptionGuard'
 import { NotificationToastManager } from '@/components/common/NotificationToastManager'
-import { NotificationBell } from '@/components/common/NotificationBell'
-import { RestaurantActiveToggle } from '@/components/admin/header/RestaurantActiveToggle'
 
 // Note: We don't define beforeLoad here because we get auth from component
 // and pass it via router instantiation in the app setup
@@ -139,15 +133,7 @@ function RootComponent() {
               <AppSidebar />
               <SidebarInset className="relative">
                 <SubscriptionGuard>
-                  <header className="flex h-10 shrink-0 items-center gap-2 border-b px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-                    <SidebarTrigger className="-ml-1" />
-                    {/* <Separator orientation="vertical" className="mr-2 h-4" /> */}
-                    <RouteBreadcrumbs />
-                    <div className="ml-auto flex items-center gap-3">
-                      <RestaurantActiveToggle />
-                      <NotificationBell />
-                    </div>
-                  </header>
+                  <AdminHeader />
 
                   <div className="p-5 max-[500px]:p-1 max-w-[90vw]s mx-autod borderx">
                     <Toaster

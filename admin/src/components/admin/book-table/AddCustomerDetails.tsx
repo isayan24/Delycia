@@ -2,15 +2,19 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
 import {
   User,
   Phone,
-  ArrowLeft,
   Check,
   MessageSquare,
   Plus,
   Tag,
+  ChevronLeft,
+  Receipt,
+  MapPin,
+  UtensilsCrossed,
+  X,
 } from 'lucide-react'
 import { useTableStore } from '@/store/useTableStore'
 import axios from 'axios'
@@ -30,7 +34,6 @@ interface CustomerDetails {
   name: string
   phone_number: string
   username: string
-  // special_instructions?: string;
 }
 
 export default function AddCustomerDetails() {
@@ -64,7 +67,7 @@ export default function AddCustomerDetails() {
   const { user } = useAuth()
   const { selectedRestaurant } = useRestaurantSelector()
 
-  // Use custom search hook - filter by current restaurant
+  // Use custom search hook
   const { searchResults, isSearching, searchError, clearResults } =
     useCustomerSearch(customerDetails.name, user?.selected_rid)
 
@@ -85,7 +88,6 @@ export default function AddCustomerDetails() {
     }
   }, [])
 
-  // Handle user selection from search results
   const handleUserSelect = (user: UserSearchResult) => {
     setCustomerDetails({
       name: user.name,
@@ -94,7 +96,6 @@ export default function AddCustomerDetails() {
     })
     setShowSearchResults(false)
     clearResults()
-    // Clear any existing errors
     setErrors({})
   }
 
@@ -124,7 +125,6 @@ export default function AddCustomerDetails() {
         [field]: value,
       }
 
-      // Auto-generate username when name changes
       if (field === 'name') {
         updated.username = generateUsername(value)
       }
@@ -132,7 +132,6 @@ export default function AddCustomerDetails() {
       return updated
     })
 
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors((prev) => ({
         ...prev,
@@ -143,12 +142,9 @@ export default function AddCustomerDetails() {
 
   const [discount, setDiscount] = useState<number>(0)
 
-  // ... (previous helper functions)
-
   const subtotal = getTotalAmount()
   const validatedDiscount = Math.max(0, Math.min(discount, subtotal))
 
-  // Calculate tax using the hook
   const {
     grandTotal,
     taxAmount,
@@ -195,7 +191,7 @@ export default function AddCustomerDetails() {
       // Prepare bill data for thermal printer
       const thermalBillData: BillData = {
         orderId: `TBL-${table?.table_number || 'N/A'}`,
-        restaurantName: '', // ThermalBill uses useRestaurantSelector
+        restaurantName: '',
         tableNo: table?.table_number || 'N/A',
         tableZone: table?.zone,
         customerName: customerDetails.name,
@@ -211,6 +207,7 @@ export default function AddCustomerDetails() {
         orderDate: formatDateTime(new Date()),
         paymentMethod: 'Pending',
         paymentStatus: 'Pending',
+        specialInstructions: specialInstructions,
       }
       setBillData(thermalBillData)
       setShowThermalBill(true)
@@ -220,7 +217,6 @@ export default function AddCustomerDetails() {
       clearAllItems()
       changeState(0)
 
-      // Refetch tables data after successful order
       try {
         await refetchTables()
       } catch (refetchError) {
@@ -235,7 +231,7 @@ export default function AddCustomerDetails() {
   }
 
   return (
-    <div className="h-full flex flex-col relative overflow-hidden">
+    <div className="h-full flex flex-col bg-[#fcfcfd] dark:bg-gray-950">
       {/* Thermal Bill Popup */}
       {billData && (
         <ThermalBill
@@ -249,68 +245,76 @@ export default function AddCustomerDetails() {
         />
       )}
 
-      <div className="flex-1 overflow-auto p-4 pb-32">
-        <div className="max-w-2xl mx-auto">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <Button
-              variant="outline"
+      {/* Sticky Header */}
+      <div className="shrink-0 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-4 py-3">
+        <div className="max-w-2xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button
               onClick={() => changeState(2)}
-              className="flex items-center gap-2 hover:bg-orange-100 border-orange-200"
+              className="p-1.5 -ml-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Preview
-            </Button>
-            <div className="text-right">
-              <p className="text-sm text-orange-600 font-medium">
-                Table {table?.table_number || '#'}
-              </p>
-              <p className="text-lg font-bold text-orange-800">
-                ₹{finalAmount.toFixed(2)}
-              </p>
+              <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+            </button>
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-primary/10 rounded-lg">
+                <User className="w-4 h-4 text-primary" />
+              </div>
+              <h1 className="text-base font-bold text-gray-900 dark:text-white">
+                Customer Details
+              </h1>
             </div>
           </div>
-
-          {/* Main Card */}
-          <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
-            <div className="flex items-center justify-center gap-2 px-6 pb-4 border-b border-gray-100">
-              <User className="h-4 w-4 text-orange-500" />
-              <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                Customer Details
-              </h2>
+          <div className="flex items-center gap-2 text-right">
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 dark:bg-gray-800 px-2.5 py-1.5 rounded-lg">
+              <MapPin className="h-3.5 w-3.5 text-primary" />
+              <span className="font-medium">
+                T-{table?.table_number || '#'}
+              </span>
             </div>
-            <CardContent className="space-y-6">
-              <form
-                id="customer-details-form"
-                onSubmit={handleSubmit}
-                className="space-y-6"
-              >
-                {/* Name Field with Autocomplete */}
+            <div className="text-base font-black text-gray-900 dark:text-white tracking-tight">
+              ₹{finalAmount.toFixed(2)}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto no-scrollbar">
+        <div className="max-w-2xl mx-auto p-4 space-y-4 pb-6">
+          <form
+            id="customer-details-form"
+            onSubmit={handleSubmit}
+            className="space-y-4"
+          >
+            {/* Customer Info Card */}
+            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm relative">
+              <div className="p-4 space-y-5">
+                {/* Name Field */}
                 <div className="space-y-2 relative" ref={searchRef}>
                   <Label
                     htmlFor="name"
-                    className="text-sm font-medium text-gray-700 flex items-center gap-2"
+                    className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-1.5"
                   >
-                    <User className="h-4 w-4 text-orange-500" />
+                    <User className="h-3.5 w-3.5" />
                     Full Name
                   </Label>
                   <Input
                     id="name"
                     type="text"
-                    placeholder="Enter your full name"
+                    placeholder="Enter customer name"
                     value={customerDetails.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
                     onFocus={() => setShowSearchResults(true)}
                     autoComplete="off"
-                    className={`h-12 !text-[1.1rem] border-1 transition-all duration-200 focus:ring-1 focus:ring-orange-200 ${
+                    className={`h-11 text-sm rounded-xl border transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${
                       errors.name
                         ? 'border-red-300 focus:border-red-400'
-                        : 'border-orange-200 focus:border-orange-400'
+                        : 'border-gray-200 dark:border-gray-700 focus:border-primary'
                     }`}
                   />
                   {errors.name && (
-                    <p className="text-sm text-red-600 flex items-center gap-1">
-                      <span className="w-1 h-1 bg-red-600 rounded-full"></span>
+                    <p className="text-xs text-red-500 flex items-center gap-1">
+                      <span className="w-1 h-1 bg-red-500 rounded-full" />
                       {errors.name}
                     </p>
                   )}
@@ -326,13 +330,15 @@ export default function AddCustomerDetails() {
                   )}
                 </div>
 
-                {/* Mobile Field */}
+                <Separator />
+
+                {/* Phone Field */}
                 <div className="space-y-2">
                   <Label
                     htmlFor="phone_number"
-                    className="text-sm font-medium text-gray-700 flex items-center gap-2"
+                    className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-1.5"
                   >
-                    <Phone className="h-4 w-4 text-orange-500" />
+                    <Phone className="h-3.5 w-3.5" />
                     Mobile Number
                   </Label>
                   <Input
@@ -346,167 +352,172 @@ export default function AddCustomerDetails() {
                         e.target.value.replace(/\D/g, '').slice(0, 10),
                       )
                     }
-                    className={`h-12 !text-[1rem] border-1 transition-all duration-200 focus:ring-2 focus:ring-orange-200 ${
+                    className={`h-11 text-sm rounded-xl border transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${
                       errors.phone_number
                         ? 'border-red-300 focus:border-red-400'
-                        : 'border-orange-200 focus:border-orange-400'
+                        : 'border-gray-200 dark:border-gray-700 focus:border-primary'
                     }`}
                   />
                   {errors.phone_number && (
-                    <p className="text-sm text-red-600 flex items-center gap-1">
-                      <span className="w-1 h-1 bg-red-600 rounded-full"></span>
+                    <p className="text-xs text-red-500 flex items-center gap-1">
+                      <span className="w-1 h-1 bg-red-500 rounded-full" />
                       {errors.phone_number}
                     </p>
                   )}
                 </div>
+              </div>
+            </div>
 
-                {/* Special Instructions Toggle Button */}
-                {!showSpecialInstructions && (
-                  <div className="flex justify-center">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setShowSpecialInstructions(true)}
-                      className="flex items-center gap-2 text-orange-600 border-orange-200 hover:bg-orange-50 hover:border-orange-300 transition-all duration-200"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Add Special Instructions
-                    </Button>
-                  </div>
-                )}
-
-                {/* Special Instructions Field */}
-                {showSpecialInstructions && (
-                  <div className="space-y-2">
-                    <Label
-                      htmlFor="special_instructions"
-                      className="text-sm font-medium text-gray-700 flex items-center gap-2"
-                    >
-                      <MessageSquare className="h-4 w-4 text-orange-500" />
-                      Special Instructions
-                      <span className="text-xs text-gray-500 font-normal">
-                        (Optional)
-                      </span>
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        id="special_instructions"
-                        type="text"
-                        placeholder="Any special requests or dietary requirements..."
-                        value={specialInstructions || ''}
-                        onChange={(e) => setSpecialInstructions(e.target.value)}
-                        className="h-12 text-base border-1 border-orange-200 focus:border-orange-400 transition-all duration-200 focus:ring-1 focus:ring-orange-200 pr-10"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setShowSpecialInstructions(false)
-                        }}
-                        className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-                      >
-                        ×
-                      </Button>
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      Let us know about any allergies, spice preferences, or
-                      special requests
-                    </p>
-                  </div>
-                )}
-
-                {/* Discount Field */}
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="discount"
-                    className="text-sm font-medium text-gray-700 flex items-center gap-2"
-                  >
-                    <Tag className="h-4 w-4 text-orange-500" />
-                    Discount (₹)
+            {/* Special Instructions */}
+            {!showSpecialInstructions ? (
+              <button
+                type="button"
+                onClick={() => setShowSpecialInstructions(true)}
+                className="w-full flex items-center justify-center gap-2 py-3 text-sm font-medium text-primary hover:bg-primary/5 border border-dashed border-primary/30 rounded-2xl transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                Add Special Instructions
+              </button>
+            ) : (
+              <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden shadow-sm p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    Special Instructions
+                    <span className="text-[10px] text-gray-400 font-normal normal-case tracking-normal">
+                      (Optional)
+                    </span>
                   </Label>
-                  <Input
-                    id="discount"
-                    type="number"
-                    min="0"
-                    max={subtotal}
-                    placeholder="0.00"
-                    value={discount > 0 ? discount : ''}
-                    onChange={(e) => {
-                      const val = parseFloat(e.target.value)
-                      setDiscount(isNaN(val) ? 0 : val)
-                    }}
-                    className="h-12 !text-[1rem] border-1 border-orange-200 focus:border-orange-400 focus:ring-1 focus:ring-orange-200"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowSpecialInstructions(false)}
+                    className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    <X className="h-4 w-4 text-gray-400" />
+                  </button>
                 </div>
+                <Input
+                  id="special_instructions"
+                  type="text"
+                  placeholder="Any special requests or dietary requirements..."
+                  value={specialInstructions || ''}
+                  onChange={(e) => setSpecialInstructions(e.target.value)}
+                  className="h-11 text-sm rounded-xl border border-gray-200 dark:border-gray-700 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                />
+                <p className="text-[11px] text-gray-400">
+                  Allergies, spice preferences, or special requests
+                </p>
+              </div>
+            )}
 
-                {/* Order Summary */}
-                <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg p-4 border border-orange-100">
-                  <h3 className="font-semibold text-gray-800 mb-2">
-                    Order Summary
-                  </h3>
-                  <div className="flex justify-between items-center text-sm text-gray-600 mb-1">
-                    <span>Table Number:</span>
-                    <span className="font-medium">
-                      #{table?.table_number || '#'}
+            {/* Discount Field */}
+            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden shadow-sm p-4 space-y-2">
+              <Label
+                htmlFor="discount"
+                className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-1.5"
+              >
+                <Tag className="h-3.5 w-3.5" />
+                Discount (₹)
+              </Label>
+              <Input
+                id="discount"
+                type="number"
+                min="0"
+                max={subtotal}
+                placeholder="0.00"
+                value={discount > 0 ? discount : ''}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value)
+                  setDiscount(isNaN(val) ? 0 : val)
+                }}
+                className="h-11 text-sm rounded-xl border border-gray-200 dark:border-gray-700 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+
+            {/* Order Summary Card */}
+            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden shadow-sm">
+              <div className="px-4 py-3 border-b border-gray-50 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30">
+                <h2 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                  <Receipt className="h-4 w-4" />
+                  Order Summary
+                </h2>
+              </div>
+              <div className="p-4 space-y-2.5">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-500 dark:text-gray-400">
+                    Table
+                  </span>
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">
+                    #{table?.table_number || '#'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-500 dark:text-gray-400">
+                    Items
+                  </span>
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">
+                    {orderItems.length} item{orderItems.length > 1 ? 's' : ''}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-500 dark:text-gray-400">
+                    Subtotal
+                  </span>
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">
+                    ₹{subtotal.toFixed(2)}
+                  </span>
+                </div>
+                {validatedDiscount > 0 && (
+                  <div className="flex justify-between items-center text-sm text-emerald-600">
+                    <span>Discount</span>
+                    <span className="font-semibold">
+                      -₹{validatedDiscount.toFixed(2)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center text-sm text-gray-600 mb-1">
-                    <span>Items:</span>
-                    <span className="font-medium">
-                      {orderItems.length} item{orderItems.length > 1 ? 's' : ''}
+                )}
+                {!isTaxLoading && taxAmount > 0 && (
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500 dark:text-gray-400">
+                      Tax ({taxPercent}%)
+                    </span>
+                    <span className="font-semibold text-gray-700 dark:text-gray-300">
+                      ₹{taxAmount.toFixed(2)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center text-sm text-gray-600 mb-1">
-                    <span>Subtotal:</span>
-                    <span className="font-medium">₹{subtotal.toFixed(2)}</span>
-                  </div>
-                  {validatedDiscount > 0 && (
-                    <div className="flex justify-between items-center text-sm text-green-600 mb-1">
-                      <span>Discount:</span>
-                      <span className="font-medium">
-                        -₹{validatedDiscount.toFixed(2)}
-                      </span>
-                    </div>
-                  )}
-                  {!isTaxLoading && taxAmount > 0 && (
-                    <div className="flex justify-between items-center text-sm text-gray-600 mb-1">
-                      <span>Tax ({taxPercent}%):</span>
-                      <span className="font-medium">
-                        ₹{taxAmount.toFixed(2)}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex justify-between items-center text-lg font-bold text-orange-800 pt-2 border-t border-orange-200">
-                    <span>Total Amount:</span>
-                    <span>₹{finalAmount.toFixed(2)}</span>
-                  </div>
+                )}
+                <Separator />
+                <div className="flex justify-between items-center pt-1">
+                  <span className="text-base font-black text-gray-900 dark:text-white">
+                    Total
+                  </span>
+                  <span className="text-xl font-black text-primary tracking-tight">
+                    ₹{finalAmount.toFixed(2)}
+                  </span>
                 </div>
-              </form>
-            </CardContent>
-          </Card>
+              </div>
+            </div>
 
-          {/* Footer */}
-          <div className="text-center mt-6 text-sm text-gray-500">
-            <p>Your order will be confirmed once submitted</p>
-          </div>
+            {/* Footer Note */}
+            <p className="text-center text-xs text-gray-400 pt-1">
+              Your order will be confirmed once submitted
+            </p>
+          </form>
         </div>
       </div>
 
       {/* Sticky Footer */}
-      <div className="absolute bottom-0 left-0 right-0 p-2 border-t bg-white z-10">
+      <div className="shrink-0 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
         <div className="max-w-2xl mx-auto">
-          {/* Submit Button */}
           <Button
             type="submit"
             form="customer-details-form"
             disabled={isSubmitting}
-            className="w-full h-10 text-base font-semibold bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full rounded-xl h-12 text-base font-bold shadow-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20 transition-all hover:shadow-emerald-600/30 hover:translate-y-[-1px] active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
           >
             {isSubmitting ? (
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Processing Order...
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Processing...
               </div>
             ) : (
               <div className="flex items-center gap-2">

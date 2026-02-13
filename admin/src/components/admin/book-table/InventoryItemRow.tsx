@@ -4,6 +4,7 @@ import { Separator } from '@/components/ui/separator'
 import ItemCustomization from './ItemCustomization'
 import { Item, Variant } from '@/types/menu.types'
 import { useInventoryVariantsQuery } from '@/hooks/queries/useInventoryQuery'
+import { cn } from '@/lib/utils'
 
 interface InventoryItemRowProps {
   item: Item
@@ -60,7 +61,23 @@ export default function InventoryItemRow({
         {/* Item Details */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-lg text-gray-900 dark:text-white mb-1">
+            {/* Veg/Non-Veg Indicator */}
+            {item.is_veg !== undefined && item.is_veg !== null && (
+              <div
+                className={cn(
+                  'w-4 h-4 rounded-sm border-[1.5px] flex items-center justify-center shrink-0',
+                  item.is_veg ? 'border-green-600' : 'border-red-600',
+                )}
+              >
+                <div
+                  className={cn(
+                    'w-2 h-2 rounded-full',
+                    item.is_veg ? 'bg-green-600' : 'bg-red-600',
+                  )}
+                />
+              </div>
+            )}
+            <h3 className="font-semibold max-[500px]:text-base max-[500px]:font-[500] text-lg text-gray-900 dark:text-white">
               {item.name}
             </h3>
           </div>

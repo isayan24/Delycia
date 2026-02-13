@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Clock, Printer } from 'lucide-react'
+import { Clock, Printer, MessageSquare } from 'lucide-react'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import { ProcessedOrder } from '@/types/WebSocketOrder'
 import ThermalBill from '@/components/billing/ThermalBill'
@@ -34,6 +34,12 @@ export function CompactOrderHeader({
 
     return () => clearInterval(interval)
   }, [order.created_at])
+
+  // Check for special instructions
+  const specialInstructions = order.items.find(
+    (item) =>
+      item.special_instructions && item.special_instructions.trim() !== '',
+  )?.special_instructions
 
   const getOrderTypeDisplay = () => {
     if (order.is_delivery) {
@@ -153,6 +159,16 @@ export function CompactOrderHeader({
           </p>
         </div>
       </div>
+
+      {/* Special Instructions */}
+      {specialInstructions && (
+        <div className="flex items-start gap-1.5 px-2.5 py-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/40 rounded-lg">
+          <MessageSquare className="h-3 w-3 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <p className="text-[11px] md:text-xs text-amber-800 dark:text-amber-300 leading-snug italic">
+            {specialInstructions}
+          </p>
+        </div>
+      )}
     </div>
   )
 }

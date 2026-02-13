@@ -10,7 +10,11 @@ import { Download, Share, Printer } from 'lucide-react'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import { useBillTaxCalculation } from './hooks/useBillTaxCalculation'
 import { BillPreview } from './BillPreview'
-import { downloadBillAsImage, shareBillAsImage, printBill } from './utils/billActions'
+import {
+  downloadBillAsImage,
+  shareBillAsImage,
+  printBill,
+} from './utils/billActions'
 import { BillData } from './types'
 
 interface ThermalBillProps {
@@ -92,7 +96,9 @@ export default function ThermalBill({
               <BillPreview
                 billData={billData}
                 taxBreakdown={taxBreakdown}
-                restaurantName={selectedRestaurant?.name || billData.restaurantName}
+                restaurantName={
+                  selectedRestaurant?.name || billData.restaurantName
+                }
               />
             </div>
           </div>
