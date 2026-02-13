@@ -141,6 +141,7 @@ export function useCreateTableMutation() {
 interface UpdateTableParams {
   id: string | number
   rid: string | number // For cache invalidation
+  table_number?: string
   status?: string
   capacity?: number
   zone?: string
@@ -157,6 +158,7 @@ export function useUpdateTableMutation() {
       const { rid, ...updateData } = params
       const response = await axios.patch('/api/tables', {
         id: updateData.id.toString(),
+        table_number: updateData.table_number,
         status: updateData.status,
         capacity: updateData.capacity,
         zone: updateData.zone,
@@ -166,6 +168,10 @@ export function useUpdateTableMutation() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
         queryKey: tableKeys.list(variables.rid.toString()),
+      })
+      // Also invalidate zones in case the zone was changed
+      queryClient.invalidateQueries({
+        queryKey: tableKeys.zoneList(variables.rid.toString()),
       })
     },
   })

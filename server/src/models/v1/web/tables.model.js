@@ -109,7 +109,7 @@ const tableModel = {
 
   // Update an existing table
   update: async (req) => {
-    const { id, capacity, zone, status } = req.body;
+    const { id, table_number, capacity, zone, status } = req.body;
 
     if (!id) return apiResponse.error(400, "id is required");
 
@@ -117,9 +117,23 @@ const tableModel = {
       return apiResponse.error(401, "Unauthorized access!");
 
     try {
+      // Build dynamic SET clause to only update provided fields
+      const fields = [];
+      const values = [];
+
+      if (table_number !== undefined) { fields.push("table_number = ?"); values.push(table_number); }
+      if (capacity !== undefined) { fields.push("capacity = ?"); values.push(capacity); }
+      if (zone !== undefined) { fields.push("zone = ?"); values.push(zone); }
+      if (status !== undefined) { fields.push("status = ?"); values.push(status); }
+
+      if (fields.length === 0) return apiResponse.error(400, "No fields to update");
+
+      fields.push("updated_at = NOW()");
+      values.push(id);
+
       await pool.query(
-        "UPDATE tables SET capacity = ?, zone = ?, status = ?, updated_at = NOW() WHERE id = ?",
-        [capacity, zone, status, id]
+        `UPDATE tables SET ${fields.join(", ")} WHERE id = ?`,
+        values
       );
       return apiResponse.success(200, "Table updated successfully");
     } catch (err) {

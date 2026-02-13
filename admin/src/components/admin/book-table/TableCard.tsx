@@ -1,6 +1,6 @@
-import React from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
-import { Users } from 'lucide-react'
+import { Users, Pencil, Trash2 } from 'lucide-react'
 import { useLongPress } from './hooks/useLongPress'
 
 interface TableCardProps {
@@ -14,14 +14,44 @@ interface TableCardProps {
   }
   onSelect: (table: any) => void
   onLongPress: (table: any) => void
+  onEdit?: (table: any) => void
+  onDelete?: (table: any) => void
 }
 
 export default function TableCard({
   table,
   onSelect,
   onLongPress,
+  onEdit,
+  onDelete,
 }: TableCardProps) {
-  // Helpers moved from ShowTables logic
+  const [showActions, setShowActions] = useState(false)
+  const cardRef = useRef<HTMLDivElement>(null)
+
+  // Close overlay when clicking outside
+  useEffect(() => {
+    if (!showActions) return
+
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
+        setShowActions(false)
+      }
+    }
+
+    // Use a slight delay so the current event cycle finishes
+    const timer = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('touchstart', handleClickOutside)
+    }, 0)
+
+    return () => {
+      clearTimeout(timer)
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('touchstart', handleClickOutside)
+    }
+  }, [showActions])
+
+  // Helpers
   const getTableIcon = (status: string) => {
     switch (status) {
       case 'occupied':
@@ -63,23 +93,28 @@ export default function TableCard({
 
   // Setup long press hook
   const bind = useLongPress({
-    delay: 500, // 500ms hold
+    delay: 500,
     onLongPress: () => {
-      if (table.status === 'occupied' || table.status === 'reserved') {
+      if (table.status === 'available') {
+        // Show the action overlay for available tables
+        setShowActions(true)
+      } else if (table.status === 'occupied' || table.status === 'reserved') {
         onLongPress(table)
-      } else {
-        // If not occupied, behave like a click or ignore?
-        // Let's trigger select for consistency if user just holds it
-        onSelect(table)
       }
     },
     onClick: () => {
+      if (showActions) {
+        // If overlay is visible, tap dismisses it
+        setShowActions(false)
+        return
+      }
       onSelect(table)
     },
   })
 
   return (
     <Card
+      ref={cardRef}
       className={`relative cursor-pointer transition-all duration-200 hover:shadow-md ${getStatusColor(
         table.status,
       )} ${table.status !== 'available' ? 'border-dashed border-2' : ''} select-none active:scale-95`}
@@ -119,6 +154,40 @@ export default function TableCard({
           </div>
         )}
       </CardContent>
+
+      {/* Action Overlay — shown on long-press for available tables */}
+      {showActions && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center gap-3 rounded-lg bg-black/50 backdrop-blur-sm animate-in fade-in zoom-in-95 duration-200">
+          <button
+            type="button"
+            className="flex items-center justify-center h-10 w-10 rounded-full bg-white text-blue-600 shadow-lg hover:bg-blue-50 transition-colors active:scale-90"
+            onClick={(e) => {
+              e.stopPropagation()
+              setShowActions(false)
+              onEdit?.(table)
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            aria-label="Edit table"
+          >
+            <Pencil className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            className="flex items-center justify-center h-10 w-10 rounded-full bg-white text-red-600 shadow-lg hover:bg-red-50 transition-colors active:scale-90"
+            onClick={(e) => {
+              e.stopPropagation()
+              setShowActions(false)
+              onDelete?.(table)
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            aria-label="Delete table"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      )}
     </Card>
   )
 }

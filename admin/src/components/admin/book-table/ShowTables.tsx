@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -17,6 +17,8 @@ import { ShowTablesProps } from './types/table.types'
 import { useTableStore } from '@/store/useTableStore'
 import TableCard from './TableCard'
 import TableOrdersPopup from './TableOrdersPopup'
+import EditTableDialog from './EditTableDialog'
+import DeleteTableDialog from './DeleteTableDialog'
 
 export default function ShowTables({
   selectTable,
@@ -29,6 +31,10 @@ export default function ShowTables({
   // Popup state
   const [selectedPopupTable, setSelectedPopupTable] = useState<any>(null)
   const [isPopupOpen, setIsPopupOpen] = useState(false)
+
+  // Edit / Delete dialog state
+  const [editingTable, setEditingTable] = useState<any>(null)
+  const [deletingTable, setDeletingTable] = useState<any>(null)
 
   const { setRefetchTablesFunction } = useTableStore()
   const {
@@ -130,6 +136,8 @@ export default function ShowTables({
               table={table}
               onSelect={selectTable}
               onLongPress={handleTableLongPress}
+              onEdit={setEditingTable}
+              onDelete={setDeletingTable}
             />
           ))}
         </div>
@@ -248,6 +256,8 @@ export default function ShowTables({
                           table={table}
                           onSelect={selectTable}
                           onLongPress={handleTableLongPress}
+                          onEdit={setEditingTable}
+                          onDelete={setDeletingTable}
                         />
                       ))}
                     </div>
@@ -263,6 +273,19 @@ export default function ShowTables({
         onClose={() => setIsPopupOpen(false)}
         onRefresh={refetch}
         tableData={selectedPopupTable}
+      />
+
+      <EditTableDialog
+        isOpen={!!editingTable}
+        onClose={() => setEditingTable(null)}
+        table={editingTable}
+        zones={zones}
+      />
+
+      <DeleteTableDialog
+        isOpen={!!deletingTable}
+        onClose={() => setDeletingTable(null)}
+        table={deletingTable}
       />
     </div>
   )
