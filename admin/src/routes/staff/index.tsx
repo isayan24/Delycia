@@ -11,18 +11,24 @@ export const Route = createFileRoute('/staff/')({
 
 function StaffManagementPage() {
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Users2 className="h-8 w-8 text-gray-700" />
-            Staff Management
-          </h1>
-          <p className="text-muted-foreground mt-1">
+    <div className="bg-gray-50/50 font-sans px-4 py-4 md:py-8 max-w-7xl mx-auto space-y-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-1">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-white rounded-xl border shadow-sm">
+              <Users2 className="h-6 w-6 text-gray-700" />
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+              Staff Management
+            </h1>
+          </div>
+          <p className="text-gray-500 text-sm md:text-base max-w-lg leading-relaxed pt-1">
             Manage admin, waiters, and kitchen staff access for your restaurant.
           </p>
         </div>
-        <CreateStaffDialog />
+        <div className="shrink-0">
+          <CreateStaffDialog />
+        </div>
       </div>
 
       <StaffList />

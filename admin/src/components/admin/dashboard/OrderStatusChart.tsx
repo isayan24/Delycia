@@ -212,39 +212,46 @@ export const OrderStatusChart: React.FC<OrderStatusChartProps> = ({
   const totalOrders = mergedData.reduce((sum, item) => sum + item.count, 0)
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-white rounded-2xl p-4 md:p-6 shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)] border border-gray-100/80">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Order Status</h3>
-          <p className="text-sm text-gray-600 mt-1">
+          <h3 className="text-lg font-bold text-gray-900 tracking-tight">
+            Order Status
+          </h3>
+          <p className="text-xs text-gray-500 font-medium mt-1">
             Total Orders:{' '}
-            <span className="font-semibold text-blue-600">
+            <span className="font-bold text-blue-600">
               {totalOrders.toLocaleString()}
             </span>
           </p>
         </div>
         {loading && (
-          <div className="flex items-center space-x-2 text-sm text-gray-500">
-            <div className="animate-spin rounded-full h-4 w-4 border-2 border-orange-500 border-t-transparent"></div>
-            <span>Updating...</span>
+          <div className="flex items-center gap-2 text-xs font-semibold text-gray-400 bg-gray-50 px-3 py-1.5 rounded-full animate-pulse">
+            <div className="animate-spin rounded-full h-3 w-3 border-2 border-orange-500 border-t-transparent"></div>
+            <span>Syncing...</span>
           </div>
         )}
       </div>
 
-      <div className="h-[300px]">
+      <div className="h-[250px] md:h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
               data={chartData}
               cx="50%"
               cy="50%"
-              innerRadius={60}
-              outerRadius={100}
-              paddingAngle={2}
+              innerRadius={65}
+              outerRadius={95}
+              paddingAngle={4}
               dataKey="count"
+              stroke="none"
             >
               {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.fill} />
+                <Cell
+                  key={`cell-${index}`}
+                  fill={entry.fill}
+                  className="hover:opacity-85 transition-opacity"
+                />
               ))}
             </Pie>
             <Tooltip content={<CustomTooltip />} />

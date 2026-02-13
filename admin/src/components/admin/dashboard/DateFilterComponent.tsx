@@ -211,7 +211,7 @@ export const DateFilterComponent: React.FC<DateFilterComponentProps> = ({
       {/* Dropdown Menu */}
       {isDropdownOpen && (
         <div
-          className={`absolute top-full text-left left-0 sm:left-auto sm:right-0 mt-1 ${compact ? 'w-48' : 'w-64'} bg-white border border-gray-200 rounded-lg shadow-lg z-50`}
+          className={`absolute z-[999] top-full text-left left-0 sm:left-auto sm:right-0 mt-1 ${compact ? 'w-48' : 'w-64'} bg-white border border-gray-200 rounded-lg shadow-lg z-50`}
         >
           <div className="py-1" role="listbox">
             {visibleOptions.map((option) => (

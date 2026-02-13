@@ -51,31 +51,32 @@ function CRMPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
-      <div className="bg-white shadow-sm ">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <section className="flex items-center space-x-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 text-orange-600">
-              <Users className="h-6 w-6" />
+    <div className="bg-gray-50/50 font-sans px-3 py-2 md:py-4">
+      <div className="  space-y-2">
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)] border border-gray-100/80">
+          <div className="flex items-center space-x-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-600">
+              <Users className="h-5 w-5 md:h-6 md:w-6" />
             </div>
             <div>
-              <h1 className="text-2xl font-[500] tracking-tight text-gray-900 max-[500px]:text-xl">
-                Customer Relationship Management
+              <h1 className="text-md md:text-xl font-semibold tracking-tight text-gray-900">
+                Customer Management
               </h1>
-              <p className="text-sm text-gray-500">
+              <p className="text-xs md:text-sm text-gray-500 font-medium mt-0.5">
                 Manage your customer database and view detailed insights
               </p>
             </div>
-          </section>
-          <section className="mb-6 flex items-center gap-2">
+          </div>
+          <div className="flex items-center gap-2">
             <Select
               value={timeRange}
               onValueChange={(value: any) => setTimeRange(value)}
             >
-              <SelectTrigger className="w-[180px] bg-white">
+              <SelectTrigger className="w-[140px] md:w-[180px] h-9 md:h-10 bg-gray-50/50 border-gray-100 text-xs md:text-sm font-medium rounded-xl focus:ring-orange-500/10">
                 <SelectValue placeholder="Select time range" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-xl border-gray-100 shadow-xl">
                 <SelectItem value="today">Today</SelectItem>
                 <SelectItem value="yesterday">Yesterday</SelectItem>
                 <SelectItem value="this_week">This Week</SelectItem>
@@ -85,27 +86,30 @@ function CRMPage() {
                 <SelectItem value="all_time">All Time</SelectItem>
               </SelectContent>
             </Select>
-            <StatefulButton onClick={handleRefresh} className="shadow-sm">
+            <StatefulButton
+              onClick={handleRefresh}
+              className="h-9 md:h-10 px-4 text-xs md:text-sm font-bold bg-green-600 hover:bg-green-500 text-white rounded-xl shadow-sm transition-all active:scale-95"
+            >
               Refresh
             </StatefulButton>
-          </section>
+          </div>
         </div>
-      </div>
 
-      <div className="mx-auto mt-6">
-        <>
-          <CRMStats timeRange={timeRange} />
-          <CustomerList
-            data={customers}
-            isLoading={isLoading}
-            onSelectCustomer={(id) => setSelectedCustomerId(id)}
-          />
-          <CustomerDetailsSheet
-            customerId={selectedCustomerId}
-            isOpen={!!selectedCustomerId}
-            onClose={() => setSelectedCustomerId(null)}
-          />
-        </>
+        <div className="mx-auto">
+          <>
+            <CRMStats timeRange={timeRange} />
+            <CustomerList
+              data={customers}
+              isLoading={isLoading}
+              onSelectCustomer={(id) => setSelectedCustomerId(id)}
+            />
+            <CustomerDetailsSheet
+              customerId={selectedCustomerId}
+              isOpen={!!selectedCustomerId}
+              onClose={() => setSelectedCustomerId(null)}
+            />
+          </>
+        </div>
       </div>
     </div>
   )

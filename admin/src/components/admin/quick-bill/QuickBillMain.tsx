@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/drawer'
 import QuickBillSidebar from './QuickBillSidebar'
 import { Button } from '@/components/ui/button'
+import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
 
 export interface CartItem extends Item {
   quantity: number
@@ -31,17 +32,26 @@ export default function QuickBillMain() {
   const [discount, setDiscount] = useState<number>(0)
   const isDesktop = useMediaQuery('(min-width: 768px)')
 
-  const addToCart = useCallback((item: Item) => {
-    setCart((prev) => {
-      const existing = prev.find((i) => i.id === item.id)
-      if (existing) {
-        return prev.map((i) =>
-          i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i,
-        )
-      }
-      return [...prev, { ...item, quantity: 1 }]
-    })
-  }, [])
+  const addToCart = useCallback(
+    (item: Item, behavior: 'add' | 'toggle' = 'add') => {
+      setCart((prev) => {
+        const existing = prev.find((i) => i.id === item.id)
+
+        if (behavior === 'toggle' && existing) {
+          // Remove item if it exists and behavior is toggle
+          return prev.filter((i) => i.id !== item.id)
+        }
+
+        if (existing) {
+          return prev.map((i) =>
+            i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i,
+          )
+        }
+        return [...prev, { ...item, quantity: 1 }]
+      })
+    },
+    [],
+  )
 
   const updateQuantity = useCallback((itemId: string, delta: number) => {
     setCart((prev) => {
@@ -63,13 +73,19 @@ export default function QuickBillMain() {
     setDiscount(0)
   }, [])
 
-  // Mobile Summary Calculations
+  // Calculations
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0)
   const subtotal = cart.reduce(
     (sum, item) => sum + (item.price ?? item.cost_price) * item.quantity,
     0,
   )
-  const totalAmount = Math.max(0, subtotal - discount)
+
+  // Use hook for tax calculation
+  const { grandTotal, taxAmount, taxPercent, discountAmount } =
+    useOrderTaxCalculation({
+      subtotal,
+      discountAmount: discount,
+    })
 
   return (
     <div className="flex h-full gap-1 text-black relative">
@@ -89,6 +105,11 @@ export default function QuickBillMain() {
             onOrderComplete={clearCart}
             discount={discount}
             setDiscount={setDiscount}
+            // Tax Props
+            subtotal={subtotal}
+            taxAmount={taxAmount}
+            taxPercent={taxPercent}
+            grandTotal={grandTotal}
           />
         </div>
       ) : (
@@ -106,7 +127,7 @@ export default function QuickBillMain() {
                   </div>
                   <span className="text-sm font-normal">View Bill</span>
                 </div>
-                <div className="font-bold">₹{totalAmount.toFixed(2)}</div>
+                <div className="font-bold">₹{grandTotal.toFixed(2)}</div>
               </Button>
             </DrawerTrigger>
             <DrawerContent className="h-[85vh]">
@@ -122,6 +143,11 @@ export default function QuickBillMain() {
                   onOrderComplete={clearCart}
                   discount={discount}
                   setDiscount={setDiscount}
+                  // Tax Props
+                  subtotal={subtotal}
+                  taxAmount={taxAmount}
+                  taxPercent={taxPercent}
+                  grandTotal={grandTotal}
                 />
               </div>
             </DrawerContent>

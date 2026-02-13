@@ -2,7 +2,6 @@ import React, { useMemo } from 'react'
 import { useInventoryItems } from '@/hooks/useInventoryItems'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Badge } from '@/components/ui/badge'
 import DeleteItem from './navigation/DeleteItem'
 import AddItemDetailsModal from './add-update-item/AddItemDetailsModal'
 import { ItemRow } from './ItemRow'
@@ -109,33 +108,45 @@ export const ItemList = React.memo(() => {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="p-4 pb-2 rounded-t-md md:p-6 md:pb-4 border-b border-gray-200 bg-gradient-to-r from-white to-gray-50">
-        <div className="flex items-center justify-between gap-2 md:gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center shrink-0">
-              <Package className="w-5 h-5 text-green-600" />
+      <div className="p-4 border-b border-gray-100 bg-white">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-green-100 bg-green-50 shrink-0 shadow-sm">
+              {selectedCategory?.img ? (
+                <img
+                  src={selectedCategory.img}
+                  alt={selectedCategory.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Package className="w-6 h-6 text-green-600" />
+                </div>
+              )}
             </div>
             <div className="min-w-0">
-              <h2 className="text-lg md:text-xl font-bold text-gray-900 truncate">
+              <h2 className="text-xl font-bold text-gray-900 truncate flex items-center gap-2">
                 {selectedCategory.name}
               </h2>
-              <div className="flex items-center gap-2 mt-0.5 md:mt-1">
-                <Badge variant="secondary" className="text-[10px] md:text-xs">
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-tight">
                   {itemCount} {itemCount === 1 ? 'item' : 'items'}
-                </Badge>
+                </span>
+                <div className="w-1 h-1 rounded-full bg-gray-300" />
+                <span className="text-[10px] max-[500px]:hidden font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full uppercase">
+                  Manage Items
+                </span>
               </div>
             </div>
           </div>
 
           <Button
             onClick={() => openAddItemDialog(selectedCategory)}
-            className="bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 h-8 text-xs px-3 md:h-10 md:text-sm md:px-4 shrink-0"
+            className="bg-green-500 hover:bg-green-600 text-white shadow-md hover:shadow-lg transition-all active:scale-95 h-10 px-6 rounded-lg gap-2"
           >
-            <Plus className="w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2" />
-            <span className="md:hidden">Add New</span>
-            <span className="hidden md:inline">Add New Item</span>
+            <Plus className="w-4 h-4" />
+            <span className="font-bold">Add New Item</span>
           </Button>
-          {/* ✅ Removed Refresh Categories button - auto-updates via mutations */}
         </div>
       </div>
 
@@ -143,18 +154,19 @@ export const ItemList = React.memo(() => {
       <ScrollArea className="flex-1 overflow-auto">
         <div className="p-2 md:p-4">
           {loading ? (
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4">
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-4 p-4 bg-white rounded-lg border"
+                  className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-100 shadow-sm"
                 >
-                  <Skeleton className="w-16 h-16 rounded-lg" />
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-5 w-48" />
-                    <Skeleton className="h-4 w-32" />
+                  <Skeleton className="w-20 h-20 md:w-24 md:h-24 rounded-xl" />
+                  <div className="flex-1 space-y-2.5">
+                    <Skeleton className="h-5 w-1/3" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-3 w-1/4" />
                   </div>
-                  <Skeleton className="w-8 h-8 rounded-full" />
+                  <Skeleton className="w-8 h-8 rounded-lg" />
                 </div>
               ))}
             </div>

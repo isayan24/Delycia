@@ -76,12 +76,14 @@ function formatCurrency(amount: number, currency: string): string {
 export function SubscriptionCard({ subscription }: SubscriptionCardProps) {
   if (!subscription) {
     return (
-      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-        <div className="flex items-center justify-center py-8">
+      <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm">
+        <div className="flex items-center justify-center py-6 sm:py-8">
           <div className="text-center">
-            <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-            <p className="text-gray-600 font-medium">No Active Subscription</p>
-            <p className="text-sm text-gray-500 mt-1">
+            <CreditCard className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-2 sm:mb-3" />
+            <p className="text-gray-600 font-medium text-sm sm:text-base">
+              No Active Subscription
+            </p>
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">
               Choose a plan below to get started
             </p>
           </div>
@@ -96,30 +98,34 @@ export function SubscriptionCard({ subscription }: SubscriptionCardProps) {
   return (
     <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
       {/* Header with Plan Name and Status */}
-      <div className="bg-linear-to-r from-violet-500 to-purple-600 px-6 py-4">
+      <div className="bg-linear-to-r from-violet-500 to-purple-600 px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-violet-100 text-sm font-medium">Current Plan</p>
-            <h3 className="text-2xl font-bold text-white">
+            <p className="text-violet-100 text-xs sm:text-sm font-medium">
+              Current Plan
+            </p>
+            <h3 className="text-xl sm:text-2xl font-bold text-white">
               {subscription.plan?.name || subscription.plan_type}
             </h3>
           </div>
           <div
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border ${statusBadge.color}`}
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border ${statusBadge.color}`}
           >
-            <StatusIcon className="w-4 h-4" />
-            <span className="text-sm font-medium">{statusBadge.label}</span>
+            <StatusIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="text-xs sm:text-sm font-medium">
+              {statusBadge.label}
+            </span>
           </div>
         </div>
       </div>
 
       {/* Details Grid */}
-      <div className="p-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="p-4 sm:p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {/* Billing Period */}
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-              <Calendar className="w-5 h-5 text-blue-600" />
+          <div className="flex items-center sm:items-start gap-3">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+              <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
             </div>
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wide">
@@ -135,11 +141,11 @@ export function SubscriptionCard({ subscription }: SubscriptionCardProps) {
           </div>
 
           {/* Days Remaining */}
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
-              <Clock className="w-5 h-5 text-amber-600" />
+          <div className="flex items-center sm:items-start gap-3">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+              <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
             </div>
-            <div>
+            <div className="flex-1">
               <p className="text-xs text-gray-500 uppercase tracking-wide">
                 Days Remaining
               </p>
@@ -147,7 +153,7 @@ export function SubscriptionCard({ subscription }: SubscriptionCardProps) {
                 {subscription.days_remaining}{' '}
                 {subscription.days_remaining === 1 ? 'day' : 'days'}
               </p>
-              <div className="w-24 h-1.5 bg-gray-200 rounded-full mt-1.5 overflow-hidden">
+              <div className="w-24 h-1.5 bg-gray-200 rounded-full mt-1.5 overflow-hidden hidden sm:block">
                 <div
                   className={`h-full rounded-full transition-all ${
                     subscription.days_remaining <= 7
@@ -165,9 +171,9 @@ export function SubscriptionCard({ subscription }: SubscriptionCardProps) {
           </div>
 
           {/* Amount */}
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
-              <CreditCard className="w-5 h-5 text-green-600" />
+          <div className="flex items-center sm:items-start gap-3">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
+              <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
             </div>
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wide">
@@ -183,9 +189,9 @@ export function SubscriptionCard({ subscription }: SubscriptionCardProps) {
           </div>
 
           {/* Auto Renewal */}
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
-              <RefreshCcw className="w-5 h-5 text-purple-600" />
+          <div className="flex items-center sm:items-start gap-3">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
+              <RefreshCcw className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
             </div>
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wide">

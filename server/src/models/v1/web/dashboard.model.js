@@ -121,7 +121,7 @@ const getDashboardStats = async (req) => {
     const taxAmount = subtotal * (taxPercent / 100);
 
     // review in future add the taxAmount as needed: The grandAmount will be: totalSales + taxAmount
-        
+
     const stats = {
       totalSales: Math.round(totalSales * 100) / 100,
       subtotal: Math.round(subtotal * 100) / 100,

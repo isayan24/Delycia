@@ -8,7 +8,7 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import { DashboardStats as StatsType } from '@/types/dashboard.types'
-import { formatCurrency, formatGrowth } from '@/utils/currencyUtils'
+import { formatCurrency } from '@/utils/currencyUtils'
 
 interface MetricCardProps {
   title: string
@@ -31,16 +31,15 @@ const MetricCard: React.FC<MetricCardProps> = ({
 }) => {
   if (loading) {
     return (
-      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+      <div className="bg-white rounded-2xl p-3 md:p-5 shadow-sm border border-gray-100">
         <div className="animate-pulse">
           <div className="flex items-center justify-between mb-3">
-            <div className={`p-1.5 rounded-lg bg-${color}-100`}>
-              <div className="w-5 h-5 bg-gray-300 rounded"></div>
+            <div className={`p-2 rounded-xl bg-${color}-50`}>
+              <div className="w-5 h-5 bg-gray-200 rounded-lg"></div>
             </div>
-            <div className="w-12 h-4 bg-gray-300 rounded"></div>
           </div>
-          <div className="w-20 h-7 bg-gray-300 rounded mb-1"></div>
-          <div className="w-24 h-3 bg-gray-300 rounded"></div>
+          <div className="w-24 h-8 bg-gray-100 rounded-lg mb-2"></div>
+          <div className="w-16 h-4 bg-gray-50 rounded-md"></div>
         </div>
       </div>
     )
@@ -48,23 +47,27 @@ const MetricCard: React.FC<MetricCardProps> = ({
 
   if (error) {
     return (
-      <div className="bg-white rounded-xl p-4 shadow-sm border border-red-200">
+      <div className="bg-white rounded-2xl p-3 md:p-5 shadow-sm border border-red-100 bg-linear-to-br from-white to-red-50/30">
         <div className="flex items-center justify-between mb-3">
-          <div className="p-1.5 rounded-lg bg-red-100">
-            <AlertCircle className="w-5 h-5 text-red-600" />
+          <div className="p-2 rounded-xl bg-red-50">
+            <AlertCircle className="w-5 h-5 text-red-500" />
           </div>
           {onRetry && (
             <button
               onClick={onRetry}
-              className="p-1 text-red-600 hover:text-red-800 transition-colors"
+              className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-100 rounded-lg transition-all"
               title="Retry loading"
             >
               <RefreshCw className="w-4 h-4" />
             </button>
           )}
         </div>
-        <h3 className="text-base font-bold text-red-600 mb-1">Error</h3>
-        <p className="text-red-500 text-xs">{title}</p>
+        <h3 className="text-lg font-bold text-red-600 mb-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
+          Error
+        </h3>
+        <p className="text-red-400 text-xs font-medium uppercase tracking-wider">
+          {title}
+        </p>
       </div>
     )
   }
@@ -82,19 +85,37 @@ const MetricCard: React.FC<MetricCardProps> = ({
     return val.toString()
   }
 
+  const colorVariants: Record<string, string> = {
+    orange:
+      'from-orange-50/50 via-white to-white border-orange-100/50 text-orange-600 bg-orange-50',
+    blue: 'from-blue-50/50 via-white to-white border-blue-100/50 text-blue-600 bg-blue-50',
+    green:
+      'from-emerald-50/50 via-white to-white border-emerald-100/50 text-emerald-600 bg-emerald-50',
+    purple:
+      'from-purple-50/50 via-white to-white border-purple-100/50 text-purple-600 bg-purple-50',
+  }
+
+  const variant = colorVariants[color] || colorVariants.orange
+
   return (
-    <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+    <div
+      className={`bg-white rounded-2xl p-3 md:p-5 shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)] border border-gray-100 hover:shadow-[0_8px_24px_-8px_rgba(0,0,0,0.08)] transition-all duration-300 bg-linear-to-br ${variant.split(' ').slice(0, 3).join(' ')}`}
+    >
       <div className="flex items-center justify-between mb-3">
-        <div className={`p-1.5 rounded-lg bg-${color}-100`}>
-          <Icon className={`w-5 h-5 text-${color}-600`} />
+        <div
+          className={`p-2 rounded-xl ${variant.split(' ').slice(4).join(' ')}`}
+        >
+          <Icon className="w-4 h-4 md:w-5 md:h-5" />
         </div>
       </div>
-      <h3 className="text-xl font-bold text-gray-900 mb-1">
-        {formatValue(value)}
-      </h3>
-      <p className="text-gray-600 text-xs font-medium uppercase tracking-wide">
-        {title}
-      </p>
+      <div className="space-y-0.5">
+        <h3 className="text-lg md:text-2xl font-bold text-gray-900 tracking-tight">
+          {formatValue(value)}
+        </h3>
+        <p className="text-gray-500 text-[10px] md:text-xs font-semibold uppercase tracking-widest">
+          {title}
+        </p>
+      </div>
     </div>
   )
 }
@@ -134,7 +155,7 @@ export const DashboardStatsComponent: React.FC<DashboardStatsProps> = ({
   const displayStats = stats || defaultStats
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
       <MetricCard
         title="Total Sales"
         value={displayStats.totalSales}

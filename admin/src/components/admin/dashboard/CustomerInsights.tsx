@@ -70,92 +70,110 @@ const CustomerActivityTable: React.FC<CustomerActivityProps> = ({ rid }) => {
   }
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-      <div className="flex items-center justify-between mb-6">
+    <div className="bg-white p-4 md:p-6 rounded-2xl shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)] border border-gray-100">
+      <div className="flex items-center justify-between mb-5">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">
+          <h3 className="text-lg font-bold text-gray-900">
             Customer Ordering Activity
           </h3>
-          <p className="text-sm text-gray-500">
+          <p className="text-xs md:text-sm text-gray-500 font-medium">
             Recent activity by customers during the selected period
           </p>
         </div>
       </div>
 
-      <div className="rounded-lg border border-gray-200 overflow-hidden">
-        <Table>
-          <TableHeader className="bg-gray-50">
-            <TableRow>
-              <TableHead className="font-medium">Customer</TableHead>
-              <TableHead className="font-medium">Orders</TableHead>
-              <TableHead className="font-medium">Total Spent</TableHead>
-              <TableHead className="font-medium">Last Order</TableHead>
-              <TableHead className="font-medium">Items Ordered</TableHead>
-              <TableHead className="font-medium">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedData.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="h-24 text-center text-gray-500"
-                >
-                  No activity found for this period
-                </TableCell>
+      <div className="rounded-xl border border-gray-100 overflow-hidden bg-white shadow-sm">
+        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+          <Table>
+            <TableHeader className="bg-gray-50/50">
+              <TableRow className="hover:bg-transparent border-gray-100">
+                <TableHead className="font-semibold text-gray-700 text-xs py-3">
+                  Customer
+                </TableHead>
+                <TableHead className="font-semibold text-gray-700 text-xs py-3 text-center">
+                  Orders
+                </TableHead>
+                <TableHead className="font-semibold text-gray-700 text-xs py-3">
+                  Total Spent
+                </TableHead>
+                <TableHead className="font-semibold text-gray-700 text-xs py-3">
+                  Last Order
+                </TableHead>
+                <TableHead className="font-semibold text-gray-700 text-xs py-3">
+                  Items Ordered
+                </TableHead>
+                <TableHead className="font-semibold text-gray-700 text-xs py-3 text-right">
+                  Action
+                </TableHead>
               </TableRow>
-            ) : (
-              paginatedData.map((row) => (
-                <TableRow key={row.userId} className="hover:bg-gray-50/50">
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="font-medium text-gray-900">
-                        {row.customerName || 'Guest'}
-                      </span>
-                      <span className="text-xs text-gray-500 flex items-center gap-1">
-                        <Phone className="w-3 h-3" /> {row.phoneNumber || 'N/A'}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1 font-medium">
-                      <ShoppingBag className="w-3 h-3 text-orange-500" />
-                      {row.totalOrders}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="font-medium text-emerald-600">
-                      ₹{row.totalSpent.toFixed(2)}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1 text-gray-600 text-xs">
-                      <Calendar className="w-3 h-3" />
-                      {formatDateTime(row.lastOrderDate)}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span
-                      className="text-xs text-gray-500 truncate max-w-[200px] block"
-                      title={row.topItems}
-                    >
-                      {row.topItems}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <Link
-                      to="/reports/crm"
-                      search={{ customerId: row.userId.toString() }}
-                      className="text-orange-600 hover:text-orange-700 hover:underline text-xs flex items-center gap-1"
-                    >
-                      Details <ExternalLink className="w-3 h-3" />
-                    </Link>
+            </TableHeader>
+            <TableBody>
+              {paginatedData.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={6}
+                    className="h-32 text-center text-gray-400 font-medium"
+                  >
+                    No activity found for this period
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : (
+                paginatedData.map((row) => (
+                  <TableRow
+                    key={row.userId}
+                    className="hover:bg-gray-50/30 border-gray-100 transition-colors"
+                  >
+                    <TableCell className="py-3">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-gray-900 text-sm">
+                          {row.customerName || 'Guest'}
+                        </span>
+                        <span className="text-[10px] md:text-xs text-gray-500 flex items-center gap-1 font-medium mt-0.5">
+                          <Phone className="w-3 h-3 text-gray-400" />{' '}
+                          {row.phoneNumber || 'N/A'}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-3 text-center">
+                      <div className="inline-flex items-center gap-1.5 font-bold text-gray-700 bg-gray-50 px-2 py-1 rounded-lg text-xs">
+                        <ShoppingBag className="w-3 h-3 text-orange-500" />
+                        {row.totalOrders}
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-3">
+                      <span className="font-bold text-emerald-600 text-sm">
+                        ₹{row.totalSpent.toFixed(2)}
+                      </span>
+                    </TableCell>
+                    <TableCell className="py-3">
+                      <div className="flex items-center gap-1.5 text-gray-600 text-[10px] md:text-xs font-medium">
+                        <Calendar className="w-3 h-3 text-gray-400" />
+                        {formatDateTime(row.lastOrderDate)}
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-3">
+                      <span
+                        className="text-[10px] md:text-xs text-gray-500 truncate max-w-[150px] md:max-w-[200px] block font-medium"
+                        title={row.topItems}
+                      >
+                        {row.topItems}
+                      </span>
+                    </TableCell>
+                    <TableCell className="py-3 text-right">
+                      <Link
+                        to="/reports/crm"
+                        search={{ customerId: row.userId.toString() }}
+                        className="inline-flex items-center gap-1 text-orange-600 hover:text-orange-700 font-bold text-xs bg-orange-50 hover:bg-orange-100 px-2 py-1 rounded-lg transition-all"
+                      >
+                        Details <ExternalLink className="w-3 h-3" />
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       {/* Pagination */}

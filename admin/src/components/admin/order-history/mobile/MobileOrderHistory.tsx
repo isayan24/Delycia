@@ -1,11 +1,10 @@
-import React, { memo, useState, useCallback } from 'react'
+import { memo, useState, useCallback } from 'react'
 import MobileOrderCard from './MobileOrderCard'
 import MobileOrderDrawer from './MobileOrderDrawer'
 import { OrderInfoSkeleton } from '../LoadingSkeleton'
 import { TransformedOrder } from '../utils/orderHistoryUtils'
 import { PrintBillDialog } from '../shared/PrintBillDialog'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
-import { formatISTDateTime } from '../utils/historyDateUtils'
 import { formatDateTime } from '@/utils/dateUtils'
 
 interface MobileOrderHistoryProps {

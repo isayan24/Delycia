@@ -17,6 +17,7 @@ interface QuickRestockButtonProps {
   currentStock: number
   itemName: string
   onStockUpdate?: () => void
+  className?: string
 }
 
 export function QuickRestockButton({
@@ -25,6 +26,7 @@ export function QuickRestockButton({
   currentStock,
   itemName,
   onStockUpdate,
+  className,
 }: QuickRestockButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [stockValue, setStockValue] = useState(currentStock)
@@ -69,7 +71,7 @@ export function QuickRestockButton({
         <Button
           variant="outline"
           size="sm"
-          className="gap-2 text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700"
+          className={`gap-2 text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700 ${className || ''}`}
         >
           <Zap className="h-4 w-4" />
           Quick Restock

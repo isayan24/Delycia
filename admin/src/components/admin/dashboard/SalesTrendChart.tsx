@@ -142,64 +142,84 @@ export const SalesTrendChart: React.FC<SalesTrendChartProps> = ({
   const totalOrders = data.reduce((sum, item) => sum + item.orders, 0)
 
   return (
-    <div className="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-      <div className="flex items-center justify-between mb-4">
+    <div className="lg:col-span-2 bg-white rounded-2xl p-4 md:p-6 shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)] border border-gray-100">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Sales Trend</h3>
-          <div className="flex items-center space-x-4 mt-1">
-            <span className="text-sm text-gray-600">
-              Total Sales:{' '}
-              <span className="font-semibold text-orange-600">
+          <h3 className="text-lg font-bold text-gray-900 tracking-tight">
+            Sales Trend
+          </h3>
+          <div className="flex flex-wrap items-center gap-3 mt-1.5">
+            <div className="flex items-center gap-1.5 bg-orange-50 px-2 py-1 rounded-lg">
+              <span className="text-[10px] uppercase tracking-wider font-bold text-orange-400">
+                Revenue
+              </span>
+              <span className="text-sm font-bold text-orange-600">
                 {formatCurrency(totalSales)}
               </span>
-            </span>
-            <span className="text-sm text-gray-600">
-              Total Orders:{' '}
-              <span className="font-semibold text-blue-600">
+            </div>
+            <div className="flex items-center gap-1.5 bg-blue-50 px-2 py-1 rounded-lg">
+              <span className="text-[10px] uppercase tracking-wider font-bold text-blue-400">
+                Orders
+              </span>
+              <span className="text-sm font-bold text-blue-600">
                 {totalOrders.toLocaleString()}
               </span>
-            </span>
+            </div>
           </div>
         </div>
         {loading && (
-          <div className="flex items-center space-x-2 text-sm text-gray-500">
-            <div className="animate-spin rounded-full h-4 w-4 border-2 border-orange-500 border-t-transparent"></div>
-            <span>Updating...</span>
+          <div className="flex items-center gap-2 text-xs font-semibold text-gray-400 bg-gray-50 px-3 py-1.5 rounded-full animate-pulse">
+            <div className="animate-spin rounded-full h-3 w-3 border-2 border-orange-500 border-t-transparent"></div>
+            <span>Syncing Data...</span>
           </div>
         )}
       </div>
 
-      <div className="h-[300px]">
+      <div className="h-[250px] md:h-[300px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={data}
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+            <defs>
+              <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#fb923c" stopOpacity={0.1} />
+                <stop offset="95%" stopColor="#fb923c" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid
+              strokeDasharray="3 3"
+              vertical={false}
+              stroke="#f3f4f6"
+            />
             <XAxis
               dataKey="date"
-              tick={{ fontSize: 12 }}
-              axisLine={{ stroke: '#e5e7eb' }}
-              tickLine={{ stroke: '#e5e7eb' }}
+              tick={{ fontSize: 10, fontWeight: 600, fill: '#9ca3af' }}
+              axisLine={false}
+              tickLine={false}
+              dy={10}
               tickFormatter={formatXAxisTick}
             />
             <YAxis
-              tick={{ fontSize: 12 }}
-              axisLine={{ stroke: '#e5e7eb' }}
-              tickLine={{ stroke: '#e5e7eb' }}
+              tick={{ fontSize: 10, fontWeight: 600, fill: '#9ca3af' }}
+              axisLine={false}
+              tickLine={false}
               tickFormatter={formatYAxisTick}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip
+              content={<CustomTooltip />}
+              cursor={{ stroke: '#f3f4f6', strokeWidth: 2 }}
+            />
             <Line
               type="monotone"
               dataKey="sales"
               stroke="#fb923c"
               strokeWidth={3}
-              dot={{ fill: '#fb923c', strokeWidth: 2, r: 4 }}
+              dot={false}
               activeDot={{
                 r: 6,
                 stroke: '#fb923c',
-                strokeWidth: 2,
+                strokeWidth: 3,
                 fill: '#fff',
               }}
               name="Sales"
@@ -209,7 +229,7 @@ export const SalesTrendChart: React.FC<SalesTrendChartProps> = ({
               dataKey="orders"
               stroke="#3b82f6"
               strokeWidth={2}
-              dot={{ fill: '#3b82f6', strokeWidth: 2, r: 3 }}
+              dot={false}
               activeDot={{
                 r: 5,
                 stroke: '#3b82f6',

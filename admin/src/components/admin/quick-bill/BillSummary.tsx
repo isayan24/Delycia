@@ -17,6 +17,10 @@ interface BillSummaryProps {
   onOrderComplete: () => void
   discount: number
   setDiscount: (discount: number) => void
+  subtotal: number
+  taxAmount: number
+  taxPercent: number
+  totalAmount: number
 }
 
 export default function BillSummary({
@@ -26,6 +30,10 @@ export default function BillSummary({
   onOrderComplete,
   discount,
   setDiscount,
+  subtotal,
+  taxAmount,
+  taxPercent,
+  totalAmount,
 }: BillSummaryProps) {
   const { isAuthenticated } = useAdminAuthQuery()
   const { selectedRestaurant } = useRestaurantSelector()
@@ -34,18 +42,13 @@ export default function BillSummary({
   const [completedOrderData, setCompletedOrderData] = useState<any>(null)
   const { showSuccess, showError } = useToast()
 
-  const subtotal = cart.reduce(
-    (sum, item) => sum + (item.price ?? item.cost_price) * item.quantity,
-    0,
-  )
-
-  // Ensure discount doesn't exceed subtotal and is non-negative
-  const validatedDiscount = Math.max(0, Math.min(discount, subtotal))
-  const totalAmount = subtotal - validatedDiscount
+  // Ensure discount doesn't exceed subtotal
+  // Note: Parent component handles calculation, this is just for input validation visuals if needed
+  const validatedDiscount = Math.min(discount, subtotal)
 
   const handleDiscountChange = (value: string) => {
     const numValue = parseFloat(value) || 0
-    setDiscount(Math.max(0, numValue)) // Allow any positive value, validation happens in calculation
+    setDiscount(Math.max(0, numValue))
   }
 
   const handlePlaceOrder = async () => {
@@ -62,8 +65,9 @@ export default function BillSummary({
       return
     }
 
-    // Try to get RID from categories (assuming they are loaded and belong to the same restaurant)
-    const rid = cart[0]?.rid
+    // Try to get RID from categories (assuming items loaded or use selectedRestaurant)
+    // Fallback to selectedRestaurant?.id if item rid not present
+    const rid = cart[0]?.rid || selectedRestaurant?.id
     if (!rid) {
       showError('Error', 'System Error: Restaurant ID not found')
       return
@@ -80,7 +84,7 @@ export default function BillSummary({
           username: selectedCustomer.username,
           name: selectedCustomer.name,
           phone_number: selectedCustomer.phone_number,
-          id: selectedCustomer.id || undefined, // Pass ID if it exists (existing user)
+          id: selectedCustomer.id || undefined,
         },
         orderItems: cart.map((item) => ({
           ...item,
@@ -94,15 +98,14 @@ export default function BillSummary({
           totalItemAmount: item.price * item.quantity,
         })),
       }
-      // Use axios directly for internal Next.js API route to avoid base URL issues
-      // Importing locally if not available or assuming axios is available
+
       const { default: axios } = await import('axios')
       const res = await axios.post('/api/quick-bill', payload)
 
       if (res.data && (res.data.success || res.data.status === 201)) {
         showSuccess('Success', 'Order placed successfully')
-        // fix use orderDate: new Date().toLocaleString(), instead of other date formatter
-        // Prepare bill data for printing
+
+        // Prepare bill data for printing using the calculated values
         const billData = {
           orderId: res.data.order_id || 'New',
           restaurantName: selectedRestaurant?.name || 'Restaurant',
@@ -112,13 +115,16 @@ export default function BillSummary({
           items: cart.map((i: any) => ({
             name: i.cartItemName || i.name,
             quantity: i.quantity,
-            price: (i.price || i.cost_price) * i.quantity, // Show total line price
+            price: (i.price || i.cost_price) * i.quantity,
             addons: i.addons,
           })),
           discountAmount: validatedDiscount,
           totalAmount: subtotal,
-          taxPercent: selectedRestaurant?.tax_percent || 0,
-          taxAmount: (subtotal * (selectedRestaurant?.tax_percent || 0)) / 100,
+          grandTotal: totalAmount,
+          subtotal: subtotal,
+          taxPercent: taxPercent,
+          taxAmount: taxAmount,
+
           orderDate: new Date().toLocaleString('en-IN', {
             year: 'numeric',
             month: 'short',
@@ -246,6 +252,13 @@ export default function BillSummary({
               <span>-₹{validatedDiscount.toFixed(2)}</span>
             </div>
           )}
+
+          {/* Tax Row */}
+          <div className="flex justify-between text-gray-600">
+            <span>Tax ({taxPercent}%)</span>
+            <span>₹{taxAmount.toFixed(2)}</span>
+          </div>
+
           <div className="flex justify-between items-center pt-2 border-t text-base font-bold">
             <span>Total</span>
             <span>₹{totalAmount.toFixed(2)}</span>

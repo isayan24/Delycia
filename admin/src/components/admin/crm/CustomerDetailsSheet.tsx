@@ -19,6 +19,7 @@ import {
   XCircle,
   Package,
 } from 'lucide-react'
+import { formatDateTime } from '@/utils/dateUtils'
 
 interface CustomerDetailsSheetProps {
   customerId: string | null
@@ -131,7 +132,7 @@ export default function CustomerDetailsSheet({
                               </div>
                               <div className="text-xs text-gray-500 flex items-center gap-1.5 mt-1">
                                 <Calendar className="w-3.5 h-3.5" />
-                                {formatISTDateTime(order.created_at)}
+                                {formatDateTime(order.created_at)}
                               </div>
                             </div>
                             <div className="text-right">
@@ -144,8 +145,6 @@ export default function CustomerDetailsSheet({
                               <OrderItemTotal
                                 total={order.total_amount}
                                 discount={order.discount_amount}
-                                taxPercent={order.tax_percent}
-                                taxAmount={order.tax_amount}
                               />
                               <div
                                 className={`flex items-center justify-end gap-1.5 mt-1 text-xs font-medium capitalize ${
@@ -263,9 +262,7 @@ function OrderItemTotal({
         ₹{grandTotal.toLocaleString()}
       </div>
       {taxValue > 0 && (
-        <div className="text-xs text-gray-600 mt-0.5">
-          +₹{taxValue} tax
-        </div>
+        <div className="text-xs text-gray-600 mt-0.5">+₹{taxValue} tax</div>
       )}
     </div>
   )

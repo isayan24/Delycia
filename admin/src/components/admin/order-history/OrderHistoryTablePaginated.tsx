@@ -10,7 +10,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Printer } from 'lucide-react'
-import { formatISTDateTime } from './utils/historyDateUtils'
 import { formatDateTime } from '@/utils/dateUtils'
 import { TableFilters } from './table/components/TableFilters'
 import { TablePagination } from './table/components/TablePagination'
@@ -18,6 +17,7 @@ import { OrderItemsCell } from './table/components/OrderItemsCell'
 import { PrintBillDialog } from './shared/PrintBillDialog'
 import { Checkbox } from '@/components/ui/checkbox'
 import OrderTotalWithTooltip from './shared/OrderTotalWithTooltip'
+import CustomerAvatar from './CustomerAvatar'
 
 import { useMergeOrders } from '@/hooks/mutations/useMergeOrders'
 import useToast from '@/hooks/UseToast'
@@ -224,34 +224,34 @@ export default function OrderHistoryTablePaginated({
 
       {/* Table - Scrollable */}
       <Table className="overflow-auto mb-12">
-        <TableHeader>
-          <TableRow className="bg-gray-50">
+        <TableHeader className="bg-gray-50/50">
+          <TableRow className="hover:bg-transparent border-gray-100">
             {isSelectionMode && <TableHead className="w-[50px]"></TableHead>}
-            <TableHead className="py-2 px-2 text-xs sm:text-sm font-semibold w-[80px]">
-              ID
+            <TableHead className="font-bold text-gray-700 text-xs uppercase tracking-wider py-4 pl-4 w-[100px]">
+              Order ID
             </TableHead>
-            <TableHead className="py-2 px-2 text-xs sm:text-sm font-semibold">
+            <TableHead className="font-bold text-gray-700 text-xs uppercase tracking-wider py-4">
               Items
             </TableHead>
-            <TableHead className="py-2 px-2 text-xs sm:text-sm font-semibold">
+            <TableHead className="font-bold text-gray-700 text-xs uppercase tracking-wider py-4">
               Customer
             </TableHead>
-            <TableHead className="py-2 px-2 text-xs sm:text-sm font-semibold">
+            <TableHead className="font-bold text-gray-700 text-xs uppercase tracking-wider py-4">
               Status
             </TableHead>
-            <TableHead className="py-2 px-2 text-xs sm:text-sm font-semibold hidden lg:table-cell">
+            <TableHead className="font-bold text-gray-700 text-xs uppercase tracking-wider py-4 hidden lg:table-cell">
               Discount
             </TableHead>
-            <TableHead className="py-2 px-2 text-xs sm:text-sm font-semibold">
+            <TableHead className="font-bold text-gray-700 text-xs uppercase tracking-wider py-4">
               Amount
             </TableHead>
-            <TableHead className="py-2 px-2 text-xs sm:text-sm font-semibold hidden md:table-cell">
+            <TableHead className="font-bold text-gray-700 text-xs uppercase tracking-wider py-4 hidden md:table-cell">
               Table
             </TableHead>
-            <TableHead className="py-2 px-2 text-xs sm:text-sm font-semibold hidden sm:table-cell">
+            <TableHead className="font-bold text-gray-700 text-xs uppercase tracking-wider py-4 hidden sm:table-cell">
               Date & Time
             </TableHead>
-            <TableHead className="py-2 px-2 text-xs sm:text-sm font-semibold text-right">
+            <TableHead className="text-right font-bold text-gray-700 text-xs uppercase tracking-wider py-4 pr-6">
               Actions
             </TableHead>
           </TableRow>
@@ -289,14 +289,14 @@ export default function OrderHistoryTablePaginated({
                 )}
 
                 {/* ID */}
-                <TableCell className="py-2 px-2">
-                  <div className="font-mono text-[10px] sm:text-xs text-gray-500 truncate max-w-[60px] sm:max-w-none">
+                <TableCell className="py-3.5 pl-4">
+                  <div className="text-[11px] sm:text-xs text-gray-900 bg-gray-50 px-2 py-0.5 rounded-lg border border-gray-100/50 inline-block">
                     #{order.orderId || order.id || 'N/A'}
                   </div>
                 </TableCell>
 
                 {/* Items */}
-                <TableCell className="py-2 px-2 max-w-[150px] sm:max-w-[200px]">
+                <TableCell className="py-3.5 max-w-[150px] sm:max-w-[200px]">
                   <OrderItemsCell
                     order={order}
                     expandedOrders={expandedOrders}
@@ -305,32 +305,40 @@ export default function OrderHistoryTablePaginated({
                 </TableCell>
 
                 {/* Customer */}
-                <TableCell className="py-2 px-2">
-                  <div className="text-xs sm:text-sm">
-                    <div className="truncate max-w-[80px] sm:max-w-none">
-                      {order.customerName ||
+                <TableCell className="py-3.5">
+                  <div className="flex items-center gap-3">
+                    <CustomerAvatar
+                      initials={(
+                        order.customerName ||
                         order.customer_name ||
-                        order.customer?.name ||
-                        'N/A'}
-                    </div>
-                    <div className="text-[10px] text-gray-500 hidden sm:block">
-                      {order.customerId ||
-                        order.customer_id ||
-                        order.customer?.phone ||
-                        ''}
+                        'G'
+                      ).charAt(0)}
+                      name={
+                        order.customerName || order.customer_name || 'Guest'
+                      }
+                      size="md"
+                      className="bg-linear-to-br from-orange-300 to-orange-400 text-gray-600 border border-white shadow-xs"
+                    />
+                    <div className="flex flex-col min-w-0">
+                      <span className=" text-gray-900 text-xs sm:text-sm truncate">
+                        {order.customerName || order.customer_name || 'Guest'}
+                      </span>
+                      <span className="text-[10px] text-gray-400 font-medium">
+                        {order.customerId || order.customer_id || ''}
+                      </span>
                     </div>
                   </div>
                 </TableCell>
 
                 {/* Status */}
-                <TableCell className="py-2 px-2">
+                <TableCell className="py-3.5">
                   <Badge
-                    variant="outline"
-                    className={`px-1.5 py-0.5 text-[10px] sm:text-xs font-[500] uppercase tracking-wider ${
+                    variant="secondary"
+                    className={`px-2 py-0.5 text-[10px] sm:text-[11px]  uppercase tracking-tight border-none ${
                       order.order_status === 'completed' ||
                       order.status === 'DELIVERED'
-                        ? 'bg-green-50 text-green-700 border-green-200'
-                        : 'bg-red-50 text-red-700 border-red-200'
+                        ? 'bg-emerald-50 text-emerald-600'
+                        : 'bg-rose-50 text-rose-600'
                     }`}
                   >
                     {order.order_status === 'completed' ||
@@ -389,16 +397,18 @@ export default function OrderHistoryTablePaginated({
                 </TableCell>
 
                 {/* Actions */}
-                <TableCell className="py-2 px-2 text-right">
+                <TableCell className="py-3.5 pr-6 text-right">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => handlePrintBill(order)}
-                    className="h-7 w-7 sm:h-8 sm:w-auto sm:px-3 p-0 sm:gap-1.5"
+                    className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3 p-0 sm:gap-1.5 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-xl transition-all"
                     title="Print Bill"
                   >
                     <Printer className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline text-xs">Print</span>
+                    <span className="hidden sm:inline text-xs font-bold">
+                      Print
+                    </span>
                   </Button>
                 </TableCell>
               </TableRow>

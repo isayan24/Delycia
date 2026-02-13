@@ -63,6 +63,8 @@ export const UseAdminOrderHistory = ({ rid }: UseAdminOrdersProps) => {
   const paginationMeta = orderHistoryData
     ? {
         total_orders: orderHistoryData.total_orders,
+        total_delivered: orderHistoryData.total_delivered,
+        total_cancelled: orderHistoryData.total_cancelled,
         total_pages: orderHistoryData.total_pages,
         current_page: orderHistoryData.current_page,
         per_page: orderHistoryData.per_page,

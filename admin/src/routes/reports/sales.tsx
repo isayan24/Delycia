@@ -71,21 +71,22 @@ function SalesReportPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 bg-white p-3 rounded-lg shadow-sm border border-gray-100">
+    <div className="space-y-4 md:space-y-6 px-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100/80">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-gray-900">
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight text-gray-900">
             Sales Report
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             Analyze your sales performance and trends.
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full md:w-auto">
-          <div className="w-full md:w-auto">
-            <DateFilterComponent />
-          </div>
-          <StatefulButton onClick={handleRefresh} className="w-auto shadow-sm">
+        <div className="flex items-center gap-2">
+          <DateFilterComponent className="flex-1 sm:flex-none" />
+          <StatefulButton
+            onClick={handleRefresh}
+            className="shadow-sm border-orange-100 hover:bg-orange-50 hover:text-orange-600 transition-all duration-200"
+          >
             Refresh
           </StatefulButton>
         </div>
@@ -94,7 +95,7 @@ function SalesReportPage() {
       <div className="flex items-center justify-between px-1">
         <DateRangeDisplay />
         {hasError && (
-          <div className="flex items-center space-x-2 text-xs text-red-600">
+          <div className="flex items-center space-x-2 text-xs text-red-600 bg-red-50 px-2 py-1 rounded-md border border-red-100">
             <AlertCircle className="w-3.5 h-3.5" />
             <span>Some data failed to load</span>
           </div>

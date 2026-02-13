@@ -92,17 +92,17 @@ export function TableFilters({
     <div className="flex items-center gap-2 w-full relative" ref={filterRef}>
       {/* Search Bar - Takes available space */}
       <div className="relative flex-1 group">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
+        <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
         <Input
           placeholder="Search items, customers..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-9 h-10 text-sm w-full bg-gray-50/50 border-gray-200 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all rounded-xl"
+          className="pl-10 h-10 text-sm w-full bg-white border-gray-100 focus:bg-white focus:ring-orange-500/10 transition-all rounded-xl"
         />
         {search && (
           <button
             onClick={() => onSearchChange('')}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className="absolute right-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -113,10 +113,10 @@ export function TableFilters({
       <Button
         variant={showFilters ? 'secondary' : 'outline'}
         onClick={() => setShowFilters(!showFilters)}
-        className={`gap-2 h-10 text-sm px-3 sm:px-4 shrink-0 transition-all rounded-xl border-gray-200 ${
+        className={`gap-2 h-10 text-xs font-bold uppercase tracking-tight px-4 shrink-0 transition-all rounded-xl ${
           showFilters
-            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-            : 'bg-white text-gray-600 hover:bg-gray-50'
+            ? 'bg-orange-50 text-orange-600 border-orange-100 shadow-sm'
+            : 'bg-white text-gray-500 border-gray-100 hover:bg-gray-50'
         }`}
       >
         <Filter className="w-4 h-4" />
@@ -201,20 +201,20 @@ export function TableFilters({
       )}
 
       {/* Merge Actions - Integrated */}
-      <div className="flex items-center border-l border-gray-100 pl-3 ml-1">
+      <div className="flex items-center border-l border-gray-100 pl-3 ml-1 gap-2">
         {!isSelectionMode ? (
           <Button
             variant="outline"
             size="sm"
             onClick={toggleSelectionMode}
-            className="gap-2 h-10 text-sm px-3 sm:px-4 rounded-xl border-gray-200 text-gray-600 hover:bg-gray-50 transition-all"
+            className="gap-2 h-10 text-xs font-bold uppercase tracking-tight px-4 rounded-xl border-gray-100 text-gray-500 hover:bg-gray-50 transition-all"
           >
             <Merge className="w-4 h-4" />
             <span className="hidden xs:inline">Merge</span>
           </Button>
         ) : (
           <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-2 duration-300">
-            <span className="text-xs text-gray-500 font-medium whitespace-nowrap hidden lg:inline">
+            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tight whitespace-nowrap hidden lg:inline bg-gray-50 px-2 py-1 rounded-lg">
               {selectedCount > 0
                 ? `${selectedCount} selected`
                 : 'Select orders'}
@@ -223,7 +223,7 @@ export function TableFilters({
               variant="ghost"
               size="sm"
               onClick={toggleSelectionMode}
-              className="h-10 px-3 text-sm text-gray-600 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+              className="h-10 px-4 text-xs font-bold uppercase tracking-tight text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
             >
               Cancel
             </Button>
@@ -231,7 +231,7 @@ export function TableFilters({
               size="sm"
               onClick={onMerge}
               disabled={isMergePending || selectedCount < 2}
-              className="gap-2 h-10 text-sm px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm transition-all"
+              className="gap-2 h-10 text-xs font-bold uppercase tracking-tight px-5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white shadow-[0_4px_12px_-4px_rgba(249,115,22,0.4)] transition-all active:scale-95"
             >
               <Merge className="w-4 h-4" />
               {isMergePending ? 'Merging...' : 'Merge'}

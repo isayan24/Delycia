@@ -69,8 +69,8 @@ export function CreateStaffDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
+        <Button className="w-full sm:w-auto gap-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-6 sm:py-2 rounded-xl sm:rounded-lg shadow-lg shadow-orange-200 transition-all active:scale-[0.98]">
+          <Plus className="h-5 w-5 sm:h-4 sm:w-4" />
           Add New Staff
         </Button>
       </DialogTrigger>

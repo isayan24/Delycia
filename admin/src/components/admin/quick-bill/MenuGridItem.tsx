@@ -24,7 +24,12 @@ interface MenuGridItemProps {
   // Global customization state
   isCustomizing: boolean
   setCustomizingId: (id: string | null) => void
-  onAddItem: (item: Item, variant?: Variant, addons?: any[]) => void
+  onAddItem: (
+    item: Item,
+    variant?: Variant,
+    addons?: any[],
+    behavior?: 'add' | 'toggle',
+  ) => void
 }
 
 export default function MenuGridItem({
@@ -40,10 +45,6 @@ export default function MenuGridItem({
   const hasVariants = variants.length > 0
   const isDesktop = useMediaQuery('(min-width: 768px)')
 
-  // Check if stock is explicitly 0.
-  // Assuming stock might be undefined/null effectively means in-stock unless strictly 0?
-  // Or is it the other way? For now, we'll treat strictly 0 or less as OOS to be safe.
-  // If stock property doesn't exist, we assume in stock for legacy items.
   const isOutOfStock =
     item.stock !== undefined && item.stock !== null && item.stock <= 0
 
@@ -75,57 +76,60 @@ export default function MenuGridItem({
         onClick?.()
       }}
       className={cn(
-        'group relative flex flex-col overflow-hidden shadow-sm transition-all duration-200',
-        'border-2',
+        'group relative flex flex-col overflow-hidden shadow-sm transition-all duration-200 rounded-lg',
+        'border',
         isOutOfStock
           ? 'cursor-not-allowed opacity-60 grayscale bg-gray-50 border-gray-100' // OOS Styles
-          : 'hover:shadow-md cursor-pointer bg-gray-100', // Normal Styles
+          : 'hover:shadow-md cursor-pointer bg-white border-gray-200/60', // Normal Styles
         !isOutOfStock && (isCustomizing || itemQuantity > 0)
-          ? 'border-primary bg-primary/5 ring-0'
-          : !isOutOfStock &&
-              'border-transparent ring-1 ring-slate-100 hover:ring-primary/20',
-        isCustomizing && !isOutOfStock && 'ring-0',
+          ? 'border-primary/50 bg-primary/5 ring-1 ring-primary/20'
+          : !isOutOfStock && 'hover:border-primary/30',
+        isCustomizing && !isOutOfStock && 'ring-1 ring-primary/50',
       )}
     >
       {itemQuantity > 0 && !isOutOfStock && (
-        <div className="absolute top-2 right-2 z-10 bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+        <div className="absolute top-2 right-2 z-10 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
           {itemQuantity}
         </div>
       )}
 
       {/* Image Area */}
-      <div className="relative aspect-4/3 overflow-hidden bg-gray-50">
+      <div className="relative aspect-10/8 overflow-hidden bg-gray-50 border-b border-gray-100/50">
         {item.img || (item.images && item.images.length > 0) ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={item.img || item.images[0]}
             alt={item.name}
-            className="h-full w-full object-cover "
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center text-muted-foreground bg-slate-50">
-            <ShoppingBag className="w-8 h-8 opacity-20 mb-2" />
-            <span className="text-xs font-medium opacity-50">No Image</span>
+            <ShoppingBag className="w-6 h-6 opacity-20 mb-1" />
+            <span className="text-[10px] font-medium opacity-50">No Image</span>
           </div>
         )}
 
-        {/* Veg/Non-Veg Indicator */}
-        <div className="absolute top-2 left-2">
-          {item.is_veg === 1 || item.is_veg === true ? (
-            <div className="h-4 w-4 rounded-sm border border-green-600 flex items-center justify-center bg-white/90 backdrop-blur-sm">
-              <div className="h-2 w-2 rounded-full bg-green-600"></div>
-            </div>
-          ) : item.is_veg === 0 || item.is_veg === false ? (
-            <div className="h-4 w-4 rounded-sm border border-red-600 flex items-center justify-center bg-white/90 backdrop-blur-sm">
-              <div className="h-2 w-2 rounded-full bg-red-600"></div>
-            </div>
-          ) : null}
-        </div>
+        {/* Veg/Non-Veg Indicator - Styled like CompactItemRow */}
+        {item.is_veg !== undefined && item.is_veg !== null && (
+          <div
+            className={cn(
+              'absolute top-1.5 left-1.5 w-3.5 h-3.5 rounded-sm border bg-white flex items-center justify-center shadow-sm',
+              item.is_veg ? 'border-green-600' : 'border-red-600',
+            )}
+          >
+            <div
+              className={cn(
+                'w-2 h-2 rounded-full',
+                item.is_veg ? 'bg-green-600' : 'bg-red-600',
+              )}
+            />
+          </div>
+        )}
 
         {/* Out of Stock Standard Badge */}
         {isOutOfStock && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/10 backdrop-blur-[1px]">
-            <span className="px-3 py-1 bg-gray-900/80 text-white text-xs font-bold rounded shadow-sm">
+            <span className="px-2 py-0.5 bg-gray-900/80 text-white text-[10px] font-bold rounded shadow-sm">
               Out of Stock
             </span>
           </div>
@@ -133,14 +137,14 @@ export default function MenuGridItem({
       </div>
 
       {/* Content Area */}
-      <CardContent className="flex flex-col gap-1 p-3">
-        <h3 className="font-semibold text-sm leading-tight text-gray-900 line-clamp-2 min-h-[2em]">
+      <CardContent className="flex flex-col gap-1 p-2.5">
+        <h3 className="font-semibold text-xs leading-tight text-gray-900 line-clamp-2 min-h-[2.5em] tracking-tight">
           {item.name}
         </h3>
 
         <div className="flex flex-wrap justify-between">
-          <div className="font-bold text-base text-primary">
-            {hasVariants ? 'From ' : ''}₹{item.price || item.cost_price || 0}
+          <div className="font-bold text-sm text-gray-900">
+            ₹{item.price || item.cost_price || 0}
           </div>
           <div>
             {hasVariants && (
@@ -157,7 +161,9 @@ export default function MenuGridItem({
   if (!hasVariants) {
     return (
       <div
-        onClick={() => !isOutOfStock && onAddItem(item)}
+        onClick={() =>
+          !isOutOfStock && onAddItem(item, undefined, [], 'toggle')
+        }
         className={isOutOfStock ? 'cursor-not-allowed' : ''}
       >
         <ItemCard />

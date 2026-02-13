@@ -22,7 +22,6 @@ export const CompactItemRow = React.memo<CompactItemRowProps>(
   ({ item, onEdit, onDelete, isHighlighted = false }) => {
     return (
       <Card
-        onClick={() => onEdit(item)}
         className={cn(
           'group relative overflow-hidden transition-all duration-200 cursor-pointer border shadow-sm',
           isHighlighted
@@ -32,13 +31,13 @@ export const CompactItemRow = React.memo<CompactItemRowProps>(
       >
         <CardContent className="p-2 flex gap-3">
           {/* Image */}
-          <div className="relative shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
+          <div className="relative shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
             {item?.images && item.images.length > 0 ? (
               <OptimizeImageLoader
                 src={item.images[0]}
                 alt={item.name}
-                width={80}
-                height={80}
+                width={64}
+                height={64}
                 className="object-cover w-full h-full"
               />
             ) : (
@@ -93,22 +92,22 @@ export const CompactItemRow = React.memo<CompactItemRowProps>(
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => onDelete(item)}
-                      className="text-red-600"
+                      className="text-red-600 hover:text-red-600!"
                     >
-                      <Trash2 className="w-4 h-4 mr-2" /> Delete
+                      <Trash2 className="w-4 h-4 mr-2 text-red-600" /> Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
             </div>
 
-            <div className="mt-1">
+            <div className="">
               <div className="flex items-baseline gap-1 text-green-700 font-bold text-base">
                 <span className="text-xs">₹</span>
                 {item.price}
               </div>
 
-              <div className="flex items-center gap-2 mt-1">
+              <div className="flex items-center gap-2">
                 <Badge
                   variant={
                     item.status === 'available' ? 'outline' : 'secondary'

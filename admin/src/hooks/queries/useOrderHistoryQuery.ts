@@ -15,6 +15,8 @@ interface OrderHistoryResponse {
   message: string
 
   total_orders: number
+  total_delivered: number
+  total_cancelled: number
   total_pages: number
   current_page: number
   per_page: number

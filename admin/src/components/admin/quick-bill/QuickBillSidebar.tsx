@@ -11,6 +11,10 @@ interface QuickBillSidebarProps {
   onOrderComplete: () => void
   discount: number
   setDiscount: (discount: number) => void
+  subtotal: number
+  taxAmount: number
+  taxPercent: number
+  grandTotal: number
 }
 
 export default function QuickBillSidebar({
@@ -21,6 +25,10 @@ export default function QuickBillSidebar({
   onOrderComplete,
   discount,
   setDiscount,
+  subtotal,
+  taxAmount,
+  taxPercent,
+  grandTotal,
 }: QuickBillSidebarProps) {
   return (
     <Card className="flex-1 flex flex-col overflow-hidden p-3 gap-3 h-full border-none shadow-none md:border md:shadow-sm">
@@ -39,6 +47,10 @@ export default function QuickBillSidebar({
           onOrderComplete={onOrderComplete}
           discount={discount}
           setDiscount={setDiscount}
+          subtotal={subtotal}
+          taxAmount={taxAmount}
+          taxPercent={taxPercent}
+          totalAmount={grandTotal}
         />
       </div>
     </Card>

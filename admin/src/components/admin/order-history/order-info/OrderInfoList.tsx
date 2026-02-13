@@ -83,7 +83,7 @@ ErrorState.displayName = 'ErrorState'
 
 // Loading state component
 const LoadingState = memo(() => (
-  <div className="w-[40%] h-full border flex flex-col p-4 overflow-y-auto">
+  <div className="w-full h-full border flex flex-col p-4 overflow-y-auto">
     <div className="space-y-2">
       {Array.from({ length: 5 }).map((_, index) => (
         <OrderInfoSkeleton key={index} />
@@ -116,7 +116,7 @@ const OrderCardWithTax = memo(
     const discountAmount = parseFloat(order.discountAmount || 0)
 
     // Use the tax calculation hook for consistent calculations
-    const { grandTotal, taxAmount, taxPercent } = useOrderTaxCalculation({
+    const { grandTotal } = useOrderTaxCalculation({
       subtotal,
       discountAmount,
       rid: order.rid,
@@ -133,8 +133,6 @@ const OrderCardWithTax = memo(
         items={order.items}
         totalAmount={grandTotal}
         discountAmount={discountAmount}
-        taxPercent={taxPercent}
-        taxAmount={taxAmount}
         isSelected={selectedOrderId === order.id}
         onClick={() => onOrderSelect(order.id)}
         onPrint={() => onPrintBill(order)}
@@ -153,7 +151,6 @@ const OrderInfoList = memo(function OrderInfoList({
   onRetry,
   pagination,
   currentPage,
-  onPageChange,
   onNextPage,
   onPrevPage,
   search,
@@ -234,7 +231,7 @@ const OrderInfoList = memo(function OrderInfoList({
   // Show error state
   if (error) {
     return (
-      <div className="w-[40%] h-full border flex flex-col p-4">
+      <div className="w-full h-full border flex flex-col p-4">
         <ErrorState error={error} onRetry={onRetry} />
       </div>
     )
@@ -243,121 +240,127 @@ const OrderInfoList = memo(function OrderInfoList({
   // Show empty state
   if (!orders || orders.length === 0) {
     return (
-      <div className="w-[40%] h-full border flex flex-col p-4">
+      <div className="w-full h-full border flex flex-col p-4">
         <EmptyState />
       </div>
     )
   }
 
   return (
-    <div className="w-[40%] h-full flex flex-col">
+    <div className="w-full h-full flex flex-col bg-white">
       {/* Compact Header with Search and Filters */}
-      <div className="p-3 py-0 pb-2 border-b flex gap-1">
-        {/* Search */}
-        <div className="relative flex-1 ">
-          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input
-            placeholder="Search orders..."
-            value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-8 h-8 text-sm"
-          />
-          {search && (
-            <button
-              onClick={() => onSearchChange('')}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
+      <div className="p-2.5 border-b border-gray-100/80 flex flex-col gap-2">
+        <div className="flex gap-1.5">
+          {/* Search */}
+          <div className="relative flex-1 group">
+            <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400 group-focus-within:text-orange-500 transition-colors" />
+            <Input
+              placeholder="Search ID, name..."
+              value={search}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="pl-8 h-8.5 text-xs bg-gray-50/50 border-gray-100 focus:bg-white focus:ring-orange-500/10 transition-all rounded-xl"
+            />
+            {search && (
+              <button
+                onClick={() => onSearchChange('')}
+                className="absolute right-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
 
-        <div className="flex items-center gap-2">
           <Button
-            variant="outline"
+            variant={showFilters ? 'secondary' : 'outline'}
             size="sm"
             onClick={() => setShowFilters(!showFilters)}
-            className="h-8 text-xs"
+            className={`h-8.5 text-[10px] font-bold uppercase tracking-tight px-2.5 rounded-xl transition-all ${
+              showFilters
+                ? 'bg-orange-50 text-orange-600 border-orange-100'
+                : 'bg-white text-gray-500 border-gray-100'
+            }`}
           >
             <Filter className="w-3 h-3 mr-1" />
-            {showFilters ? 'Hide' : 'Show'} Filters
+            {showFilters ? 'Hide' : 'Filter'}
           </Button>
+        </div>
 
-          {showFilters && (
-            <div className="flex gap-2">
-              {/* Start Date */}
-              <Popover open={isStartDateOpen} onOpenChange={setIsStartDateOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="h-8 text-xs justify-start"
-                  >
-                    <CalendarIcon className="w-3 h-3 mr-1" />
-                    {startDate ? format(startDate, 'dd/MM') : 'From'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={startDate}
-                    onSelect={(date) => {
-                      setStartDate(date)
-                      setIsStartDateOpen(false)
-                    }}
-                    autoFocus
-                  />
-                </PopoverContent>
-              </Popover>
+        {showFilters && (
+          <div className="flex flex-wrap gap-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+            {/* Start Date */}
+            <Popover open={isStartDateOpen} onOpenChange={setIsStartDateOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="h-8 text-[10px] font-medium justify-start px-2 rounded-lg border-gray-100"
+                >
+                  <CalendarIcon className="w-3 h-3 mr-1.5 text-gray-400" />
+                  {startDate ? format(startDate, 'dd MMM') : 'From'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={(date) => {
+                    setStartDate(date)
+                    setIsStartDateOpen(false)
+                  }}
+                  autoFocus
+                />
+              </PopoverContent>
+            </Popover>
 
-              {/* End Date */}
-              <Popover open={isEndDateOpen} onOpenChange={setIsEndDateOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="h-8 text-xs justify-start"
-                  >
-                    <CalendarIcon className="w-3 h-3 mr-1" />
-                    {endDate ? format(endDate, 'dd/MM') : 'To'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={(date) => {
-                      setEndDate(date)
-                      setIsEndDateOpen(false)
-                    }}
-                    autoFocus
-                  />
-                </PopoverContent>
-              </Popover>
+            {/* End Date */}
+            <Popover open={isEndDateOpen} onOpenChange={setIsEndDateOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="h-8 text-[10px] font-medium justify-start px-2 rounded-lg border-gray-100"
+                >
+                  <CalendarIcon className="w-3 h-3 mr-1.5 text-gray-400" />
+                  {endDate ? format(endDate, 'dd MMM') : 'To'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={endDate}
+                  onSelect={(date) => {
+                    setEndDate(date)
+                    setIsEndDateOpen(false)
+                  }}
+                  autoFocus
+                />
+              </PopoverContent>
+            </Popover>
 
+            <div className="flex gap-1 ml-auto">
               <Button
                 size="sm"
                 onClick={handleApplyDateRange}
-                className=" text-xs "
+                className="h-8 text-[10px] font-bold px-3 rounded-lg bg-orange-600 hover:bg-orange-500"
               >
                 Apply
               </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleClearAll}
-                className=" text-xs "
-              >
-                Clear
-              </Button>
+              {(startDate || endDate) && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleClearAll}
+                  className="h-8 text-[10px] font-bold px-2 rounded-lg text-rose-600 hover:bg-rose-50"
+                >
+                  Clear
+                </Button>
+              )}
             </div>
-          )}
-        </div>
-
-        {/* Date Filters (Collapsible) */}
+          </div>
+        )}
       </div>
 
       {/* Order List */}
-      <div className="flex-1 overflow-y-auto p-3">
-        <div className="space-y-2">
+      <div className="flex-1 overflow-y-auto bg-gray-50/20 scrollbar-none">
+        <div className="p-2.5 space-y-2">
           {orders.map((order, index) => (
             <OrderCardWithTax
               key={`${order.cartId}-${index}`}
@@ -373,60 +376,35 @@ const OrderInfoList = memo(function OrderInfoList({
 
       {/* Compact Pagination */}
       {totalPages > 1 && (
-        <div className="p-2 border-t bg-gray-50">
-          <div className="flex items-center justify-between">
+        <div className="p-2 border-t border-gray-100 bg-gray-50/50">
+          <div className="flex items-center justify-between gap-2">
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={onPrevPage}
               disabled={!hasPrevPage || loading}
-              className="h-7 px-2 text-xs"
+              className="h-8 px-2 text-[10px] font-bold uppercase tracking-tight text-gray-500 hover:text-orange-600"
             >
-              <ChevronLeft className="w-3 h-3 mr-1" />
+              <ChevronLeft className="w-4 h-4 mr-1" />
               Prev
             </Button>
 
             <div className="flex items-center gap-1">
-              {Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
-                let pageNum
-                if (totalPages <= 3) {
-                  pageNum = i + 1
-                } else if (currentPage <= 2) {
-                  pageNum = i + 1
-                } else if (currentPage >= totalPages - 1) {
-                  pageNum = totalPages - 2 + i
-                } else {
-                  pageNum = currentPage - 1 + i
-                }
-
-                return (
-                  <Button
-                    key={pageNum}
-                    variant={currentPage === pageNum ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => onPageChange(pageNum)}
-                    disabled={loading}
-                    className="h-7 w-7 p-0 text-xs"
-                  >
-                    {pageNum}
-                  </Button>
-                )
-              })}
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter bg-white px-2 py-0.5 rounded-lg border border-gray-100 shadow-xs">
+                {currentPage} / {totalPages}
+              </span>
             </div>
 
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={onNextPage}
               disabled={!hasNextPage || loading}
-              className="h-7 px-2 text-xs"
+              className="h-8 px-2 text-[10px] font-bold uppercase tracking-tight text-gray-500 hover:text-orange-600"
             >
               Next
-              <ChevronRight className="w-3 h-3 ml-1" />
+              <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
-          </div>
-          <div className="text-center text-xs text-gray-600 mt-1">
-            Page {currentPage} of {totalPages}
           </div>
         </div>
       )}

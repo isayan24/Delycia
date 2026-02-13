@@ -3,10 +3,14 @@ import { CategoryItem } from './CategoryItem'
 import { CompactCategoryItem } from './CompactCategoryItem'
 import AddCategory from './AddCategory'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
-import { FolderOpen, Plus } from 'lucide-react'
+import { Plus, FolderOpen } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+
+import { useAuth } from '@/hooks/useAuth'
 import { useMenuStore } from '@/store/useMenuStore'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import { useCategoriesQuery } from '@/hooks/queries'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface CategoryListProps {
   orientation?: 'vertical' | 'horizontal'
@@ -14,8 +18,12 @@ interface CategoryListProps {
 
 export const CategoryList = React.memo(
   ({ orientation = 'vertical' }: CategoryListProps) => {
+    const { isLoading: isAuthLoading } = useAuth()
     const { selectedRid } = useRestaurantSelector()
-    const { data: categoriesData } = useCategoriesQuery(selectedRid)
+    const { data: categoriesData, isLoading: isQueryLoading } =
+      useCategoriesQuery(selectedRid)
+
+    const isLoading = isAuthLoading || isQueryLoading
     const categories = categoriesData?.categories || []
 
     const {
@@ -72,28 +80,50 @@ export const CategoryList = React.memo(
     return (
       <div className="flex flex-col h-full">
         {/* Header */}
-        <div className="p-2 px-3 border-b rounded-t-md border-gray-200 bg-gradient-to-r from-white to-gray-50">
+        <div className="p-4 border-b border-gray-100 bg-white">
           <div className="flex items-center justify-between">
-            <div>
+            <div className="space-y-1">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <FolderOpen className="w-6 h-6 text-green-600" />
+                <div className="p-2 bg-green-50 rounded-lg">
+                  <FolderOpen className="w-5 h-5 text-green-600" />
+                </div>
                 Categories
               </h2>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-gray-500 font-medium ml-1">
                 {categories.length} total categories
               </p>
             </div>
-            <div className="p-4 border-b border-gray-100 bg-gray-50">
-              <AddCategory />
-            </div>
+            <AddCategory
+              trigger={
+                <Button className="bg-green-500 hover:bg-green-600 text-white rounded-lg px-4 h-10 gap-2 shadow-sm transition-all active:scale-95">
+                  <Plus className="w-4 h-4" />
+                  <span className="font-semibold">Add Category</span>
+                </Button>
+              }
+            />
           </div>
         </div>
 
         {/* Categories List */}
         <ScrollArea className="flex-1 overflow-auto">
-          <div className="p-2">
-            {categories.length > 0 ? (
-              <div className="space-y-2">
+          <div className="p-3">
+            {isLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-100"
+                  >
+                    <Skeleton className="w-14 h-14 rounded-xl" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-5 w-24" />
+                      <Skeleton className="h-4 w-16" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : categories.length > 0 ? (
+              <div className="space-y-3">
                 {categories.map((category: any) => (
                   <CategoryItem
                     key={category.id}

@@ -58,7 +58,7 @@ const OrderDetailsList = memo(function OrderDetailsList({
   }
 
   return (
-    <div className="w-[60%] h-full flex flex-col">
+    <div className="w-full h-full flex flex-col">
       <OrderDetailsCard
         orderId={selectedOrder.orderId}
         orderDate={selectedOrder.updatedAt}

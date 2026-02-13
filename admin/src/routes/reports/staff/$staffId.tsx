@@ -15,6 +15,8 @@ import {
   DollarSign,
   ChevronLeft,
   ChevronRight,
+  TrendingUp,
+  IndianRupee,
 } from 'lucide-react'
 import { requireAuth } from '@/middleware/auth'
 import { format } from 'date-fns'
@@ -128,200 +130,255 @@ function StaffOrdersPage() {
   const totalRevenue = parseInt(data?.summary?.total_revenue || 0)
   const totalOrders = parseInt(data?.summary?.total_orders || 0)
   const avgOrderValue = parseInt(data?.summary?.avg_order_value || 0)
- 
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-2 px-2 font-sans">
       {/* Header */}
-      <div className="bg-white p-4 max-[500px]:p-3 rounded-lg shadow-sm border border-gray-100">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          {/* Staff Info */}
-          <div className="flex items-center gap-3">
-            <Avatar className="h-12 w-12 max-[500px]:h-10 max-[500px]:w-10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)] border border-gray-100/80">
+        <div className="flex items-center space-x-2">
+          <div className="relative shrink-0">
+            <Avatar className="h-10 w-10 md:h-12 md:w-12 border-2 border-white shadow-sm">
               <AvatarImage src={data?.staff.profile_pic || undefined} />
-              <AvatarFallback className="text-lg max-[500px]:text-sm">
+              <AvatarFallback className="bg-orange-50 text-orange-600 font-bold text-sm md:text-base">
                 {data?.staff.name.substring(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <div>
-              <h1 className="text-lg max-[500px]:text-base font-bold tracking-tight text-gray-900">
-                {data?.staff.name}'s Order History
-              </h1>
-              <p className="text-xs text-muted-foreground">
-                @{data?.staff.username} • Role: {getRoleBadge(data?.staff.role)}
-              </p>
+            <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center">
+              <TrendingUp className="w-2 h-2 text-white" />
             </div>
           </div>
-
-          {/* Filters - Full width on mobile */}
-          <div className="flex items-center gap-2 relative z-50">
-            <DateFilterComponent />
-            <StatefulButton
-              onClick={handleRefresh}
-              className="w-auto shadow-sm shrink-0"
-            >
-              Refresh
-            </StatefulButton>
+          <div>
+            <h1 className="text-md md:text-lg font-semibold tracking-tight text-gray-900 leading-tight">
+              {data?.staff.name}'s History
+            </h1>
+            <div className="flex items-center gap-1 mt-0.3">
+              <span className="text-[10px] md:text-xs text-gray-400 font-medium lowercase">
+                @{data?.staff.username}
+              </span>
+              <span className="text-[10px] text-gray-300">•</span>
+              <div className="scale-75 origin-left">
+                {getRoleBadge(data?.staff.role)}
+              </div>
+            </div>
           </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="shrink-0 scale-90 md:scale-100 origin-right">
+            <DateFilterComponent />
+          </div>
+          <StatefulButton
+            onClick={handleRefresh}
+            className="h-9 md:h-10 px-4 text-xs md:text-sm font-bold bg-green-600 hover:bg-green-500 text-white rounded-xl shadow-sm transition-all active:scale-95"
+          >
+            Refresh
+          </StatefulButton>
         </div>
       </div>
 
-      <DateRangeDisplay />
+      {/* <DateRangeDisplay /> */}
 
-      {/* KPI Cards - Compact horizontal layout */}
-      <div className="flex flex-wrap gap-2">
-        <Card className="px-3 py-2 flex-1 min-w-[120px]">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-emerald-100 rounded">
-              <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
-            </div>
-            <div>
-              <p className="text-[10px] text-muted-foreground">Revenue</p>
-              <p className="text-sm font-bold">₹{totalRevenue}</p>
+      {/* KPI Cards - Horizontal scroll on mobile */}
+      <div className="flex flex-nowrap overflow-x-auto pb-2 -mx-3 px-3 md:grid md:grid-cols-3 gap-3 scrollbar-none">
+        {/* Total Revenue */}
+        <div className="flex-none w-auto p-2 rounded-2xl bg-white border border-orange-100  bg-linear-to-br from-white to-orange-50/30 transition-all hover:shadow-orange-500/10 group flex items-center gap-2.5">
+          <div className=" p-1.5 rounded-xl bg-orange-100 text-orange-600 group-hover:bg-orange-200 transition-colors">
+            <IndianRupee className="h-3.5 w-3.5 md:h-5 md:w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[8px] md:text-[10px] font-bold uppercase tracking-wider text-orange-500 group-hover:text-orange-600 whitespace-nowrap">
+              Revenue
+            </p>
+            <div className="flex items-baseline gap-1.5">
+              <h3 className="text-base md:text-xl font-black text-gray-900 leading-none">
+                ₹{totalRevenue.toLocaleString()}
+              </h3>
             </div>
           </div>
-        </Card>
+        </div>
 
-        <Card className="px-3 py-2 flex-1 min-w-[100px]">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-blue-100 rounded">
-              <ShoppingCart className="w-3.5 h-3.5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-[10px] text-muted-foreground">Orders</p>
-              <p className="text-sm font-bold">{totalOrders}</p>
+        {/* Total Orders */}
+        <div className="flex-none w-auto p-2 rounded-2xl bg-white border border-orange-100  bg-linear-to-br from-white to-orange-50/30 transition-all hover:shadow-orange-500/10 group flex items-center gap-2.5">
+          <div className=" p-1.5 rounded-xl bg-blue-100 text-blue-600 group-hover:bg-blue-200 transition-colors">
+            <ShoppingCart className="h-3.5 w-3.5 md:h-5 md:w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[8px] md:text-[10px] font-bold uppercase tracking-wider text-orange-500 group-hover:text-orange-600 whitespace-nowrap">
+              Orders
+            </p>
+            <div className="flex items-baseline gap-1.5">
+              <h3 className="text-base md:text-xl font-black text-gray-900 leading-none">
+                {totalOrders.toLocaleString()}
+              </h3>
             </div>
           </div>
-        </Card>
+        </div>
 
-        <Card className="px-3 py-2 flex-1 min-w-[100px]">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-amber-100 rounded">
-              <DollarSign className="w-3.5 h-3.5 text-amber-600" />
-            </div>
-            <div>
-              <p className="text-[10px] text-muted-foreground">Avg Value</p>
-              <p className="text-sm font-bold">₹{avgOrderValue.toFixed(0)}</p>
+        {/* Avg Order Value */}
+        <div className="flex-none w-auto p-2 rounded-2xl bg-white border border-orange-100  bg-linear-to-br from-white to-orange-50/30 transition-all hover:shadow-orange-500/10 group flex items-center gap-2.5">
+          <div className=" p-1.5 rounded-xl bg-amber-100 text-amber-600 group-hover:bg-amber-200 transition-colors">
+            <IndianRupee className="h-3.5 w-3.5 md:h-5 md:w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[8px] md:text-[10px] font-bold uppercase tracking-wider text-orange-500 group-hover:text-orange-600 whitespace-nowrap">
+              Avg Value
+            </p>
+            <div className="flex items-baseline gap-1.5">
+              <h3 className="text-base md:text-xl font-black text-gray-900 leading-none">
+                ₹{avgOrderValue.toFixed(0)}
+              </h3>
             </div>
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* Orders Table */}
-      <Card className="p-4 max-[500px]:p-2 flex flex-col h-[calc(100vh-19rem)]">
-        <h2 className="text-lg font-semibold mb-4">Order History</h2>
-        <div className="space-y-4 overflow-y-auto flex-1 pr-2">
-          {data?.orders &&
-            data?.orders.map((order) => (
-              <div
-                key={order.cart_id}
-                className="border rounded-lg p-4 hover:bg-gray-50"
-              >
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <p className="font-medium max-[500px]:text-sm">
-                      Order #{order.cart_id.slice(-8)}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {format(
-                        new Date(order.created_at),
-                        'MMM dd, yyyy hh:mm a',
-                      )}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-emerald-600">
-                      ₹
-                      {(
-                        parseFloat(order.order_total.toString()) -
-                        parseFloat((order.total_discount || 0).toString()) +
-                        parseFloat((order.tax_amount || 0).toString())
-                      ).toFixed(2)}
-                    </p>
-                    {order.tax_amount && parseFloat(order.tax_amount.toString()) > 0 && (
-                      <p className="text-xs text-gray-600">
-                        +₹{parseFloat(order.tax_amount.toString()).toFixed(2)} tax
-                      </p>
-                    )}
-                    <p className="text-xs text-muted-foreground capitalize">
-                      {order.order_status === 'settled'
-                        ? 'Completed'
-                        : order.order_status}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 mb-3 pb-3 border-b">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage
-                      src={order.customer_profile_pic || undefined}
-                    />
-                    <AvatarFallback>
-                      {order.customer_name.substring(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-sm font-medium">{order.customer_name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {order.customer_phone}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  {parseOrderItems(order.items).map(
-                    (item: any, idx: number) => (
-                      <div key={idx} className="flex justify-between text-sm">
-                        <span>
-                          {item.quantity}x {item.item_name}
-                        </span>
-                        <span className="font-medium">₹{item.price}</span>
-                      </div>
-                    ),
-                  )}
-                </div>
-
-                {order.total_discount > 0 && (
-                  <div className="mt-2 pt-2 border-t">
-                    <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>Discount</span>
-                      <span>-₹{order.total_discount}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
+      <div className="bg-white shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col h-[calc(100vh-15.6rem)] min-h-[400px]">
+        <div className=" px-2 border-b border-gray-100 bg-gray-50/30 p-2">
+          <h2 className="text-sm font-black uppercase tracking-wider text-gray-900">
+            Recent Orders
+          </h2>
         </div>
 
-        {/* Pagination */}
+        <div className="flex-1 overflow-y-auto py-3 space-y-3 scrollbar-none bg-gray-50/20">
+          {data?.orders && data?.orders.length > 0 ? (
+            data.orders.map((order) => {
+              const orderTotal = (
+                parseFloat(order.order_total.toString()) -
+                parseFloat((order.total_discount || 0).toString())
+              ).toFixed(2)
+
+              return (
+                <div
+                  key={order.cart_id}
+                  className="bg-white border border-gray-100 rounded-xl p-3.5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group overflow-hidden"
+                >
+                  <div className="flex flex-col gap-3">
+                    {/* Top Row: ID, Time, Status */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-[10px] md:text-xs font-black text-gray-400 uppercase tracking-tighter leading-none mb-1">
+                          #{order.cart_id.slice(-8)}
+                        </span>
+                        <span className="text-[10px] md:text-xs text-gray-500 font-bold leading-none">
+                          {format(
+                            new Date(order.created_at),
+                            'MMM dd, hh:mm a',
+                          )}
+                        </span>
+                      </div>
+                      <div className="flex flex-col items-end shrink-0">
+                        <span className="text-sm md:text-base font-black text-gray-900 leading-none mb-1">
+                          ₹{orderTotal}
+                        </span>
+                        <span
+                          className={`px-2 py-0.5 rounded-lg text-[9px] md:text-[10px] font-black uppercase tracking-tight border ${
+                            order.order_status === 'settled'
+                              ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                              : 'bg-orange-50 text-orange-600 border-orange-100'
+                          }`}
+                        >
+                          {order.order_status === 'settled'
+                            ? 'COMPLETED'
+                            : order.order_status}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Middle Row: Customer Info */}
+                    <div className="flex items-center gap-3 pt-2.5 border-t border-gray-50">
+                      <Avatar className="h-8 w-8 md:h-9 md:w-9 border-2 border-white shadow-xs">
+                        <AvatarImage
+                          src={order.customer_profile_pic || undefined}
+                        />
+                        <AvatarFallback className="bg-gray-100 text-gray-500 font-semibold text-[10px] md:text-xs">
+                          {order.customer_name.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="text-xs md:text-sm font-semibold text-gray-900 truncate uppercase tracking-tight">
+                          {order.customer_name}
+                        </p>
+                        <p className="text-[10px] md:text-xs text-gray-400 font-medium truncate">
+                          {order.customer_phone}
+                        </p>
+                      </div>
+                      {order.total_discount > 0 && (
+                        <div className="ml-auto flex items-center gap-1.5 px-2 py-1 bg-emerald-50 rounded-lg border border-emerald-100">
+                          <span className="text-[9px] md:text-[10px] font-black text-emerald-600 uppercase tracking-tight">
+                            -₹{order.total_discount}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Bottom Row: Items List */}
+                    <div className="bg-gray-50/50 rounded-lg p-2.5 space-y-1.5 border border-gray-100/50">
+                      {parseOrderItems(order.items).map(
+                        (item: any, idx: number) => (
+                          <div
+                            key={idx}
+                            className="flex justify-between items-center gap-2 text-xs"
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="font-black text-gray-400 text-[9px] md:text-[10px]">
+                                {item.quantity}×
+                              </span>
+                              <span className="font-bold text-gray-700 truncate text-[11px] md:text-sm leading-tight">
+                                {item.item_name}
+                              </span>
+                            </div>
+                            <span className="font-black text-gray-900 text-[10px] md:text-xs shrink-0">
+                              ₹{item.price}
+                            </span>
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
+            })
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="p-4 bg-gray-50 rounded-full mb-3">
+                <ShoppingCart className="w-8 h-8 text-gray-300" />
+              </div>
+              <p className="text-gray-400 font-bold text-sm uppercase tracking-wider">
+                No orders found
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Pagination Controls */}
         {data?.pagination && data.pagination.total_pages > 1 && (
-          <div className="flex justify-between items-center mt-4">
-            <div className="text-sm text-muted-foreground">
+          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/30">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
               Page {data.pagination.current_page} of{' '}
               {data.pagination.total_pages}
-            </div>
-            <div className="flex gap-1">
+            </p>
+            <div className="flex gap-2">
               <Button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={!data.pagination.has_prev_page}
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
+                className="h-9 px-4 text-xs font-bold uppercase tracking-tight bg-white border border-gray-100 text-gray-600 rounded-xl hover:bg-gray-50 shadow-sm transition-all"
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="w-4 h-4 mr-1" />
+                Previous
               </Button>
               <Button
                 onClick={() => setPage((p) => p + 1)}
                 disabled={!data.pagination.has_next_page}
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
+                className="h-9 px-4 text-xs font-bold uppercase tracking-tight bg-white border border-gray-100 text-gray-600 rounded-xl hover:bg-gray-50 shadow-sm transition-all"
               >
-                <ChevronRight className="h-4 w-4" />
+                Next
+                <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
           </div>
         )}
-      </Card>
+      </div>
     </div>
   )
 }

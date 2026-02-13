@@ -23,6 +23,7 @@ import {
   ShoppingCart,
   DollarSign,
   ChevronRight,
+  IndianRupee,
 } from 'lucide-react'
 import { requireAuth } from '@/middleware/auth'
 
@@ -156,145 +157,206 @@ function StaffReportsPage() {
   const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
 
   return (
-    <div className="space-y-4">
+    <div className="font-sans px-3 py-2 md:py-4 space-y-2">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 bg-white p-3 rounded-lg shadow-sm border border-gray-100">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight text-gray-900">
-            Staff Performance Reports
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Track staff performance and revenue contribution
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)] border border-gray-100/80">
+        <div className="flex items-center space-x-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-600">
+            <Users className="h-5 w-5 md:h-6 md:w-6" />
+          </div>
+          <div>
+            <h1 className="text-md md:text-xl font-[460] tracking-tight text-gray-900">
+              Staff Performance
+            </h1>
+            <p className="text-xs md:text-sm text-gray-500 font-medium mt-0.5">
+              Analyze team productivity and revenue contribution
+            </p>
+          </div>
         </div>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full md:w-auto">
-          <div className="w-full md:w-auto">
+        <div className="flex items-center gap-2">
+          <div className="shrink-0">
             <DateFilterComponent />
           </div>
-          <StatefulButton onClick={handleRefresh} className="w-auto shadow-sm">
+          <StatefulButton
+            onClick={handleRefresh}
+            className="h-9 md:h-10 px-4 text-xs md:text-sm font-bold bg-green-600 hover:bg-green-500 text-white rounded-xl shadow-sm transition-all active:scale-95"
+          >
             Refresh
           </StatefulButton>
         </div>
       </div>
 
-      <div className="flex items-center justify-between px-1">
-        <DateRangeDisplay />
-      </div>
+      {/* <DateRangeDisplay /> */}
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-emerald-100 rounded-lg">
-              <DollarSign className="w-5 h-5 text-emerald-600" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Total Revenue</p>
-              <p className="text-lg font-bold">₹{totalRevenue}</p>
+      {/* KPI Cards - Horizontal scroll on mobile */}
+      <div className="flex flex-nowrap overflow-x-auto pb-2 -mx-3 px-3 md:grid md:grid-cols-4 gap-3 scrollbar-none">
+        {/* Total Revenue */}
+        <div className="flex-none w-auto md:w-auto p-2 rounded-2xl bg-white border border-orange-100  ring-1 ring-orange-100/50 bg-linear-to-br from-white to-orange-50/30 transition-all hover:shadow-orange-500/10 group flex items-center gap-2.5">
+          <div className="shrink-0 p-1.5 rounded-xl bg-orange-100 text-orange-600 group-hover:bg-orange-200 transition-colors">
+            <IndianRupee className="h-3.5 w-3.5 md:h-5 md:w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[8px] md:text-[10px] font-bold uppercase tracking-wider text-orange-500 group-hover:text-orange-600 whitespace-nowrap">
+              Total Revenue
+            </p>
+            <div className="flex items-baseline gap-1.5">
+              <h3 className=" md:text-md font-semibold text-gray-900 leading-none">
+                ₹{totalRevenue.toLocaleString()}
+              </h3>
             </div>
           </div>
-        </Card>
+        </div>
 
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <ShoppingCart className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Total Orders</p>
-              <p className="text-lg font-bold">{totalOrders}</p>
+        {/* Total Orders */}
+        <div className="flex-none w-auto md:w-auto p-2 rounded-2xl bg-white border border-orange-100 shadow-[0_8px_20px_-6px_rgba(249,115,22,0.12)] ring-1 ring-orange-100/50 bg-linear-to-br from-white to-orange-50/30 transition-all hover:shadow-orange-500/10 group flex items-center gap-2.5">
+          <div className="shrink-0 p-1.5 rounded-xl bg-blue-100 text-blue-600 group-hover:bg-blue-200 transition-colors">
+            <ShoppingCart className="h-3.5 w-3.5 md:h-5 md:w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[8px] md:text-[10px] font-bold uppercase tracking-wider text-orange-500 group-hover:text-orange-600 whitespace-nowrap">
+              Total Orders
+            </p>
+            <div className="flex items-baseline gap-1.5">
+              <h3 className=" md:text-md font-semibold text-gray-900 leading-none">
+                {totalOrders.toLocaleString()}
+              </h3>
             </div>
           </div>
-        </Card>
+        </div>
 
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-amber-100 rounded-lg">
-              <TrendingUp className="w-5 h-5 text-amber-600" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Avg Order Value</p>
-              <p className="text-lg font-bold">₹{avgOrderValue.toFixed(2)}</p>
+        {/* Avg Order Value */}
+        <div className="flex-none w-auto md:w-auto p-2 rounded-2xl bg-white border border-orange-100 shadow-[0_8px_20px_-6px_rgba(249,115,22,0.12)] ring-1 ring-orange-100/50 bg-linear-to-br from-white to-orange-50/30 transition-all hover:shadow-orange-500/10 group flex items-center gap-2.5">
+          <div className="shrink-0 p-1.5 rounded-xl bg-amber-100 text-amber-600 group-hover:bg-amber-200 transition-colors">
+            <TrendingUp className="h-3.5 w-3.5 md:h-5 md:w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[8px] md:text-[10px] font-bold uppercase tracking-wider text-orange-500 group-hover:text-orange-600 whitespace-nowrap">
+              Avg Order Value
+            </p>
+            <div className="flex items-baseline gap-1.5">
+              <h3 className=" md:text-md font-semibold text-gray-900 leading-none">
+                ₹{avgOrderValue.toFixed(0)}
+              </h3>
             </div>
           </div>
-        </Card>
+        </div>
 
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Users className="w-5 h-5 text-purple-600" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Unique Customers</p>
-              <p className="text-lg font-bold">{totalCustomers}</p>
+        {/* Unique Customers */}
+        <div className="flex-none w-auto md:w-auto p-2 rounded-2xl bg-white border border-orange-100 shadow-[0_8px_20px_-6px_rgba(249,115,22,0.12)] ring-1 ring-orange-100/50 bg-linear-to-br from-white to-orange-50/30 transition-all hover:shadow-orange-500/10 group flex items-center gap-2.5">
+          <div className="shrink-0 p-1.5 rounded-xl bg-purple-100 text-purple-600 group-hover:bg-purple-200 transition-colors">
+            <Users className="h-3.5 w-3.5 md:h-5 md:w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[8px] md:text-[10px] font-bold uppercase tracking-wider text-orange-500 group-hover:text-orange-600 whitespace-nowrap">
+              Unique Customers
+            </p>
+            <div className="flex items-baseline gap-1.5">
+              <h3 className="md:text-md font-semibold text-gray-900 leading-none">
+                {totalCustomers.toLocaleString()}
+              </h3>
             </div>
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* Leaderboard Table */}
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold mb-4">Staff Leaderboard</h2>
-        <div className="rounded-md border">
+      <div className="rounded-2xl border border-gray-100 bg-white shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)] overflow-hidden">
+        <div className="p-4 border-b border-gray-100 bg-gray-50/30">
+          <h2 className="text-sm font-black uppercase tracking-wider text-gray-900">
+            Staff Leaderboard
+          </h2>
+        </div>
+        <div className="overflow-x-auto">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12">Rank</TableHead>
-                <TableHead>Staff Member</TableHead>
-                <TableHead className="text-right">Orders</TableHead>
-                <TableHead className="text-right">Revenue</TableHead>
-                <TableHead className="text-right">Avg Value</TableHead>
-                <TableHead className="text-right">Customers</TableHead>
+            <TableHeader className="bg-gray-50/50">
+              <TableRow className="border-gray-100 hover:bg-transparent">
+                <TableHead className="w-16 h-10 text-[10px] font-black uppercase tracking-wider text-gray-400">
+                  Rank
+                </TableHead>
+                <TableHead className="h-10 text-[10px] font-black uppercase tracking-wider text-gray-400">
+                  Staff Member
+                </TableHead>
+                <TableHead className="h-10 text-right text-[10px] font-black uppercase tracking-wider text-gray-400">
+                  Orders
+                </TableHead>
+                <TableHead className="h-10 text-right text-[10px] font-black uppercase tracking-wider text-gray-400">
+                  Revenue
+                </TableHead>
+                <TableHead className="h-10 text-right text-[10px] font-black uppercase tracking-wider text-gray-400">
+                  Avg Value
+                </TableHead>
+                <TableHead className="h-10 text-right text-[10px] font-black uppercase tracking-wider text-gray-400">
+                  Customers
+                </TableHead>
                 <TableHead className="w-12"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {data?.staff.map((staff, index) => (
-                <TableRow key={staff.staff_id} className="hover:bg-gray-50">
-                  <TableCell className="font-medium">
-                    {index === 0 && '🥇'}
-                    {index === 1 && '🥈'}
-                    {index === 2 && '🥉'}
-                    {index > 2 && index + 1}
+                // <Link
+                //   to="/reports/staff/$staffId"
+                //   params={{ staffId: staff.staff_id.toString() }}
+                // >
+                <TableRow
+                  key={staff.staff_id}
+                  className="border-gray-50 hover:bg-gray-50/50 transition-colors group"
+                >
+                  <TableCell className="py-3">
+                    <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-gray-50 text-xs font-black text-gray-600 group-hover:bg-white transition-colors">
+                      {index === 0 && '🥇'}
+                      {index === 1 && '🥈'}
+                      {index === 2 && '🥉'}
+                      {index > 2 && index + 1}
+                    </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-3">
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={staff.profile_pic || undefined} />
-                        <AvatarFallback>
-                          {staff.staff_name.substring(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{staff.staff_name}</p>
-                        <p className="text-xs text-muted-foreground">
+                      <div className="relative">
+                        <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
+                          <AvatarImage src={staff.profile_pic || undefined} />
+                          <AvatarFallback className="bg-orange-50 text-orange-600 font-bold text-xs">
+                            {staff.staff_name.substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        {index < 3 && (
+                          <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center">
+                            <TrendingUp className="w-2 h-2 text-white" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-gray-900 truncate">
+                          {staff.staff_name}
+                        </p>
+                        <p className="text-[10px] text-gray-400 font-medium truncate">
                           @{staff.username}
                         </p>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right font-medium">
-                    {staff.total_orders}
+                  <TableCell className="text-right py-3 font-bold text-gray-900">
+                    {staff.total_orders.toLocaleString()}
                   </TableCell>
-                  <TableCell className="text-right font-medium text-emerald-600">
-                    ₹{staff.total_revenue}
+                  <TableCell className="text-right py-3 font-black text-emerald-600">
+                    ₹{staff.total_revenue.toLocaleString()}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right py-3 font-bold text-gray-600">
                     ₹{staff.avg_order_value}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right py-3 font-bold text-gray-500">
                     {staff.unique_customers}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-3">
                     <Link
                       to="/reports/staff/$staffId"
                       params={{ staffId: staff.staff_id.toString() }}
-                      className="text-blue-600 hover:text-blue-700"
+                      className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-white hover:shadow-sm text-gray-400 hover:text-orange-600 transition-all"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </Link>
                   </TableCell>
                 </TableRow>
+                // {/* </Link> */}
               ))}
             </TableBody>
           </Table>
@@ -302,28 +364,30 @@ function StaffReportsPage() {
 
         {/* Pagination */}
         {data?.pagination && data.pagination.total_pages > 1 && (
-          <div className="flex justify-between items-center mt-4">
-            <div className="text-sm text-muted-foreground">
+          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/30">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
               Page {data.pagination.current_page} of{' '}
               {data.pagination.total_pages}
-            </div>
+            </p>
             <div className="flex gap-2">
               <StatefulButton
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={!data.pagination.has_prev_page}
+                className="h-9 px-4 text-xs font-bold uppercase tracking-tight bg-white border border-gray-100 text-gray-600 rounded-xl hover:bg-gray-50 shadow-sm transition-all"
               >
                 Previous
               </StatefulButton>
               <StatefulButton
                 onClick={() => setPage((p) => p + 1)}
                 disabled={!data.pagination.has_next_page}
+                className="h-9 px-4 text-xs font-bold uppercase tracking-tight bg-white border border-gray-100 text-gray-600 rounded-xl hover:bg-gray-50 shadow-sm transition-all"
               >
                 Next
               </StatefulButton>
             </div>
           </div>
         )}
-      </Card>
+      </div>
     </div>
   )
 }

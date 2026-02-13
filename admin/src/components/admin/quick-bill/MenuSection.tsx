@@ -12,7 +12,7 @@ import LoadingScreen from '@/components/common/LoadingScreen'
 import MenuGridItem from './MenuGridItem'
 
 interface MenuSectionProps {
-  addToCart: (item: Item) => void
+  addToCart: (item: Item, behavior?: 'add' | 'toggle') => void
   cart: any[]
 }
 
@@ -74,7 +74,12 @@ export default function MenuSection({ addToCart, cart }: MenuSectionProps) {
   }, [allItems, selectedCategoryId, searchQuery])
 
   // DIRECT ADD TO CART - NO DIALOG
-  const onAddItem = (item: Item, variant?: Variant, addons: any[] = []) => {
+  const onAddItem = (
+    item: Item,
+    variant?: Variant,
+    addons: any[] = [],
+    behavior: 'add' | 'toggle' = 'add',
+  ) => {
     let uniqueId = variant ? `${item.id}_variant_${variant.id}` : `${item.id}`
     let finalPrice = variant
       ? variant.price
@@ -119,7 +124,7 @@ export default function MenuSection({ addToCart, cart }: MenuSectionProps) {
       image: item.image,
     }
 
-    addToCart(modifiedItem)
+    addToCart(modifiedItem, behavior)
     setCustomizingItemId(null)
   }
 
@@ -172,13 +177,13 @@ export default function MenuSection({ addToCart, cart }: MenuSectionProps) {
             setSelectedCategoryId(val)
             if (val !== 'all' && searchQuery) setSearchQuery('')
           }}
-          className="w-full"
+          className="w-full "
         >
-          <ScrollArea className="w-full whitespace-nowrap pb-2">
-            <TabsList className="flex flex-nowrap bg-transparent gap-2 h-auto justify-start">
+          <div className="w-full overflow-x-auto pb-2 -mx-1 px-1 scrollbar-none">
+            <TabsList className="flex flex-nowrap bg-transparent gap-2 h-auto justify-start w-max">
               <TabsTrigger
                 value="all"
-                className="rounded-full px-3 py-2 border bg-white data-[state=active]:bg-primary data-[state=active]:text-primary-foreground shadow-sm hover:bg-gray-50 transition-all data-[state=active]:border-primary"
+                className="rounded-full px-3 py-2 border bg-white data-[state=active]:bg-primary data-[state=active]:text-primary-foreground shadow-sm hover:bg-gray-50 transition-all data-[state=active]:border-primary shrink-0"
               >
                 All Items
               </TabsTrigger>
@@ -186,13 +191,13 @@ export default function MenuSection({ addToCart, cart }: MenuSectionProps) {
                 <TabsTrigger
                   key={cat.id}
                   value={cat.id}
-                  className="rounded-full px-3 py-2 border bg-white data-[state=active]:bg-primary data-[state=active]:text-primary-foreground shadow-sm hover:bg-gray-50 transition-all data-[state=active]:border-primary"
+                  className="rounded-full px-3 py-2 border bg-white data-[state=active]:bg-primary data-[state=active]:text-primary-foreground shadow-sm hover:bg-gray-50 transition-all data-[state=active]:border-primary shrink-0"
                 >
                   {cat.name}
                 </TabsTrigger>
               ))}
             </TabsList>
-          </ScrollArea>
+          </div>
         </Tabs>
       </div>
 
@@ -203,7 +208,7 @@ export default function MenuSection({ addToCart, cart }: MenuSectionProps) {
             <LoadingScreen message="Loading Menu..." />
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 pb-20">
+          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 pb-20">
             {filteredItems.map((item) => (
               <MenuGridItem
                 key={item.id}

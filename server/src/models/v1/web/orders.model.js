@@ -634,6 +634,7 @@ const get_paginated_orders = async (req) => {
       "o.rid = ?",
       "(o.order_status = 'completed' OR o.order_status = 'cancelled' OR o.order_status = 'settled')",
     ];
+    //  "o.order_status IN ('completed', 'cancelled', 'settled', 'delivered')",
     const params = [rid];
 
     // Add search conditions (customer name, mobile, or item name)
@@ -660,7 +661,10 @@ const get_paginated_orders = async (req) => {
 
     // Count total DISTINCT cart_ids (unique orders) matching the criteria
     const countQuery = `
-      SELECT COUNT(DISTINCT o.cart_id) AS total_orders
+      SELECT 
+        COUNT(DISTINCT o.cart_id) AS total_orders,
+        COUNT(DISTINCT CASE WHEN o.order_status = 'completed' OR o.order_status = 'settled' THEN o.cart_id END) AS total_delivered,
+        COUNT(DISTINCT CASE WHEN o.order_status = 'cancelled' THEN o.cart_id END) AS total_cancelled
       FROM orders o
       LEFT JOIN users u ON o.customer_id = u.id
       LEFT JOIN inventories i ON o.item_id = i.id
@@ -668,7 +672,7 @@ const get_paginated_orders = async (req) => {
     `;
 
     const [countResult] = await pool.query(countQuery, params);
-    const total_orders = countResult[0].total_orders;
+    const { total_orders, total_delivered, total_cancelled } = countResult[0];
     const total_pages = Math.ceil(total_orders / limitNum);
 
     // Fetch paginated orders grouped by cart_id with aggregated items
@@ -734,6 +738,8 @@ const get_paginated_orders = async (req) => {
 
     return apiResponse.success(200, "success", {
       total_orders,
+      total_delivered,
+      total_cancelled,
       total_pages,
       current_page: pageNum,
       per_page: limitNum,

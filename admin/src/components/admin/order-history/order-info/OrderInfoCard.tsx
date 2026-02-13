@@ -6,7 +6,6 @@ import { formatDateTime } from '@/utils/dateUtils'
 
 interface OrderInfoCardProps {
   status: 'DELIVERED' | 'CANCELLED'
-  rating?: number
   orderDate: string
   orderId: string
   customerName: string
@@ -15,26 +14,24 @@ interface OrderInfoCardProps {
   totalAmount: number // Subtotal (pre-tax)
   discountAmount?: number
   taxPercent?: number
-  taxAmount?: number
   isSelected?: boolean
   onClick?: () => void
   onPrint?: () => void
 }
 
-const getStatusColor = (status: string) => {
+const getStatusStyles = (status: string) => {
   switch (status) {
     case 'DELIVERED':
-      return 'bg-green-600 text-white'
+      return 'bg-emerald-50 text-emerald-600 border-emerald-100'
     case 'CANCELLED':
-      return 'bg-red-500 text-white'
+      return 'bg-rose-50 text-rose-600 border-rose-100'
     default:
-      return 'bg-gray-500 text-white'
+      return 'bg-gray-50 text-gray-600 border-gray-100'
   }
 }
 
 const OrderInfoCard = memo(function OrderInfoCard({
   status,
-  rating,
   orderDate,
   orderId,
   customerName,
@@ -42,7 +39,6 @@ const OrderInfoCard = memo(function OrderInfoCard({
   items,
   totalAmount,
   discountAmount,
-  taxAmount,
   isSelected = false,
   onClick,
   onPrint,
@@ -89,106 +85,99 @@ const OrderInfoCard = memo(function OrderInfoCard({
     [onPrint],
   )
 
-  // Memoize the status color to prevent recalculation
-  const statusColorClass = useMemo(() => getStatusColor(status), [status])
+  // Memoize the status styles to prevent recalculation
+  const statusStyles = useMemo(() => getStatusStyles(status), [status])
 
   return (
     <div
-      className={`rounded-lg p-4 mb-2 border transition-all duration-200 cursor-pointer hover:shadow-md ${
+      className={`rounded-2xl p-3.5 mb-2 border transition-all duration-300 cursor-pointer overflow-hidden group ${
         isSelected
-          ? 'bg-green-50 border-green-300 shadow-sm'
-          : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+          ? 'bg-orange-50/10 border-orange-200 shadow-sm ring-1 ring-orange-100'
+          : 'bg-white border-gray-100 hover:border-gray-200 hover:shadow-md hover:-translate-y-0.5'
       }`}
       onClick={handleClick}
     >
-      {/* Header with status and rating */}
-      <div className="flex justify-between items-start mb-2">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-2.5">
+        {/* Header: ID and Status */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+              ID:
+            </span>
+            <span className="font-black text-gray-900 text-xs truncate">
+              {orderId}
+            </span>
+          </div>
           <span
-            className={`px-3 py-1 rounded-md text-sm font-medium ${statusColorClass}`}
+            className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-tight border ${statusStyles}`}
           >
             {status}
           </span>
-          {rating && (
-            <div className="flex items-center bg-green-600 text-white px-2 py-1 rounded-md">
-              <span className="text-sm font-medium">{rating}</span>
-              <span className="ml-1">★</span>
-            </div>
-          )}
         </div>
-        <div className="text-right text-gray-500">
-          <div className="text-sm">{formatDateTime(orderDate)}</div>
-        </div>
-      </div>
 
-      {/* Order ID and Customer */}
-      <div className="flex justify-between items-center mb-2">
-        <div>
-          <span className="text-gray-700 font-medium">ID: </span>
-          <span className="text-gray-900 font-semibold">{orderId}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          {customer && (
+        {/* Middle: Customer and Time */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
             <CustomerAvatar
-              initials={customer.initials}
-              name={customer.name}
+              initials={customer?.initials || customerName.charAt(0)}
+              name={customer?.name || customerName}
               size="sm"
+              className="bg-linear-to-br from-orange-300 to-orange-400 text-gray-600 border border-white shadow-xs"
             />
-          )}
-          <div className="text-gray-500 text-sm">
-            By {customer?.name || customerName}
+            <div className="flex flex-col min-w-0">
+              <span className="font-bold text-gray-900 text-[11px] truncate">
+                {customer?.name || customerName}
+              </span>
+              <span className="text-[9px] text-gray-400 font-medium">
+                {customer?.phone || 'Guest'}
+              </span>
+            </div>
+          </div>
+          <div className="text-right shrink-0">
+            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">
+              {formatDateTime(orderDate).split(',')[0]}
+            </div>
+            <div className="text-[9px] text-gray-400/80 font-medium">
+              {formatDateTime(orderDate).split(',')[1]}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Items and Total */}
-      <div className="flex justify-between items-start mb-2">
-        <div className="flex-1 pr-4">
-          <p className="text-gray-700 text-sm leading-relaxed">
+        {/* Content: Items Description */}
+        <div className="relative">
+          <p className="text-gray-500 text-[10px] leading-relaxed line-clamp-1 italic pr-2">
             {formattedItems}
           </p>
         </div>
-        <div className="flex-shrink-0 text-right">
-          {discountAmount !== 0 &&
-            discountAmount &&
-            parseFloat(String(discountAmount)) > 0 && (
-              <div className="text-xs text-green-600 font-medium whitespace-nowrap">
-                -₹{parseFloat(String(discountAmount)).toFixed(2)} off
-              </div>
+
+        {/* Footer: Stats and Total */}
+        <div className="flex items-center justify-between pt-2 border-t border-gray-50">
+          <div className="flex items-center gap-2">
+            {onPrint && (
+              <button
+                onClick={handlePrint}
+                className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 hover:text-green-600 transition-colors uppercase tracking-tight"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                Print
+              </button>
             )}
-          {taxAmount && parseFloat(String(taxAmount)) > 0 && (
-            <div className="text-xs text-gray-600 whitespace-nowrap">
-              +₹{parseFloat(String(taxAmount)).toFixed(2)} tax
-            </div>
-          )}
-          <span className="text-lg font-semibold text-gray-900 whitespace-nowrap">
-            ₹{totalAmount}
-          </span>
-        </div>
-      </div>
+          </div>
 
-      {/* Print Button */}
-      {onPrint && (
-        <div className="pt-2 border-t border-gray-200">
-          <button
-            onClick={handlePrint}
-            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 transition-colors"
-          >
-            <Printer className="w-4 h-4" />
-            Print Bill
-          </button>
-        </div>
-      )}
-
-      {/* Selection indicator */}
-      {isSelected && (
-        <div className="mt-1 pt-1 border-t border-green-200">
-          <div className="flex items-center text-green-600 text-sm">
-            <div className="w-2 h-2 bg-green-600 rounded-full mr-2"></div>
-            Selected
+          <div className="flex flex-col items-end leading-none">
+            {discountAmount !== 0 &&
+              discountAmount &&
+              parseFloat(String(discountAmount)) > 0 && (
+                <span className="text-[9px] text-emerald-600 font-black mb-0.5">
+                  -₹{parseFloat(String(discountAmount)).toFixed(2)}
+                </span>
+              )}
+            <span className="text-sm font-black text-gray-900">
+              ₹{totalAmount}
+            </span>
           </div>
         </div>
-      )}
+      </div>
     </div>
   )
 })
