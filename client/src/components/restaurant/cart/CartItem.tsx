@@ -16,7 +16,7 @@ export default function CartItem({
   const cartItemUI = [
     {
       cartItemUI:
-        'flex justify-between rounded-xl w-[35rem] overflow-hiddena h-[7rem] dark:text-white max-[1000px]:w-full max-[500px]:h-[5rem]',
+        'flex justify-between rounded-xl w-full overflow-hiddena h-[7rem] dark:text-white max-[1000px]:w-full max-[500px]:h-[5rem]',
       cartItemImageUI:
         'h-[7rem] w-[7rem] overflow-hidden rounded-xl max-[500px]:w-[5rem] max-[500px]:h-[5rem]',
       cartItemTextUI:

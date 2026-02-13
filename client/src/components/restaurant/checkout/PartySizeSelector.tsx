@@ -41,10 +41,10 @@ export default function PartySizeSelector({
             variant={partySize === size ? 'default' : 'outline'}
             size="sm"
             onClick={() => setPartySize(size)}
-            className={`min-w-[60px] ${
+            className={`min-w-14 h-10 rounded-xl transition-all ${
               partySize === size
-                ? 'bg-orange-500 hover:bg-orange-600 text-white'
-                : 'hover:bg-orange-50'
+                ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-md shadow-orange-200'
+                : 'hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 border-gray-200 bg-white'
             }`}
           >
             {size}

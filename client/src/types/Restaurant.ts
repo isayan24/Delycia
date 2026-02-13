@@ -15,4 +15,9 @@ export interface Restaurant {
   pincode: number | null
   state: string | null
   username: string
+  tax_percent: number | null
+  online_orders: number | null
+  open_time: string | null
+  close_time: string | null
+  active_days: number | null
 }

@@ -12,6 +12,7 @@ interface CheckoutVariables {
   customer_id: string | number
   party_size: number
   table_id?: number // Optional table ID
+  delivery_type?: 'dine_in' | 'takeaway' | 'delivery'
 }
 
 export const useCheckoutMutation = () => {

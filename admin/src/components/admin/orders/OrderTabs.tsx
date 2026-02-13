@@ -1,6 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-import { Volume2, VolumeX } from 'lucide-react'
+import { Volume2, VolumeX, Loader2 } from 'lucide-react'
 import { ProcessedOrder } from '@/types/WebSocketOrder'
 import { PendingOrderCard } from './order-states/PendingOrderCard'
 import { ProcessingOrderCard } from './order-states/ProcessingOrderCard'
@@ -8,6 +8,7 @@ import { ReadyOrderCard } from './order-states/ReadyOrderCard'
 import { DeliveredOrderCard } from './order-states/DeliveredOrderCard'
 import { CancelledOrderCard } from './order-states/CancelledOrderCard'
 import { useSoundContext } from '@/context/SoundContext'
+import { useLoadMore } from '@/hooks/useLoadMore'
 
 interface OrderTabsProps {
   activeTab: string
@@ -51,6 +52,19 @@ export default function OrderTabs({
   isMarkDelivered,
 }: OrderTabsProps) {
   const { isSoundEnabled, toggleSound } = useSoundContext()
+
+  // Progressive rendering for large lists (delivered & cancelled)
+  const {
+    visibleItems: visibleDelivered,
+    hasMore: hasMoreDelivered,
+    sentinelRef: deliveredSentinelRef,
+  } = useLoadMore(deliveredOrders, 10)
+
+  const {
+    visibleItems: visibleCancelled,
+    hasMore: hasMoreCancelled,
+    sentinelRef: cancelledSentinelRef,
+  } = useLoadMore(cancelledOrders, 10)
 
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
@@ -221,7 +235,7 @@ export default function OrderTabs({
           </div>
         ) : (
           <div className="space-y-4">
-            {deliveredOrders.map((order) => (
+            {visibleDelivered.map((order) => (
               <DeliveredOrderCard
                 key={`delivered-${order.customer_id}-${order.created_at}`}
                 order={order}
@@ -229,6 +243,16 @@ export default function OrderTabs({
                 showCallButton={false}
               />
             ))}
+            {/* Sentinel for infinite scroll */}
+            {hasMoreDelivered && (
+              <div
+                ref={deliveredSentinelRef}
+                className="flex items-center justify-center py-4 text-sm text-muted-foreground gap-2"
+              >
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading more orders...
+              </div>
+            )}
           </div>
         )}
       </TabsContent>
@@ -244,12 +268,22 @@ export default function OrderTabs({
           </div>
         ) : (
           <div className="grid gap-4">
-            {cancelledOrders.map((order) => (
+            {visibleCancelled.map((order) => (
               <CancelledOrderCard
                 key={`cancelled-${order.customer_id}-${order.created_at}`}
                 order={order}
               />
             ))}
+            {/* Sentinel for infinite scroll */}
+            {hasMoreCancelled && (
+              <div
+                ref={cancelledSentinelRef}
+                className="flex items-center justify-center py-4 text-sm text-muted-foreground gap-2"
+              >
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading more orders...
+              </div>
+            )}
           </div>
         )}
       </TabsContent>

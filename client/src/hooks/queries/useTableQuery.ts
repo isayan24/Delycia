@@ -47,7 +47,6 @@ export function useTableQuery(
         : `/api/tables?rid=${rid}&${paramName}=${tableId}`
 
       const response = await axiosClient.get<{ table: Table | null }>(url)
-
       return response.data?.table || null
     },
     enabled: !!rid && !!tableId,

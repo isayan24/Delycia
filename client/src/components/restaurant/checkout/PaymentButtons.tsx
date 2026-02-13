@@ -1,6 +1,4 @@
-import React from 'react'
 import {
-  Form,
   FormControl,
   FormField,
   FormItem,
@@ -8,19 +6,14 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import {
-  AssuredWorkload,
-  PersonPinCircle,
-  PointOfSale,
-  TapAndPlay,
-} from '@mui/icons-material'
+import { AssuredWorkload, PointOfSale, TapAndPlay } from '@mui/icons-material'
 import useToast from '@/hooks/UseToast'
 
 export default function PaymentButtons({ form }: any) {
   const { showInfo } = useToast()
 
   return (
-    <section className="border border-[#00000010] p-4 rounded-xl w-[24.5rem] max-[890px]:w-full">
+    <section className="w-full">
       <FormField
         control={form.control}
         name="paymentMethod"

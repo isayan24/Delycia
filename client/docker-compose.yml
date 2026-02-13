@@ -1,0 +1,44 @@
+services:
+  delycia-client:
+    container_name: delycia-client-container
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+        IMAGEKIT_PUBLIC_KEY: ${IMAGEKIT_PUBLIC_KEY}
+        IMAGEKIT_PUBLIC_URL_ENDPOINT: ${IMAGEKIT_PUBLIC_URL_ENDPOINT}
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    environment:
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL}
+      - IMAGEKIT_PUBLIC_KEY=${IMAGEKIT_PUBLIC_KEY}
+      - IMAGEKIT_PUBLIC_URL_ENDPOINT=${IMAGEKIT_PUBLIC_URL_ENDPOINT}
+      - IMAGEKIT_PRIVATE_KEY=${IMAGEKIT_PRIVATE_KEY}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - NODE_ENV=production
+      - HOST=0.0.0.0
+      - PORT=4000
+    develop:
+      watch:
+        # Sync source code changes
+        - action: sync
+          path: ./src
+          target: /app/src
+          ignore:
+            - node_modules/
+        
+        # Sync package.json and rebuild
+        - action: rebuild
+          path: package.json
+        
+        # Sync other config files
+        - action: sync
+          path: ./public
+          target: /app/public

@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { Textarea } from '@/components/ui/textarea'
 import { MessageSquare, X } from 'lucide-react'
 
-export default function SpecialInstructionArea({form}:any) {
+export default function SpecialInstructionArea({ form }: any) {
   const [showInstructions, setShowInstructions] = useState(false)
   const specialInstruction = form.watch('special_instruction')
 
@@ -25,10 +31,9 @@ export default function SpecialInstructionArea({form}:any) {
           className="flex items-center gap-2 bg-yellow-50 w-full border-yellow-200"
         >
           <MessageSquare className="h-4 w-4" />
-          {specialInstruction && specialInstruction.trim() !== '' 
-            ? 'Edit Special Instructions' 
-            : 'Add Special Instructions'
-          }
+          {specialInstruction && specialInstruction.trim() !== ''
+            ? 'Edit Special Instructions'
+            : 'Add Special Instructions'}
         </Button>
       ) : (
         <div className="space-y-3 border rounded-lg p-4">
