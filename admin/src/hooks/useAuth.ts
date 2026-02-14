@@ -57,14 +57,26 @@ export function useAuth(): UseAuthReturn {
 
           // CRITICAL: Smart merge strategy for client/server data
           // - restaurant_rids: Prefer backend (source of truth), fallback to localStorage
-          // - selected_rid: Prefer localStorage (user's last selection), fallback to backend/null
+          // - selected_rid: Prefer localStorage (user's last selection) if valid, else auto-select first
+          const resolvedRids =
+            userData.restaurant_rids?.length > 0
+              ? userData.restaurant_rids
+              : (existingUser?.restaurant_rids ?? [])
+
+          let resolvedSelectedRid: number | null = null
+          if (
+            existingUser?.selected_rid != null &&
+            resolvedRids.includes(existingUser.selected_rid)
+          ) {
+            resolvedSelectedRid = existingUser.selected_rid
+          } else if (resolvedRids.length > 0) {
+            resolvedSelectedRid = resolvedRids[0]
+          }
+
           const mergedUserData = {
             ...userData,
-            restaurant_rids:
-              userData.restaurant_rids?.length > 0
-                ? userData.restaurant_rids
-                : (existingUser?.restaurant_rids ?? []),
-            selected_rid: existingUser?.selected_rid ?? null,
+            restaurant_rids: resolvedRids,
+            selected_rid: resolvedSelectedRid,
           }
 
           // Store merged data
@@ -202,14 +214,26 @@ export function useAuth(): UseAuthReturn {
         if (data.isAuthenticated && data.data?.user) {
           const userData = data.data.user
 
-          // Smart merge: backend restaurant_rids, localStorage selected_rid
+          // Smart merge: backend restaurant_rids, validated selected_rid
+          const resolvedRids =
+            userData.restaurant_rids?.length > 0
+              ? userData.restaurant_rids
+              : (existingUser?.restaurant_rids ?? [])
+
+          let resolvedSelectedRid: number | null = null
+          if (
+            existingUser?.selected_rid != null &&
+            resolvedRids.includes(existingUser.selected_rid)
+          ) {
+            resolvedSelectedRid = existingUser.selected_rid
+          } else if (resolvedRids.length > 0) {
+            resolvedSelectedRid = resolvedRids[0]
+          }
+
           const mergedUserData = {
             ...userData,
-            restaurant_rids:
-              userData.restaurant_rids?.length > 0
-                ? userData.restaurant_rids
-                : (existingUser?.restaurant_rids ?? []),
-            selected_rid: existingUser?.selected_rid ?? null,
+            restaurant_rids: resolvedRids,
+            selected_rid: resolvedSelectedRid,
           }
 
           // Update session service

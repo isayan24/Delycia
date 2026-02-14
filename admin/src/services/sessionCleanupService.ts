@@ -1,4 +1,5 @@
 import sessionService from './sessionService'
+import axios from 'axios'
 
 class SessionCleanupService {
   private static instance: SessionCleanupService
@@ -20,29 +21,66 @@ class SessionCleanupService {
   initialize(): void {
     this.startPeriodicCleanup()
     this.setupBeforeUnloadHandler()
-    this.setupVisibilityChangeHandler()
   }
 
   /**
-   * Start periodic session validation via server
+   * Start periodic session validation via server.
+   * If the session is invalid, attempt a token refresh before logging out.
    */
   private startPeriodicCleanup(): void {
-    // Check session validity every 5 minutes by calling server
+    // Check session validity every 5 minutes
     this.cleanupInterval = setInterval(
       async () => {
         const isValid = await sessionService.isSessionValid()
         if (!isValid) {
-          console.log('Session expired, clearing...')
+          console.log(
+            '[SessionCleanup] Session check failed, attempting refresh...',
+          )
+
+          // Don't immediately clear session — try refreshing first
+          // The /api/auth/session endpoint now handles auto-refresh,
+          // but if that failed too, try an explicit refresh
+          try {
+            const refreshResponse = await axios.post(
+              '/api/auth/refresh',
+              {},
+              { withCredentials: true },
+            )
+
+            if (
+              refreshResponse.status === 200 &&
+              refreshResponse.data?.statusCode === 200
+            ) {
+              console.log(
+                '[SessionCleanup] Token refreshed successfully, re-validating...',
+              )
+              // Re-validate session with new token
+              const recheck = await sessionService.isSessionValid()
+              if (recheck) {
+                console.log('[SessionCleanup] Session recovered after refresh')
+                return // Session is good now, don't clear anything
+              }
+            }
+          } catch (refreshError) {
+            console.error(
+              '[SessionCleanup] Refresh attempt failed:',
+              refreshError,
+            )
+          }
+
+          // Refresh failed — session is truly expired
+          console.log(
+            '[SessionCleanup] Session expired and refresh failed, clearing...',
+          )
           sessionService.clearSession()
 
-          // Redirect to login page if session expired
           if (typeof window !== 'undefined') {
             window.location.href = '/login'
           }
         }
       },
-      5 * 60 * 1000,
-    ) // 5 minutes
+      5 * 60 * 1000, // 5 minutes
+    )
   }
 
   /**
@@ -52,46 +90,19 @@ class SessionCleanupService {
     if (typeof window === 'undefined') return
 
     this.beforeUnloadListener = () => {
-      // Optional: Clear session on browser close
-      // Uncomment if you want to clear session when browser closes
-      // sessionService.clearSession();
+      // No-op: don't clear session on browser close
     }
 
     window.addEventListener('beforeunload', this.beforeUnloadListener)
   }
 
   /**
-   * Setup handler for tab visibility changes
-   * Disabled: Too aggressive - was causing logout on every page refresh
-   * Periodic validation (every 5 minutes) is sufficient
-   */
-  private setupVisibilityChangeHandler(): void {
-    // Intentionally empty - periodic checks are sufficient
-  }
-
-  /**
-   * Schedule session renewal for active users
-   * Note: With httpOnly cookies, renewal happens automatically on the server
-   * This is now a no-op but kept for compatibility
+   * Schedule session renewal for active users.
+   * Token refresh is handled automatically by the server routes
+   * and axios interceptor on 401 responses.
    */
   scheduleSessionRenewal(): void {
-    // Session renewal is handled automatically by server routes
-    // Token refresh happens via axios interceptor on 401 responses
-    // No client-side action needed
-  }
-
-  /**
-   * Check if user is active (has interacted recently)
-   */
-  private isUserActive(): boolean {
-    // Simple activity detection - can be enhanced
-    const lastActivity = localStorage.getItem('lastActivity')
-    if (!lastActivity) return false
-
-    const lastActivityTime = parseInt(lastActivity)
-    const fiveMinutesAgo = Date.now() - 5 * 60 * 1000
-
-    return lastActivityTime > fiveMinutesAgo
+    // No-op — handled by session endpoint auto-refresh and tokenService interceptor
   }
 
   /**
@@ -104,7 +115,6 @@ class SessionCleanupService {
       localStorage.setItem('lastActivity', Date.now().toString())
     }
 
-    // Track various user interactions
     const events = [
       'mousedown',
       'mousemove',

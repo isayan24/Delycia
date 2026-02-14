@@ -87,19 +87,33 @@ export function useAdminAuthQuery() {
 
       const existingUser = getExistingUserData()
 
-      // CRITICAL: Smart merge strategy
-      // - restaurant_rids: Prefer backend (source of truth), fallback to localStorage
-      // - selected_rid: Prefer localStorage (user's last selection), fallback to first restaurant
+      // Resolve restaurant_rids: prefer backend (source of truth), fallback to localStorage
+      const resolvedRids =
+        backendUser.restaurant_rids?.length > 0
+          ? backendUser.restaurant_rids
+          : (existingUser?.restaurant_rids ?? [])
+
+      // Resolve selected_rid with validation:
+      // 1. Prefer localStorage (user's last selection) — but only if it exists in resolvedRids
+      // 2. Fallback to first available restaurant
+      // 3. Fallback to null (no restaurants assigned)
+      let resolvedSelectedRid: number | null = null
+
+      if (
+        existingUser?.selected_rid != null &&
+        resolvedRids.includes(existingUser.selected_rid)
+      ) {
+        // User's last selection is still valid
+        resolvedSelectedRid = existingUser.selected_rid
+      } else if (resolvedRids.length > 0) {
+        // Auto-select first restaurant
+        resolvedSelectedRid = resolvedRids[0]
+      }
+
       return {
         ...backendUser,
-        restaurant_rids:
-          backendUser.restaurant_rids?.length > 0
-            ? backendUser.restaurant_rids
-            : (existingUser?.restaurant_rids ?? []),
-        selected_rid:
-          existingUser?.selected_rid ??
-          backendUser.restaurant_rids?.[0] ??
-          null,
+        restaurant_rids: resolvedRids,
+        selected_rid: resolvedSelectedRid,
       }
     },
     [getExistingUserData],
@@ -113,7 +127,6 @@ export function useAdminAuthQuery() {
     data: sessionData,
     isLoading: isSessionLoading,
     refetch: refetchSession,
-    isError,
   } = useQuery({
     queryKey: queryKeys.auth.session(),
     queryFn: fetchSession,
@@ -271,7 +284,10 @@ export function useAdminAuthQuery() {
   // ============================================================================
 
   const user = sessionData ?? null
-  const isAuthenticated = !!user && !isError
+  // Don't use isError to determine auth status — errors during refresh
+  // (e.g., network blip) shouldn't immediately deauthenticate the user.
+  // The session query will retry, and tokenService interceptor handles 401s.
+  const isAuthenticated = !!user
   const isLoading = isSessionLoading && !sessionService.getUserData()
 
   // ============================================================================
