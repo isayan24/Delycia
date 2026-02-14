@@ -18,13 +18,18 @@ export interface ApiOrder {
   preparation_time: number
   quantity: number
   rid: number
+  restaurant_id?: number
   special_instructions: string | null
   table_no: number
   table_number?: number
   total_amount: number
   variant_id: number
   customer_phone: string
+  customer_email?: string
+  delivery_fee?: number
+  grand_total?: number
   table_zone?: string
+  delivery_address?: string
 }
 
 // Transformed order interface for UI
@@ -51,12 +56,12 @@ export interface TransformedOrder {
   dateAndTime: string
   startDate: string
   endDate: string
-  customerId: number
   customerName: string
+  customerPhone: string
   customer?: CustomerInfo
   items: TransformedOrderItem[]
   totalAmount: number // This is the subtotal (pre-tax)
-  discountAmount?: number | any
+  discountAmount?: number
   rid?: number // Restaurant ID
   createdAt: Date
   updatedAt: Date
@@ -67,6 +72,10 @@ export interface TransformedOrder {
   tableNo: number | string
   tableZone?: string
   paymentStatus: string
+  deliveryFee?: number
+  grandTotal?: number
+  customerEmail?: string
+  deliveryAddress?: string
 }
 
 /**
@@ -294,8 +303,13 @@ export const transformOrderData = (apiOrders: any[]): TransformedOrder[] => {
           preparationTime: 0, // Not available in grouped structure
           tableNo: order.table_number || order.table_no,
           paymentStatus: order.payment_status,
-          discountAmount: order.discount_amount || 0,
+          discountAmount: parseFloat(order.discount_amount) || 0,
           tableZone: order.table_zone,
+          deliveryFee: parseFloat(order.delivery_fee) || 0,
+          grandTotal: parseFloat(order.grand_total) || 0,
+          customerEmail:
+            order.customer_email || order.customer?.email || undefined,
+          deliveryAddress: order.delivery_address,
         }
       })
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
@@ -330,6 +344,11 @@ export const transformOrderData = (apiOrders: any[]): TransformedOrder[] => {
           tableNo: firstItem.table_number || firstItem.table_no,
           tableZone: firstItem.table_zone,
           paymentStatus: firstItem.payment_status,
+          discountAmount: firstItem.discount_amount || 0,
+          deliveryFee: firstItem.delivery_fee || 0,
+          grandTotal: firstItem.grand_total || 0,
+          customerEmail: firstItem.customer_email || 'No email provided',
+          deliveryAddress: firstItem.delivery_address,
         }
       })
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()) // Sort by newest first

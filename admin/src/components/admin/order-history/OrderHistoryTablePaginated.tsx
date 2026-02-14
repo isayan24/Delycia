@@ -1,24 +1,11 @@
 import { useState, useCallback, useMemo } from 'react'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Printer } from 'lucide-react'
-import { formatDateTime } from '@/utils/dateUtils'
-import { TableFilters } from './table/components/TableFilters'
-import { TablePagination } from './table/components/TablePagination'
-import { OrderItemsCell } from './table/components/OrderItemsCell'
 import { PrintBillDialog } from './shared/PrintBillDialog'
-import { Checkbox } from '@/components/ui/checkbox'
-import OrderTotalWithTooltip from './shared/OrderTotalWithTooltip'
-import CustomerAvatar from './CustomerAvatar'
-
+import { formatDateTime } from '@/utils/dateUtils'
+import { OrderHistoryStatsCards } from './large/components/OrderHistoryStatsCards'
+import { LargeOrderFilters } from './large/components/LargeOrderFilters'
+import { LargeOrderCard } from './large/components/LargeOrderCard'
 import { useMergeOrders } from '@/hooks/mutations/useMergeOrders'
 import useToast from '@/hooks/UseToast'
 
@@ -26,14 +13,7 @@ interface OrderHistoryTablePaginatedProps {
   items: any[]
   loading: boolean
   error: string | null
-  pagination: {
-    total_orders: number
-    total_pages: number
-    current_page: number
-    per_page: number
-    has_next_page: boolean
-    has_prev_page: boolean
-  } | null
+  pagination: any | null
   currentPage: number
   onPageChange: (page: number) => void
   onNextPage: () => void
@@ -42,7 +22,6 @@ interface OrderHistoryTablePaginatedProps {
   onSearchChange: (search: string) => void
   onDateRangeChange: (start_date?: string, end_date?: string) => void
   onClearFilters: () => void
-  onRefresh?: () => void
 }
 
 export default function OrderHistoryTablePaginated({
@@ -58,25 +37,20 @@ export default function OrderHistoryTablePaginated({
   onSearchChange,
   onDateRangeChange,
   onClearFilters,
-  onRefresh,
 }: OrderHistoryTablePaginatedProps) {
-  const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set())
+  const [showBillDialog, setShowBillDialog] = useState(false)
+  const [selectedOrderForBill, setSelectedOrderForBill] = useState<any>(null)
   const [selectedCartIds, setSelectedCartIds] = useState<Set<string>>(new Set())
   const [isSelectionMode, setIsSelectionMode] = useState(false)
   const mergeMutation = useMergeOrders()
-  const [showBillDialog, setShowBillDialog] = useState(false)
-  const [selectedOrderForBill, setSelectedOrderForBill] = useState<any>(null)
-
   const { showError } = useToast()
 
   // Get currently selected customer ID to restrict selection
   const activeCustomerId = useMemo(() => {
     if (selectedCartIds.size === 0) return null
-    // Find the first selected order to get its customer ID
-    // We convert Set to Array and take the first one
     const firstSelectedId = selectedCartIds.values().next().value
     const order = items.find((o) => o.id === firstSelectedId)
-    return order?.customerId
+    return order?.customerId || order?.customer_id
   }, [selectedCartIds, items])
 
   const totalPages = pagination?.total_pages || 1
@@ -84,17 +58,34 @@ export default function OrderHistoryTablePaginated({
   const hasNextPage = pagination?.has_next_page || false
   const hasPrevPage = pagination?.has_prev_page || false
 
-  // Toggle expanded state for order items
-  const toggleOrderItems = useCallback((cartId: string) => {
-    setExpandedOrders((prev) => {
-      const newSet = new Set(prev)
-      if (newSet.has(cartId)) {
-        newSet.delete(cartId)
-      } else {
-        newSet.add(cartId)
-      }
-      return newSet
-    })
+  // Print bill handler
+  const handlePrintBill = useCallback((order: any) => {
+    const items = order.items || []
+
+    const billItems = items.map((item: any) => ({
+      name: item.name || item.item_name || 'Unknown Item',
+      quantity: item.quantity || 1,
+      price: item.price || 0,
+      variant_name: item.variant_name,
+      addons:
+        typeof item.addons === 'string' ? JSON.parse(item.addons) : item.addons,
+    }))
+
+    const billData = {
+      orderId: order.orderId || order.cart_id || order.id || 'N/A',
+      tableNo: order.tableNo || order.table_no || order.table_number || 'N/A',
+      tableZone: order.tableZone || order.table_zone || '',
+      customerName: order.customerName || order.customer_name || 'Guest',
+      customerPhone: order.customer_phone || order.customerPhone || 'N/A',
+      items: billItems,
+      totalAmount: parseFloat(order.totalAmount || 0),
+      discountAmount: parseFloat(order.discountAmount || 0),
+      rid: order.rid || order.restaurant_id,
+      orderDate: formatDateTime(order.createdAt || order.created_at),
+    }
+
+    setSelectedOrderForBill(billData)
+    setShowBillDialog(true)
   }, [])
 
   // Toggle selection for merging
@@ -117,320 +108,129 @@ export default function OrderHistoryTablePaginated({
       return
     }
 
-    const selectedOrders = items.filter((order) =>
-      selectedCartIds.has(order.id),
-    )
-    const firstCustomerId = selectedOrders[0]?.customerId
-
-    const isSameCustomer = selectedOrders.every(
-      (order) => order.customerId === firstCustomerId,
-    )
-
-    if (!isSameCustomer) {
-      showError('Error', 'All selected orders must belong to the same customer')
-      return
-    }
-
     const cartIdsArray = Array.from(selectedCartIds)
     const targetCartId = cartIdsArray[0]
 
     mergeMutation.mutate(
       { cartIds: cartIdsArray, targetCartId },
       {
-        onSuccess: () => {
-          setSelectedCartIds(new Set())
-          setIsSelectionMode(false)
-          if (onRefresh) onRefresh()
+        onSuccess: (data) => {
+          if (data.statusCode === 200) {
+            setSelectedCartIds(new Set())
+            setIsSelectionMode(false)
+          }
         },
       },
     )
   }
 
-  const toggleSelectionMode = () => {
-    setIsSelectionMode(!isSelectionMode)
+  const toggleSelectionMode = useCallback(() => {
+    setIsSelectionMode((prev) => !prev)
     setSelectedCartIds(new Set())
-  }
-
-  // Print bill handler
-  const handlePrintBill = useCallback((order: any) => {
-    const items = order.items
-      ? typeof order.items === 'string'
-        ? JSON.parse(order.items)
-        : order.items
-      : []
-
-    const billItems = items.map((item: any) => ({
-      name: item.name || item.item_name || 'Unknown Item',
-      quantity: item.quantity || 1,
-      price: item.price || 0,
-      variant_name: item.variant_name,
-      addons:
-        typeof item.addons === 'string' ? JSON.parse(item.addons) : item.addons,
-    }))
-
-    const billData = {
-      orderId: order.orderId || order.cart_id || order.id || 'N/A',
-      tableNo: order.tableNo || order.table_no || order.table_number || 'N/A',
-      tableZone: order.tableZone || order.table_zone || '',
-      customerName:
-        order.customerName ||
-        order.customer_name ||
-        order.customer?.name ||
-        'Guest',
-      customerPhone:
-        order.customer_phone ||
-        order.customerPhone ||
-        order.customer?.phone ||
-        'N/A',
-      items: billItems,
-      totalAmount: parseFloat(order.totalAmount || order.total_amount || 0),
-      discountAmount: parseFloat(
-        order.discountAmount || order.discount_amount || 0,
-      ),
-      rid: order.rid || order.restaurant_id,
-      orderDate: formatDateTime(order.createdAt || order.created_at),
-    }
-
-    setSelectedOrderForBill(billData)
-    setShowBillDialog(true)
   }, [])
 
   return (
-    <div className="w-full h-[calc(100vh-10rem)] flex flex-col relative">
+    <div className="relative p-4 lg:p-10 space-y-8 bg-slate-50/30">
+      {/* Stats Cards */}
+      <OrderHistoryStatsCards stats={pagination} />
+
       {/* Filters Section */}
-      <div className="mb-3">
-        <TableFilters
-          search={search}
-          onSearchChange={onSearchChange}
-          onDateRangeChange={onDateRangeChange}
-          onClearFilters={onClearFilters}
-          // Merge Props
-          isSelectionMode={isSelectionMode}
-          toggleSelectionMode={toggleSelectionMode}
-          selectedCount={selectedCartIds.size}
-          onMerge={handleMerge}
-          isMergePending={mergeMutation.isPending}
-        />
+      <LargeOrderFilters
+        search={search}
+        onSearchChange={onSearchChange}
+        onDateRangeChange={onDateRangeChange}
+        onClearFilters={onClearFilters}
+        isSelectionMode={isSelectionMode}
+        onToggleSelectionMode={toggleSelectionMode}
+        selectedCount={selectedCartIds.size}
+        onMerge={handleMerge}
+        isMergePending={mergeMutation.isPending}
+      />
 
-        {/* Error State */}
-        {error && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 mx-4 mt-2">
-            {error}
+      {/* Error State */}
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
+          {error}
+        </div>
+      )}
+
+      {/* Orders List */}
+      <div className="space-y-6">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <p className="text-[#a16b45] font-medium">Loading orders...</p>
           </div>
+        ) : items.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-[#ead9cd] border-dashed">
+            <p className="text-[#a16b45] font-medium">
+              No orders found matching your search
+            </p>
+          </div>
+        ) : (
+          items.map((order, index) => (
+            <LargeOrderCard
+              key={`${order.id}-${index}`}
+              order={order}
+              onPrintBill={handlePrintBill}
+              isSelectionMode={isSelectionMode}
+              isSelected={selectedCartIds.has(order.id)}
+              onSelect={() => toggleSelection(order.id)}
+              isSelectionDisabled={
+                activeCustomerId !== null &&
+                activeCustomerId !== (order.customerId || order.customer_id)
+              }
+            />
+          ))
         )}
-
-        {/* Merge Actions Bar */}
       </div>
 
-      {/* Table - Scrollable */}
-      <Table className="overflow-auto mb-12">
-        <TableHeader className="bg-gray-50/50">
-          <TableRow className="hover:bg-transparent border-gray-100">
-            {isSelectionMode && <TableHead className="w-[50px]"></TableHead>}
-            <TableHead className="font-bold text-gray-700 text-xs uppercase tracking-wider py-4 pl-4 w-[100px]">
-              Order ID
-            </TableHead>
-            <TableHead className="font-bold text-gray-700 text-xs uppercase tracking-wider py-4">
-              Items
-            </TableHead>
-            <TableHead className="font-bold text-gray-700 text-xs uppercase tracking-wider py-4">
-              Customer
-            </TableHead>
-            <TableHead className="font-bold text-gray-700 text-xs uppercase tracking-wider py-4">
-              Status
-            </TableHead>
-            <TableHead className="font-bold text-gray-700 text-xs uppercase tracking-wider py-4 hidden lg:table-cell">
-              Discount
-            </TableHead>
-            <TableHead className="font-bold text-gray-700 text-xs uppercase tracking-wider py-4">
-              Amount
-            </TableHead>
-            <TableHead className="font-bold text-gray-700 text-xs uppercase tracking-wider py-4 hidden md:table-cell">
-              Table
-            </TableHead>
-            <TableHead className="font-bold text-gray-700 text-xs uppercase tracking-wider py-4 hidden sm:table-cell">
-              Date & Time
-            </TableHead>
-            <TableHead className="text-right font-bold text-gray-700 text-xs uppercase tracking-wider py-4 pr-6">
-              Actions
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {items.length === 0 ? (
-            <TableRow>
-              <TableCell
-                colSpan={isSelectionMode ? 10 : 9}
-                className="text-center py-8"
-              >
-                <div className="text-gray-500 text-sm">
-                  {loading ? 'Loading orders...' : 'No orders found'}
-                </div>
-              </TableCell>
-            </TableRow>
-          ) : (
-            items.map((order, index) => (
-              <TableRow
-                key={`${order.cartId}-${index}`}
-                className="hover:bg-gray-50"
-              >
-                {/* Checkbox */}
-                {isSelectionMode && (
-                  <TableCell className="py-3 px-3">
-                    <Checkbox
-                      checked={selectedCartIds.has(order.id)}
-                      onCheckedChange={() => toggleSelection(order.id)}
-                      disabled={
-                        activeCustomerId !== null &&
-                        activeCustomerId !== order.customerId
-                      }
-                    />
-                  </TableCell>
-                )}
+      {/* Pagination Style matched to mockup */}
+      <div className="pt-6 border-t border-[#ead9cd] dark:border-primary/10 flex items-center justify-between">
+        <p className="text-sm text-[#a16b45]">
+          Showing{' '}
+          <span className="font-bold text-[#1d130c] dark:text-white">
+            {items.length}
+          </span>{' '}
+          of {totalOrders} orders
+        </p>
 
-                {/* ID */}
-                <TableCell className="py-3.5 pl-4">
-                  <div className="text-[11px] sm:text-xs text-gray-900 bg-gray-50 px-2 py-0.5 rounded-lg border border-gray-100/50 inline-block">
-                    #{order.orderId || order.id || 'N/A'}
-                  </div>
-                </TableCell>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onPrevPage}
+            disabled={!hasPrevPage || loading}
+            className="size-10 rounded-xl bg-white dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 text-[#a16b45] hover:text-primary transition-all"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </Button>
 
-                {/* Items */}
-                <TableCell className="py-3.5 max-w-[150px] sm:max-w-[200px]">
-                  <OrderItemsCell
-                    order={order}
-                    expandedOrders={expandedOrders}
-                    onToggleExpand={toggleOrderItems}
-                  />
-                </TableCell>
+          {/* Simple Page Numbers */}
+          {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => (
+            <Button
+              key={i}
+              onClick={() => onPageChange(i + 1)}
+              className={`size-10 rounded-xl font-bold transition-all ${
+                currentPage === i + 1
+                  ? 'bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary'
+                  : 'bg-white dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 text-[#a16b45] hover:text-primary'
+              }`}
+            >
+              {i + 1}
+            </Button>
+          ))}
 
-                {/* Customer */}
-                <TableCell className="py-3.5">
-                  <div className="flex items-center gap-3">
-                    <CustomerAvatar
-                      initials={(
-                        order.customerName ||
-                        order.customer_name ||
-                        'G'
-                      ).charAt(0)}
-                      name={
-                        order.customerName || order.customer_name || 'Guest'
-                      }
-                      size="md"
-                      className="bg-linear-to-br from-orange-300 to-orange-400 text-gray-600 border border-white shadow-xs"
-                    />
-                    <div className="flex flex-col min-w-0">
-                      <span className=" text-gray-900 text-xs sm:text-sm truncate">
-                        {order.customerName || order.customer_name || 'Guest'}
-                      </span>
-                      <span className="text-[10px] text-gray-400 font-medium">
-                        {order.customerId || order.customer_id || ''}
-                      </span>
-                    </div>
-                  </div>
-                </TableCell>
-
-                {/* Status */}
-                <TableCell className="py-3.5">
-                  <Badge
-                    variant="secondary"
-                    className={`px-2 py-0.5 text-[10px] sm:text-[11px]  uppercase tracking-tight border-none ${
-                      order.order_status === 'completed' ||
-                      order.status === 'DELIVERED'
-                        ? 'bg-emerald-50 text-emerald-600'
-                        : 'bg-rose-50 text-rose-600'
-                    }`}
-                  >
-                    {order.order_status === 'completed' ||
-                    order.status === 'DELIVERED'
-                      ? 'DELIVERED'
-                      : 'CANCELLED'}
-                  </Badge>
-                </TableCell>
-
-                {/* Discount */}
-                <TableCell className="py-2 px-2 hidden lg:table-cell">
-                  {(() => {
-                    const discountValue = parseFloat(
-                      order.discountAmount || order.discount_amount || 0,
-                    )
-                    return discountValue > 0 ? (
-                      <div className="text-xs sm:text-sm text-green-600 font-medium">
-                        -₹{discountValue.toFixed(0)}
-                      </div>
-                    ) : (
-                      <div className="text-[10px] text-gray-400">---</div>
-                    )
-                  })()}
-                </TableCell>
-
-                {/* Amount */}
-                <TableCell className="py-2 px-2">
-                  <div className="scale-90 origin-left sm:scale-100">
-                    <OrderTotalWithTooltip
-                      subtotal={parseFloat(order.totalAmount || 0)}
-                      discountAmount={parseFloat(
-                        order.discountAmount || order.discount_amount || 0,
-                      )}
-                      rid={order.rid || order.restaurant_id}
-                    />
-                  </div>
-                </TableCell>
-
-                {/* Table */}
-                <TableCell className="py-2 px-2 hidden md:table-cell">
-                  <div className="flex flex-col">
-                    <span className="text-xs sm:text-sm">
-                      {order.tableZone || ''}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                      {order.tableNo ? `Table ${order.tableNo}` : 'N/A'}
-                    </span>
-                  </div>
-                </TableCell>
-
-                {/* Date & Time */}
-                <TableCell className="py-2 px-2 hidden sm:table-cell">
-                  <div className="text-[10px] sm:text-xs text-gray-600 leading-tight">
-                    {formatDateTime(order.createdAt || order.created_at)}
-                  </div>
-                </TableCell>
-
-                {/* Actions */}
-                <TableCell className="py-3.5 pr-6 text-right">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handlePrintBill(order)}
-                    className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3 p-0 sm:gap-1.5 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-xl transition-all"
-                    title="Print Bill"
-                  >
-                    <Printer className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline text-xs font-bold">
-                      Print
-                    </span>
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-
-      {/* Pagination - Fixed at bottom */}
-      <div className="absolute bottom-0 w-full">
-        <TablePagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={onPageChange}
-          onNextPage={onNextPage}
-          onPrevPage={onPrevPage}
-          hasNextPage={hasNextPage}
-          hasPrevPage={hasPrevPage}
-          loading={loading}
-          totalOrders={totalOrders}
-          perPage={pagination?.per_page}
-        />
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onNextPage}
+            disabled={!hasNextPage || loading}
+            className="size-10 rounded-xl bg-white dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 text-[#a16b45] hover:text-primary transition-all"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </Button>
+        </div>
       </div>
 
       {/* Print Bill Dialog */}

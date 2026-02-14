@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useOrderHistoryQuery } from '@/hooks/queries/useOrderHistoryQuery'
 import {
   TransformedOrder,
@@ -38,14 +38,21 @@ export const UseAdminOrderHistory = ({ rid }: UseAdminOrdersProps) => {
   // Debounce search to avoid excessive API calls
   const debouncedSearch = useDebounce(filters.search, 500)
 
-  // State for transformed orders
-  const [transformedOrders, setTransformedOrders] = useState<
+  // Only trigger search if 2+ characters are entered (or if cleared)
+  const effectiveSearch =
+    debouncedSearch.length >= 2 || debouncedSearch.length === 0
+      ? debouncedSearch
+      : ''
+
+  // State for accumulated orders (for infinite scroll)
+  const [accumulatedOrders, setAccumulatedOrders] = useState<
     TransformedOrder[]
   >([])
 
   // Fetch paginated order history using TanStack Query
   const {
     data: orderHistoryData,
+    isFetching, // use isFetching for better loading states in infinite scroll
     isLoading,
     error: queryError,
     refetch,
@@ -53,7 +60,7 @@ export const UseAdminOrderHistory = ({ rid }: UseAdminOrdersProps) => {
     rid,
     page: pagination.page,
     limit: pagination.limit,
-    search: debouncedSearch,
+    search: effectiveSearch,
     start_date: filters.start_date,
     end_date: filters.end_date,
   })
@@ -73,36 +80,52 @@ export const UseAdminOrderHistory = ({ rid }: UseAdminOrdersProps) => {
       }
     : null
 
-  // Transform orders when raw data changes
-  // Use a ref to avoid infinite re-renders, but include page number to detect page changes
-  const ordersRef = useRef<string>('')
-
-  // Memoize orders to prevent unnecessary re-renders
-  const stableOrders = useMemo(
-    () => orders,
-    [JSON.stringify(orders.map((o: any) => o.cart_id || o.id))],
+  // Track previous filters/rid to detect resets
+  const prevFiltersRef = useRef(
+    JSON.stringify({ rid, ...filters, search: effectiveSearch }),
   )
 
   useEffect(() => {
-    // Include page number in the key to detect page navigation
-    const ordersKey = JSON.stringify({
-      page: pagination.page,
-      orderIds: stableOrders.map((o: any) => o.cart_id || o.id),
+    // We use effectiveSearch here to avoid resetting the list until 2+ chars are typed
+    const currentFilters = JSON.stringify({
+      rid,
+      ...filters,
+      search: effectiveSearch,
     })
+    const isResetNeeded = currentFilters !== prevFiltersRef.current
 
-    // Only skip if both page AND order IDs are identical
-    if (ordersKey === ordersRef.current && stableOrders.length > 0) return
-    ordersRef.current = ordersKey
-
-    if (stableOrders.length > 0) {
-      // Transform raw API data to UI format
-      const transformed = transformOrderData(stableOrders)
-
-      setTransformedOrders(transformed)
-    } else {
-      setTransformedOrders([])
+    if (isResetNeeded) {
+      prevFiltersRef.current = currentFilters
+      setAccumulatedOrders([])
+      // After reset, the next data fetch will set page 1 data below
+      return
     }
-  }, [stableOrders, pagination.page])
+
+    if (orders.length > 0) {
+      const transformed = transformOrderData(orders)
+
+      setAccumulatedOrders((prev) => {
+        if (pagination.page === 1) {
+          return transformed
+        }
+        // Append unique orders only (prevent duplicates during rapid scrolling/updates)
+        const existingIds = new Set(prev.map((o) => o.id))
+        const newUniqueOrders = transformed.filter(
+          (o) => !existingIds.has(o.id),
+        )
+        return [...prev, ...newUniqueOrders]
+      })
+    } else if (pagination.page === 1) {
+      setAccumulatedOrders([])
+    }
+  }, [
+    orders,
+    pagination.page,
+    filters.start_date,
+    filters.end_date,
+    rid,
+    effectiveSearch,
+  ])
 
   // Pagination controls
   const goToPage = useCallback((page: number) => {
@@ -148,15 +171,17 @@ export const UseAdminOrderHistory = ({ rid }: UseAdminOrdersProps) => {
 
   return {
     // Order data (transformed)
-    orderHistory: transformedOrders,
+    orderHistory: accumulatedOrders,
     rawOrders: orders,
 
     // Loading and error states
     loading: isLoading,
+    isFetching,
     error: queryError ? String(queryError) : null,
 
     // Pagination metadata
     pagination: paginationMeta,
+    hasNextPage: !!paginationMeta?.has_next_page,
 
     // Pagination controls
     goToPage,
