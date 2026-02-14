@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { DrawerContent } from '@/components/ui/drawer'
 import { DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -9,7 +9,6 @@ import {
   Triangle,
   ShoppingCart,
 } from 'lucide-react'
-import { toast } from 'sonner'
 import { useItemStore } from '@/store/order-store'
 import { ImageCarousel } from '@/hooks/useImageCarousel'
 import AddonSelector from './addon/AddonSelector'
@@ -32,6 +31,7 @@ export default function FoodItemInfo({
   stock,
   variants,
   category, // added
+  onClose,
 }: any) {
   const { showError, showSuccess } = useToast()
   const showCartItems = useItemStore((state) => state.items)
@@ -166,6 +166,7 @@ export default function FoodItemInfo({
 
     updateSelectedItems([...selectedItems, cartId])
     showSuccess('Success', 'Item added to cart')
+    if (onClose) onClose()
   }
 
   return (
@@ -317,7 +318,7 @@ export default function FoodItemInfo({
           </div>
 
           {/* Desktop Highlighted Features */}
-          <div className="flex gap-4 mb-6 flex-nowrap text-nowrap hidden lg:flex">
+          <div className="gap-4 mb-6 flex-nowrap text-nowrap hidden lg:flex">
             {/* ... existing features ... */}
             <div className=" bg-btnColor/5 p-3 rounded-lg flex items-center gap-3 border border-btnColor/20">
               <div className="bg-btnColor/10 p-2 rounded-full">

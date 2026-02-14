@@ -1,15 +1,6 @@
-'use client'
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '../../ui/button'
-import {
-  AlertTriangle,
-  Check,
-  Heart,
-  Loader2,
-  Minus,
-  Plus,
-  Triangle,
-} from 'lucide-react'
+import { Heart, Loader2, Minus, Plus, Triangle } from 'lucide-react'
 import { useItemStore } from '@/store/order-store'
 import HoverInfo from '../../smallComponents/HoverInfo'
 import { Drawer } from '@/components/ui/drawer'
@@ -275,27 +266,6 @@ export default function FoodItemCard({
     },
   ]
 
-  const statusOptions = [
-    {
-      value: 'available',
-      label: 'Available',
-      icon: <Check className="h-4 w-4" />,
-      color: 'text-green-600',
-    },
-    {
-      value: 'out_of_stock',
-      label: 'Out of Stock',
-      icon: <AlertTriangle className="h-4 w-4" />,
-      color: 'text-red-600',
-    },
-    {
-      value: 'low_stock',
-      label: 'Low Stock',
-      icon: <AlertTriangle className="h-4 w-4" />,
-      color: 'text-yellow-600',
-    },
-  ]
-
   // Get current quantity in cart for this product (sum of all variants)
   const getCurrentCartQuantity = () => {
     return allItems
@@ -548,6 +518,7 @@ export default function FoodItemCard({
           status={status}
           stock={stock}
           variants={variants}
+          onClose={() => setDialogOpen(false)}
           onAddToCart={(itemName: any, itemPrice: any, variantId: any) =>
             handleCartClick(
               id,

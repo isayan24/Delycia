@@ -1,7 +1,7 @@
-"use client";
-import { cn } from "@/lib/utils";
-import { AnimatePresence, motion } from "motion/react";
-import { useState, useEffect } from "react";
+'use client'
+import { cn } from '@/lib/utils'
+import { AnimatePresence, motion } from 'motion/react'
+import { useState, useEffect } from 'react'
 
 const CheckIcon = ({ className }: { className?: string }) => {
   return (
@@ -11,12 +11,12 @@ const CheckIcon = ({ className }: { className?: string }) => {
       viewBox="0 0 24 24"
       strokeWidth={1.5}
       stroke="currentColor"
-      className={cn("w-6 h-6 ", className)}
+      className={cn('w-6 h-6 ', className)}
     >
       <path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
     </svg>
-  );
-};
+  )
+}
 
 const CheckFilled = ({ className }: { className?: string }) => {
   return (
@@ -24,7 +24,7 @@ const CheckFilled = ({ className }: { className?: string }) => {
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 24 24"
       fill="currentColor"
-      className={cn("w-6 h-6 ", className)}
+      className={cn('w-6 h-6 ', className)}
     >
       <path
         fillRule="evenodd"
@@ -32,30 +32,30 @@ const CheckFilled = ({ className }: { className?: string }) => {
         clipRule="evenodd"
       />
     </svg>
-  );
-};
+  )
+}
 
 type LoadingState = {
-  text: string;
-};
+  text: string
+}
 
 const LoaderCore = ({
   loadingStates,
   value = 0,
 }: {
-  loadingStates: LoadingState[];
-  value?: number;
+  loadingStates: LoadingState[]
+  value?: number
 }) => {
   return (
     <div className="flex relative justify-start max-w-xl mx-auto flex-col mt-40">
       {loadingStates.map((loadingState, index) => {
-        const distance = Math.abs(index - value);
-        const opacity = Math.max(1 - distance * 0.2, 0); // Minimum opacity is 0, keep it 0.2 if you're sane.
+        const distance = Math.abs(index - value)
+        const opacity = Math.max(1 - distance * 0.2, 0) // Minimum opacity is 0, keep it 0.2 if you're sane.
 
         return (
           <motion.div
             key={index}
-            className={cn("text-left flex gap-2 mb-4")}
+            className={cn('text-left flex gap-2 mb-4')}
             initial={{ opacity: 0, y: -(value * 40) }}
             animate={{ opacity: opacity, y: -(value * 40) }}
             transition={{ duration: 0.5 }}
@@ -67,27 +67,27 @@ const LoaderCore = ({
               {index <= value && (
                 <CheckFilled
                   className={cn(
-                    "text-black dark:text-white",
+                    'text-black dark:text-white',
                     value === index &&
-                      "text-black dark:text-lime-500 opacity-100"
+                      'text-black dark:text-lime-500 opacity-100',
                   )}
                 />
               )}
             </div>
             <span
               className={cn(
-                "text-black dark:text-white",
-                value === index && "text-black dark:text-lime-500 opacity-100"
+                'text-black dark:text-white',
+                value === index && 'text-black dark:text-lime-500 opacity-100',
               )}
             >
               {loadingState.text}
             </span>
           </motion.div>
-        );
+        )
       })}
     </div>
-  );
-};
+  )
+}
 
 export const MultiStepLoader = ({
   loadingStates,
@@ -95,17 +95,17 @@ export const MultiStepLoader = ({
   duration = 2000,
   loop = true,
 }: {
-  loadingStates: LoadingState[];
-  loading?: boolean;
-  duration?: number;
-  loop?: boolean;
+  loadingStates: LoadingState[]
+  loading?: boolean
+  duration?: number
+  loop?: boolean
 }) => {
-  const [currentState, setCurrentState] = useState(0);
+  const [currentState, setCurrentState] = useState(0)
 
   useEffect(() => {
     if (!loading) {
-      setCurrentState(0);
-      return;
+      setCurrentState(0)
+      return
     }
     const timeout = setTimeout(() => {
       setCurrentState((prevState) =>
@@ -113,12 +113,12 @@ export const MultiStepLoader = ({
           ? prevState === loadingStates.length - 1
             ? 0
             : prevState + 1
-          : Math.min(prevState + 1, loadingStates.length - 1)
-      );
-    }, duration);
+          : Math.min(prevState + 1, loadingStates.length - 1),
+      )
+    }, duration)
 
-    return () => clearTimeout(timeout);
-  }, [currentState, loading, loop, loadingStates.length, duration]);
+    return () => clearTimeout(timeout)
+  }, [currentState, loading, loop, loadingStates.length, duration])
   return (
     <AnimatePresence mode="wait">
       {loading && (
@@ -142,5 +142,5 @@ export const MultiStepLoader = ({
         </motion.div>
       )}
     </AnimatePresence>
-  );
-};
+  )
+}
