@@ -117,7 +117,6 @@ export function BillPreview({
                       <span>
                         + {addon.quantity} {addon.name}
                       </span>
-                      <span>₹{addon.price.toFixed(2)}</span>
                     </div>
                   ))}
                 </div>

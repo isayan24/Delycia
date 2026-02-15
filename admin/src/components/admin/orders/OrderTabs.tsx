@@ -68,59 +68,59 @@ export default function OrderTabs({
 
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-      <div className="relative mb-6">
-        <TabsList className="flex w-full items-center justify-start h-auto p-1 bg-gray-100/80 backdrop-blur-sm rounded-xl border border-gray-200/50 overflow-x-auto no-scrollbar scroll-smooth">
+      <div className="relative mb-4">
+        <TabsList className="flex w-full items-center justify-start h-auto p-1.5 bg-white dark:bg-[#2d1e14] rounded-xl border border-[#ead9cd] dark:border-primary/10 overflow-x-auto no-scrollbar scroll-smooth transition-all shadow-sm">
           <TabsTrigger
             value="pending"
-            className="shrink-0 min-w-max px-4 py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg gap-2"
+            className="shrink-0 min-w-max px-3 md:px-6 py-2 md:py-2.5 text-[12px] md:text-sm font-bold transition-all data-[state=active]:bg-orange-50 dark:data-[state=active]:bg-orange-900/20 data-[state=active]:text-orange-600 data-[state=active]:shadow-none rounded-lg gap-2 md:gap-3 text-[#a16b45] hover:text-orange-600"
           >
             <span>Pending</span>
             {pendingOrders.length > 0 && (
-              <span className="bg-amber-100 text-amber-600 text-[10px] font-bold rounded-full h-5 min-w-5 flex items-center justify-center border border-amber-200">
+              <span className="bg-orange-500 text-white text-[10px] font-bold rounded-full h-5 min-w-5 flex items-center justify-center border-none shadow-sm">
                 {pendingOrders.length}
               </span>
             )}
           </TabsTrigger>
           <TabsTrigger
             value="preparing"
-            className="shrink-0 min-w-max px-4 py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg gap-2"
+            className="shrink-0 min-w-max px-3 md:px-6 py-2 md:py-2.5 text-[12px] md:text-sm font-bold transition-all data-[state=active]:bg-yellow-50 dark:data-[state=active]:bg-yellow-900/20 data-[state=active]:text-yellow-600 data-[state=active]:shadow-none rounded-lg gap-2 md:gap-3 text-[#a16b45] hover:text-yellow-600"
           >
             <span>Preparing</span>
             {processingOrders.length > 0 && (
-              <span className="bg-orange-100 text-orange-600 text-[10px] font-bold rounded-full h-5 min-w-5 flex items-center justify-center border border-orange-200">
+              <span className="bg-yellow-500 text-white text-[10px] font-bold rounded-full h-5 min-w-5 flex items-center justify-center border-none shadow-sm">
                 {processingOrders.length}
               </span>
             )}
           </TabsTrigger>
           <TabsTrigger
             value="ready"
-            className="shrink-0 min-w-max px-4 py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg gap-2"
+            className="shrink-0 min-w-max px-3 md:px-6 py-2 md:py-2.5 text-[12px] md:text-sm font-bold transition-all data-[state=active]:bg-blue-50 dark:data-[state=active]:bg-blue-900/20 data-[state=active]:text-blue-600 data-[state=active]:shadow-none rounded-lg gap-2 md:gap-3 text-[#a16b45] hover:text-blue-600"
           >
             <span>Ready</span>
             {readyOrders.length > 0 && (
-              <span className="bg-blue-100 text-blue-600 text-[10px] font-bold rounded-full h-5 min-w-5 flex items-center justify-center border border-blue-200">
+              <span className="bg-blue-500 text-white text-[10px] font-bold rounded-full h-5 min-w-5 flex items-center justify-center border-none shadow-sm">
                 {readyOrders.length}
               </span>
             )}
           </TabsTrigger>
           <TabsTrigger
             value="delivered"
-            className="shrink-0 min-w-max px-4 py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg gap-2"
+            className="shrink-0 min-w-max px-3 md:px-6 py-2 md:py-2.5 text-[12px] md:text-sm font-bold transition-all data-[state=active]:bg-emerald-50 dark:data-[state=active]:bg-emerald-900/20 data-[state=active]:text-emerald-600 data-[state=active]:shadow-none rounded-lg gap-2 md:gap-3 text-[#a16b45] hover:text-emerald-600"
           >
             <span>Delivered</span>
             {deliveredOrders.length > 0 && (
-              <span className="bg-emerald-100 text-emerald-600 text-[10px] font-bold rounded-full h-5 min-w-5 flex items-center justify-center border border-emerald-200">
+              <span className="bg-emerald-500 text-white text-[10px] font-bold rounded-full h-5 min-w-5 flex items-center justify-center border-none shadow-sm">
                 {deliveredOrders.length}
               </span>
             )}
           </TabsTrigger>
           <TabsTrigger
             value="cancelled"
-            className="shrink-0 min-w-max px-4 py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg gap-2"
+            className="shrink-0 min-w-max px-3 md:px-6 py-2 md:py-2.5 text-[12px] md:text-sm font-bold transition-all data-[state=active]:bg-red-50 dark:data-[state=active]:bg-red-900/20 data-[state=active]:text-red-600 data-[state=active]:shadow-none rounded-lg gap-2 md:gap-3 text-[#a16b45] hover:text-red-600"
           >
             <span>Cancelled</span>
             {cancelledOrders.length > 0 && (
-              <span className="bg-rose-100 text-rose-600 text-[10px] font-bold rounded-full h-5 min-w-5 flex items-center justify-center border border-rose-200">
+              <span className="bg-red-500 text-white text-[10px] font-bold rounded-full h-5 min-w-5 flex items-center justify-center border-none shadow-sm">
                 {cancelledOrders.length}
               </span>
             )}
@@ -131,7 +131,7 @@ export default function OrderTabs({
       {/* Pending Orders Tab */}
       <TabsContent value="pending" className="space-y-4">
         {pendingOrders.length === 0 ? (
-          <div className="text-center py-8">
+          <div className="text-center py-6">
             <p className="text-muted-foreground">No pending orders</p>
             <p className="text-sm text-muted-foreground mt-1">
               New orders will appear here when they arrive
@@ -178,7 +178,7 @@ export default function OrderTabs({
       {/* Preparing Orders Tab */}
       <TabsContent value="preparing" className="space-y-4">
         {processingOrders.length === 0 ? (
-          <div className="text-center py-8">
+          <div className="text-center py-6">
             <p className="text-muted-foreground">No orders being prepared</p>
             <p className="text-sm text-muted-foreground mt-1">
               Accepted orders will appear here
@@ -204,7 +204,7 @@ export default function OrderTabs({
       {/* Ready Orders Tab */}
       <TabsContent value="ready" className="space-y-4">
         {readyOrders.length === 0 ? (
-          <div className="text-center py-8">
+          <div className="text-center py-6">
             <p className="text-muted-foreground">No orders ready for pickup</p>
             <p className="text-sm text-muted-foreground mt-1">
               Ready orders will appear here
@@ -227,7 +227,7 @@ export default function OrderTabs({
       {/* Delivered Orders Tab */}
       <TabsContent value="delivered" className="space-y-4">
         {deliveredOrders.length === 0 ? (
-          <div className="text-center py-8">
+          <div className="text-center py-6">
             <p className="text-muted-foreground">No delivered orders</p>
             <p className="text-sm text-muted-foreground mt-1">
               Completed orders will appear here
@@ -260,7 +260,7 @@ export default function OrderTabs({
       {/* Cancelled Orders Tab */}
       <TabsContent value="cancelled" className="space-y-4">
         {cancelledOrders.length === 0 ? (
-          <div className="text-center py-8">
+          <div className="text-center py-6">
             <p className="text-muted-foreground">No cancelled orders</p>
             <p className="text-sm text-muted-foreground mt-1">
               Rejected orders will appear here

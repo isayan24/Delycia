@@ -22,7 +22,7 @@ import type { RouterContext } from '@/middleware/auth'
 import { shouldShowUIComponents } from '@/middleware/auth'
 import { AppSidebar } from '@/components/app-sidebar'
 import { useRoleBasedUI } from '@/components/user-roles/useRoleBasedUI'
-import AdminHeader from '@/components/admin/header/AdminHeader'
+import DynamicHeader from '@/components/admin/header/DynamicHeader'
 import WaiterHeader from '@/components/admin/header/WaiterHeader'
 import { SubscriptionGuard } from '@/components/admin/settings/SubscriptionGuard'
 import { NotificationToastManager } from '@/components/common/NotificationToastManager'
@@ -133,7 +133,7 @@ function RootComponent() {
               <AppSidebar />
               <SidebarInset className="relative">
                 <SubscriptionGuard>
-                  <AdminHeader />
+                  <DynamicHeader />
 
                   <div className="p-5 max-[500px]:p-1 max-w-[90vw]s mx-autod borderx">
                     <Toaster

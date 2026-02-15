@@ -63,7 +63,7 @@ export function GlobalOrderPopupManager() {
       {/* Global Order Popup - only render if authenticated and has current order */}
       {isPopupVisible && currentOrder && getOrderPopup !== 'none' && (
         <div
-          className="fixed inset-0 z-[9999]"
+          className="fixed inset-0 z-[45]"
           style={{ pointerEvents: isPopupVisible ? 'auto' : 'none' }}
         >
           <div

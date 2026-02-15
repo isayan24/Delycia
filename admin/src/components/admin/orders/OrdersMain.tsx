@@ -7,7 +7,6 @@ import {
 import { WebSocketOrder, ProcessedOrder } from '@/types/WebSocketOrder'
 
 import { OrdersLoadingState } from './order-ui-card/OrdersLoadingState'
-import { OrdersHeader } from './order-ui-card/OrdersHeader'
 
 import OrderTabs from './OrderTabs'
 import UseAdminSoundWrapper from './hooks/useAdminSoundWrapper'
@@ -33,14 +32,8 @@ export default function OrdersMain() {
   const [ordersWithState, setOrdersWithState] = useState<OrderWithState[]>([])
   const [activeTab, setActiveTab] = useState('pending')
   const { showError, showSuccess, showInfo } = useToast()
-  const {
-    popupsEnabled,
-    togglePopups,
-    showPopup,
-    acceptOrder,
-    rejectOrder,
-    markOrderAsProcessed,
-  } = useGlobalOrderPopupStore()
+  const { popupsEnabled, acceptOrder, rejectOrder, markOrderAsProcessed } =
+    useGlobalOrderPopupStore()
 
   // Token no longer needed - server routes read from httpOnly cookies
   const [isAcceptingOrder, startAcceptingOrder] = useTransition()
@@ -51,11 +44,9 @@ export default function OrdersMain() {
   // Use singleton WebSocket manager that persists across route changes
   const {
     orders: rawOrders,
-    status,
     isConnected,
     error,
     isLoading,
-    refreshOrders,
   } = useWebSocketManager()
 
   // Process raw WebSocket orders into grouped, component-ready format
@@ -196,16 +187,6 @@ export default function OrdersMain() {
     })
   }
 
-  const handleViewTimeline = (order: ProcessedOrder) => {
-    console.log('📋 VIEW TIMELINE - Full Details:', {
-      order: order,
-      customer: {
-        id: order.customer_id,
-        name: order.customer_name,
-      },
-      orderTime: order.created_at,
-    })
-  }
   // mark handle extra time
   const handleExtendTime = async (
     order: ProcessedOrder,
@@ -260,19 +241,6 @@ export default function OrdersMain() {
   const readyOrders = ordersWithState.filter((order) => order.state === 'ready')
 
   // Custom toggle function that can show popup for existing pending orders
-  const handleTogglePopups = useCallback(() => {
-    const wasEnabled = popupsEnabled
-    togglePopups() // Toggle the state first
-
-    // If we're enabling popups and there are pending orders, show the first one
-    if (!wasEnabled && pendingOrders.length > 0) {
-      // Small delay to ensure the toggle state is updated
-      setTimeout(() => {
-        showPopup(pendingOrders[0])
-      }, 100)
-    }
-  }, [popupsEnabled, togglePopups, pendingOrders, showPopup])
-
   // Filter completed and cancelled orders to only show past 24 hours
   // Include both 'completed' and 'settled' orders as delivered
   const completedOrders = ordersWithState.filter(
@@ -295,13 +263,7 @@ export default function OrdersMain() {
   if (error && !isConnected) {
     return (
       <div className="p-6">
-        <OrdersHeader
-          orderCount={0}
-          status={status}
-          onRefresh={refreshOrders}
-          isConnected={isConnected}
-        />
-        <div className="mt-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+        <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
           <p className="text-destructive font-medium">Connection Error</p>
           <p className="text-sm text-muted-foreground mt-1">{error}</p>
         </div>
@@ -316,35 +278,28 @@ export default function OrdersMain() {
         <UseAdminSoundWrapper pendingOrdersCount={pendingOrders.length} />
       )}
 
-      <div className="p-6 max-[700px]:p-3 space-y-6">
-        <OrdersHeader
-          orderCount={ordersWithState.length}
-          status={status}
-          onRefresh={refreshOrders}
-          isConnected={isConnected}
-          onTogglePopups={handleTogglePopups}
-          popupsEnabled={popupsEnabled}
-        />
-
-        <OrderTabs
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          pendingOrders={pendingOrders}
-          processingOrders={processingOrders}
-          readyOrders={readyOrders}
-          deliveredOrders={deliveredOrders}
-          cancelledOrders={cancelledOrders}
-          handleAcceptOrder={handleAcceptOrder}
-          handleRejectOrder={handleRejectOrder}
-          handleMarkReady={handleMarkReady}
-          handleMarkDelivered={handleMarkDelivered}
-          handleCall={handleCall}
-          handleExtendTime={handleExtendTime}
-          isAcceptingOrder={isAcceptingOrder}
-          isRejectingOrder={isRejectingOrder}
-          isMarkingReady={isMarkingReady}
-          isMarkDelivered={isMarkDelivered}
-        />
+      <div className="px-6 pb-6 pt-2 max-[700px]:p-3 space-y-8 bg-slate-50/30 dark:bg-background-dark/30 min-h-screen transition-colors">
+        <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+          <OrderTabs
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            pendingOrders={pendingOrders}
+            processingOrders={processingOrders}
+            readyOrders={readyOrders}
+            deliveredOrders={deliveredOrders}
+            cancelledOrders={cancelledOrders}
+            handleAcceptOrder={handleAcceptOrder}
+            handleRejectOrder={handleRejectOrder}
+            handleMarkReady={handleMarkReady}
+            handleMarkDelivered={handleMarkDelivered}
+            handleCall={handleCall}
+            handleExtendTime={handleExtendTime}
+            isAcceptingOrder={isAcceptingOrder}
+            isRejectingOrder={isRejectingOrder}
+            isMarkingReady={isMarkingReady}
+            isMarkDelivered={isMarkDelivered}
+          />
+        </div>
       </div>
     </>
   )

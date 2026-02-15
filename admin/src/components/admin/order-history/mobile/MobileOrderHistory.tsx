@@ -143,11 +143,11 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
       }))
 
       const billData = {
-        orderId: order.orderId,
+        onCall: (order as any).customer?.id,
         restaurantName: selectedRestaurant?.name || '',
         tableNo: order.tableNo,
         customerName: order.customerName || order.customer?.name || 'Guest',
-        customerId: String(order.customerId) || 'N/A',
+        customerId: (order as any).customer?.id || 'N/A',
         customerPhone: order.customer?.phone || 'N/A',
         items: billItems,
         discountAmount: parseFloat(String(order.discountAmount || 0)),
