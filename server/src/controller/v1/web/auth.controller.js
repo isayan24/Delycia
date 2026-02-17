@@ -1,6 +1,7 @@
 import auth from "../../../models/v1/web/auth.model.js";
 import authUtil from "../../../utils/auth.js";
 import jwt from "jsonwebtoken";
+import pool from "../../../config/db.connection.js";
 
 const handleAuth = async (req, res) => {
   const response = await auth.handleAuth(req);
@@ -12,18 +13,70 @@ const handleAuth = async (req, res) => {
 };
 
 const refresh = async (req, res) => {
-  let refresh_token = req.headers?.authorization?.split(" ")[1];
+  // Get refresh token from Authorization header or cookies
+  let refresh_token = req.headers?.authorization?.split(" ")[1] || req.cookies?.refresh_token;
+  
+  if (!refresh_token) {
+    return res.status(401).json({ 
+      status: false, 
+      error: "Refresh token not provided" 
+    });
+  }
+
   try {
-    const users = jwt.verify(refresh_token, process.env.REFRESH_SECRET);
-    const newAccessToken = authUtil.generateAccessToken(users);
+    // Verify the refresh token
+    const decoded = jwt.verify(refresh_token, process.env.REFRESH_SECRET);
+    
+    // Verify the refresh token exists in the database and matches
+    const [result] = await pool.query(
+      "SELECT id, uid, role, name, username, email, phone_number, profile_pic, refresh_token FROM users WHERE uid = ?",
+      [decoded.uid]
+    );
+
+    if (!result.length) {
+      return res.status(401).json({ 
+        status: false, 
+        error: "User not found" 
+      });
+    }
+
+    const userData = result[0];
+
+    // Verify the refresh token matches the one in the database
+    if (userData.refresh_token !== refresh_token) {
+      return res.status(401).json({ 
+        status: false, 
+        error: "Invalid refresh token" 
+      });
+    }
+
+    // Generate new access token AND new refresh token (token rotation)
+    const newAccessToken = authUtil.generateAccessToken(userData);
+    const newRefreshToken = authUtil.generateRefreshToken(userData);
+
+    // Update the refresh token in the database
+    await pool.query(
+      "UPDATE users SET access_token = ?, refresh_token = ? WHERE uid = ?",
+      [newAccessToken, newRefreshToken, userData.uid]
+    );
+
+    // Set new tokens in httpOnly cookies
     authUtil.setCookies(res, "access_token", newAccessToken, 7);
-    res
-      .status(200)
-      .json({ status: true, refresh_token, access_token: newAccessToken });
+    authUtil.setCookies(res, "refresh_token", newRefreshToken, 30);
+
+    // Return success response with new tokens
+    res.status(200).json({ 
+      status: true, 
+      message: "Tokens refreshed successfully",
+      access_token: newAccessToken,
+      refresh_token: newRefreshToken
+    });
   } catch (error) {
-    res
-      .status(401)
-      .json({ status: false, error: "Token expired, please login again" });
+    console.error("Token refresh error:", error);
+    res.status(401).json({ 
+      status: false, 
+      error: "Token expired or invalid, please login again" 
+    });
   }
 };
 

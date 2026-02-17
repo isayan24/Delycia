@@ -45,6 +45,15 @@ import adminSubscriptionsRoutes from "./routes/v1/admin/subscriptions.routes.js"
 // System routes
 import systemDataRoutes from "./routes/v1/system/data.routes.js";
 
+// Superadmin routes
+import superadminAuthRoutes from "./routes/v1/superadmin/auth.routes.js";
+import superadminRestaurantsRoutes from "./routes/v1/superadmin/restaurants.routes.js";
+import superadminSubscriptionsRoutes from "./routes/v1/superadmin/subscriptions.routes.js";
+import superadminUsersRoutes from "./routes/v1/superadmin/users.routes.js";
+import superadminMenusRoutes from "./routes/v1/superadmin/menus.routes.js";
+import superadminStaffRoutes from "./routes/v1/superadmin/staff.routes.js";
+import superadminDashboardRoutes from "./routes/v1/superadmin/dashboard.routes.js";
+
 // ...
 
 // ...
@@ -76,9 +85,11 @@ app.use((err, req, res, next) => {
 const allowedOrigins = [
   "http://localhost:4000",
   "http://localhost:4500",
+  "http://localhost:5000", // Superadmin frontend
   "http://192.168.0.115:5500",
   "https://delycia-frontend-wquuyx-617afa-195-35-21-102.traefik.me",
   "http://192.168.0.115:5173",
+  "http://72.61.255.194:4000",
 ];
 app.use(
   cors({
@@ -103,6 +114,7 @@ app.use(
       "Authorization",
       "Access-Control-Allow-Credentials",
       "x-signature",
+      "x-csrf-token", // CSRF token header for superadmin
     ],
 
     credentials: true,
@@ -158,6 +170,15 @@ app.use("/api/v1/admin/crm", adminCrmRoutes);
 app.use("/api/v1/admin/staff-reports", adminStaffReportsRoutes);
 app.use("/api/v1/admin/subscriptions", adminSubscriptionsRoutes);
 app.use("/api/v1/admin/notifications", notificationRoutes);
+
+// Superadmin APIs
+app.use("/api/v1/superadmin/auth", sanitizeInput, superadminAuthRoutes);
+app.use("/api/v1/superadmin/restaurants", sanitizeInput, superadminRestaurantsRoutes);
+app.use("/api/v1/superadmin/subscriptions", sanitizeInput, superadminSubscriptionsRoutes);
+app.use("/api/v1/superadmin/users", sanitizeInput, superadminUsersRoutes);
+app.use("/api/v1/superadmin/menus", sanitizeInput, superadminMenusRoutes);
+app.use("/api/v1/superadmin/staff", sanitizeInput, superadminStaffRoutes);
+app.use("/api/v1/superadmin/dashboard", sanitizeInput, superadminDashboardRoutes);
 
 //System routes
 app.use("/api/v1/system/upsells", systemDataRoutes);

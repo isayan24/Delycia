@@ -55,6 +55,10 @@ const isValidSignature = (receivedSignature, receivedPayload) => {
   return true;
 };
 
+const verifyToken = (token) => {
+  return jwt.verify(token, ACCESS_SECRET);
+};
+
 export default {
   generateAccessToken,
   generateRefreshToken,
@@ -62,4 +66,5 @@ export default {
   hashPassword,
   verifyPassword,
   isValidSignature,
+  verifyToken,
 };
