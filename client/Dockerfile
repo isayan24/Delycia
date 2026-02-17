@@ -30,11 +30,13 @@ COPY . .
 # Build Arguments (These must be passed during docker build)
 # Note: We use VITE_ prefix as Vite requires this for client-side variables
 ARG VITE_API_BASE_URL
+ARG VITE_APP_URL
 ARG IMAGEKIT_PUBLIC_KEY
 ARG IMAGEKIT_PUBLIC_URL_ENDPOINT
 
 # Set ENVs for the build process (Vite/TanStack Start needs them)
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_APP_URL=$VITE_APP_URL
 ENV IMAGEKIT_PUBLIC_KEY=$IMAGEKIT_PUBLIC_KEY
 ENV IMAGEKIT_PUBLIC_URL_ENDPOINT=$IMAGEKIT_PUBLIC_URL_ENDPOINT
 ENV NODE_ENV=production
@@ -73,10 +75,6 @@ USER nodeuser
 
 # Expose port
 EXPOSE 4000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:4000/ || exit 1
 
 # Start command
 CMD ["node", ".output/server/index.mjs"]

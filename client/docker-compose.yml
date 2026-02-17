@@ -6,6 +6,7 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+        VITE_APP_URL: ${VITE_APP_URL}
         IMAGEKIT_PUBLIC_KEY: ${IMAGEKIT_PUBLIC_KEY}
         IMAGEKIT_PUBLIC_URL_ENDPOINT: ${IMAGEKIT_PUBLIC_URL_ENDPOINT}
     restart: unless-stopped
@@ -16,6 +17,7 @@ services:
       - 8.8.4.4
     environment:
       - VITE_API_BASE_URL=${VITE_API_BASE_URL}
+      - VITE_APP_URL=${VITE_APP_URL}
       - IMAGEKIT_PUBLIC_KEY=${IMAGEKIT_PUBLIC_KEY}
       - IMAGEKIT_PUBLIC_URL_ENDPOINT=${IMAGEKIT_PUBLIC_URL_ENDPOINT}
       - IMAGEKIT_PRIVATE_KEY=${IMAGEKIT_PRIVATE_KEY}
