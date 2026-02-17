@@ -114,8 +114,8 @@ export const queryKeys = {
     all: ['crm'] as const,
     list: (filters: { rid: string; timeRange?: string }) =>
       [...queryKeys.crm.all, 'list', filters] as const,
-    stats: (params: { rid: string }) =>
-      [...queryKeys.crm.all, 'stats', params] as const,
+    stats: (filters: { rid: string; timeRange?: string }) =>
+      [...queryKeys.crm.all, 'stats', filters] as const,
     details: (params: { rid: string; customerId: string | null }) =>
       [...queryKeys.crm.all, 'details', params] as const,
   },

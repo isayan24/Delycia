@@ -1,7 +1,7 @@
 'use client'
 
 import { Switch } from '@/components/ui/switch'
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import {
   useRestaurantSettingsQuery,
   useUpdateRestaurantMutation,
@@ -14,7 +14,7 @@ import { Loader2 } from 'lucide-react'
  * via the existing mutation hook.
  */
 export function RestaurantActiveToggle() {
-  const { user } = useAuth()
+  const { user } = useAdminAuthQuery()
   const rid = user?.selected_rid?.toString()
 
   const { data: settingsData, isLoading } = useRestaurantSettingsQuery(rid)

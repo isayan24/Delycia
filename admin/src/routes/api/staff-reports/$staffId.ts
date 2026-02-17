@@ -9,8 +9,6 @@ export const Route = createFileRoute('/api/staff-reports/$staffId')({
       GET: async ({ request, params }) => {
         return withAuth(request, async (accessToken, authHeaders) => {
           try {
-            console.log('Staff orders request received')
-
             const { staffId } = params
 
             // Parse URL to get query parameters

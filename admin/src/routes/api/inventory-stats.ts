@@ -30,7 +30,6 @@ export const Route = createFileRoute('/api/inventory-stats')({
           try {
             // Build backend URL
             const backendUrl = `/admin/inventory-stats/${itemId}`
-
             // Make request to backend with token
             const response = await axiosInstance.get(backendUrl, {
               params: { rid, page, limit },

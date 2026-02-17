@@ -11,6 +11,7 @@ import {
 import { PieChart, AlertCircle, RefreshCw, IndianRupee } from 'lucide-react'
 import { CategoryRevenueData } from '@/types/dashboard.types'
 import { formatCurrency } from '@/utils/currencyUtils'
+import NoSSR from '@/components/common/NoSSR'
 
 interface RevenueByCategoryChartProps {
   data: CategoryRevenueData[] | null
@@ -207,18 +208,17 @@ export const RevenueByCategoryChart: React.FC<RevenueByCategoryChartProps> = ({
   // Sort data by revenue for better visualization
   const sortedData = [...data].sort((a, b) => b.totalRevenue - a.totalRevenue)
   const totalRevenue = data.reduce((sum, item) => sum + item.totalRevenue, 0)
-  const totalOrders = data.reduce((sum, item) => sum + item.orderCount, 0)
 
   return (
-    <div className="bg-white rounded-2xl p-4 md:p-6 shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)] border border-gray-100/80">
+    <div className="bg-white dark:bg-[#2d1e14] rounded-xl p-4 md:p-6 border border-[#ead9cd] dark:border-primary/10 shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-bold text-gray-900 tracking-tight flex items-center gap-2">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             <IndianRupee className="w-5 h-5 text-emerald-500" />
             Revenue by Category
           </h3>
           <div className="flex flex-wrap items-center gap-3 mt-1.5">
-            <div className="flex items-center gap-1.5 bg-emerald-50 px-2 py-1 rounded-lg">
+            <div className="flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/20 px-2 py-1 rounded-lg">
               <span className="text-[10px] uppercase tracking-wider font-bold text-emerald-400">
                 Total
               </span>
@@ -226,7 +226,7 @@ export const RevenueByCategoryChart: React.FC<RevenueByCategoryChartProps> = ({
                 {formatCurrency(totalRevenue)}
               </span>
             </div>
-            <div className="flex items-center gap-1.5 bg-blue-50 px-2 py-1 rounded-lg">
+            <div className="flex items-center gap-1.5 bg-blue-50 dark:bg-blue-900/10 px-2 py-1 rounded-lg">
               <span className="text-[10px] uppercase tracking-wider font-bold text-blue-400">
                 Items
               </span>
@@ -243,48 +243,59 @@ export const RevenueByCategoryChart: React.FC<RevenueByCategoryChartProps> = ({
         )}
       </div>
 
-      <div className="h-[250px] md:h-[300px] mb-8">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={sortedData}
-            margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-          >
-            <CartesianGrid
-              strokeDasharray="3 3"
-              vertical={false}
-              stroke="#f3f4f6"
-            />
-            <XAxis
-              dataKey="categoryName"
-              tick={{ fontSize: 10, fontWeight: 600, fill: '#9ca3af' }}
-              axisLine={false}
-              tickLine={false}
-              angle={-30}
-              textAnchor="end"
-              height={50}
-            />
-            <YAxis
-              tick={{ fontSize: 10, fontWeight: 600, fill: '#9ca3af' }}
-              axisLine={false}
-              tickLine={false}
-              tickFormatter={formatYAxisTick}
-            />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f9fafb' }} />
-            <Bar
-              dataKey="totalRevenue"
-              fill="url(#colorGradientBar)"
-              radius={[6, 6, 0, 0]}
-              barSize={32}
-              name="Revenue"
-            />
-            <defs>
-              <linearGradient id="colorGradientBar" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#fb923c" stopOpacity={1} />
-                <stop offset="95%" stopColor="#f97316" stopOpacity={0.8} />
-              </linearGradient>
-            </defs>
-          </BarChart>
-        </ResponsiveContainer>
+      <div className="h-[250px] md:h-[300px] mb-8 min-w-0">
+        <NoSSR>
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+            <BarChart
+              data={sortedData}
+              margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+            >
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="#f3f4f6"
+              />
+              <XAxis
+                dataKey="categoryName"
+                tick={{ fontSize: 10, fontWeight: 600, fill: '#9ca3af' }}
+                axisLine={false}
+                tickLine={false}
+                angle={-30}
+                textAnchor="end"
+                height={50}
+              />
+              <YAxis
+                tick={{ fontSize: 10, fontWeight: 600, fill: '#9ca3af' }}
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={formatYAxisTick}
+              />
+              <Tooltip
+                content={<CustomTooltip />}
+                cursor={{ fill: '#f9fafb' }}
+              />
+              <Bar
+                dataKey="totalRevenue"
+                fill="url(#colorGradientBar)"
+                radius={[6, 6, 0, 0]}
+                barSize={32}
+                name="Revenue"
+              />
+              <defs>
+                <linearGradient
+                  id="colorGradientBar"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop offset="5%" stopColor="#fb923c" stopOpacity={1} />
+                  <stop offset="95%" stopColor="#f97316" stopOpacity={0.8} />
+                </linearGradient>
+              </defs>
+            </BarChart>
+          </ResponsiveContainer>
+        </NoSSR>
       </div>
 
       <CategorySummary data={data} />

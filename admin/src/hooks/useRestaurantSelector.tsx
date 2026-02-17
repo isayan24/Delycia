@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { useAuth } from './useAuth'
+import { useAdminAuthQuery } from './queries/useAdminAuthQuery'
 import sessionService from '@/services/sessionService'
 import {
   useRestaurantsQuery,
@@ -9,7 +9,7 @@ import useToast from './UseToast'
 
 // Custom hook to handle restaurant selection with names
 export const useRestaurantSelector = () => {
-  const { user, refreshSession } = useAuth()
+  const { user, refreshSession } = useAdminAuthQuery()
   const [isUpdating, setIsUpdating] = useState(false)
 
   const { showError } = useToast()

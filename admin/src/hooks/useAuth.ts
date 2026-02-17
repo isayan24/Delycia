@@ -236,15 +236,18 @@ export function useAuth(): UseAuthReturn {
             selected_rid: resolvedSelectedRid,
           }
 
-          // Update session service
-          sessionService.setUserData(mergedUserData)
+          // Only update if different
+          if (JSON.stringify(mergedUserData) !== JSON.stringify(existingUser)) {
+            // Update session service
+            sessionService.setUserData(mergedUserData)
 
-          // Update auth state
-          setAuthState({
-            user: mergedUserData,
-            isLoading: false,
-            isAuthenticated: true,
-          })
+            // Update auth state
+            setAuthState({
+              user: mergedUserData,
+              isLoading: false,
+              isAuthenticated: true,
+            })
+          }
         } else {
           await logout()
         }
@@ -306,8 +309,13 @@ export function useAuth(): UseAuthReturn {
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'admin_user_data') {
-        // User data changed, re-validate session
-        initializeAuth()
+        const newValue = e.newValue ? JSON.parse(e.newValue) : null
+        const currentValue = sessionService.getUserData()
+
+        if (JSON.stringify(newValue) !== JSON.stringify(currentValue)) {
+          // User data changed, re-validate session
+          initializeAuth()
+        }
       }
     }
 

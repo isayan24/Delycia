@@ -15,14 +15,14 @@ export default function ManageMenu() {
   }
 
   return (
-    <div className="w-full h-fulls h-[calc(100vh-6rem)] flex flex-col gap-2 md:gap-2">
+    <div className="w-full h-fulls h-[calc(100vh-7rem)] flex flex-col gap-2 md:gap-2">
       <TopButtons
         onSearch={handleSearch}
         onSubmit={handleSubmit}
         onHighlightItem={highlightItem}
         onNavigateToItem={navigateToItem}
       />
-      <section className="flex-1 min-h-0 md:borderd md:rounded-xl bg-white md:shadow-sm p-0 md:p-2 overflow-hidden">
+      <section className="flex-1 min-h-0 md:rounded-xl bg-white overflow-hidden">
         <MenuContent />
       </section>
     </div>

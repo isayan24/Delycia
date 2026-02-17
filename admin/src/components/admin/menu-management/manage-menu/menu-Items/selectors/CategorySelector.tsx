@@ -6,6 +6,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { HelperTooltip } from '@/components/common/HelperTooltip'
 
 export default function CategorySelector({
   selectedCategoryId,
@@ -22,12 +28,7 @@ export default function CategorySelector({
             Menu Category
           </h2>
         </div>
-        <div className="group relative">
-          <HelpCircle className="h-4 w-4 text-gray-400 cursor-help" />
-          <div className="absolute bottom-full -left-[70%] transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
-            Menu category of the item
-          </div>
-        </div>
+        <HelperTooltip content="Menu category of the item" />
       </div>
 
       <Select value={selectedCategoryId} onValueChange={onChange}>

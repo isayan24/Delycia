@@ -1,5 +1,46 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
 import axios from 'axios'
+
+// ... existing interfaces ...
+
+export const useInfiniteStaffOrdersQuery = (
+  staffId: string,
+  params: Omit<StaffOrdersParams, 'page'>,
+) => {
+  return useInfiniteQuery({
+    queryKey: ['staff-orders-infinite', staffId, params],
+    queryFn: async ({ pageParam = 1 }) => {
+      const response = await axios.get(`/api/staff-reports/${staffId}`, {
+        params: { ...params, page: pageParam },
+      })
+
+      // Standardize the result structure as we do in useStaffOrdersQuery
+      const result: StaffOrdersResponse = {
+        staff: response.data.staff,
+        orders: response.data.orders || [],
+        summary: response.data.summary || {},
+        pagination: response.data.pagination || {
+          total_orders: 0,
+          total_pages: 0,
+          current_page: 1,
+          per_page: 10,
+          has_next_page: false,
+          has_prev_page: false,
+        },
+      }
+      return result
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      if (lastPage.pagination?.has_next_page) {
+        return lastPage.pagination.current_page + 1
+      }
+      return undefined
+    },
+    enabled: !!staffId && !!params.rid,
+    staleTime: 30000, // 30 seconds
+  })
+}
 
 interface StaffLeaderboardParams {
   rid: string
@@ -112,7 +153,7 @@ interface StaffOrdersResponse {
     phone_number: string
   }
   orders: StaffOrder[]
-  summary: any,
+  summary: any
   pagination: {
     total_orders: number
     total_pages: number
@@ -132,7 +173,7 @@ export const useStaffOrdersQuery = (
     queryFn: async () => {
       const response = await axios.get(`/api/staff-reports/${staffId}`, {
         params,
-      }) 
+      })
 
       // Same structure - data is spread at root level
       const result: StaffOrdersResponse = {

@@ -225,7 +225,7 @@ export default function OrderTabs({
       </TabsContent>
 
       {/* Delivered Orders Tab */}
-      <TabsContent value="delivered" className="space-y-4">
+      <TabsContent value="delivered" className="space-y-4 ">
         {deliveredOrders.length === 0 ? (
           <div className="text-center py-6">
             <p className="text-muted-foreground">No delivered orders</p>

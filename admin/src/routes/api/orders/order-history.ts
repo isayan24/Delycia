@@ -17,6 +17,7 @@ export const Route = createFileRoute('/api/orders/order-history')({
             const search = url.searchParams.get('search')
             const start_date = url.searchParams.get('start_date')
             const end_date = url.searchParams.get('end_date')
+            const filter_type = url.searchParams.get('filter_type')
 
             // Build query params object
             const params: Record<string, string> = {}
@@ -26,6 +27,7 @@ export const Route = createFileRoute('/api/orders/order-history')({
             if (search) params.search = search
             if (start_date) params.start_date = start_date
             if (end_date) params.end_date = end_date
+            if (filter_type) params.filter_type = filter_type
 
             // Make request to backend with token from cookie
             const response = await axiosInstance.get('/admin/orders/history', {

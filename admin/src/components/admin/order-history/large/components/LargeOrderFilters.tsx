@@ -1,7 +1,7 @@
 import { useState, memo } from 'react'
+import { useSearch } from '@tanstack/react-router'
 import {
   Search,
-  Calendar as CalendarIcon,
   Filter,
   X,
   Layers,
@@ -9,18 +9,12 @@ import {
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import { format } from 'date-fns'
+import { OrderHistoryDateFilter } from '../../shared/OrderHistoryDateFilter'
 
 interface LargeOrderFiltersProps {
   search: string
   onSearchChange: (value: string) => void
-  onDateRangeChange: (start_date?: string, end_date?: string) => void
+  onDateRangeChange: (start_date?: string, end_date?: string, filter_type?: string) => void
   onClearFilters: () => void
   isSelectionMode: boolean
   onToggleSelectionMode: () => void
@@ -42,27 +36,18 @@ export const LargeOrderFilters = memo(
     isMergePending,
   }: LargeOrderFiltersProps) => {
     const [showFilters, setShowFilters] = useState(false)
-    const [startDate, setStartDate] = useState<Date | undefined>(undefined)
-    const [endDate, setEndDate] = useState<Date | undefined>(undefined)
-    const [isStartDateOpen, setIsStartDateOpen] = useState(false)
-    const [isEndDateOpen, setIsEndDateOpen] = useState(false)
-
-    // Apply date range
-    const handleApplyDateRange = () => {
-      const start = startDate ? format(startDate, 'yyyy-MM-dd') : undefined
-      const end = endDate ? format(endDate, 'yyyy-MM-dd') : undefined
-      onDateRangeChange(start, end)
-    }
+    
+    // Read current filters from URL to show active state
+    const urlSearch = useSearch({ strict: false }) as any
+    const hasActiveFilters = !!(urlSearch?.filter_type || search)
 
     // Clear all filters
     const handleClearAll = () => {
-      setStartDate(undefined)
-      setEndDate(undefined)
-      onSearchChange('')
       onClearFilters()
     }
+    
     return (
-      <div className="sticky top-14  z-30 -mx-4 px-4 lg:-mx-10 lg:px-10 py-5  dark:bg-[#1d130c]/95 backdrop-blur-md border-b border-[#ead9cd] dark:border-primary/10 shadow-sm transition-all mb-4">
+      <div className="sticky top-14 z-30 bg-slate-50/95 dark:bg-[#1d130c]/95 backdrop-blur-md border-b border-[#ead9cd] dark:border-primary/10 px-4 lg:px-10 py-5 mb-8">
         <div className="space-y-4 max-w-[1600px] mx-auto">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="flex items-center gap-3">
@@ -105,13 +90,13 @@ export const LargeOrderFilters = memo(
                 </Button>
               )}
 
-              {(startDate || endDate || search) && !isSelectionMode && (
+              {hasActiveFilters && !isSelectionMode && (
                 <Button
                   variant="ghost"
                   onClick={handleClearAll}
                   className="h-11 px-4 rounded-xl font-bold text-sm text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all flex items-center gap-2"
                 >
-                  <X className="w-4 h-4" /> Clear All
+                  <X className="w-4 h-4" /> Clear Filters
                 </Button>
               )}
             </div>
@@ -141,79 +126,13 @@ export const LargeOrderFilters = memo(
           {showFilters && (
             <div className="flex flex-wrap items-center gap-3 p-4 bg-orange-50/30 dark:bg-primary/5 rounded-2xl border border-orange-100/50 dark:border-primary/10 animate-in fade-in slide-in-from-top-2 duration-300">
               <div className="flex items-center gap-2 text-sm font-bold text-[#a16b45] mr-2">
-                <CalendarIcon className="w-4 h-4" /> Range:
+                Date Filter:
               </div>
 
-              {/* Start Date */}
-              <Popover open={isStartDateOpen} onOpenChange={setIsStartDateOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="h-10 text-xs font-bold justify-start px-4 rounded-xl border-[#ead9cd] bg-white dark:bg-[#2d1e14] dark:border-primary/10 min-w-[140px]"
-                  >
-                    {startDate ? (
-                      <span className="text-slate-900 dark:text-white">
-                        {format(startDate, 'dd MMM yyyy')}
-                      </span>
-                    ) : (
-                      <span className="text-slate-400">From Date</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  className="w-auto p-0 rounded-2xl border-[#ead9cd] shadow-xl"
-                  align="start"
-                >
-                  <Calendar
-                    mode="single"
-                    selected={startDate}
-                    onSelect={(date) => {
-                      setStartDate(date)
-                      setIsStartDateOpen(false)
-                    }}
-                  />
-                </PopoverContent>
-              </Popover>
-
-              <span className="text-slate-400 font-bold">to</span>
-
-              {/* End Date */}
-              <Popover open={isEndDateOpen} onOpenChange={setIsEndDateOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="h-10 text-xs font-bold justify-start px-4 rounded-xl border-[#ead9cd] bg-white dark:bg-[#2d1e14] dark:border-primary/10 min-w-[140px]"
-                  >
-                    {endDate ? (
-                      <span className="text-slate-900 dark:text-white">
-                        {format(endDate, 'dd MMM yyyy')}
-                      </span>
-                    ) : (
-                      <span className="text-slate-400">To Date</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  className="w-auto p-0 rounded-2xl border-[#ead9cd] shadow-xl"
-                  align="start"
-                >
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={(date) => {
-                      setEndDate(date)
-                      setIsEndDateOpen(false)
-                    }}
-                  />
-                </PopoverContent>
-              </Popover>
-
-              <Button
-                onClick={handleApplyDateRange}
-                className="h-10 px-6 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-sm shadow-md shadow-orange-600/20 transition-all ml-auto"
-              >
-                Apply Range
-              </Button>
+              <OrderHistoryDateFilter
+                onFilterChange={onDateRangeChange}
+                className="flex-1"
+              />
             </div>
           )}
         </div>

@@ -150,7 +150,10 @@ const ItemRow: React.FC<ItemRowProps> = ({
           {getRankIcon(rank) || rank}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-medium text-gray-900 truncate" title={item.name}>
+          <p
+            className="font-medium max-[500px]:text-xs text-gray-900 truncate"
+            title={item.name}
+          >
             {item.name}
           </p>
           <div className="flex items-center space-x-3 text-sm text-gray-500">
@@ -209,15 +212,15 @@ export const TopSellingItems: React.FC<TopSellingItemsProps> = ({
   )
 
   return (
-    <div className="bg-white rounded-2xl p-4 md:p-6 shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)] border border-gray-100">
+    <div className="bg-white dark:bg-[#2d1e14] rounded-xl p-4 md:p-6 border border-[#ead9cd] dark:border-primary/10 shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h3 className="text-lg font-bold text-gray-900 tracking-tight flex items-center gap-2">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-orange-500" />
             Top Selling Items
           </h3>
           <div className="flex flex-wrap items-center gap-3 mt-1.5">
-            <div className="flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-lg">
+            <div className="flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/20 px-2 py-0.5 rounded-lg">
               <span className="text-[10px] uppercase font-bold text-emerald-400">
                 Total
               </span>
@@ -225,7 +228,7 @@ export const TopSellingItems: React.FC<TopSellingItemsProps> = ({
                 {formatCurrency(totalRevenue)}
               </span>
             </div>
-            <div className="flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded-lg">
+            <div className="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/10 px-2 py-0.5 rounded-lg">
               <span className="text-[10px] uppercase font-bold text-blue-400">
                 Orders
               </span>

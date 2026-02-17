@@ -95,29 +95,38 @@ export function EditStaffSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="p-4">
-        <SheetHeader>
-          <SheetTitle></SheetTitle>
-          <SheetDescription>
-            Make changes to the staff member's profile here. Click save when
-            you're done.
+      <SheetContent className="p-0 border-l-[#ead9cd] dark:border-l-primary/10 overflow-hidden flex flex-col sm:max-w-md">
+        <SheetHeader className="p-6 bg-white dark:bg-[#2d1e14] border-b border-[#ead9cd] dark:border-primary/5 space-y-3">
+          <SheetTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
+            Refine Profile
+          </SheetTitle>
+          <SheetDescription className="text-[10px] font-bold text-[#a16b45] uppercase tracking-widest opacity-60 leading-relaxed">
+            Modify credentials and access roles for{' '}
+            <span className="text-orange-600">{staff?.name}</span>. Click save
+            to sync changes.
           </SheetDescription>
         </SheetHeader>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4 mt-6"
+            className="flex-1 overflow-y-auto p-6 space-y-6"
           >
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name</FormLabel>
+                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#a16b45] opacity-60">
+                    Full Name
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. John Doe" {...field} />
+                    <Input
+                      placeholder="e.g. John Doe"
+                      className="rounded-xl border-[#ead9cd] dark:border-primary/5 focus-visible:ring-orange-500"
+                      {...field}
+                    />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-[10px] uppercase font-bold" />
                 </FormItem>
               )}
             />
@@ -126,11 +135,17 @@ export function EditStaffSheet({
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Username</FormLabel>
+                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#a16b45] opacity-60">
+                    Username
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. john_d" {...field} />
+                    <Input
+                      placeholder="e.g. john_d"
+                      className="rounded-xl border-[#ead9cd] dark:border-primary/5 focus-visible:ring-orange-500"
+                      {...field}
+                    />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-[10px] uppercase font-bold" />
                 </FormItem>
               )}
             />
@@ -139,11 +154,17 @@ export function EditStaffSheet({
               name="phone_number"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone Number (Optional)</FormLabel>
+                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#a16b45] opacity-60">
+                    Phone Number (Optional)
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. 1234567890" {...field} />
+                    <Input
+                      placeholder="e.g. 1234567890"
+                      className="rounded-xl border-[#ead9cd] dark:border-primary/5 focus-visible:ring-orange-500"
+                      {...field}
+                    />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-[10px] uppercase font-bold" />
                 </FormItem>
               )}
             />
@@ -152,15 +173,18 @@ export function EditStaffSheet({
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>New Password (Optional)</FormLabel>
+                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#a16b45] opacity-60">
+                    New Password (Optional)
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="password"
                       placeholder="Leave blank to keep current"
+                      className="rounded-xl border-[#ead9cd] dark:border-primary/5 focus-visible:ring-orange-500"
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-[10px] uppercase font-bold" />
                 </FormItem>
               )}
             />
@@ -169,38 +193,71 @@ export function EditStaffSheet({
               name="role"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Role</FormLabel>
+                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#a16b45] opacity-60">
+                    Role
+                  </FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="rounded-xl border-[#ead9cd] dark:border-primary/5 focus:ring-orange-500">
                         <SelectValue placeholder="Select a role" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="2">Admin</SelectItem>
-                      <SelectItem value="3">Restaurant Owner</SelectItem>
-                      <SelectItem value="4">Restaurant Manager</SelectItem>
-                      <SelectItem value="5">Waiter</SelectItem>
-                      <SelectItem value="6">Delivery</SelectItem>
+                    <SelectContent className="rounded-xl border-[#ead9cd] dark:border-primary/10">
+                      <SelectItem
+                        value="2"
+                        className="text-xs font-bold uppercase tracking-tight focus:bg-orange-50"
+                      >
+                        Admin
+                      </SelectItem>
+                      <SelectItem
+                        value="3"
+                        className="text-xs font-bold uppercase tracking-tight focus:bg-orange-50"
+                      >
+                        Restaurant Owner
+                      </SelectItem>
+                      <SelectItem
+                        value="4"
+                        className="text-xs font-bold uppercase tracking-tight focus:bg-orange-50"
+                      >
+                        Restaurant Manager
+                      </SelectItem>
+                      <SelectItem
+                        value="5"
+                        className="text-xs font-bold uppercase tracking-tight focus:bg-orange-50"
+                      >
+                        Waiter
+                      </SelectItem>
+                      <SelectItem
+                        value="6"
+                        className="text-xs font-bold uppercase tracking-tight focus:bg-orange-50"
+                      >
+                        Kitchen Staff
+                      </SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage />
+                  <FormMessage className="text-[10px] uppercase font-bold" />
                 </FormItem>
               )}
             />
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex flex-col gap-3 pt-4">
+              <Button
+                type="submit"
+                disabled={updateMutation.isPending}
+                className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-orange-500/10"
+              >
+                {updateMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  'Sync Changes'
+                )}
+              </Button>
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 onClick={() => onOpenChange(false)}
+                className="w-full h-12 rounded-xl text-[10px] font-black uppercase tracking-widest text-[#a16b45] opacity-60 hover:opacity-100"
               >
                 Cancel
-              </Button>
-              <Button type="submit" disabled={updateMutation.isPending}>
-                {updateMutation.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Save Changes
               </Button>
             </div>
           </form>

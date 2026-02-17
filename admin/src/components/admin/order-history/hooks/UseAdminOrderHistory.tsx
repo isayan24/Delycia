@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useOrderHistoryQuery } from '@/hooks/queries/useOrderHistoryQuery'
 import {
   TransformedOrder,
@@ -10,33 +11,19 @@ interface UseAdminOrdersProps {
   rid: string | number
 }
 
-interface PaginationState {
-  page: number
-  limit: number
-}
-
-interface FilterState {
-  search: string
-  start_date?: string
-  end_date?: string
-}
-
 export const UseAdminOrderHistory = ({ rid }: UseAdminOrdersProps) => {
-  // Pagination state
-  const [pagination, setPagination] = useState<PaginationState>({
-    page: 1,
-    limit: 10,
-  })
-
-  // Filter state
-  const [filters, setFilters] = useState<FilterState>({
-    search: '',
-    start_date: undefined,
-    end_date: undefined,
-  })
+  const navigate = useNavigate()
+  const search = useSearch({ strict: false }) as any
+  
+  // Get filter values from URL search params
+  const page = search?.page || 1
+  const searchQuery = search?.search || ''
+  const filter_type = search?.filter_type
+  const start_date = search?.start_date
+  const end_date = search?.end_date
 
   // Debounce search to avoid excessive API calls
-  const debouncedSearch = useDebounce(filters.search, 500)
+  const debouncedSearch = useDebounce(searchQuery, 500)
 
   // Only trigger search if 2+ characters are entered (or if cleared)
   const effectiveSearch =
@@ -52,17 +39,18 @@ export const UseAdminOrderHistory = ({ rid }: UseAdminOrdersProps) => {
   // Fetch paginated order history using TanStack Query
   const {
     data: orderHistoryData,
-    isFetching, // use isFetching for better loading states in infinite scroll
+    isFetching,
     isLoading,
     error: queryError,
     refetch,
   } = useOrderHistoryQuery({
     rid,
-    page: pagination.page,
-    limit: pagination.limit,
+    page,
+    limit: 10,
     search: effectiveSearch,
-    start_date: filters.start_date,
-    end_date: filters.end_date,
+    start_date,
+    end_date,
+    filter_type,
   })
 
   const orders = orderHistoryData?.orders || []
@@ -80,89 +68,78 @@ export const UseAdminOrderHistory = ({ rid }: UseAdminOrdersProps) => {
       }
     : null
 
-  // Track previous filters/rid to detect resets
-  const prevFiltersRef = useRef(
-    JSON.stringify({ rid, ...filters, search: effectiveSearch }),
-  )
-
+  // Handle order data updates - single effect for all order state management
   useEffect(() => {
-    // We use effectiveSearch here to avoid resetting the list until 2+ chars are typed
-    const currentFilters = JSON.stringify({
-      rid,
-      ...filters,
-      search: effectiveSearch,
-    })
-    const isResetNeeded = currentFilters !== prevFiltersRef.current
-
-    if (isResetNeeded) {
-      prevFiltersRef.current = currentFilters
-      setAccumulatedOrders([])
-      // After reset, the next data fetch will set page 1 data below
-      return
-    }
-
     if (orders.length > 0) {
       const transformed = transformOrderData(orders)
 
       setAccumulatedOrders((prev) => {
-        if (pagination.page === 1) {
+        if (page === 1) {
+          // Page 1: replace all accumulated orders
           return transformed
         }
-        // Append unique orders only (prevent duplicates during rapid scrolling/updates)
+        // Subsequent pages: append unique orders only
         const existingIds = new Set(prev.map((o) => o.id))
         const newUniqueOrders = transformed.filter(
           (o) => !existingIds.has(o.id),
         )
         return [...prev, ...newUniqueOrders]
       })
-    } else if (pagination.page === 1) {
+    } else if (page === 1 && !isLoading && !isFetching) {
+      // No orders on page 1 and not loading: clear accumulated orders
       setAccumulatedOrders([])
     }
-  }, [
-    orders,
-    pagination.page,
-    filters.start_date,
-    filters.end_date,
-    rid,
-    effectiveSearch,
-  ])
+  }, [orders, page, isLoading, isFetching])
 
-  // Pagination controls
-  const goToPage = useCallback((page: number) => {
-    setPagination((prev) => ({ ...prev, page }))
-  }, [])
+  // Pagination controls - update URL search params
+  const goToPage = useCallback((newPage: number) => {
+    navigate({
+      to: '/orders/history',
+      search: (prev: any) => ({ ...prev, page: newPage }),
+    })
+  }, [navigate])
 
   const nextPage = useCallback(() => {
-    setPagination((prev) => ({ ...prev, page: prev.page + 1 }))
-  }, [])
+    navigate({
+      to: '/orders/history',
+      search: (prev: any) => ({ ...prev, page: (prev?.page || 1) + 1 }),
+    })
+  }, [navigate])
 
   const prevPage = useCallback(() => {
-    setPagination((prev) => ({ ...prev, page: Math.max(1, prev.page - 1) }))
-  }, [])
+    navigate({
+      to: '/orders/history',
+      search: (prev: any) => ({ ...prev, page: Math.max(1, (prev?.page || 1) - 1) }),
+    })
+  }, [navigate])
 
-  const setLimit = useCallback((limit: number) => {
-    setPagination({ page: 1, limit })
-  }, [])
-
-  // Search and filter controls
+  // Search and filter controls - update URL search params
   const setSearch = useCallback((search: string) => {
-    setFilters((prev) => ({ ...prev, search }))
-    setPagination((prev) => ({ ...prev, page: 1 })) // Reset to page 1 on search
-  }, [])
+    navigate({
+      to: '/orders/history',
+      search: (prev: any) => ({ ...prev, search, page: 1 }),
+    })
+  }, [navigate])
 
-  const setDateRange = useCallback((start_date?: string, end_date?: string) => {
-    setFilters((prev) => ({ ...prev, start_date, end_date }))
-    setPagination((prev) => ({ ...prev, page: 1 })) // Reset to page 1 on filter change
-  }, [])
+  const setDateRange = useCallback((start_date?: string, end_date?: string, filter_type?: string) => {
+    navigate({
+      to: '/orders/history',
+      search: (prev: any) => ({ 
+        ...prev, 
+        start_date, 
+        end_date, 
+        filter_type,
+        page: 1 // Reset to page 1 when filters change
+      }),
+    })
+  }, [navigate])
 
   const clearFilters = useCallback(() => {
-    setFilters({
-      search: '',
-      start_date: undefined,
-      end_date: undefined,
+    navigate({
+      to: '/orders/history',
+      search: {},
     })
-    setPagination({ page: 1, limit: 10 })
-  }, [])
+  }, [navigate])
 
   // Refresh function
   const refreshHistory = useCallback(async () => {
@@ -187,12 +164,11 @@ export const UseAdminOrderHistory = ({ rid }: UseAdminOrdersProps) => {
     goToPage,
     nextPage,
     prevPage,
-    setLimit,
-    currentPage: pagination.page,
-    perPage: pagination.limit,
+    currentPage: page,
+    perPage: 10,
 
     // Search and filter controls
-    search: filters.search,
+    search: searchQuery,
     setSearch,
     setDateRange,
     clearFilters,

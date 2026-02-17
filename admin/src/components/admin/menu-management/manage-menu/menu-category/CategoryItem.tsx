@@ -30,12 +30,12 @@ export const CategoryItem = React.memo(function CategoryItem({
     <div
       id={`category-${category.id}`}
       onClick={() => onSelect(category)}
-      className={`group relative transition-all duration-300 ease-in-out rounded-xl cursor-pointer border-2 ${
+      className={`group relative transition-all duration-300 ease-in-out rounded-xl cursor-pointer border-1 ${
         isHighlighted
           ? 'bg-gradient-to-r from-orange-50 to-white border-orange-400 shadow-lg animate-pulse'
           : isSelected
             ? 'bg-white border-green-500 shadow-[0_4px_20px_rgba(0,0,0,0.08)] ring-1 ring-green-100'
-            : 'bg-white border-transparent hover:border-gray-200 hover:shadow-md'
+            : 'bg-white border-transparent hover:border-gray-200'
       }`}
     >
       <div className="flex items-center justify-between p-3">

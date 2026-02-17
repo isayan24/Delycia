@@ -35,21 +35,39 @@ class SessionService {
   }
 
   /**
+   * Helper to check if two UserData objects are equal
+   */
+  private isEqual(a: UserData | null, b: UserData | null): boolean {
+    if (!a || !b) return a === b
+    return JSON.stringify(a) === JSON.stringify(b)
+  }
+
+  /**
    * Set user data in memory (no tokens stored client-side)
    */
   setUserData(userData: UserData): void {
     try {
+      // Avoid redundant updates
+      if (this.isEqual(this.userDataCache, userData)) {
+        return
+      }
+
       this.userDataCache = userData
 
       // Optionally persist to localStorage for non-sensitive data only
       if (typeof window !== 'undefined') {
         const stringified = JSON.stringify(userData)
-        localStorage.setItem('admin_user_data', stringified)
 
-        // Dispatch custom event to notify listeners in the same tab
-        window.dispatchEvent(
-          new CustomEvent('userDataChanged', { detail: userData }),
-        )
+        // Check LC before setting to avoid triggering storage events unnecessarily
+        const currentStored = localStorage.getItem('admin_user_data')
+        if (currentStored !== stringified) {
+          localStorage.setItem('admin_user_data', stringified)
+
+          // Dispatch custom event to notify listeners in the same tab
+          window.dispatchEvent(
+            new CustomEvent('userDataChanged', { detail: userData }),
+          )
+        }
       }
     } catch (error) {
       console.error('Failed to set user data:', error)

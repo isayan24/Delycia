@@ -1,37 +1,104 @@
-import React, { useMemo, useState } from 'react'
-import {
-  ChevronLeft,
-  ChevronRight,
-  ShoppingBag,
-  ExternalLink,
-  Phone,
-  Calendar,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import React, { useMemo } from 'react'
+import { ShoppingBag, ExternalLink, Phone, Calendar } from 'lucide-react'
 import { useCustomerOrdersQuery } from '@/hooks/queries/useDashboardQueries'
 import { useDateFilterStore } from '@/store/useDateFilterStore'
 import { Link } from '@tanstack/react-router'
 import { formatDateTime } from '@/utils/dateUtils'
+import { useLoadMore } from '@/hooks/useLoadMore'
 
 interface CustomerActivityProps {
   rid: string
 }
 
-const PAGE_SIZE = 10
+const CustomerActivityCard: React.FC<{ row: any }> = ({ row }) => (
+  <div className="group bg-white dark:bg-[#2d1e14] rounded-2xl border border-[#ead9cd] dark:border-primary/10 p-4 md:p-5 shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 flex flex-col gap-3 md:gap-4">
+    <div className="flex justify-between items-start">
+      <div className="flex items-center gap-2 md:gap-3">
+        <div className="size-10 md:size-12 rounded-full bg-orange-50 dark:bg-[#3a291d] text-orange-600 flex items-center justify-center font-bold text-base md:text-lg border border-orange-100 dark:border-primary/5 overflow-hidden">
+          {row.profilePic ? (
+            <img
+              src={row.profilePic}
+              alt={row.customerName}
+              className="size-full object-cover"
+              onError={(e) => (e.currentTarget.style.display = 'none')}
+            />
+          ) : (
+            (row.customerName || 'G').charAt(0).toUpperCase()
+          )}
+        </div>
+        <div className="flex flex-col">
+          <span className="font-bold text-slate-900 dark:text-white text-sm md:text-base leading-tight">
+            {row.customerName || 'Guest'}
+          </span>
+          <span className="text-[10px] md:text-xs text-[#a16b45] flex items-center gap-1 font-semibold mt-0.5">
+            <Phone className="size-2.5 md:size-3" />
+            {row.phoneNumber || 'N/A'}
+          </span>
+        </div>
+      </div>
+      <Link
+        to="/reports/crm"
+        search={{ customerId: row.userId.toString() }}
+        className="size-8 md:size-9 rounded-xl bg-orange-50 dark:bg-[#3a291d] text-orange-600 flex items-center justify-center hover:bg-orange-600 hover:text-white transition-all shadow-sm"
+      >
+        <ExternalLink className="size-3.5 md:size-4" />
+      </Link>
+    </div>
+
+    <div className="grid grid-cols-2 gap-2 md:gap-3 py-2 border-y border-dashed border-[#ead9cd] dark:border-primary/10">
+      <div className="flex flex-col gap-0.5 md:gap-1">
+        <span className="text-[9px] md:text-[10px] font-black text-[#a16b45] uppercase tracking-widest">
+          Orders
+        </span>
+        <div className="flex items-center gap-1.5 md:gap-2">
+          <div className="size-6 md:size-7 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center scale-90 md:scale-100">
+            <ShoppingBag className="size-3.5 md:size-4" />
+          </div>
+          <span className="font-bold text-slate-900 dark:text-white text-xs md:text-sm">
+            {row.totalOrders}
+          </span>
+        </div>
+      </div>
+      <div className="flex flex-col gap-0.5 md:gap-1">
+        <span className="text-[9px] md:text-[10px] font-black text-[#a16b45] uppercase tracking-widest">
+          Total Spent
+        </span>
+        <div className="flex items-center gap-1 md:gap-1.5 mt-0.5 md:mt-0">
+          <span className="font-black text-emerald-600 text-sm md:text-base">
+            ₹
+            {row.totalSpent.toLocaleString('en-IN', {
+              minimumFractionDigits: 0,
+            })}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div className="space-y-2 md:space-y-3">
+      <div className="flex items-center justify-between text-[10px] md:text-[11px]">
+        <span className="font-bold text-[#a16b45] uppercase tracking-wider flex items-center gap-1 md:gap-1.5">
+          <Calendar className="size-3 md:size-3.5" />
+          Last Order
+        </span>
+        <span className="font-bold text-slate-600 dark:text-slate-300">
+          {formatDateTime(row.lastOrderDate)}
+        </span>
+      </div>
+      <div className="bg-slate-50 dark:bg-[#3a291d]/30 rounded-xl p-2 md:p-3 border border-slate-100 dark:border-primary/5">
+        <span className="text-[9px] md:text-[10px] font-black text-[#a16b45] uppercase tracking-widest block mb-1 md:mb-1.5">
+          Frequently Ordered
+        </span>
+        <p className="text-[11px] md:text-xs text-slate-600 dark:text-slate-400 font-medium line-clamp-1 md:line-clamp-2 italic leading-relaxed">
+          {row.topItems}
+        </p>
+      </div>
+    </div>
+  </div>
+)
 
 const CustomerActivityTable: React.FC<CustomerActivityProps> = ({ rid }) => {
   const { currentDateRange } = useDateFilterStore()
-  const [pageIndex, setPageIndex] = useState(0)
 
-  // Create stable query params object
   const queryParams = useMemo(
     () => ({
       rid,
@@ -43,162 +110,62 @@ const CustomerActivityTable: React.FC<CustomerActivityProps> = ({ rid }) => {
 
   const { data = [], isLoading } = useCustomerOrdersQuery(queryParams)
 
-  // Pagination logic
-  const pageCount = Math.ceil(data.length / PAGE_SIZE)
-  const paginatedData = useMemo(() => {
-    const start = pageIndex * PAGE_SIZE
-    return data.slice(start, start + PAGE_SIZE)
-  }, [data, pageIndex])
-
-  const canPreviousPage = pageIndex > 0
-  const canNextPage = pageIndex < pageCount - 1
-
-  const previousPage = () => setPageIndex((p) => Math.max(0, p - 1))
-  const nextPage = () => setPageIndex((p) => Math.min(pageCount - 1, p + 1))
+  const { visibleItems, hasMore, sentinelRef } = useLoadMore(data, 9)
 
   if (isLoading) {
     return (
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-pulse h-[400px]">
-        <div className="h-6 bg-gray-200 rounded w-1/4 mb-6"></div>
-        <div className="space-y-4">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-12 bg-gray-100 rounded"></div>
-          ))}
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 animate-pulse">
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={i}
+            className="h-64 bg-white dark:bg-[#2d1e14] rounded-2xl border border-[#ead9cd] dark:border-primary/10"
+          ></div>
+        ))}
       </div>
     )
   }
 
   return (
-    <div className="bg-white p-4 md:p-6 rounded-2xl shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)] border border-gray-100">
-      <div className="flex items-center justify-between mb-5">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-bold text-gray-900">
-            Customer Ordering Activity
+          <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+            Customer Insights
           </h3>
-          <p className="text-xs md:text-sm text-gray-500 font-medium">
-            Recent activity by customers during the selected period
+          <p className="text-sm text-[#a16b45] font-bold mt-1">
+            Analyzing purchase patterns and loyalty
           </p>
         </div>
       </div>
 
-      <div className="rounded-xl border border-gray-100 overflow-hidden bg-white shadow-sm">
-        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
-          <Table>
-            <TableHeader className="bg-gray-50/50">
-              <TableRow className="hover:bg-transparent border-gray-100">
-                <TableHead className="font-semibold text-gray-700 text-xs py-3">
-                  Customer
-                </TableHead>
-                <TableHead className="font-semibold text-gray-700 text-xs py-3 text-center">
-                  Orders
-                </TableHead>
-                <TableHead className="font-semibold text-gray-700 text-xs py-3">
-                  Total Spent
-                </TableHead>
-                <TableHead className="font-semibold text-gray-700 text-xs py-3">
-                  Last Order
-                </TableHead>
-                <TableHead className="font-semibold text-gray-700 text-xs py-3">
-                  Items Ordered
-                </TableHead>
-                <TableHead className="font-semibold text-gray-700 text-xs py-3 text-right">
-                  Action
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedData.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="h-32 text-center text-gray-400 font-medium"
-                  >
-                    No activity found for this period
-                  </TableCell>
-                </TableRow>
-              ) : (
-                paginatedData.map((row) => (
-                  <TableRow
-                    key={row.userId}
-                    className="hover:bg-gray-50/30 border-gray-100 transition-colors"
-                  >
-                    <TableCell className="py-3">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-gray-900 text-sm">
-                          {row.customerName || 'Guest'}
-                        </span>
-                        <span className="text-[10px] md:text-xs text-gray-500 flex items-center gap-1 font-medium mt-0.5">
-                          <Phone className="w-3 h-3 text-gray-400" />{' '}
-                          {row.phoneNumber || 'N/A'}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-3 text-center">
-                      <div className="inline-flex items-center gap-1.5 font-bold text-gray-700 bg-gray-50 px-2 py-1 rounded-lg text-xs">
-                        <ShoppingBag className="w-3 h-3 text-orange-500" />
-                        {row.totalOrders}
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-3">
-                      <span className="font-bold text-emerald-600 text-sm">
-                        ₹{row.totalSpent.toFixed(2)}
-                      </span>
-                    </TableCell>
-                    <TableCell className="py-3">
-                      <div className="flex items-center gap-1.5 text-gray-600 text-[10px] md:text-xs font-medium">
-                        <Calendar className="w-3 h-3 text-gray-400" />
-                        {formatDateTime(row.lastOrderDate)}
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-3">
-                      <span
-                        className="text-[10px] md:text-xs text-gray-500 truncate max-w-[150px] md:max-w-[200px] block font-medium"
-                        title={row.topItems}
-                      >
-                        {row.topItems}
-                      </span>
-                    </TableCell>
-                    <TableCell className="py-3 text-right">
-                      <Link
-                        to="/reports/crm"
-                        search={{ customerId: row.userId.toString() }}
-                        className="inline-flex items-center gap-1 text-orange-600 hover:text-orange-700 font-bold text-xs bg-orange-50 hover:bg-orange-100 px-2 py-1 rounded-lg transition-all"
-                      >
-                        Details <ExternalLink className="w-3 h-3" />
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+      {data.length === 0 ? (
+        <div className="bg-white dark:bg-[#2d1e14] rounded-2xl border border-dashed border-[#ead9cd] dark:border-primary/20 p-20 text-center">
+          <ShoppingBag className="size-12 text-[#ead9cd] mx-auto mb-4" />
+          <p className="text-slate-500 font-bold">
+            No customer activity found for this period
+          </p>
         </div>
-      </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {visibleItems.map((row) => (
+              <CustomerActivityCard key={row.userId} row={row} />
+            ))}
+          </div>
 
-      {/* Pagination */}
-      {pageCount > 1 && (
-        <div className="flex items-center justify-end space-x-2 mt-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={previousPage}
-            disabled={!canPreviousPage}
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-          <span className="text-sm text-gray-600">
-            Page {pageIndex + 1} of {pageCount}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={nextPage}
-            disabled={!canNextPage}
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-        </div>
+          {/* Load More Sentinel */}
+          {hasMore && (
+            <div
+              ref={sentinelRef}
+              className="flex justify-center py-10 mt-4 opacity-0 h-10"
+            >
+              <div className="flex items-center gap-2 text-[#a16b45] font-bold animate-pulse">
+                <div className="size-2 bg-[#a16b45] rounded-full"></div>
+                <span>Loading more...</span>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   )

@@ -1,7 +1,11 @@
-import { useState } from 'react'
+import { useMemo, useEffect } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
-import { useInventoryItemStats } from '@/hooks/queries/useInventoryQueries'
+import {
+  useInventoryItemStats,
+  useInfiniteInventoryItemOrdersQuery,
+} from '@/hooks/queries/useInventoryQueries'
+import { useLoadMore } from '@/hooks/useLoadMore'
 import LoadingScreen from '@/components/common/LoadingScreen'
 import {
   ArrowLeft,
@@ -10,6 +14,8 @@ import {
   Calendar,
   Package,
   Activity,
+  Loader2,
+  Phone,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -28,6 +34,7 @@ import { QuickRestockButton } from '@/components/admin/inventory/QuickRestockBut
 
 import { Skeleton } from '@/components/ui/skeleton'
 import { requireAuth } from '@/middleware/auth'
+import { formatDateTime } from '@/utils/dateUtils'
 
 export const Route = createFileRoute('/reports/inventory/$inventoryId')({
   beforeLoad: requireAuth,
@@ -38,15 +45,47 @@ function InventoryItemDetailPage() {
   const { inventoryId } = Route.useParams()
   const navigate = Route.useNavigate()
   const { user } = useAdminAuthQuery()
-  const [page, setPage] = useState(1)
-  const limit = 10
+  const rid = user?.selected_rid ? String(user.selected_rid) : undefined
 
-  const { data, isLoading, error } = useInventoryItemStats(
-    inventoryId,
-    user?.selected_rid ? String(user.selected_rid) : undefined,
-    page,
-    limit,
-  )
+  // Fixed stats and basic info
+  const { data, isLoading, error } = useInventoryItemStats(inventoryId, rid)
+
+  // Infinite orders
+  const {
+    data: infiniteData,
+    isLoading: isInfiniteLoading,
+    isFetching,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteInventoryItemOrdersQuery(inventoryId, rid, 12)
+
+  // Flatten orders from infinite pages
+  const allOrders = useMemo(() => {
+    return infiniteData?.pages.flatMap((page) => page.recentOrders) || []
+  }, [infiniteData])
+
+  // Progressive rendering hook
+  const { visibleItems, hasMore, sentinelRef } = useLoadMore(allOrders, 12)
+
+  // Sync server-side loading with local progressive rendering
+  useEffect(() => {
+    if (
+      hasNextPage &&
+      !isFetching &&
+      visibleItems.length >= allOrders.length &&
+      allOrders.length > 0
+    ) {
+      fetchNextPage()
+    }
+  }, [
+    visibleItems.length,
+    allOrders.length,
+    hasNextPage,
+    isFetching,
+    fetchNextPage,
+  ])
+
   if (isLoading) {
     if (!user?.selected_rid) {
       return <LoadingScreen message="Loading item details..." />
@@ -190,7 +229,7 @@ function InventoryItemDetailPage() {
           </Button>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">
+              <h1 className="text-lg sm:text-xl font-[500] text-gray-900 truncate">
                 {data.name}
               </h1>
               <span
@@ -229,7 +268,7 @@ function InventoryItemDetailPage() {
         {[
           {
             label: 'Total Revenue',
-            value: `₹${performance.revenue.toLocaleString()}`,
+            value: `₹${performance.revenue}`,
             sub: 'Lifetime earnings',
             icon: <DollarSign className="h-3 w-3 text-green-600" />,
           },
@@ -364,7 +403,7 @@ function InventoryItemDetailPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {recentOrders.length === 0 ? (
+                  {visibleItems.length === 0 ? (
                     <TableRow>
                       <TableCell
                         colSpan={5}
@@ -374,31 +413,34 @@ function InventoryItemDetailPage() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    recentOrders.map((order) => (
+                    visibleItems.map((order) => (
                       <TableRow key={order.id} className="h-10">
                         <TableCell className="py-2 text-xs font-medium">
                           #{order.id}
                         </TableCell>
                         <TableCell className="py-2">
                           <div className="flex flex-col">
-                            <span className="text-sm font-medium text-gray-900">
+                            <span className="text-[15px] font-medium text-gray-900">
                               {order.customer.name}
                             </span>
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-gray-500 flex items-center gap-1">
+                              <Phone className="inline" size={10} />{' '}
                               {order.customer.phone || 'N/A'}
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell className="py-2 text-xs text-gray-500">
-                          {convertToIST(order.date)}
+                        <TableCell className="py-2 text-sm text-gray-500">
+                          {formatDateTime(order.date)}
                         </TableCell>
                         <TableCell className="py-2 text-sm text-right font-medium">
                           {order.quantity}
                         </TableCell>
                         <TableCell className="py-2 text-sm text-right">
-                          <div className="font-medium">₹{order.amount}</div>
+                          <div className="font-medium">
+                            ₹{order.amount.toFixed(2)}
+                          </div>
                           {order.discount > 0 && (
-                            <div className="text-[10px] text-red-500">
+                            <div className="text-[10px] text-green-500">
                               -₹{order.discount.toFixed(2)}
                             </div>
                           )}
@@ -412,28 +454,34 @@ function InventoryItemDetailPage() {
 
             {/* Mobile List View */}
             <div className="sm:hidden divide-y divide-gray-100">
-              {recentOrders.length === 0 ? (
+              {visibleItems.length === 0 ? (
                 <div className="p-8 text-center text-gray-500 text-xs">
                   No orders found for this item.
                 </div>
               ) : (
-                recentOrders.map((order) => (
+                visibleItems.map((order) => (
                   <div key={order.id} className="p-3 space-y-2">
                     <div className="flex justify-between items-start">
                       <div>
                         <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
                           #{order.id}
                         </span>
-                        <div className="mt-1 font-medium text-xs text-gray-900">
-                          {order.customer.name}
+                        <div className="mt-1 font-medium text-xs flex flex-col items-start gap-1 text-gray-900">
+                          <span className="text-[13px]">
+                            {order.customer.name}
+                          </span>
+                          <span className="text-[9px] text-gray-500 flex items-center gap-1">
+                            <Phone className="inline" size={8} />{' '}
+                            {order.customer.phone}
+                          </span>
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="font-bold text-xs text-gray-900">
-                          ₹{order.amount}
+                          ₹{order.amount?.toFixed(0)}
                         </div>
                         {order.discount > 0 && (
-                          <div className="text-[9px] text-red-500">
+                          <div className="text-[9px] text-green-500">
                             -₹{order.discount.toFixed(2)}
                           </div>
                         )}
@@ -450,37 +498,33 @@ function InventoryItemDetailPage() {
               )}
             </div>
           </CardContent>
-          {/* Pagination */}
-          <div className="flex items-center justify-between px-3 sm:px-4 py-2 border-t">
-            <div className="text-[10px] sm:text-xs text-gray-500">
-              Page {data.pagination?.page || 1} of{' '}
-              {data.pagination?.totalPages || 1}
+
+          {/* Infinite Scroll Sentinel */}
+          {(hasNextPage || hasMore) && (
+            <div
+              ref={sentinelRef}
+              className="flex flex-col items-center justify-center py-6 border-t gap-2"
+            >
+              {isFetchingNextPage || (hasNextPage && !hasMore) ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-orange-500" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                    Retrieving...
+                  </span>
+                </div>
+              ) : (
+                <div className="h-1.5 w-1.5 rounded-full bg-gray-200 animate-pulse" />
+              )}
             </div>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-7 w-7"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1 || isLoading}
-              >
-                <span className="sr-only">Previous Page</span>
-                <ChevronLeft className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-7 w-7"
-                onClick={() => setPage((p) => p + 1)}
-                disabled={
-                  page >= (data.pagination?.totalPages || 1) || isLoading
-                }
-              >
-                <span className="sr-only">Next Page</span>
-                <ChevronRight className="h-3.5 w-3.5" />
-              </Button>
+          )}
+
+          {!hasNextPage && !hasMore && allOrders.length > 0 && (
+            <div className="py-6 text-center border-t bg-gray-50/30">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                End of orders
+              </p>
             </div>
-          </div>
+          )}
         </Card>
       </div>
     </div>

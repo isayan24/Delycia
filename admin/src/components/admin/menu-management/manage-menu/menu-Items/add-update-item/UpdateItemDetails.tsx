@@ -33,6 +33,8 @@ import VariantManagerMain from '../variants/VariantManagerMain'
 // Import hooks
 import { useUpdateItemForm } from './hooks/useUpdateItemForm'
 import { useImageUpload } from './hooks/useImageUpload'
+import { useIsMobile } from '@/hooks/useIsMobile'
+import MobileUpdateItemDrawer from './MobileUpdateItemDrawer'
 
 // Import utilities
 import { validateSingleForm, getErrorFields } from './utils/formValidation'
@@ -58,6 +60,7 @@ export default function UpdateItemDetailsModal({
 
   const { showError, showSuccess } = useToast()
   const queryClient = useQueryClient()
+  const isMobile = useIsMobile()
 
   // Use custom hooks
   const {
@@ -268,7 +271,6 @@ export default function UpdateItemDetailsModal({
 
       // Handle image uploads with cleanup if images changed
       let imageLinks: string[] = []
-      console.log('*** changes *****', changes)
       if (changes.hasImageChanges) {
         imageLinks = await uploadImagesWithCleanup(itemImages, removedImageUrls)
         if (imageLinks.length === 0) {
@@ -336,7 +338,6 @@ export default function UpdateItemDetailsModal({
         selectiveFields: changes.changedFormFields,
       }
       const response = await axios.patch(`/api/inventory`, apiPayload)
-      console.log(response, 'response in client \n\n\n\n\n\n')
 
       // Success message based on what was updated
       let successMessage = 'Item updated successfully!'
@@ -404,6 +405,33 @@ export default function UpdateItemDetailsModal({
   )
 
   if (!open) return null
+
+  if (isMobile) {
+    return (
+      <MobileUpdateItemDrawer
+        open={open}
+        onOpenChange={onOpenChange}
+        categories={categories}
+        formData={formData}
+        errors={errors}
+        handleInputChange={handleInputChange}
+        handleFoodTypeChange={handleFoodTypeChange}
+        itemImages={itemImages}
+        setItemImages={setItemImages}
+        handleImageUpload={handleImageUpload}
+        handleRemoveImage={handleRemoveImage}
+        handlePriceChange={handlePriceChange}
+        handleCostChange={handleCostChange}
+        savedVariant={savedVariant}
+        onSubmit={onSubmit}
+        isPending={isPending}
+        showWarning={showWarning}
+        getCurrentCategoryName={getCurrentCategoryName}
+        isLoadingVariants={isLoadingVariants}
+        existingVariants={existingVariants}
+      />
+    )
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-0">

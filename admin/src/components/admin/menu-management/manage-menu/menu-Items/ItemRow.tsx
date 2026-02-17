@@ -18,7 +18,7 @@ export const ItemRow = React.memo<ItemRowProps>(
     return (
       <Card
         id={`item-${item.id}`}
-        className={`group transition-all duration-500 overflow-hidden border-2 ${
+        className={`shadow-none transition-all duration-500 overflow-hidden border-2 ${
           isHighlighted
             ? 'border-orange-400 bg-orange-50/50 shadow-xl animate-pulse'
             : 'border-gray-100 hover:border-green-100 bg-white hover:shadow-xl hover:shadow-green-50/30'

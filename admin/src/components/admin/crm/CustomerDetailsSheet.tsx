@@ -10,14 +10,12 @@ import { useCustomerDetailsQuery } from '@/hooks/queries/useCRMQueries'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
-import { formatISTDateTime } from '../order-history/utils/historyDateUtils'
 import {
   ShoppingBag,
   Calendar,
   CheckCircle2,
   XCircle,
-  Package,
+  Users,
 } from 'lucide-react'
 import { formatDateTime } from '@/utils/dateUtils'
 
@@ -43,197 +41,205 @@ export default function CustomerDetailsSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-[540px] p-0 border-l-[#ead9cd] dark:border-l-primary/10 gap-0">
         {isLoading ? (
-          <>
-            <SheetHeader>
-              <SheetTitle className="sr-only">
-                Loading Customer Details
-              </SheetTitle>
-              <SheetDescription className="sr-only">
-                Fetching customer information...
-              </SheetDescription>
-            </SheetHeader>
-            <div className="flex items-center justify-center h-full">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          </>
+          <div className="flex flex-col items-center justify-center h-full gap-4">
+            <div className="h-10 w-10 border-4 border-orange-500/20 border-t-orange-500 rounded-full animate-spin" />
+            <p className="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em] animate-pulse">
+              Syncing profile...
+            </p>
+          </div>
         ) : profile ? (
-          <div className="space-y-6">
-            <SheetHeader className="flex flex-row items-start gap-4 space-y-0">
-              <Avatar className="h-16 w-16">
-                <AvatarImage src={profile.profile_pic || ''} />
-                <AvatarFallback className="text-lg bg-orange-100 text-orange-600">
-                  {profile.name?.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="space-y-1">
-                <SheetTitle className="text-xl">{profile.name}</SheetTitle>
-                <SheetDescription>
-                  {profile.phone_number} • {profile.email || 'No email'}
-                </SheetDescription>
-                <div className="flex gap-2 mt-2">
-                  <Badge
-                    variant="outline"
-                    className="bg-orange-50 text-orange-700 border-orange-200"
-                  >
-                    {profile.visit_count} Visits
-                  </Badge>
-                  <Badge
-                    variant="outline"
-                    className="bg-green-50 text-green-700 border-green-200"
-                  >
-                    ₹{profile.total_spent?.toLocaleString()} Spent
-                  </Badge>
-                </div>
+          <ScrollArea className="h-full bg-slate-50/50 dark:bg-[#1a110c]">
+            <div className="flex flex-col min-h-full">
+              {/* Header Section */}
+              <div className="p-6 px-2 bg-white dark:bg-[#2d1e14] border-b border-[#ead9cd] dark:border-primary/5">
+                <SheetHeader className="flex flex-row gap-4 space-y-0">
+                  <Avatar className="h-16 w-16 lg:h-20 lg:w-20 border-2 border-white dark:border-[#3a291d] shadow-sm">
+                    <AvatarImage src={profile.profile_pic || ''} />
+                    <AvatarFallback className="text-xl bg-orange-50 dark:bg-[#3a291d] text-orange-600 font-medium uppercase">
+                      {profile.name?.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <SheetTitle className="text-lg lg:text-[22px] font-medium text-slate-900 dark:text-white truncate">
+                      {profile.name}
+                    </SheetTitle>
+                    <SheetDescription className="text-xs lg:text-sm text-[#a16b45] font-semibold mt-1 flex flex-wrap gap-x-2 gap-y-1">
+                      <span>{profile.phone_number}</span>
+                      <span className="opacity-30">•</span>
+                      {profile.email ? (
+                        <span className="truncate">{profile.email}</span>
+                      ) : (
+                        <span></span>
+                      )}
+                    </SheetDescription>
+                    <div className="flex gap-2 mt-4">
+                      <Badge className="bg-orange-50 dark:bg-orange-900/10 text-nowrap text-orange-600 border-none text-[10px] lg:text-[12px] font-black uppercase px-2 py-0.5">
+                        {profile.visit_count} Visits
+                      </Badge>
+                      <Badge className="bg-emerald-50 dark:bg-emerald-900/10 text-nowrap text-emerald-600 border-none text-[10px] lg:text-[12px] font-black uppercase px-2 py-0.5">
+                        ₹{profile.total_spent?.toLocaleString('en-IN')} Spent
+                      </Badge>
+                    </div>
+                  </div>
+                </SheetHeader>
               </div>
-            </SheetHeader>
 
-            <Separator />
+              {/* History Section Container */}
+              <div className="flex-1 flex flex-col">
+                <div className="px-6 py-4 flex items-center justify-between bg-white dark:bg-[#2d1e14]/50 border-b border-[#ead9cd] dark:border-primary/5 shrink-0">
+                  <h3 className="text-[10px] lg:text-xs font-black text-[#a16b45] uppercase tracking-[0.15em] flex items-center gap-2">
+                    <ShoppingBag className="w-4 h-4" />
+                    Activity History
+                  </h3>
+                  <span className="text-[10px] font-bold text-[#a16b45]/40 italic">
+                    Showing last {details?.history?.length || 0} orders
+                  </span>
+                </div>
 
-            <div className="pl-4">
-              <h3 className="text-sm font-medium mb-4 flex items-center gap-2">
-                <ShoppingBag className="w-4 h-4" />
-                Order History
-              </h3>
-              <ScrollArea className="h-[calc(100vh-13rem)] pr-4">
-                <div className="space-y-2">
-                  {details?.history?.map((order) => {
-                    // Treat 'settled' as completed
-                    const isCompleted =
-                      order.order_status === 'completed' ||
-                      order.order_status === 'settled'
-                    const isCancelled = order.order_status === 'cancelled'
-                    // Display text: show 'Completed' for both completed and settled
-                    const displayStatus = isCompleted
-                      ? 'Completed'
-                      : order.order_status
+                <div className="p-6">
+                  <div className="space-y-0 relative">
+                    {/* Vertical line for the timeline */}
+                    <div className="absolute left-2.5 top-2 bottom-2 w-0.5 bg-[#ead9cd] dark:bg-primary/10 opacity-50" />
 
-                    return (
-                      <div
-                        key={order.order_id}
-                        className="relative pl-8 pb-8 border-l last:border-0 border-gray-100 ml-2"
-                      >
+                    {details?.history?.map((order) => {
+                      const isCompleted =
+                        order.order_status === 'completed' ||
+                        order.order_status === 'settled'
+                      const isCancelled = order.order_status === 'cancelled'
+                      const displayStatus = isCompleted
+                        ? 'Completed'
+                        : order.order_status
+
+                      return (
                         <div
-                          className={`absolute left-[-5px] top-1 h-2.5 w-2.5 rounded-full ring-4 ring-white ${
-                            isCompleted
-                              ? 'bg-green-500'
-                              : isCancelled
-                                ? 'bg-red-500'
-                                : 'bg-gray-300'
-                          }`}
-                        />
-
-                        <div className="flex flex-col gap-3">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <div className="text-base font-semibold text-gray-900">
-                                Order #{order.order_id}
-                              </div>
-                              <div className="text-xs text-gray-500 flex items-center gap-1.5 mt-1">
-                                <Calendar className="w-3.5 h-3.5" />
-                                {formatDateTime(order.created_at)}
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              {order.discount_amount &&
-                                order.discount_amount > 0 && (
-                                  <div className="text-xs text-green-600 font-medium mb-0.5">
-                                    -₹{order.discount_amount} discount
-                                  </div>
-                                )}
-                              <OrderItemTotal
-                                total={order.total_amount}
-                                discount={order.discount_amount}
-                              />
-                              <div
-                                className={`flex items-center justify-end gap-1.5 mt-1 text-xs font-medium capitalize ${
-                                  isCompleted
-                                    ? 'text-green-600'
-                                    : isCancelled
-                                      ? 'text-red-600'
-                                      : 'text-gray-600'
-                                }`}
-                              >
-                                {isCompleted ? (
-                                  <CheckCircle2 className="w-3.5 h-3.5" />
-                                ) : isCancelled ? (
-                                  <XCircle className="w-3.5 h-3.5" />
-                                ) : (
-                                  <Package className="w-3.5 h-3.5" />
-                                )}
-                                {displayStatus}
-                              </div>
-                            </div>
+                          key={order.order_id}
+                          className="relative pl-9 pb-8 last:pb-2 group"
+                        >
+                          {/* Timeline Dot */}
+                          <div
+                            className={`absolute left-0 top-1.5 h-5 w-5 rounded-full border-2 border-white dark:border-[#1a110c] z-10 transition-transform group-hover:scale-110 flex items-center justify-center ${
+                              isCompleted
+                                ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
+                                : isCancelled
+                                  ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]'
+                                  : 'bg-orange-400 shadow-[0_0_10px_rgba(251,146,60,0.3)]'
+                            }`}
+                          >
+                            {isCompleted ? (
+                              <CheckCircle2 className="w-3 h-3 text-white" />
+                            ) : isCancelled ? (
+                              <XCircle className="w-3 h-3 text-white" />
+                            ) : (
+                              <div className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                            )}
                           </div>
 
-                          <div className="text-sm text-gray-700 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                            {(() => {
-                              let items = order.items
-                              if (typeof items === 'string') {
-                                try {
-                                  items = JSON.parse(items)
-                                } catch (e) {
-                                  return order.items // Fallback to string if parse fails
-                                }
-                              }
-
-                              if (!Array.isArray(items)) return null
-
-                              return (
-                                <div className="space-y-3">
-                                  {items.map((item: any, idx: number) => (
-                                    <div key={idx} className="text-sm">
-                                      <div className="font-medium text-gray-900">
-                                        {item.quantity} x {item.name}
-                                        {item.variant_name && (
-                                          <span className="text-gray-500 font-normal text-xs ml-1">
-                                            ({item.variant_name})
-                                          </span>
-                                        )}
-                                      </div>
-                                      {item.addons &&
-                                        item.addons.length > 0 && (
-                                          <div className="ml-4 mt-1 space-y-0.5">
-                                            {item.addons.map(
-                                              (addon: any, aIdx: number) => (
-                                                <div
-                                                  key={aIdx}
-                                                  className="text-xs text-gray-500 flex gap-1"
-                                                >
-                                                  <span>
-                                                    + {addon.quantity}{' '}
-                                                    {addon.name}
-                                                  </span>
-                                                  <span>(₹{addon.price})</span>
-                                                </div>
-                                              ),
-                                            )}
-                                          </div>
-                                        )}
-                                    </div>
-                                  ))}
+                          <div className="bg-white dark:bg-[#2d1e14] rounded-2xl p-4 lg:p-5 border border-[#ead9cd] dark:border-primary/10 shadow-sm group-hover:border-orange-200 dark:group-hover:border-primary/20 transition-all">
+                            <div className="flex justify-between items-start gap-4">
+                              <div className="min-w-0">
+                                <div className="text-[13px] lg:text-[15px] font-medium text-slate-900 dark:text-white">
+                                  Order #{order.order_id}
                                 </div>
-                              )
-                            })()}
+                                <div className="text-[10px] lg:text-xs text-[#a16b45] font-semibold flex items-center gap-1.5 mt-1">
+                                  <Calendar className="w-3.5 h-3.5 opacity-50" />
+                                  {formatDateTime(order.created_at)}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <OrderItemTotal
+                                  total={order.total_amount}
+                                  discount={order.discount_amount}
+                                />
+                                <div
+                                  className={`text-[10px] lg:text-[11px] font-black uppercase tracking-wider mt-1.5 flex items-center justify-end gap-1 ${
+                                    isCompleted
+                                      ? 'text-emerald-600'
+                                      : isCancelled
+                                        ? 'text-red-600'
+                                        : 'text-orange-600'
+                                  }`}
+                                >
+                                  {displayStatus}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Items Preview */}
+                            <div className="mt-4 pt-4 border-t border-[#ead9cd]/30 dark:border-primary/5">
+                              {(() => {
+                                let items = order.items
+                                if (typeof items === 'string') {
+                                  try {
+                                    items = JSON.parse(items)
+                                  } catch (e) {
+                                    return (
+                                      <p className="text-xs text-[#a16b45]">
+                                        {order.items}
+                                      </p>
+                                    )
+                                  }
+                                }
+
+                                if (!Array.isArray(items)) return null
+
+                                return (
+                                  <div className="space-y-3">
+                                    {items.map((item: any, idx: number) => (
+                                      <div
+                                        key={idx}
+                                        className="flex justify-between items-start"
+                                      >
+                                        <div className="min-w-0 flex-1">
+                                          <p className="text-xs lg:text-[13px] font-semibold text-slate-800 dark:text-slate-200">
+                                            <span className="text-orange-600 font-black mr-1">
+                                              {item.quantity}x
+                                            </span>
+                                            {item.name}
+                                          </p>
+                                          {item.addons &&
+                                            item.addons.length > 0 && (
+                                              <div className="ml-5 mt-1">
+                                                {item.addons.map(
+                                                  (
+                                                    addon: any,
+                                                    aIdx: number,
+                                                  ) => (
+                                                    <p
+                                                      key={aIdx}
+                                                      className="text-[10px] text-[#a16b45] font-medium opacity-70"
+                                                    >
+                                                      + {addon.name} (₹
+                                                      {addon.price})
+                                                    </p>
+                                                  ),
+                                                )}
+                                              </div>
+                                            )}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )
+                              })()}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )
-                  })}
+                      )
+                    })}
+                  </div>
                 </div>
-              </ScrollArea>
+              </div>
             </div>
-          </div>
+          </ScrollArea>
         ) : (
-          <>
-            <SheetHeader>
-              <SheetTitle className="sr-only">Customer Not Found</SheetTitle>
-            </SheetHeader>
-            <div className="text-center py-10 text-muted-foreground">
-              Customer not found
-            </div>
-          </>
+          <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+            <Users className="h-12 w-12 text-[#a16b45]/20 mb-4" />
+            <p className="text-xs font-black text-[#a16b45] uppercase tracking-widest">
+              Profile not detected or database out of sync
+            </p>
+          </div>
         )}
       </SheetContent>
     </Sheet>
@@ -243,26 +249,23 @@ export default function CustomerDetailsSheet({
 function OrderItemTotal({
   total,
   discount,
-  taxPercent,
-  taxAmount,
 }: {
   total: number
   discount?: number
-  taxPercent?: number | any
-  taxAmount?: number | any
 }) {
   const subtotal = total
   const discountValue = discount && discount > 0 ? discount : 0
-  const taxValue = taxAmount && taxAmount > 0 ? taxAmount : 0
   const grandTotal = subtotal - discountValue
 
   return (
     <div className="text-right">
-      <div className="text-base font-bold text-gray-900">
-        ₹{grandTotal.toLocaleString()}
+      <div className="text-[14px] lg:text-[16px] font-black text-slate-900 dark:text-white">
+        ₹{grandTotal.toLocaleString('en-IN')}
       </div>
-      {taxValue > 0 && (
-        <div className="text-xs text-gray-600 mt-0.5">+₹{taxValue} tax</div>
+      {discountValue > 0 && (
+        <p className="text-[9px] lg:text-[10px] text-emerald-600 font-bold uppercase tracking-tighter">
+          Saved ₹{discountValue.toLocaleString()}
+        </p>
       )}
     </div>
   )

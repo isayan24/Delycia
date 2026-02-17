@@ -9,6 +9,7 @@ import {
   Store,
 } from 'lucide-react'
 import { DeliveryTypeData } from '@/types/dashboard.types'
+import NoSSR from '@/components/common/NoSSR'
 import { formatCurrency } from '@/utils/currencyUtils'
 
 interface DeliveryTypeChartProps {
@@ -291,30 +292,32 @@ export const DeliveryTypeChart: React.FC<DeliveryTypeChartProps> = ({
         )}
       </div>
 
-      <div className="h-[220px] md:h-[250px] mb-4">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={chartData}
-              cx="50%"
-              cy="50%"
-              innerRadius={60}
-              outerRadius={85}
-              paddingAngle={4}
-              dataKey="count"
-              stroke="none"
-            >
-              {chartData.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={entry.fill}
-                  className="hover:opacity-85 transition-opacity"
-                />
-              ))}
-            </Pie>
-            <Tooltip content={<CustomTooltip />} />
-          </PieChart>
-        </ResponsiveContainer>
+      <div className="h-[220px] md:h-[250px] mb-4 min-w-0">
+        <NoSSR>
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+            <PieChart>
+              <Pie
+                data={chartData}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={85}
+                paddingAngle={4}
+                dataKey="count"
+                stroke="none"
+              >
+                {chartData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={entry.fill}
+                    className="hover:opacity-85 transition-opacity"
+                  />
+                ))}
+              </Pie>
+              <Tooltip content={<CustomTooltip />} />
+            </PieChart>
+          </ResponsiveContainer>
+        </NoSSR>
       </div>
 
       <DeliveryTypeLegend data={data} />

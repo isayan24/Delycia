@@ -20,17 +20,26 @@ import LoadingScreen from '@/components/common/LoadingScreen'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { useMemo } from 'react'
 import DateFilterComponent from '@/components/admin/dashboard/DateFilterComponent'
-import DateRangeDisplay from '@/components/admin/dashboard/DateRangeDisplay'
-import { Button as StatefulButton } from '@/components/ui/stateful-button'
-import { AlertCircle } from 'lucide-react'
+import MiniStats from '@/components/admin/dashboard/MiniStats'
 import { requireAuth } from '@/middleware/auth'
+
+import { z } from 'zod'
+
+const salesSearchSchema = z.object({
+  tab: z
+    .enum(['overview', 'items', 'customers', 'delivery'])
+    .optional()
+    .catch('overview'),
+})
 
 export const Route = createFileRoute('/reports/sales')({
   beforeLoad: requireAuth,
+  validateSearch: (search) => salesSearchSchema.parse(search),
   component: SalesReportPage,
 })
 
 function SalesReportPage() {
+  const { tab = 'overview' } = Route.useSearch()
   const { user } = useAdminAuthQuery()
   const rid = user?.selected_rid?.toString() || ''
   const { currentDateRange } = useDateFilterStore()
@@ -60,8 +69,6 @@ function SalesReportPage() {
     categoryRevenueQuery.isLoading ||
     deliveryTypesQuery.isLoading
 
-  const hasError = !!(statsQuery.error || salesTrendQuery.error)
-
   const handleRefresh = async () => {
     await refreshDashboard()
   }
@@ -71,105 +78,110 @@ function SalesReportPage() {
   }
 
   return (
-    <div className="space-y-4 md:space-y-6 px-3">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100/80">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold tracking-tight text-gray-900">
-            Sales Report
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Analyze your sales performance and trends.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <DateFilterComponent className="flex-1 sm:flex-none" />
-          <StatefulButton
-            onClick={handleRefresh}
-            className="shadow-sm border-orange-100 hover:bg-orange-50 hover:text-orange-600 transition-all duration-200"
-          >
-            Refresh
-          </StatefulButton>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between px-1">
-        <DateRangeDisplay />
-        {hasError && (
-          <div className="flex items-center space-x-2 text-xs text-red-600 bg-red-50 px-2 py-1 rounded-md border border-red-100">
-            <AlertCircle className="w-3.5 h-3.5" />
-            <span>Some data failed to load</span>
-          </div>
-        )}
-      </div>
-
-      {/* Key Metrics */}
-      <DashboardStatsComponent
-        stats={statsQuery.data || null}
-        loading={statsQuery.isLoading}
-        error={statsQuery.error ? 'Failed to load stats' : null}
-        onRetry={handleRefresh}
-      />
-
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Sales Trend */}
-        <SalesTrendChart
-          data={salesTrendQuery.data || null}
-          loading={salesTrendQuery.isLoading}
-          error={salesTrendQuery.error ? 'Failed to load sales trend' : null}
-          onRetry={handleRefresh}
-        />
-
-        {/* Order Status */}
-        <OrderStatusChart
-          data={orderStatusQuery.data || null}
-          loading={orderStatusQuery.isLoading}
-          error={orderStatusQuery.error ? 'Failed to load order status' : null}
-          onRetry={handleRefresh}
-        />
-      </div>
-
-      {/* Middle Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Top Selling Items */}
-        <TopSellingItems
-          data={topItemsQuery.data || null}
-          loading={topItemsQuery.isLoading}
-          error={topItemsQuery.error ? 'Failed to load top items' : null}
-          onRetry={handleRefresh}
-        />
-
-        {/* Revenue by Category */}
-        <RevenueByCategoryChart
-          data={categoryRevenueQuery.data || null}
-          loading={categoryRevenueQuery.isLoading}
-          error={
-            categoryRevenueQuery.error
-              ? 'Failed to load category revenue'
-              : null
-          }
-          onRetry={handleRefresh}
-        />
-      </div>
-
-      {/* Bottom Row: Customer Activity & Delivery Types */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Customer Activity - Takes up 2/3 space */}
-        <div className="lg:col-span-2">
-          <CustomerActivityTable rid={rid} />
-        </div>
-
-        {/* Delivery Types - Takes up 1/3 space */}
-        <div className="lg:col-span-1">
-          <DeliveryTypeChart
-            data={deliveryTypesQuery.data || null}
-            loading={deliveryTypesQuery.isLoading}
-            error={
-              deliveryTypesQuery.error ? 'Failed to load delivery types' : null
-            }
-            onRetry={handleRefresh}
+    <div className="bg-slate-50/30 dark:bg-background-dark/30 min-h-screen p-4 md:p-6 transition-colors">
+      {/* Date Information Bar */}
+      <div className="bg-white dark:bg-[#2d1e14] rounded-xl border border-[#ead9cd] dark:border-primary/10 p-2 md:p-3 mb-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="flex-1 flex items-center overflow-hidden">
+          <MiniStats
+            stats={statsQuery.data || null}
+            loading={statsQuery.isLoading}
           />
         </div>
+        <div className="flex items-center gap-3 shrink-0">
+          <DateFilterComponent className="w-full sm:w-[180px]" />
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        {/* Overview Tab */}
+        {tab === 'overview' && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <DashboardStatsComponent
+              stats={statsQuery.data || null}
+              loading={statsQuery.isLoading}
+              error={statsQuery.error ? 'Failed to load stats' : null}
+              onRetry={handleRefresh}
+            />
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="lg:col-span-8">
+                <SalesTrendChart
+                  data={salesTrendQuery.data || null}
+                  loading={salesTrendQuery.isLoading}
+                  error={
+                    salesTrendQuery.error ? 'Failed to load sales trend' : null
+                  }
+                  onRetry={handleRefresh}
+                />
+              </div>
+
+              <div className="lg:col-span-4">
+                <OrderStatusChart
+                  data={orderStatusQuery.data || null}
+                  loading={orderStatusQuery.isLoading}
+                  error={
+                    orderStatusQuery.error
+                      ? 'Failed to load order status'
+                      : null
+                  }
+                  onRetry={handleRefresh}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Items Tab */}
+        {tab === 'items' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <div className="lg:col-span-7">
+              <TopSellingItems
+                data={topItemsQuery.data || null}
+                loading={topItemsQuery.isLoading}
+                error={topItemsQuery.error ? 'Failed to load top items' : null}
+                onRetry={handleRefresh}
+              />
+            </div>
+
+            <div className="lg:col-span-5">
+              <RevenueByCategoryChart
+                data={categoryRevenueQuery.data || null}
+                loading={categoryRevenueQuery.isLoading}
+                error={
+                  categoryRevenueQuery.error
+                    ? 'Failed to load category revenue'
+                    : null
+                }
+                onRetry={handleRefresh}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Customers Tab */}
+        {tab === 'customers' && (
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <CustomerActivityTable rid={rid} />
+          </div>
+        )}
+
+        {/* Delivery Tab */}
+        {tab === 'delivery' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <div className="lg:col-span-8 mx-auto w-full">
+              <DeliveryTypeChart
+                data={deliveryTypesQuery.data || null}
+                loading={deliveryTypesQuery.isLoading}
+                error={
+                  deliveryTypesQuery.error
+                    ? 'Failed to load delivery types'
+                    : null
+                }
+                onRetry={handleRefresh}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

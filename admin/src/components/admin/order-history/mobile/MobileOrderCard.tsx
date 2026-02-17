@@ -93,7 +93,7 @@ const MobileOrderCard = memo(function MobileOrderCard({
 
   return (
     <div
-      className={`rounded-2xl border p-5 flex flex-col gap-4 transition-all overflow-hidden shadow-sm ${styles.card} ${isExpanded && !isCancelled ? 'border-primary dark:border-primary/40 shadow-xl shadow-primary/5' : ''}`}
+      className={`rounded-2xl !bg-[#fffbf6] border p-3 flex flex-col gap-3 transition-all overflow-hidden shadow-sm ${styles.card} ${isExpanded && !isCancelled ? 'border-primary dark:border-primary/40 shadow-xl shadow-primary/5' : ''}`}
     >
       {/* Header with ID and Grand Total */}
       <div className="flex justify-between items-start">
@@ -109,7 +109,7 @@ const MobileOrderCard = memo(function MobileOrderCard({
             </Badge>
           </div>
           <h3
-            className={`text-sm font-semibold text-slate-900 dark:text-white`}
+            className={`text-xs font-semibold text-slate-900 dark:text-white`}
           >
             #{order.orderId}
           </h3>
@@ -126,7 +126,7 @@ const MobileOrderCard = memo(function MobileOrderCard({
 
       {/* Summary Row / Details Toggle */}
       <div
-        className={`flex items-center justify-between p-3 rounded-xl border border-[#ead9cd] dark:border-primary/10 ${isCancelled ? 'bg-white/40 dark:bg-[#2d1e14]/40' : 'bg-slate-50 dark:bg-[#3a291d]'}`}
+        className={`flex items-center justify-between p-3s rounded-xl borders border-dashed border-[#ead9cd] dark:border-primary/10 $`}
       >
         <div className="flex items-center gap-3">
           <div className="flex -space-x-2">
@@ -194,10 +194,10 @@ const MobileOrderCard = memo(function MobileOrderCard({
                   Table No.
                 </p>
                 <p
-                  className={`text-base font-bold ${isCancelled ? 'text-slate-400' : 'text-primary'}`}
+                  className={`text-sm font-bold ${isCancelled ? 'text-slate-400' : 'text-primary'}`}
                 >
                   {order.tableNo
-                    ? `${String(order.tableNo).padStart(2, '0')}`
+                    ? `${order.tableZone} Table: ${order.tableNo}`
                     : 'Takeaway'}
                 </p>
               </div>

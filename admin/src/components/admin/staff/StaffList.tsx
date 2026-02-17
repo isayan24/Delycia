@@ -8,9 +8,9 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Edit2, Loader2, User, Trash2, Phone, UserCircle } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
-
 import {
   useStaffQuery,
   StaffMember,
@@ -66,13 +66,15 @@ export function StaffList() {
 
   if (!staff?.length) {
     return (
-      <div className="text-center py-10 border rounded-lg bg-gray-50/50">
-        <User className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-        <h3 className="text-lg font-medium text-gray-900">
-          No staff members found
+      <div className="text-center py-20 border border-[#ead9cd] dark:border-primary/10 rounded-2xl bg-white dark:bg-[#2d1e14] shadow-sm">
+        <div className="bg-orange-50 dark:bg-orange-900/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-orange-100 dark:border-orange-900/20">
+          <User className="h-8 w-8 text-orange-600" />
+        </div>
+        <h3 className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-[0.2em]">
+          No staff members detected
         </h3>
-        <p className="text-gray-500 max-w-sm mx-auto mt-1">
-          Add your first staff member to get started.
+        <p className="text-[#a16b45] text-[10px] font-bold uppercase tracking-widest mt-2 opacity-60">
+          Click the add button to onboard your team
         </p>
       </div>
     )
@@ -82,49 +84,74 @@ export function StaffList() {
     <>
       <div className="space-y-4">
         {/* Desktop View */}
-        <div className="hidden md:block rounded-md border bg-white overflow-hidden">
+        <div className="hidden md:block bg-white dark:bg-[#2d1e14] rounded-2xl border border-[#ead9cd] dark:border-primary/10 shadow-sm overflow-hidden">
           <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-50/50">
-                <TableHead className="w-[250px]">User</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Username</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+            <TableHeader className="bg-slate-50/50 dark:bg-[#3a291d]/20">
+              <TableRow className="border-b border-[#ead9cd] dark:border-primary/5 hover:bg-transparent">
+                <TableHead className="py-4 pl-6 text-[10px] lg:text-xs font-medium text-[#a16b45] uppercase tracking-widest">
+                  Staff Member
+                </TableHead>
+                <TableHead className="py-4 text-[10px] lg:text-xs font-medium text-[#a16b45] uppercase tracking-widest">
+                  Role & Credentials
+                </TableHead>
+                <TableHead className="py-4 text-[10px] lg:text-xs font-medium text-[#a16b45] uppercase tracking-widest">
+                  Contact Info
+                </TableHead>
+                <TableHead className="py-4 text-[10px] lg:text-xs font-medium text-[#a16b45] uppercase tracking-widest text-right pr-6">
+                  Actions
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {staff.map((member) => (
                 <TableRow
                   key={member.id}
-                  className="group hover:bg-gray-50/50 transition-colors"
+                  className="group cursor-pointer hover:bg-slate-50/30 dark:hover:bg-[#3a291d]/20 border-b border-slate-50 dark:border-primary/5 transition-colors"
                 >
-                  <TableCell className="font-medium">
+                  <TableCell className="py-4 pl-6">
                     <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
-                        <span className="text-sm font-bold text-primary">
-                          {member.name.charAt(0).toUpperCase()}
+                      <Avatar className="h-10 w-10 border-2 border-white dark:border-[#3a291d] group-hover:border-orange-200 transition-colors shadow-sm">
+                        <AvatarImage src={member.profile_pic || undefined} />
+                        <AvatarFallback className="bg-orange-50 dark:bg-[#3a291d] text-orange-600 font-medium text-xs uppercase">
+                          {member.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs lg:text-sm font-medium text-slate-900 dark:text-white uppercase tracking-wider group-hover:text-orange-600 transition-colors">
+                          {member.name}
+                        </span>
+                        <span className="text-[10px] font-bold text-[#a16b45] opacity-60 truncate">
+                          UID: {member.uid.slice(-8)}
                         </span>
                       </div>
-                      <span className="text-gray-900">{member.name}</span>
                     </div>
                   </TableCell>
-                  <TableCell>{getRoleBadge(member.role)}</TableCell>
-                  <TableCell className="text-gray-600 font-mono text-xs">
-                    {member.username || '-'}
+                  <TableCell className="py-4">
+                    <div className="flex flex-col gap-1.5">
+                      <div className="scale-90 origin-left">
+                        {getRoleBadge(member.role)}
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                        <UserCircle className="h-3 w-3" />
+                        {member.username}
+                      </div>
+                    </div>
                   </TableCell>
-                  <TableCell className="text-gray-600">
-                    {member.phone_number || '-'}
+                  <TableCell className="py-4">
+                    <div className="flex items-center gap-2 text-xs lg:text-sm font-medium text-slate-700 dark:text-slate-300">
+                      <Phone className="h-3.5 w-3.5 text-[#a16b45]/40" />
+                      {member.phone_number || '-'}
+                    </div>
                   </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
+                  <TableCell className="py-4 pr-6 text-right">
+                    <div className="flex justify-end gap-1 opacity-40 group-hover:opacity-100 transition-opacity">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button
                               variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-gray-400 hover:text-primary hover:bg-primary/5"
+                              size="icon-sm"
+                              className="h-8 w-8 text-slate-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-primary/10"
                               onClick={() =>
                                 setViewPassword(
                                   member.password || 'No password set',
@@ -157,7 +184,7 @@ export function StaffList() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-30"
+                                className="h-8 w-8 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 disabled:opacity-10 transition-colors"
                                 onClick={() => {
                                   setStaffToDelete(member)
                                   setDeleteConfirmation('')
@@ -168,10 +195,10 @@ export function StaffList() {
                               </Button>
                             </span>
                           </TooltipTrigger>
-                          <TooltipContent>
+                          <TooltipContent side="right">
                             {member.role === 2
-                              ? 'Cannot delete admin'
-                              : 'Delete Staff'}
+                              ? 'Admin Restricted'
+                              : 'Delete Access'}
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -192,76 +219,73 @@ export function StaffList() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="bg-white p-4 rounded-xl border shadow-sm space-y-4"
+                className="bg-white dark:bg-[#2d1e14] p-4 rounded-2xl border border-[#ead9cd] dark:border-primary/10 shadow-sm space-y-4"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
-                      <span className="text-base font-bold text-primary">
-                        {member.name.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
+                    <Avatar className="h-12 w-12 border-2 border-white dark:border-[#3a291d] shadow-sm">
+                      <AvatarImage src={member.profile_pic || undefined} />
+                      <AvatarFallback className="bg-orange-50 dark:bg-[#3a291d] text-orange-600 font-medium text-sm uppercase">
+                        {member.name.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
                     <div>
-                      <h4 className="font-semibold text-gray-900">
+                      <h4 className="text-sm font-medium text-slate-900 dark:text-white uppercase tracking-tight">
                         {member.name}
                       </h4>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-2 mt-1 scale-90 origin-left">
                         {getRoleBadge(member.role)}
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 pt-2">
+                <div className="grid grid-cols-2 gap-4 pt-2">
                   <div className="space-y-1">
-                    <p className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">
+                    <p className="text-[10px] uppercase tracking-[0.15em] text-[#a16b45] font-black opacity-60">
                       Username
                     </p>
-                    <div className="flex items-center gap-1.5 text-sm text-gray-600">
-                      <UserCircle className="h-3.5 w-3.5 text-gray-400" />
-                      <span className="font-mono text-xs">
-                        {member.username || '-'}
-                      </span>
+                    <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                      <UserCircle className="h-3.5 w-3.5 text-[#a16b45]/40" />
+                      <span className="font-bold">{member.username}</span>
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">
+                    <p className="text-[10px] uppercase tracking-[0.15em] text-[#a16b45] font-black opacity-60">
                       Phone
                     </p>
-                    <div className="flex items-center gap-1.5 text-sm text-gray-600">
-                      <Phone className="h-3.5 w-3.5 text-gray-400" />
-                      <span className="text-xs">
-                        {member.phone_number || '-'}
-                      </span>
+                    <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                      <Phone className="h-3.5 w-3.5 text-[#a16b45]/40" />
+                      <span className="font-bold">{member.phone_number}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 pt-2 border-t mt-2">
+                <div className="flex items-center gap-2 pt-4 border-t border-[#ead9cd]/30 dark:border-primary/5">
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
-                    className="flex-1 h-9 gap-2 text-gray-600"
+                    className="flex-1 h-9 gap-2 text-slate-500 bg-slate-50 dark:bg-primary/5 rounded-xl text-[10px] font-black uppercase tracking-widest"
                     onClick={() =>
                       setViewPassword(member.password || 'No password set')
                     }
                   >
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-3.5 w-3.5" />
                     Pass
                   </Button>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
-                    className="flex-1 h-9 gap-2 text-amber-600 border-amber-100 bg-amber-50/30"
+                    className="flex-1 h-9 gap-2 text-orange-600 bg-orange-50 dark:bg-orange-950/20 rounded-xl text-[10px] font-black uppercase tracking-widest"
                     onClick={() => setSelectedStaff(member)}
                   >
-                    <Edit2 className="h-4 w-4" />
+                    <Edit2 className="h-3.5 w-3.5" />
                     Edit
                   </Button>
                   <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-9 w-9 px-0 text-red-500 border-red-100 bg-red-50/30 disabled:opacity-30"
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 text-red-500 bg-red-50 dark:bg-red-950/20 rounded-xl disabled:opacity-20"
                     onClick={() => {
                       setStaffToDelete(member)
                       setDeleteConfirmation('')
@@ -299,17 +323,17 @@ export function StaffList() {
         }}
       >
         <DialogContent className="sm:max-w-md w-[95vw] rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-600">
+          <DialogHeader className="space-y-3">
+            <DialogTitle className="flex items-center gap-2 text-red-600 font-black uppercase tracking-tight">
               <AlertTriangle className="h-5 w-5" />
-              Delete Staff Member
+              Revoke Access
             </DialogTitle>
-            <DialogDescription>
-              This action cannot be undone. This will permanently delete{' '}
-              <span className="font-semibold text-gray-900">
+            <DialogDescription className="text-[10px] font-bold text-[#a16b45] uppercase tracking-widest opacity-60 leading-relaxed">
+              This action is permanent. Enter{' '}
+              <span className="text-red-600 font-black">
                 {staffToDelete?.name}
               </span>{' '}
-              and remove their data from our servers.
+              to confirm deletion.
             </DialogDescription>
           </DialogHeader>
 
@@ -336,27 +360,27 @@ export function StaffList() {
             </div>
           </div>
 
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="gap-3 pt-6 border-t border-slate-50 dark:border-primary/5">
             <DialogClose asChild>
-              <Button variant="ghost" className="rounded-xl">
-                Cancel
+              <Button
+                variant="ghost"
+                className="rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500"
+              >
+                Keep Access
               </Button>
             </DialogClose>
             <Button
               onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700 text-white rounded-xl"
+              className="bg-red-600 hover:bg-red-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest px-6 shadow-lg shadow-red-500/10"
               disabled={
                 deleteMutation.isPending ||
                 deleteConfirmation !== staffToDelete?.name
               }
             >
               {deleteMutation.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deleting...
-                </>
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                'Delete Staff'
+                'Revoke Access'
               )}
             </Button>
           </DialogFooter>
@@ -377,34 +401,36 @@ function ViewPasswordDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md w-[95vw] rounded-2xl">
-        <DialogHeader>
-          <DialogTitle>Staff Password</DialogTitle>
-          <DialogDescription>
-            Current password for the selected staff member.
+      <DialogContent className="sm:max-w-md w-[95vw] rounded-2xl border-[#ead9cd] dark:border-primary/10">
+        <DialogHeader className="space-y-2">
+          <DialogTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
+            Security Check
+          </DialogTitle>
+          <DialogDescription className="text-[10px] font-bold text-[#a16b45] uppercase tracking-widest opacity-60">
+            Current access credentials for this staff account.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex items-center space-x-2">
-          <div className="grid flex-1 gap-2">
-            <Label htmlFor="link" className="sr-only">
-              Link
-            </Label>
+        <div className="py-4">
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Eye className="h-4 w-4 text-[#a16b45]/40" />
+            </div>
             <Input
               id="link"
               defaultValue={password || ''}
               readOnly
-              className="rounded-xl bg-gray-50 border-gray-100"
+              className="rounded-xl bg-slate-50 dark:bg-primary/5 border-[#ead9cd] dark:border-primary/5 pl-10 font-black text-xs text-slate-700 dark:text-slate-300"
             />
           </div>
         </div>
-        <DialogFooter className="sm:justify-end">
+        <DialogFooter>
           <Button
             type="button"
-            variant="secondary"
+            variant="ghost"
             onClick={() => onOpenChange(false)}
-            className="rounded-xl"
+            className="w-full rounded-xl text-[10px] font-black uppercase tracking-widest text-[#a16b45]"
           >
-            Close
+            Acknowledge
           </Button>
         </DialogFooter>
       </DialogContent>

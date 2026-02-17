@@ -1,27 +1,23 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
-import { useStaffOrdersQuery } from '@/hooks/queries/useStaffReportsQueries'
+import { useInfiniteStaffOrdersQuery } from '@/hooks/queries/useStaffReportsQueries'
 import { useDateFilterStore } from '@/store/useDateFilterStore'
-import { useMemo, useState } from 'react'
+import { useLoadMore } from '@/hooks/useLoadMore'
+import { useMemo, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import DateFilterComponent from '@/components/admin/dashboard/DateFilterComponent'
-import DateRangeDisplay from '@/components/admin/dashboard/DateRangeDisplay'
-import { Button as StatefulButton } from '@/components/ui/stateful-button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   ShoppingCart,
   DollarSign,
-  ChevronLeft,
-  ChevronRight,
   TrendingUp,
   IndianRupee,
+  Calendar,
+  Loader2,
 } from 'lucide-react'
 import { requireAuth } from '@/middleware/auth'
 import { format } from 'date-fns'
 import { parseOrderItems } from '@/components/admin/order-history/utils/orderHistoryUtils'
-import { getRoleBadge } from '@/components/admin/staff/helpers/getRoleBadge'
 
 export const Route = createFileRoute('/reports/staff/$staffId')({
   beforeLoad: requireAuth,
@@ -33,27 +29,58 @@ function StaffOrdersPage() {
   const { user } = useAdminAuthQuery()
   const rid = user?.selected_rid?.toString() || ''
   const { currentDateRange } = useDateFilterStore()
-  const [page, setPage] = useState(1)
-  const limit = 10
-
   const queryParams = useMemo(
     () => ({
       rid,
       start_date: currentDateRange.startDate,
       end_date: currentDateRange.endDate,
-      page,
-      limit,
+      limit: 12,
     }),
-    [rid, currentDateRange.startDate, currentDateRange.endDate, page],
+    [rid, currentDateRange.startDate, currentDateRange.endDate],
   )
 
-  const { data, isLoading, refetch } = useStaffOrdersQuery(staffId, queryParams)
+  const {
+    data: infiniteData,
+    isLoading,
+    isFetching,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteStaffOrdersQuery(staffId, queryParams)
 
-  const handleRefresh = async () => {
-    await refetch()
-  }
+  // Flatten orders from infinite pages
+  const allOrders = useMemo(() => {
+    return infiniteData?.pages.flatMap((page) => page.orders) || []
+  }, [infiniteData])
 
-  if (isLoading && !data) {
+  // Get data from the first page (staff info and summary)
+  const data = infiniteData?.pages[0]
+  const summary = data?.summary
+  const staff = data?.staff
+
+  // Progressive rendering hook
+  const { visibleItems, hasMore, sentinelRef } = useLoadMore(allOrders, 12)
+
+  // Sync server-side loading with local progressive rendering
+  useEffect(() => {
+    // Trigger server fetch only when local cache is exhausted and no fetch is currently active
+    if (
+      hasNextPage &&
+      !isFetching &&
+      visibleItems.length >= allOrders.length &&
+      allOrders.length > 0
+    ) {
+      fetchNextPage()
+    }
+  }, [
+    visibleItems.length,
+    allOrders.length,
+    hasNextPage,
+    isFetching,
+    fetchNextPage,
+  ])
+
+  if (isLoading && !infiniteData) {
     return (
       <div className="space-y-4">
         {/* Header Skeleton */}
@@ -126,88 +153,53 @@ function StaffOrdersPage() {
     )
   }
 
-  // Use summary data from API instead of calculating from paginated orders
-  const totalRevenue = parseInt(data?.summary?.total_revenue || 0)
-  const totalOrders = parseInt(data?.summary?.total_orders || 0)
-  const avgOrderValue = parseInt(data?.summary?.avg_order_value || 0)
+  // Use summary data from API
+  const totalRevenue = parseInt(summary?.total_revenue || 0)
+  const totalOrders = parseInt(summary?.total_orders || 0)
+  const avgOrderValue = parseInt(summary?.avg_order_value || 0)
 
   return (
-    <div className="space-y-2 px-2 font-sans">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)] border border-gray-100/80">
-        <div className="flex items-center space-x-2">
-          <div className="relative shrink-0">
-            <Avatar className="h-10 w-10 md:h-12 md:w-12 border-2 border-white shadow-sm">
-              <AvatarImage src={data?.staff.profile_pic || undefined} />
-              <AvatarFallback className="bg-orange-50 text-orange-600 font-bold text-sm md:text-base">
-                {data?.staff.name.substring(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center">
-              <TrendingUp className="w-2 h-2 text-white" />
-            </div>
-          </div>
-          <div>
-            <h1 className="text-md md:text-lg font-semibold tracking-tight text-gray-900 leading-tight">
-              {data?.staff.name}'s History
-            </h1>
-            <div className="flex items-center gap-1 mt-0.3">
-              <span className="text-[10px] md:text-xs text-gray-400 font-medium lowercase">
-                @{data?.staff.username}
-              </span>
-              <span className="text-[10px] text-gray-300">•</span>
-              <div className="scale-75 origin-left">
-                {getRoleBadge(data?.staff.role)}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className="shrink-0 scale-90 md:scale-100 origin-right">
-            <DateFilterComponent />
-          </div>
-          <StatefulButton
-            onClick={handleRefresh}
-            className="h-9 md:h-10 px-4 text-xs md:text-sm font-bold bg-green-600 hover:bg-green-500 text-white rounded-xl shadow-sm transition-all active:scale-95"
-          >
-            Refresh
-          </StatefulButton>
-        </div>
-      </div>
+    <div className="space-y-6 px-4 py-4 md:py-8 max-w-7xl mx-auto font-sans bg-slate-50/50 min-h-screen">
+      {/* <DateRangeDisplay /> */}
 
       {/* <DateRangeDisplay /> */}
 
-      {/* KPI Cards - Horizontal scroll on mobile */}
-      <div className="flex flex-nowrap overflow-x-auto pb-2 -mx-3 px-3 md:grid md:grid-cols-3 gap-3 scrollbar-none">
+      {/* KPI Cards */}
+      <div className="grid grid-cols-3 md:grid-cols-3 gap-3 md:gap-6">
         {/* Total Revenue */}
-        <div className="flex-none w-auto p-2 rounded-2xl bg-white border border-orange-100  bg-linear-to-br from-white to-orange-50/30 transition-all hover:shadow-orange-500/10 group flex items-center gap-2.5">
-          <div className=" p-1.5 rounded-xl bg-orange-100 text-orange-600 group-hover:bg-orange-200 transition-colors">
-            <IndianRupee className="h-3.5 w-3.5 md:h-5 md:w-5" />
+        <div className="bg-white dark:bg-[#2d1e14] p-3 sm:p-6 rounded-2xl border border-[#ead9cd] dark:border-primary/10 shadow-sm transition-alls hover:shadow-orange-500/5 group relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity hidden sm:block">
+            <IndianRupee className="h-16 w-16" />
           </div>
-          <div className="min-w-0">
-            <p className="text-[8px] md:text-[10px] font-bold uppercase tracking-wider text-orange-500 group-hover:text-orange-600 whitespace-nowrap">
-              Revenue
-            </p>
-            <div className="flex items-baseline gap-1.5">
-              <h3 className="text-base md:text-xl font-black text-gray-900 leading-none">
-                ₹{totalRevenue.toLocaleString()}
+          <div className="flex flex-col gap-2 sm:gap-4">
+            <div className="p-2 sm:p-3 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 rounded-xl w-fit border border-emerald-100 dark:border-emerald-900/20">
+              <DollarSign className="h-4 w-4 sm:h-6 sm:w-6" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10.5px] sm:text-[13px] font-[550] sm:font-black sm:uppercase tracking-tight sm:tracking-[0.2em] text-[#a16b45] opacity-60 truncate">
+                Gross Revenue
+              </p>
+              <h3 className="text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white mt-0.5 sm:mt-1 truncate">
+                ₹{totalRevenue.toLocaleString('en-IN')}
               </h3>
             </div>
           </div>
         </div>
 
         {/* Total Orders */}
-        <div className="flex-none w-auto p-2 rounded-2xl bg-white border border-orange-100  bg-linear-to-br from-white to-orange-50/30 transition-all hover:shadow-orange-500/10 group flex items-center gap-2.5">
-          <div className=" p-1.5 rounded-xl bg-blue-100 text-blue-600 group-hover:bg-blue-200 transition-colors">
-            <ShoppingCart className="h-3.5 w-3.5 md:h-5 md:w-5" />
+        <div className="bg-white dark:bg-[#2d1e14] p-3 sm:p-6 rounded-2xl border border-[#ead9cd] dark:border-primary/10 shadow-sm transition-all hover:shadow-orange-500/5 group relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity hidden sm:block">
+            <ShoppingCart className="h-16 w-16" />
           </div>
-          <div className="min-w-0">
-            <p className="text-[8px] md:text-[10px] font-bold uppercase tracking-wider text-orange-500 group-hover:text-orange-600 whitespace-nowrap">
-              Orders
-            </p>
-            <div className="flex items-baseline gap-1.5">
-              <h3 className="text-base md:text-xl font-black text-gray-900 leading-none">
+          <div className="flex flex-col gap-2 sm:gap-4">
+            <div className="p-2 sm:p-3 bg-blue-50 dark:bg-blue-950/20 text-blue-600 rounded-xl w-fit border border-blue-100 dark:border-blue-900/20">
+              <ShoppingCart className="h-4 w-4 sm:h-6 sm:w-6" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10.5px] sm:text-[13px] font-[550] sm:font-black sm:uppercase tracking-tight sm:tracking-[0.2em] text-[#a16b45] opacity-60 truncate">
+                Processed Orders
+              </p>
+              <h3 className="text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white mt-0.5 sm:mt-1 truncate">
                 {totalOrders.toLocaleString()}
               </h3>
             </div>
@@ -215,16 +207,19 @@ function StaffOrdersPage() {
         </div>
 
         {/* Avg Order Value */}
-        <div className="flex-none w-auto p-2 rounded-2xl bg-white border border-orange-100  bg-linear-to-br from-white to-orange-50/30 transition-all hover:shadow-orange-500/10 group flex items-center gap-2.5">
-          <div className=" p-1.5 rounded-xl bg-amber-100 text-amber-600 group-hover:bg-amber-200 transition-colors">
-            <IndianRupee className="h-3.5 w-3.5 md:h-5 md:w-5" />
+        <div className="bg-white dark:bg-[#2d1e14] p-3 sm:p-6 rounded-2xl border border-[#ead9cd] dark:border-primary/10 shadow-sm transition-all hover:shadow-orange-500/5 group relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity hidden sm:block">
+            <TrendingUp className="h-16 w-16" />
           </div>
-          <div className="min-w-0">
-            <p className="text-[8px] md:text-[10px] font-bold uppercase tracking-wider text-orange-500 group-hover:text-orange-600 whitespace-nowrap">
-              Avg Value
-            </p>
-            <div className="flex items-baseline gap-1.5">
-              <h3 className="text-base md:text-xl font-black text-gray-900 leading-none">
+          <div className="flex flex-col gap-2 sm:gap-4">
+            <div className="p-2 sm:p-3 bg-amber-50 dark:bg-amber-950/20 text-amber-600 rounded-xl w-fit border border-amber-100 dark:border-amber-900/20">
+              <TrendingUp className="h-4 w-4 sm:h-6 sm:w-6" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10.5px] sm:text-[13px] font-[550] sm:font-black sm:uppercase tracking-tight sm:tracking-[0.2em] text-[#a16b45] opacity-60 truncate">
+                Average Value
+              </p>
+              <h3 className="text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white mt-0.5 sm:mt-1 truncate">
                 ₹{avgOrderValue.toFixed(0)}
               </h3>
             </div>
@@ -233,16 +228,17 @@ function StaffOrdersPage() {
       </div>
 
       {/* Orders Table */}
-      <div className="bg-white shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col h-[calc(100vh-15.6rem)] min-h-[400px]">
-        <div className=" px-2 border-b border-gray-100 bg-gray-50/30 p-2">
-          <h2 className="text-sm font-black uppercase tracking-wider text-gray-900">
-            Recent Orders
+      <div className="flex-1 flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-[10px] lg:text-xs font-black uppercase tracking-[0.2em] text-[#a16b45] opacity-80">
+            Past orders by {staff?.name}
           </h2>
+          <div className="h-px bg-[#ead9cd] dark:bg-primary/10 flex-1 ml-4" />
         </div>
 
-        <div className="flex-1 overflow-y-auto py-3 space-y-3 scrollbar-none bg-gray-50/20">
-          {data?.orders && data?.orders.length > 0 ? (
-            data.orders.map((order) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4">
+          {visibleItems && visibleItems.length > 0 ? (
+            visibleItems.map((order) => {
               const orderTotal = (
                 parseFloat(order.order_total.toString()) -
                 parseFloat((order.total_discount || 0).toString())
@@ -251,131 +247,123 @@ function StaffOrdersPage() {
               return (
                 <div
                   key={order.cart_id}
-                  className="bg-white border border-gray-100 rounded-xl p-3.5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group overflow-hidden"
+                  className="bg-white dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 rounded-2xl p-3 sm:p-5 shadow-sm hover:shadow-orange-500/5 transition-all group flex flex-col"
                 >
-                  <div className="flex flex-col gap-3">
-                    {/* Top Row: ID, Time, Status */}
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-[10px] md:text-xs font-black text-gray-400 uppercase tracking-tighter leading-none mb-1">
-                          #{order.cart_id.slice(-8)}
-                        </span>
-                        <span className="text-[10px] md:text-xs text-gray-500 font-bold leading-none">
-                          {format(
-                            new Date(order.created_at),
-                            'MMM dd, hh:mm a',
-                          )}
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[12px] lg:text-[15px] font-[500] text-slate-900 dark:text-slate-500 uppercase">
+                        #{order.cart_id.slice(-8)}
+                      </span>
+                      <div className="flex items-center gap-1.5 text-[11px] sm:text-[13px] font-bold text-zinc-600 uppercase opacity-70">
+                        <Calendar className="w-3.5 h-3.5" />
+                        {format(new Date(order.created_at), 'MMM dd, hh:mm a')}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="text-[14px] sm:text-lg lg:text-xl font-black text-slate-900 dark:text-white">
+                        ₹{orderTotal}
+                      </span>
+                      <span
+                        className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-tight border ${
+                          order.order_status === 'settled'
+                            ? 'bg-emerald-50 dark:bg-emerald-900/10 text-emerald-600 border-emerald-100 dark:border-emerald-900/20'
+                            : 'bg-orange-50 dark:bg-orange-900/10 text-orange-600 border-orange-100 dark:border-orange-900/20'
+                        }`}
+                      >
+                        {order.order_status === 'settled'
+                          ? 'COMPLETED'
+                          : order.order_status}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 py-3 border-y border-slate-50 dark:border-primary/5">
+                    <Avatar className="h-10 w-10 border-2 border-white dark:border-[#3a291d] shadow-sm">
+                      <AvatarImage
+                        src={order.customer_profile_pic || undefined}
+                      />
+                      <AvatarFallback className="bg-slate-50 dark:bg-[#3a291d] text-[#a16b45] font-black text-[10px]">
+                        {order.customer_name.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <p className="text-sm sm:text-base md:text-[19px] font-[500] text-slate-900 dark:text-white truncate tracking-tight">
+                        {order.customer_name}
+                      </p>
+                      <p className="text-xs text-[#a16b45] font-bold truncate opacity-60">
+                        {order.customer_phone}
+                      </p>
+                    </div>
+                    {order.total_discount > 0 && (
+                      <div className="ml-auto px-2 py-1 bg-emerald-50 dark:bg-emerald-950/20 rounded-lg border border-emerald-100 dark:border-emerald-900/20">
+                        <span className="text-[9px] sm:text-xs font-black text-emerald-600 uppercase">
+                          -₹{order.total_discount}
                         </span>
                       </div>
-                      <div className="flex flex-col items-end shrink-0">
-                        <span className="text-sm md:text-base font-black text-gray-900 leading-none mb-1">
-                          ₹{orderTotal}
-                        </span>
-                        <span
-                          className={`px-2 py-0.5 rounded-lg text-[9px] md:text-[10px] font-black uppercase tracking-tight border ${
-                            order.order_status === 'settled'
-                              ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                              : 'bg-orange-50 text-orange-600 border-orange-100'
-                          }`}
+                    )}
+                  </div>
+
+                  <div className="mt-3 sm:mt-4 space-y-1.5 sm:space-y-2">
+                    {parseOrderItems(order.items).map(
+                      (item: any, idx: number) => (
+                        <div
+                          key={idx}
+                          className="flex justify-between items-center gap-2"
                         >
-                          {order.order_status === 'settled'
-                            ? 'COMPLETED'
-                            : order.order_status}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Middle Row: Customer Info */}
-                    <div className="flex items-center gap-3 pt-2.5 border-t border-gray-50">
-                      <Avatar className="h-8 w-8 md:h-9 md:w-9 border-2 border-white shadow-xs">
-                        <AvatarImage
-                          src={order.customer_profile_pic || undefined}
-                        />
-                        <AvatarFallback className="bg-gray-100 text-gray-500 font-semibold text-[10px] md:text-xs">
-                          {order.customer_name.substring(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0">
-                        <p className="text-xs md:text-sm font-semibold text-gray-900 truncate uppercase tracking-tight">
-                          {order.customer_name}
-                        </p>
-                        <p className="text-[10px] md:text-xs text-gray-400 font-medium truncate">
-                          {order.customer_phone}
-                        </p>
-                      </div>
-                      {order.total_discount > 0 && (
-                        <div className="ml-auto flex items-center gap-1.5 px-2 py-1 bg-emerald-50 rounded-lg border border-emerald-100">
-                          <span className="text-[9px] md:text-[10px] font-black text-emerald-600 uppercase tracking-tight">
-                            -₹{order.total_discount}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Bottom Row: Items List */}
-                    <div className="bg-gray-50/50 rounded-lg p-2.5 space-y-1.5 border border-gray-100/50">
-                      {parseOrderItems(order.items).map(
-                        (item: any, idx: number) => (
-                          <div
-                            key={idx}
-                            className="flex justify-between items-center gap-2 text-xs"
-                          >
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className="font-black text-gray-400 text-[9px] md:text-[10px]">
-                                {item.quantity}×
-                              </span>
-                              <span className="font-bold text-gray-700 truncate text-[11px] md:text-sm leading-tight">
-                                {item.item_name}
-                              </span>
-                            </div>
-                            <span className="font-black text-gray-900 text-[10px] md:text-xs shrink-0">
-                              ₹{item.price}
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="font-[450] text-[12px] md:text-[16px] text-zinc-500 dark:text-slate-300">
+                              {item.quantity}×
+                            </span>
+                            <span className="font-[450] text-[12px] md:text-[16px] text-zinc-500 dark:text-slate-300 truncate text-xs leading-tight">
+                              {item.item_name}
                             </span>
                           </div>
-                        ),
-                      )}
-                    </div>
+                          <span className="font-[450] text-[12px] md:text-[16px] text-zinc-500 dark:text-slate-300 text-xs shrink-0">
+                            ₹{item.price}
+                          </span>
+                        </div>
+                      ),
+                    )}
                   </div>
                 </div>
               )
             })
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="p-4 bg-gray-50 rounded-full mb-3">
-                <ShoppingCart className="w-8 h-8 text-gray-300" />
+            <div className="col-span-full flex flex-col items-center justify-center py-20 text-center bg-white dark:bg-[#2d1e14] rounded-2xl border border-[#ead9cd] dark:border-primary/10 shadow-sm">
+              <div className="p-4 bg-orange-50 dark:bg-orange-950/20 rounded-full mb-4">
+                <ShoppingCart className="w-10 h-10 text-orange-600" />
               </div>
-              <p className="text-gray-400 font-bold text-sm uppercase tracking-wider">
-                No orders found
+              <p className="text-[10px] font-black text-[#a16b45] uppercase tracking-[0.2em]">
+                No orders identified
               </p>
             </div>
           )}
         </div>
 
-        {/* Pagination Controls */}
-        {data?.pagination && data.pagination.total_pages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/30">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-              Page {data.pagination.current_page} of{' '}
-              {data.pagination.total_pages}
+        {/* Infinite Scroll Sentinel */}
+        {(hasNextPage || hasMore) && (
+          <div
+            ref={sentinelRef}
+            className="flex flex-col items-center justify-center py-12 gap-3"
+          >
+            {isFetchingNextPage || (hasNextPage && !hasMore) ? (
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
+                <p className="text-[10px] font-black text-[#a16b45] uppercase tracking-[0.2em] opacity-60">
+                  Retrieving more orders...
+                </p>
+              </div>
+            ) : (
+              <div className="h-2 w-2 rounded-full bg-[#ead9cd] animate-pulse" />
+            )}
+          </div>
+        )}
+
+        {!hasNextPage && !hasMore && allOrders.length > 0 && (
+          <div className="py-12 text-center">
+            <p className="text-[10px] font-black text-[#a16b45]/40 uppercase tracking-[0.2em]">
+              End of Activity Timeline
             </p>
-            <div className="flex gap-2">
-              <Button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={!data.pagination.has_prev_page}
-                className="h-9 px-4 text-xs font-bold uppercase tracking-tight bg-white border border-gray-100 text-gray-600 rounded-xl hover:bg-gray-50 shadow-sm transition-all"
-              >
-                <ChevronLeft className="w-4 h-4 mr-1" />
-                Previous
-              </Button>
-              <Button
-                onClick={() => setPage((p) => p + 1)}
-                disabled={!data.pagination.has_next_page}
-                className="h-9 px-4 text-xs font-bold uppercase tracking-tight bg-white border border-gray-100 text-gray-600 rounded-xl hover:bg-gray-50 shadow-sm transition-all"
-              >
-                Next
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
-            </div>
           </div>
         )}
       </div>

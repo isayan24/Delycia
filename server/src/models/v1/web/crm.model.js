@@ -11,28 +11,28 @@ const getRestaurantCustomers = async (rid, timeRange = 'this_month') => {
 
     switch (timeRange) {
       case 'today':
-        intervalCondition = "AND last_visit_at >= CURDATE()";
+        intervalCondition = "AND last_visit_at >= DATE(CONVERT_TZ(NOW(), '+00:00', '+05:30'))";
         break;
       case 'yesterday':
-        intervalCondition = "AND last_visit_at >= DATE_SUB(CURDATE(), INTERVAL 1 DAY) AND last_visit_at < CURDATE()";
+        intervalCondition = "AND last_visit_at >= DATE_SUB(DATE(CONVERT_TZ(NOW(), '+00:00', '+05:30')), INTERVAL 1 DAY) AND last_visit_at < DATE(CONVERT_TZ(NOW(), '+00:00', '+05:30'))";
         break;
       case 'this_week':
-        intervalCondition = "AND YEARWEEK(last_visit_at, 1) = YEARWEEK(CURDATE(), 1)";
+        intervalCondition = "AND YEARWEEK(last_visit_at, 1) = YEARWEEK(DATE(CONVERT_TZ(NOW(), '+00:00', '+05:30')), 1)";
         break;
       case 'this_month':
-        intervalCondition = "AND last_visit_at >= DATE_FORMAT(NOW(), '%Y-%m-01')";
+        intervalCondition = "AND last_visit_at >= DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '+05:30'), '%Y-%m-01')";
         break;
       case 'last_month':
-        intervalCondition = "AND last_visit_at >= DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m-01') AND last_visit_at < DATE_FORMAT(NOW(), '%Y-%m-01')";
+        intervalCondition = "AND last_visit_at >= DATE_FORMAT(DATE_SUB(CONVERT_TZ(NOW(), '+00:00', '+05:30'), INTERVAL 1 MONTH), '%Y-%m-01') AND last_visit_at < DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '+05:30'), '%Y-%m-01')";
         break;
       case 'this_year':
-        intervalCondition = "AND YEAR(last_visit_at) = YEAR(CURDATE())";
+        intervalCondition = "AND YEAR(last_visit_at) = YEAR(DATE(CONVERT_TZ(NOW(), '+00:00', '+05:30')))";
         break;
       case 'all_time':
         intervalCondition = "";
         break;
       default: // Default to this month
-        intervalCondition = "AND last_visit_at >= DATE_FORMAT(NOW(), '%Y-%m-01')";
+        intervalCondition = "AND last_visit_at >= DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '+05:30'), '%Y-%m-01')";
     }
 
     // Detailed query to fetch customer insights
@@ -94,48 +94,39 @@ const getCRMStats = async (rid, timeRange = 'this_month') => {
 
     switch (timeRange) {
       case 'today':
-        dateCondition = "AND DATE(created_at) = CURDATE()";
-        intervalCondition = "AND last_visit_at >= CURDATE()";
+        dateCondition = "AND DATE(created_at) = DATE(CONVERT_TZ(NOW(), '+00:00', '+05:30'))";
+        intervalCondition = "AND last_visit_at >= DATE(CONVERT_TZ(NOW(), '+00:00', '+05:30'))";
         break;
       case 'yesterday':
-        dateCondition = "AND DATE(created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)";
-        intervalCondition = "AND last_visit_at >= DATE_SUB(CURDATE(), INTERVAL 1 DAY) AND last_visit_at < CURDATE()";
+        dateCondition = "AND DATE(created_at) = DATE_SUB(DATE(CONVERT_TZ(NOW(), '+00:00', '+05:30')), INTERVAL 1 DAY)";
+        intervalCondition = "AND last_visit_at >= DATE_SUB(DATE(CONVERT_TZ(NOW(), '+00:00', '+05:30')), INTERVAL 1 DAY) AND last_visit_at < DATE(CONVERT_TZ(NOW(), '+00:00', '+05:30'))";
         break;
       case 'this_week':
-        dateCondition = "AND YEARWEEK(created_at, 1) = YEARWEEK(CURDATE(), 1)";
-        intervalCondition = "AND YEARWEEK(last_visit_at, 1) = YEARWEEK(CURDATE(), 1)";
+        dateCondition = "AND YEARWEEK(created_at, 1) = YEARWEEK(DATE(CONVERT_TZ(NOW(), '+00:00', '+05:30')), 1)";
+        intervalCondition = "AND YEARWEEK(last_visit_at, 1) = YEARWEEK(DATE(CONVERT_TZ(NOW(), '+00:00', '+05:30')), 1)";
         break;
       case 'this_month':
-        dateCondition = "AND created_at >= DATE_FORMAT(NOW(), '%Y-%m-01')";
-        intervalCondition = "AND last_visit_at >= DATE_FORMAT(NOW(), '%Y-%m-01')";
+        dateCondition = "AND created_at >= DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '+05:30'), '%Y-%m-01')";
+        intervalCondition = "AND last_visit_at >= DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '+05:30'), '%Y-%m-01')";
         break;
       case 'last_month':
-        dateCondition = "AND created_at >= DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m-01') AND created_at < DATE_FORMAT(NOW(), '%Y-%m-01')";
-        intervalCondition = "AND last_visit_at >= DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m-01') AND last_visit_at < DATE_FORMAT(NOW(), '%Y-%m-01')";
+        dateCondition = "AND created_at >= DATE_FORMAT(DATE_SUB(CONVERT_TZ(NOW(), '+00:00', '+05:30'), INTERVAL 1 MONTH), '%Y-%m-01') AND created_at < DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '+05:30'), '%Y-%m-01')";
+        intervalCondition = "AND last_visit_at >= DATE_FORMAT(DATE_SUB(CONVERT_TZ(NOW(), '+00:00', '+05:30'), INTERVAL 1 MONTH), '%Y-%m-01') AND last_visit_at < DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '+05:30'), '%Y-%m-01')";
         break;
       case 'this_year':
-        dateCondition = "AND YEAR(created_at) = YEAR(CURDATE())";
-        intervalCondition = "AND YEAR(last_visit_at) = YEAR(CURDATE())";
+        dateCondition = "AND YEAR(created_at) = YEAR(DATE(CONVERT_TZ(NOW(), '+00:00', '+05:30')))";
+        intervalCondition = "AND YEAR(last_visit_at) = YEAR(DATE(CONVERT_TZ(NOW(), '+00:00', '+05:30')))";
         break;
       case 'all_time':
         dateCondition = "";
         intervalCondition = "";
         break;
       default: // Default to this month if unknown
-        dateCondition = "AND created_at >= DATE_FORMAT(NOW(), '%Y-%m-01')";
-        intervalCondition = "AND last_visit_at >= DATE_FORMAT(NOW(), '%Y-%m-01')";
+        dateCondition = "AND created_at >= DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '+05:30'), '%Y-%m-01')";
+        intervalCondition = "AND last_visit_at >= DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '+05:30'), '%Y-%m-01')";
     }
 
     // 1. Total Customers (Always All Time for this specific metric, usually)
-    // But if we want active customers in this period, we could filter. 
-    // Usually "Total Customers" implies database size, but "Active Customers" implies period.
-    // Let's keep Total Customers as All Time for context, or filter it?
-    // The user asked for "control over data". 
-    // Let's filter "Active Customers" in this period for the first card if logical, 
-    // or keep "Total Customers" as all time and add "Active" label.
-    // Given the UI label is "Total Customers", let's keep it as All Time for the base,
-    // OR filter it to show how many customers visited in this period.
-    // Let's go with: How many unique customers visited in this period.
     const totalQuery = `SELECT COUNT(DISTINCT user_id) as count FROM user_restaurant_visits WHERE restaurant_id = ? ${intervalCondition}`;
 
     // 2. New Customers (First visit in this period)
@@ -148,8 +139,6 @@ const getCRMStats = async (rid, timeRange = 'this_month') => {
     `;
 
     // 3. Returning Customers (Visited in this period AND visit_count > 1)
-    // This definition is tricky. A returning customer in "Today" is someone who visited today and has > 1 total visits?
-    // Yes, that makes sense.
     const returningQuery = `
       SELECT COUNT(DISTINCT user_id) as count 
       FROM user_restaurant_visits 
@@ -159,24 +148,11 @@ const getCRMStats = async (rid, timeRange = 'this_month') => {
     `;
 
     // 4. Visit Trends (Graph)
-    // Adjust graph range based on selection
-    let trendLimitCondition = "";
-    if (timeRange === 'today' || timeRange === 'yesterday') {
-      // Hourly breakdown for day view? Or just one point? Area chart needs points.
-      // Let's Stick to Daily grouping for now, but maybe for Today we should do hourly?
-      // The UI says "Customer Visits Trend (30 Days)". We might need to update that title dynamically or just return what we have.
-      // For simplicity in this iteration, let's keep daily grouping but restrict range.
-      trendLimitCondition = intervalCondition;
-    } else {
-      trendLimitCondition = intervalCondition;
-    }
-
-    // Default trend query (Daily)
     const trendQuery = `
       SELECT DATE(last_visit_at) as date, COUNT(*) as visits
       FROM user_restaurant_visits
       WHERE restaurant_id = ?
-      ${trendLimitCondition}
+      ${intervalCondition}
       GROUP BY DATE(last_visit_at)
       ORDER BY date ASC
     `;

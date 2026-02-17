@@ -1,18 +1,20 @@
-import { memo, useState, useCallback, useMemo, useEffect } from 'react'
+import { memo, useState, useCallback, useEffect } from 'react'
 import MobileOrderCard from './MobileOrderCard'
 import { OrderInfoSkeleton } from '../LoadingSkeleton'
 import { TransformedOrder } from '../utils/orderHistoryUtils'
 import { PrintBillDialog } from '../shared/PrintBillDialog'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import { formatDateTime } from '@/utils/dateUtils'
+import { OrderHistoryDateFilter } from '../shared/OrderHistoryDateFilter'
 import {
   Search,
   SlidersHorizontal,
   TrendingUp,
   CheckCircle,
   XCircle,
-  Calendar as CalendarIcon,
   Filter,
+  ArrowUp,
+  Loader2,
 } from 'lucide-react'
 import {
   Drawer,
@@ -24,16 +26,7 @@ import {
   DrawerClose,
 } from '@/components/ui/drawer'
 import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import { format } from 'date-fns'
-
 import { useLoadMore } from '@/hooks/useLoadMore'
-import { Loader2 } from 'lucide-react'
 
 interface MobileOrderHistoryProps {
   orders: TransformedOrder[]
@@ -44,7 +37,7 @@ interface MobileOrderHistoryProps {
   pagination?: any
   search: string
   onSearchChange: (search: string) => void
-  onDateRangeChange?: (start_date?: string, end_date?: string) => void
+  onDateRangeChange?: (start_date?: string, end_date?: string, filter_type?: string) => void
   onClearFilters?: () => void
   hasNextPage?: boolean
   onNextPage?: () => void
@@ -112,22 +105,33 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
   const { selectedRestaurant } = useRestaurantSelector()
   const [showBillDialog, setShowBillDialog] = useState(false)
   const [selectedOrderForBill, setSelectedOrderForBill] = useState<any>(null)
+  const [showScrollTop, setShowScrollTop] = useState(false)
 
   // Filter Drawer State
   const [isFilterOpen, setIsFilterOpen] = useState(false)
-  const [startDate, setStartDate] = useState<Date | undefined>(undefined)
-  const [endDate, setEndDate] = useState<Date | undefined>(undefined)
 
-  const handleApplyFilters = () => {
-    const start = startDate ? format(startDate, 'yyyy-MM-dd') : undefined
-    const end = endDate ? format(endDate, 'yyyy-MM-dd') : undefined
-    onDateRangeChange?.(start, end)
+  // Progressive rendering with useLoadMore - natural page scroll
+  const { visibleItems, hasMore, sentinelRef } = useLoadMore(orders, 10)
+
+  // Sync server-side loading with local progressive rendering
+  useEffect(() => {
+    // Trigger server fetch only when local cache is exhausted and no fetch is currently active
+    if (
+      hasNextPage &&
+      !isFetching &&
+      visibleItems.length >= orders.length &&
+      orders.length > 0
+    ) {
+      onNextPage?.()
+    }
+  }, [visibleItems.length, orders.length, hasNextPage, isFetching, onNextPage])
+
+  const handleApplyFilters = (start_date?: string, end_date?: string, filter_type?: string) => {
+    onDateRangeChange?.(start_date, end_date, filter_type)
     setIsFilterOpen(false)
   }
 
   const handleClearAll = () => {
-    setStartDate(undefined)
-    setEndDate(undefined)
     onClearFilters?.()
     setIsFilterOpen(false)
   }
@@ -163,18 +167,20 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
     [selectedRestaurant],
   )
 
-  const { visibleItems, sentinelRef } = useLoadMore(orders, 10)
-
-  // Trigger onNextPage when we reach the end of visibleItems and there are more server-side
+  // Show/hide scroll to top button based on window scroll
   useEffect(() => {
-    if (hasNextPage && !isFetching && visibleItems.length >= orders.length) {
-      onNextPage?.()
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300)
     }
-  }, [visibleItems.length, orders.length, hasNextPage, isFetching, onNextPage])
 
-  const filteredOrders = useMemo(() => {
-    return visibleItems
-  }, [visibleItems])
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // Scroll to top handler
+  const scrollToTop = useCallback(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
 
   const total = pagination?.total_orders || 0
   const delivered = pagination?.total_delivered || 0
@@ -184,10 +190,10 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
   const cancelledPercent = total > 0 ? Math.round((cancelled / total) * 100) : 0
 
   return (
-    <div className="flex flex-col gap-0 pb-20 bg-slate-50/30 dark:bg-background-dark/30 min-h-screen">
+    <div className="flex flex-col bg-slate-50/30 dark:bg-background-dark/30">
       {/* Stats Section */}
       <section className="grid grid-cols-3 gap-3 p-4">
-        <div className="flex flex-col gap-1 rounded-2xl p-4 py-2 bg-white dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 shadow-sm">
+        <div className="flex flex-col gap-1 rounded-2xl p-4 py-2 bg-[#fffbf6] dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 shadow-sm">
           <p className="text-[10px] font-bold text-[#a16b45] uppercase tracking-wider">
             Orders
           </p>
@@ -199,7 +205,7 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
             <span>Total</span>
           </div>
         </div>
-        <div className="flex flex-col gap-1 rounded-2xl p-4 py-2 bg-white dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 shadow-sm">
+        <div className="flex flex-col gap-1 rounded-2xl p-4 py-2 bg-[#fffbf6] dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 shadow-sm">
           <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">
             Done
           </p>
@@ -211,7 +217,7 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
             <span>{deliveredPercent}%</span>
           </div>
         </div>
-        <div className="flex flex-col gap-1 rounded-2xl p-4 py-2 bg-white dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 shadow-sm">
+        <div className="flex flex-col gap-1 rounded-2xl p-4 py-2 bg-[#fffbf6] dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 shadow-sm">
           <p className="text-[10px] font-bold text-rose-600 uppercase tracking-wider">
             Lost
           </p>
@@ -226,8 +232,8 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
       </section>
 
       {/* Search & Filter Section */}
-      <section className="px-4 py-3 sticky top-0 z-40 dark:bg-background-dark/80 backdrop-blur-md border-b border-[#ead9cd]/20 dark:border-primary/5 flex gap-2">
-        <div className="flex flex-1 items-stretch rounded-2xl h-10 bg-white dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 shadow-sm overflow-hidden focus-within:border-primary transition-all">
+      <section className="px-4 py-3 sticky top-0 z-40 bg-slate-50/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-[#ead9cd]/20 dark:border-primary/5 flex gap-2">
+        <div className="flex flex-1 items-stretch rounded-2xl h-10 bg-[#fffbf6] dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 shadow-sm overflow-hidden focus-within:border-primary transition-all">
           <div className="text-[#a16b45] flex items-center justify-center pl-4">
             <Search className="size-5" />
           </div>
@@ -244,11 +250,7 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
         <Drawer open={isFilterOpen} onOpenChange={setIsFilterOpen}>
           <DrawerTrigger asChild>
             <button
-              className={`flex size-10 items-center justify-center rounded-2xl border shadow-sm active:scale-95 transition-all ${
-                startDate || endDate
-                  ? 'bg-primary text-white border-primary shadow-lg shadow-orange-200 dark:shadow-none'
-                  : 'bg-white dark:bg-[#2d1e14] border-[#ead9cd] dark:border-primary/10 text-[#a16b45]'
-              }`}
+              className={`flex size-10 items-center justify-center rounded-2xl border shadow-sm active:scale-95 transition-all bg-[#fffbf6] dark:bg-[#2d1e14] border-[#ead9cd] dark:border-primary/10 text-[#a16b45]`}
             >
               <SlidersHorizontal className="size-5" />
             </button>
@@ -260,15 +262,13 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
                   <Filter className="size-5 text-primary" />
                   Filter Orders
                 </DrawerTitle>
-                {(startDate || endDate) && (
-                  <Button
-                    variant="ghost"
-                    onClick={handleClearAll}
-                    className="text-rose-600 font-bold text-xs h-8 px-2 hover:bg-rose-50 dark:hover:bg-rose-900/20"
-                  >
-                    Clear All
-                  </Button>
-                )}
+                <Button
+                  variant="ghost"
+                  onClick={handleClearAll}
+                  className="text-rose-600 font-bold text-xs h-8 px-2 hover:bg-rose-50 dark:hover:bg-rose-900/20"
+                >
+                  Clear All
+                </Button>
               </div>
             </DrawerHeader>
 
@@ -278,87 +278,29 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
                 <p className="text-xs font-bold text-[#a16b45] uppercase tracking-widest">
                   Date Range
                 </p>
-                <div className="grid grid-cols-2 gap-3 items-center">
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase ml-1">
-                      From
-                    </p>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full h-12 justify-start font-bold text-sm rounded-xl border-[#ead9cd] dark:border-primary/10 dark:bg-[#2d1e14]"
-                        >
-                          <CalendarIcon className="mr-2 size-4 text-[#a16b45]" />
-                          {startDate ? format(startDate, 'dd MMM') : 'Start'}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        className="w-auto p-0 rounded-2xl border-[#ead9cd] shadow-2xl"
-                        align="start"
-                      >
-                        <Calendar
-                          mode="single"
-                          selected={startDate}
-                          onSelect={setStartDate}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase ml-1">
-                      To
-                    </p>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full h-12 justify-start font-bold text-sm rounded-xl border-[#ead9cd] dark:border-primary/10 dark:bg-[#2d1e14]"
-                        >
-                          <CalendarIcon className="mr-2 size-4 text-[#a16b45]" />
-                          {endDate ? format(endDate, 'dd MMM') : 'End'}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        className="w-auto p-0 rounded-2xl border-[#ead9cd] shadow-2xl"
-                        align="end"
-                      >
-                        <Calendar
-                          mode="single"
-                          selected={endDate}
-                          onSelect={setEndDate}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </div>
+                <OrderHistoryDateFilter
+                  onFilterChange={handleApplyFilters}
+                  className="w-full"
+                />
               </div>
             </div>
 
             <DrawerFooter className="p-6 border-t border-[#ead9cd]/50 dark:border-primary/5">
-              <div className="flex gap-3">
-                <DrawerClose asChild>
-                  <Button
-                    variant="outline"
-                    className="flex-1 h-12 rounded-xl border-[#ead9cd] font-bold text-slate-600 dark:border-primary/10 dark:text-slate-300"
-                  >
-                    Cancel
-                  </Button>
-                </DrawerClose>
+              <DrawerClose asChild>
                 <Button
-                  onClick={handleApplyFilters}
-                  className="flex-1 h-12 rounded-xl bg-primary text-white font-bold shadow-lg shadow-orange-200 dark:shadow-none hover:bg-primary/90"
+                  variant="outline"
+                  className="w-full h-12 rounded-xl border-[#ead9cd] font-bold text-slate-600 dark:border-primary/10 dark:text-slate-300"
                 >
-                  Apply Filters
+                  Close
                 </Button>
-              </div>
+              </DrawerClose>
             </DrawerFooter>
           </DrawerContent>
         </Drawer>
       </section>
 
-      {/* Orders List */}
-      <main className="flex flex-col gap-4 px-4 mt-2">
+      {/* Orders List - Progressive rendering with natural page scroll */}
+      <main className="flex flex-col gap-4 px-4 pb-20">
         {loading && orders.length === 0 ? (
           <LoadingState />
         ) : error && orders.length === 0 ? (
@@ -367,7 +309,7 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
           <EmptyState />
         ) : (
           <>
-            {filteredOrders.map((order) => (
+            {visibleItems.map((order) => (
               <MobileOrderCard
                 key={order.id}
                 order={order}
@@ -375,17 +317,30 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
               />
             ))}
 
-            {/* Infinite Scroll Sentinel & Loading Indicator */}
-            {(hasNextPage || isFetching || loading) && (
-              <div ref={sentinelRef} className="flex justify-center p-6">
-                {(isFetching || loading) && (
+            {/* Intersection Observer Sentinel for Progressive Loading */}
+            {(hasNextPage || hasMore) && (
+              <div
+                ref={sentinelRef}
+                className="flex flex-col items-center justify-center py-12 gap-3"
+              >
+                {isFetching || (hasNextPage && !hasMore) ? (
                   <div className="flex flex-col items-center gap-2">
                     <Loader2 className="size-6 text-primary animate-spin" />
                     <p className="text-[10px] font-bold text-[#a16b45] uppercase tracking-widest">
                       Loading more...
                     </p>
                   </div>
+                ) : (
+                  <div className="h-2 w-2 rounded-full bg-[#ead9cd] animate-pulse" />
                 )}
+              </div>
+            )}
+
+            {!hasNextPage && !hasMore && orders.length > 0 && (
+              <div className="py-12 text-center">
+                <p className="text-[10px] font-bold text-[#a16b45]/40 uppercase tracking-widest">
+                  End of Order History
+                </p>
               </div>
             )}
           </>
@@ -397,6 +352,17 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
         onOpenChange={setShowBillDialog}
         billData={selectedOrderForBill}
       />
+
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-24 right-4 z-50 size-12 rounded-full bg-primary text-white shadow-2xl shadow-primary/30 hover:shadow-primary/50 active:scale-95 transition-all duration-300 flex items-center justify-center animate-in fade-in slide-in-from-bottom-4"
+          aria-label="Scroll to top"
+        >
+          <ArrowUp className="size-5" />
+        </button>
+      )}
     </div>
   )
 })

@@ -303,6 +303,7 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
+  /* Commenting out circular definitions to restore Tailwind v4 defaults
   --shadow-2xs: var(--shadow-2xs);
   --shadow-xs: var(--shadow-xs);
   --shadow-sm: var(--shadow-sm);
@@ -311,6 +312,7 @@
   --shadow-lg: var(--shadow-lg);
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
+  */
 
   /* Custom screen breakpoints */
   --breakpoint-xs: 480px;
@@ -334,7 +336,7 @@
   }
 
   .adminHeader {
-    @apply z-[39] sticky top-0 left-0 w-full flex h-[5rem] shrink-0 items-center gap-2 ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-[5rem];
+    @apply z-39 sticky top-0 left-0 w-full flex h-20 shrink-0 items-center gap-2 ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-20;
 
     transition-property: width, height;
     transition-duration: 150ms;

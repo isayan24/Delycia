@@ -234,6 +234,7 @@ const OrderHeader = memo(
     )
   },
 )
+OrderHeader.displayName = 'OrderHeader'
 
 const ItemDetailsTable = memo(({ items }: { items: any[] }) => (
   <div className="space-y-4">
@@ -292,6 +293,7 @@ const ItemDetailsTable = memo(({ items }: { items: any[] }) => (
     </div>
   </div>
 ))
+ItemDetailsTable.displayName = 'ItemDetailsTable'
 
 const TimelineSection = memo(
   ({
@@ -357,6 +359,7 @@ const TimelineSection = memo(
     </div>
   ),
 )
+TimelineSection.displayName = 'TimelineSection'
 
 const TotalsBreakdown = memo(
   ({
@@ -402,6 +405,7 @@ const TotalsBreakdown = memo(
     </div>
   ),
 )
+TotalsBreakdown.displayName = 'TotalsBreakdown'
 
 const CustomerInfoSection = memo(({ order }: { order: TransformedOrder }) => (
   <div className="space-y-4">
@@ -441,6 +445,7 @@ const CustomerInfoSection = memo(({ order }: { order: TransformedOrder }) => (
     </div>
   </div>
 ))
+CustomerInfoSection.displayName = 'CustomerInfoSection'
 
 const MetadataSection = memo(({ order }: { order: TransformedOrder }) => (
   <div className="space-y-4">
@@ -473,6 +478,7 @@ const MetadataSection = memo(({ order }: { order: TransformedOrder }) => (
     </div>
   </div>
 ))
+MetadataSection.displayName = 'MetadataSection'
 
 // --- Main Component ---
 
@@ -486,12 +492,19 @@ export const LargeOrderCard = React.memo(
     isSelectionDisabled = false,
   }: LargeOrderCardProps) => {
     const [isExpanded, setIsExpanded] = useState(false)
-    const statusInfo = getStatusStyles(order.status || order.order_status)
+    const statusInfo = useMemo(
+      () => getStatusStyles(order.status || (order as any).order_status),
+      [order.status, order],
+    )
     const isMergeable = !isSelectionDisabled
 
-    const totalItems = order.items.reduce(
-      (sum: number, item: any) => sum + (item.quantity || 1),
-      0,
+    const totalItems = useMemo(
+      () =>
+        order.items.reduce(
+          (sum: number, item: any) => sum + (item.quantity || 1),
+          0,
+        ),
+      [order.items],
     )
 
     const taxInfo = useOrderTaxCalculation({
@@ -509,10 +522,19 @@ export const LargeOrderCard = React.memo(
       () => formatDateTime(order.createdAt),
       [order.createdAt],
     )
-    const timeline = useMemo(() => generateOrderTimeline(order), [order])
-    const deliveryTimeMsg = useMemo(() => calculateDeliveryTime(order), [order])
+
+    // Only calculate these expensive values when expanded
+    const timeline = useMemo(
+      () => (isExpanded ? generateOrderTimeline(order) : []),
+      [order, isExpanded],
+    )
+    const deliveryTimeMsg = useMemo(
+      () => (isExpanded ? calculateDeliveryTime(order) : ''),
+      [order, isExpanded],
+    )
 
     const timelineColorClass = useMemo(() => {
+      if (!isExpanded) return ''
       switch (order.status) {
         case 'DELIVERED':
           return 'bg-emerald-500'
@@ -521,7 +543,7 @@ export const LargeOrderCard = React.memo(
         default:
           return 'bg-slate-300'
       }
-    }, [order.status])
+    }, [order.status, isExpanded])
 
     return (
       <div className="group bg-white dark:bg-[#2d1e14] rounded-xl border border-[#ead9cd] dark:border-primary/10 hover:shadow-xl hover:shadow-primary/5 transition-all overflow-hidden">
@@ -571,3 +593,4 @@ export const LargeOrderCard = React.memo(
     )
   },
 )
+LargeOrderCard.displayName = 'LargeOrderCard'

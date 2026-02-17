@@ -267,17 +267,23 @@ export function useAdminAuthQuery() {
   // ============================================================================
   // Multi-tab Sync
   // ============================================================================
-
+  // Multi-tab Sync
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'admin_user_data') {
-        refetchSession()
+        // Only refetch if the data actually changed from what we have
+        const newValue = e.newValue ? JSON.parse(e.newValue) : null
+        const currentValue = queryClient.getQueryData(queryKeys.auth.session())
+
+        if (JSON.stringify(newValue) !== JSON.stringify(currentValue)) {
+          refetchSession()
+        }
       }
     }
 
     window.addEventListener('storage', handleStorageChange)
     return () => window.removeEventListener('storage', handleStorageChange)
-  }, [refetchSession])
+  }, [refetchSession, queryClient])
 
   // ============================================================================
   // Derived State

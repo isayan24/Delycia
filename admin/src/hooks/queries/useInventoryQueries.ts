@@ -3,6 +3,7 @@ import {
   useQuery,
   useMutation,
   useQueryClient,
+  useInfiniteQuery,
 } from '@tanstack/react-query'
 import axios from 'axios'
 import { queryKeys } from '@/lib/queries/queryKeys'
@@ -67,6 +68,39 @@ export const useInventoryItemStats = (
     },
     enabled: !!itemId && !!rid,
     placeholderData: keepPreviousData,
+  })
+}
+
+export const useInfiniteInventoryItemOrdersQuery = (
+  itemId: string | undefined,
+  rid: string | undefined,
+  limit: number = 10,
+) => {
+  return useInfiniteQuery({
+    queryKey: ['inventory', 'stats-infinite', itemId, rid, limit],
+    queryFn: async ({ pageParam = 1 }) => {
+      const { data } = await axios.get('/api/inventory-stats', {
+        params: { itemId, rid, page: pageParam, limit },
+      })
+
+      // Check for nested data property
+      const statsData = (
+        data && data.data ? data.data : data
+      ) as InventoryStatsData
+      return statsData
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      if (
+        lastPage.pagination &&
+        lastPage.pagination.page < lastPage.pagination.totalPages
+      ) {
+        return lastPage.pagination.page + 1
+      }
+      return undefined
+    },
+    enabled: !!itemId && !!rid,
+    staleTime: 30000,
   })
 }
 

@@ -6,7 +6,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { Plus, FolderOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
-import { useAuth } from '@/hooks/useAuth'
+import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { useMenuStore } from '@/store/useMenuStore'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import { useCategoriesQuery } from '@/hooks/queries'
@@ -18,7 +18,7 @@ interface CategoryListProps {
 
 export const CategoryList = React.memo(
   ({ orientation = 'vertical' }: CategoryListProps) => {
-    const { isLoading: isAuthLoading } = useAuth()
+    const { isLoading: isAuthLoading } = useAdminAuthQuery()
     const { selectedRid } = useRestaurantSelector()
     const { data: categoriesData, isLoading: isQueryLoading } =
       useCategoriesQuery(selectedRid)

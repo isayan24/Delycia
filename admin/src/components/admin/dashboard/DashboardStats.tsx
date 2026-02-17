@@ -99,20 +99,20 @@ const MetricCard: React.FC<MetricCardProps> = ({
 
   return (
     <div
-      className={`bg-white rounded-2xl p-3 md:p-5 shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)] border border-gray-100 hover:shadow-[0_8px_24px_-8px_rgba(0,0,0,0.08)] transition-all duration-300 bg-linear-to-br ${variant.split(' ').slice(0, 3).join(' ')}`}
+      className={`bg-white dark:bg-[#2d1e14] rounded-xl p-3 md:p-5 border border-[#ead9cd] dark:border-primary/10 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 bg-linear-to-br ${variant.split(' ').slice(0, 3).join(' ')}`}
     >
       <div className="flex items-center justify-between mb-3">
         <div
-          className={`p-2 rounded-xl ${variant.split(' ').slice(4).join(' ')}`}
+          className={`p-2 rounded-lg ${variant.split(' ').slice(4).join(' ')}`}
         >
           <Icon className="w-4 h-4 md:w-5 md:h-5" />
         </div>
       </div>
       <div className="space-y-0.5">
-        <h3 className="text-lg md:text-2xl font-bold text-gray-900 tracking-tight">
+        <h3 className="text-lg md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
           {formatValue(value)}
         </h3>
-        <p className="text-gray-500 text-[10px] md:text-xs font-semibold uppercase tracking-widest">
+        <p className="text-[#a16b45] text-[10px] md:text-xs font-semibold uppercase tracking-widest">
           {title}
         </p>
       </div>

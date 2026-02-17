@@ -26,6 +26,8 @@ import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import { useItemFormState } from './hooks/useItemFormState'
 import { useImageUpload } from './hooks/useImageUpload'
 import { useItemSubmission } from './hooks/useItemSubmission'
+import { useIsMobile } from '@/hooks/useIsMobile'
+import MobileAddItemDrawer from './MobileAddItemDrawer'
 
 // Import utilities
 import {
@@ -77,6 +79,7 @@ export default function AddItemDetailsModal({
   })
 
   // Hooks
+  const isMobile = useIsMobile()
   const { selectedRid } = useRestaurantSelector()
   const {
     bulkItems,
@@ -340,6 +343,40 @@ export default function AddItemDetailsModal({
   }, [bulkItems, formData.foodType])
 
   if (!open) return null
+
+  if (isMobile) {
+    return (
+      <MobileAddItemDrawer
+        open={open}
+        onOpenChange={onOpenChange}
+        categories={categories}
+        categoryId={categoryId}
+        isBulkMode={isBulkMode}
+        setIsBulkMode={setIsBulkMode}
+        handleModeToggle={handleModeToggle}
+        formData={formData}
+        errors={errors}
+        handleInputChange={handleInputChange}
+        handleFoodTypeChange={handleFoodTypeChange}
+        itemImages={itemImages}
+        setItemImages={setItemImages}
+        handleImageUpload={handleImageUpload}
+        handleRemoveImage={handleRemoveImage}
+        handlePriceChange={handlePriceChange}
+        handleCostChange={handleCostChange}
+        savedVariant={savedVariant}
+        bulkItems={bulkItems}
+        bulkErrors={bulkErrors}
+        handleRemoveBulkItem={handleRemoveBulkItem}
+        handleBulkItemChange={handleBulkItemChange}
+        handleAddBulkItem={handleAddBulkItem}
+        onSubmit={onSubmit}
+        isPending={isPending}
+        showWarning={showWarning}
+        getCurrentCategoryName={getCurrentCategoryName}
+      />
+    )
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-0">

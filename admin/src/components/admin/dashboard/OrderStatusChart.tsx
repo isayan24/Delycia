@@ -1,14 +1,8 @@
 import React from 'react'
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-  Legend,
-} from 'recharts'
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { Package, AlertCircle, RefreshCw } from 'lucide-react'
 import { OrderStatusData } from '@/types/dashboard.types'
+import NoSSR from '@/components/common/NoSSR'
 
 interface OrderStatusChartProps {
   data: OrderStatusData[] | null
@@ -212,51 +206,53 @@ export const OrderStatusChart: React.FC<OrderStatusChartProps> = ({
   const totalOrders = mergedData.reduce((sum, item) => sum + item.count, 0)
 
   return (
-    <div className="bg-white rounded-2xl p-4 md:p-6 shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)] border border-gray-100/80">
+    <div className="bg-white dark:bg-[#2d1e14] rounded-xl p-4 md:p-6 border border-[#ead9cd] dark:border-primary/10 shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-bold text-gray-900 tracking-tight">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
             Order Status
           </h3>
-          <p className="text-xs text-gray-500 font-medium mt-1">
+          <p className="text-xs text-[#a16b45] font-medium mt-1">
             Total Orders:{' '}
-            <span className="font-bold text-blue-600">
+            <span className="font-bold text-orange-600">
               {totalOrders.toLocaleString()}
             </span>
           </p>
         </div>
         {loading && (
-          <div className="flex items-center gap-2 text-xs font-semibold text-gray-400 bg-gray-50 px-3 py-1.5 rounded-full animate-pulse">
+          <div className="flex items-center gap-2 text-xs font-semibold text-gray-400 bg-gray-50 dark:bg-[#3a291d] px-3 py-1.5 rounded-full animate-pulse">
             <div className="animate-spin rounded-full h-3 w-3 border-2 border-orange-500 border-t-transparent"></div>
             <span>Syncing...</span>
           </div>
         )}
       </div>
 
-      <div className="h-[250px] md:h-[280px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={chartData}
-              cx="50%"
-              cy="50%"
-              innerRadius={65}
-              outerRadius={95}
-              paddingAngle={4}
-              dataKey="count"
-              stroke="none"
-            >
-              {chartData.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={entry.fill}
-                  className="hover:opacity-85 transition-opacity"
-                />
-              ))}
-            </Pie>
-            <Tooltip content={<CustomTooltip />} />
-          </PieChart>
-        </ResponsiveContainer>
+      <div className="h-[250px] md:h-[280px] min-w-0">
+        <NoSSR>
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+            <PieChart>
+              <Pie
+                data={chartData}
+                cx="50%"
+                cy="50%"
+                innerRadius={65}
+                outerRadius={95}
+                paddingAngle={4}
+                dataKey="count"
+                stroke="none"
+              >
+                {chartData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={entry.fill}
+                    className="hover:opacity-85 transition-opacity"
+                  />
+                ))}
+              </Pie>
+              <Tooltip content={<CustomTooltip />} />
+            </PieChart>
+          </ResponsiveContainer>
+        </NoSSR>
       </div>
 
       <StatusLegend data={mergedData} />

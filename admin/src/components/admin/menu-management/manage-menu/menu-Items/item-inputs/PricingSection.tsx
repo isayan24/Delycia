@@ -1,4 +1,10 @@
 import { HelpCircle, DollarSign, TrendingUp, Calculator } from 'lucide-react'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { HelperTooltip } from '@/components/common/HelperTooltip'
 
 export default function PricingSection({
   cost,
@@ -37,12 +43,7 @@ export default function PricingSection({
               <label className="text-sm font-medium text-gray-700">
                 Production Cost
               </label>
-              <div className="group relative">
-                <HelpCircle className="h-4 w-4 text-gray-400 cursor-help" />
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
-                  Total cost to make this item
-                </div>
-              </div>
+              <HelperTooltip content="Total cost to make this item" />
             </div>
             <div className="relative">
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
@@ -70,12 +71,7 @@ export default function PricingSection({
               <label className="text-sm font-medium text-gray-700">
                 Selling Price
               </label>
-              <div className="group relative">
-                <HelpCircle className="h-4 w-4 text-gray-400 cursor-help" />
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
-                  Price you will charge customers
-                </div>
-              </div>
+              <HelperTooltip content="Price you will charge customers" />
             </div>
             <div className="relative">
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">

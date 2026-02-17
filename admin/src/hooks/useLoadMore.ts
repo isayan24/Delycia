@@ -21,9 +21,23 @@ export function useLoadMore<T>(
   const observerRef = useRef<IntersectionObserver | null>(null)
   const sentinelNodeRef = useRef<HTMLElement | null>(null)
 
-  // Reset visible count when the source data changes
+  const prevItemsRef = useRef(items)
+
+  // Reset visible count only when the source data fundamentally changes (e.g. search/filter)
   useEffect(() => {
-    setVisibleCount(batchSize)
+    setVisibleCount((prev) => {
+      // If list emptied or first item changed (new search/filter), reset
+      if (items.length === 0 || items[0] !== prevItemsRef.current[0]) {
+        return batchSize
+      }
+      // If list shrank significantly, reset
+      if (items.length < prevItemsRef.current.length) {
+        return batchSize
+      }
+      // If it's an append or same list, maintain current count
+      return prev
+    })
+    prevItemsRef.current = items
   }, [items, batchSize])
 
   const hasMore = visibleCount < items.length
@@ -52,7 +66,7 @@ export function useLoadMore<T>(
             loadMore()
           }
         },
-        { rootMargin: '200px' }, // Pre-fetch before user reaches the bottom
+        { rootMargin: '50px' }, // Pre-fetch before user reaches the bottom
       )
 
       observerRef.current.observe(node)

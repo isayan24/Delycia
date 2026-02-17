@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/queries/queryKeys'
 import axios from 'axios'
 
@@ -56,7 +56,6 @@ export function useCRMListQuery(params: { rid: string; timeRange?: string }) {
     queryKey: queryKeys.crm.list(params),
     queryFn: async (): Promise<Customer[]> => {
       if (!params.rid) throw new Error('Restaurant ID is required')
-      console.log('getRestaurantCustomers params:', params)
       const response = await axios.get<CRMListResponse>('/api/crm', {
         params,
       })
@@ -107,4 +106,10 @@ export function useCustomerDetailsQuery(params: {
     enabled: !!params.rid && !!params.customerId,
     staleTime: 5 * 60 * 1000,
   })
+}
+export function useRefreshCRM() {
+  const queryClient = useQueryClient()
+  return async () => {
+    await queryClient.invalidateQueries({ queryKey: queryKeys.crm.all })
+  }
 }

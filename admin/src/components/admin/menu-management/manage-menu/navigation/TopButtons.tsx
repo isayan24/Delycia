@@ -287,7 +287,7 @@ export const TopButtons = React.memo<TopButtonsProps>(
     }
 
     return (
-      <div className="flex gap-5 px-4 py-2 bg-white z-[50] sticky top-0 max-w-[30rem]">
+      <div className="flex gap-5 max-[500px]:px-4 max-[500px]:py-2 bg-white z-[50] sticky top-0 max-w-[30rem]">
         <section className="relative flex-1" ref={searchRef}>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -305,7 +305,7 @@ export const TopButtons = React.memo<TopButtonsProps>(
                   setShowSuggestions(true)
                 }
               }}
-              className="text-lg! pl-10 pr-10"
+              className="md:text-lg! pl-10 pr-10 "
             />
             {searchQuery && (
               <button

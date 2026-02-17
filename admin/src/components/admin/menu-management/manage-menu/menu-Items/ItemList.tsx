@@ -125,11 +125,11 @@ export const ItemList = React.memo(() => {
               )}
             </div>
             <div className="min-w-0">
-              <h2 className="text-xl font-bold text-gray-900 truncate flex items-center gap-2">
+              <h2 className="text-md font-semibold sm:text-xl text-gray-900 truncate flex items-center gap-2">
                 {selectedCategory.name}
               </h2>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-tight">
+                <span className="text-xs font-semibold text-gray-400">
                   {itemCount} {itemCount === 1 ? 'item' : 'items'}
                 </span>
                 <div className="w-1 h-1 rounded-full bg-gray-300" />
@@ -152,7 +152,7 @@ export const ItemList = React.memo(() => {
 
       {/* Items List */}
       <ScrollArea className="flex-1 overflow-auto">
-        <div className="p-2 md:p-4">
+        <div className="p-4 md:p-4">
           {loading ? (
             <div className="grid grid-cols-1 gap-4">
               {[1, 2, 3].map((i) => (

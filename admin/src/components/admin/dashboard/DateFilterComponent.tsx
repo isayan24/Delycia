@@ -72,7 +72,6 @@ export const DateFilterComponent: React.FC<DateFilterComponentProps> = ({
     isCustomRangeOpen,
     isLoading,
     error,
-    displayText,
     setFilter,
     setCustomRange,
     toggleCustomRange,
@@ -174,11 +173,11 @@ export const DateFilterComponent: React.FC<DateFilterComponentProps> = ({
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
         disabled={isLoading}
         className={`
-          flex items-center space-x-2 
+          flex items-center 
           ${
             compact
-              ? 'px-2 py-1 text-xs border-transparent hover:bg-gray-100 rounded'
-              : 'px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-orange-500 focus:border-orange-500'
+              ? 'px-1.5 py-1 space-x-1 text-[10px] sm:text-xs border-transparent hover:bg-gray-100 rounded'
+              : 'px-4 py-2 space-x-2 border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-orange-500 focus:border-orange-500'
           }
           bg-white transition-colors duration-200
           ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
@@ -211,7 +210,7 @@ export const DateFilterComponent: React.FC<DateFilterComponentProps> = ({
       {/* Dropdown Menu */}
       {isDropdownOpen && (
         <div
-          className={`absolute z-[999] top-full text-left left-0 sm:left-auto sm:right-0 mt-1 ${compact ? 'w-48' : 'w-64'} bg-white border border-gray-200 rounded-lg shadow-lg z-50`}
+          className={`absolute z-[999] top-full text-left right-0 mt-1 ${compact ? 'w-48' : 'w-64'} bg-white border border-gray-200 rounded-lg shadow-lg z-50`}
         >
           <div className="py-1" role="listbox">
             {visibleOptions.map((option) => (

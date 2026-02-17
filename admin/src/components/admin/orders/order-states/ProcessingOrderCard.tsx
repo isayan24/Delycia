@@ -50,7 +50,7 @@ const OrderHeader = memo(
   }) => {
     return (
       <div
-        className="p-4 cursor-pointer select-none transition-colors"
+        className="p-4 cursor-pointer select-none transition-colors "
         onClick={onToggleExpand}
       >
         <div className="flex flex-col lg:flex-row gap-6 max-[500px]:gap-2 items-start lg:items-center">
@@ -80,21 +80,21 @@ const OrderHeader = memo(
 
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-[#a16b45]">
               <span className="flex items-center gap-1.5 font-medium">
-                <Calendar className="w-4 h-4" />{' '}
-                {formatDateTime(order.created_at)}
+                <User2 className="w-4 h-4" /> {order.customer_name || 'Guest'}
               </span>
               <span className="flex items-center gap-1.5 font-medium">
                 <Layers className="w-4 h-4" /> {totalItems} Items
               </span>
               <span className="flex items-center gap-1.5 font-medium">
-                <User2 className="w-4 h-4" /> {order.customer_name || 'Guest'}
+                <Calendar className="w-4 h-4" />{' '}
+                {formatDateTime(order.created_at)}
               </span>
             </div>
           </div>
 
           {/* Total & Actions */}
-          <div className="flex max-[1024px]:w-full items-center max-[1024px]:justify-between! gap-3 divide-x divide-[#ead9cd] dark:divide-primary/10">
-            <div className="pr-4 flex gap-2">
+          <div className="flex max-[1024px]:w-full items-center max-[1024px]:justify-between! gap-3 divide-x max-[500px]:divide-none divide-[#ead9cd] dark:divide-primary/10">
+            <div className="pr-4 flex gap-2 items-center">
               <Button
                 variant="outline"
                 size="sm"
@@ -102,29 +102,32 @@ const OrderHeader = memo(
                   e.stopPropagation()
                   onPrint()
                 }}
-                className="h-10 w-10 p-0 rounded-xl border border-[#ead9cd] dark:border-primary/10 text-slate-700 dark:text-slate-200 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all flex items-center justify-center"
+                className="h-10 w-10 p-0 max-[500px]:h-4 max-[500px]:w-4 rounded-xl   border-none  dark:border-primary/10 text-slate-700 dark:text-slate-200 font-bold hover:bg-none dark:hover:bg-slate-800 transition-all flex items-center justify-center"
               >
                 <Printer className="w-4 h-4 text-[#a16b45]" />
               </Button>
+              <div className="text-right">
+                <p className="text-sm text-[#a16b45] font-medium mb-1 flex items-center gap-2">
+                  Est. Total{' '}
+                  <span className="text-xl max-[500px]:text-[#a16b45]  font-bold text-primary max-[500px]:text-[14px]!">
+                    ₹
+                    {finalGrandTotal.toLocaleString('en-IN', {
+                      minimumFractionDigits: 2,
+                    })}
+                  </span>
+                </p>
+              </div>
             </div>
 
             <div className="pl-6 flex items-center gap-6">
-              <div className="text-right">
-                <p className="text-sm text-[#a16b45] font-medium mb-1">
-                  Est. Total
-                </p>
-                <p className="text-xl font-bold text-primary max-[500px]:text-lg!">
-                  ₹
-                  {finalGrandTotal.toLocaleString('en-IN', {
-                    minimumFractionDigits: 2,
-                  })}
-                </p>
-              </div>
-
               <div
-                className={`p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors ${isExpanded ? 'rotate-180' : ''}`}
+                className={`p-2 text-[10px] font-bold text-[#a16b45] flex items-center uppercase  rounded-full transition-colors tracking-widest`}
               >
-                <ChevronDown className="w-5 h-5 text-[#a16b45] transition-transform duration-300" />
+                {' '}
+                details
+                <ChevronDown
+                  className={`w-5 h-5 text-[#a16b45] transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
+                />
               </div>
             </div>
           </div>
@@ -277,7 +280,7 @@ export function ProcessingOrderCard({
   }
 
   return (
-    <div className="group bg-white dark:bg-[#2d1e14] rounded-xl border border-[#ead9cd] dark:border-primary/10 shadow-lg shadow-orange-100/20 dark:shadow-none hover:shadow-xl hover:shadow-primary/5 transition-all overflow-hidden mb-6">
+    <div className="group bg-white dark:bg-[#2d1e14] rounded-xl border border-[#f6c29d] dark:border-primary/10 transition-all overflow-hidden mb-6 shadow-sm! shadow-gray-300">
       {showThermalBill && (
         <ThermalBill
           isOpen={showThermalBill}

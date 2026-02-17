@@ -12,6 +12,7 @@ import { TrendingUp, AlertCircle, RefreshCw } from 'lucide-react'
 import { SalesTrendData } from '@/types/dashboard.types'
 import { format, parseISO } from 'date-fns'
 import { formatCurrency } from '@/utils/currencyUtils'
+import NoSSR from '@/components/common/NoSSR'
 
 interface SalesTrendChartProps {
   data: SalesTrendData[] | null
@@ -142,14 +143,14 @@ export const SalesTrendChart: React.FC<SalesTrendChartProps> = ({
   const totalOrders = data.reduce((sum, item) => sum + item.orders, 0)
 
   return (
-    <div className="lg:col-span-2 bg-white rounded-2xl p-4 md:p-6 shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)] border border-gray-100">
+    <div className="bg-white dark:bg-[#2d1e14] rounded-xl p-4 md:p-6 border border-[#ead9cd] dark:border-primary/10 shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h3 className="text-lg font-bold text-gray-900 tracking-tight">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
             Sales Trend
           </h3>
           <div className="flex flex-wrap items-center gap-3 mt-1.5">
-            <div className="flex items-center gap-1.5 bg-orange-50 px-2 py-1 rounded-lg">
+            <div className="flex items-center gap-1.5 bg-orange-50 dark:bg-[#3a291d] px-2 py-1 rounded-lg">
               <span className="text-[10px] uppercase tracking-wider font-bold text-orange-400">
                 Revenue
               </span>
@@ -157,7 +158,7 @@ export const SalesTrendChart: React.FC<SalesTrendChartProps> = ({
                 {formatCurrency(totalSales)}
               </span>
             </div>
-            <div className="flex items-center gap-1.5 bg-blue-50 px-2 py-1 rounded-lg">
+            <div className="flex items-center gap-1.5 bg-blue-50 dark:bg-blue-900/10 px-2 py-1 rounded-lg">
               <span className="text-[10px] uppercase tracking-wider font-bold text-blue-400">
                 Orders
               </span>
@@ -175,71 +176,73 @@ export const SalesTrendChart: React.FC<SalesTrendChartProps> = ({
         )}
       </div>
 
-      <div className="h-[250px] md:h-[300px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={data}
-            margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-          >
-            <defs>
-              <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#fb923c" stopOpacity={0.1} />
-                <stop offset="95%" stopColor="#fb923c" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              vertical={false}
-              stroke="#f3f4f6"
-            />
-            <XAxis
-              dataKey="date"
-              tick={{ fontSize: 10, fontWeight: 600, fill: '#9ca3af' }}
-              axisLine={false}
-              tickLine={false}
-              dy={10}
-              tickFormatter={formatXAxisTick}
-            />
-            <YAxis
-              tick={{ fontSize: 10, fontWeight: 600, fill: '#9ca3af' }}
-              axisLine={false}
-              tickLine={false}
-              tickFormatter={formatYAxisTick}
-            />
-            <Tooltip
-              content={<CustomTooltip />}
-              cursor={{ stroke: '#f3f4f6', strokeWidth: 2 }}
-            />
-            <Line
-              type="monotone"
-              dataKey="sales"
-              stroke="#fb923c"
-              strokeWidth={3}
-              dot={false}
-              activeDot={{
-                r: 6,
-                stroke: '#fb923c',
-                strokeWidth: 3,
-                fill: '#fff',
-              }}
-              name="Sales"
-            />
-            <Line
-              type="monotone"
-              dataKey="orders"
-              stroke="#3b82f6"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{
-                r: 5,
-                stroke: '#3b82f6',
-                strokeWidth: 2,
-                fill: '#fff',
-              }}
-              name="Orders"
-            />
-          </LineChart>
-        </ResponsiveContainer>
+      <div className="h-[250px] md:h-[300px] w-full min-w-0">
+        <NoSSR>
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+            <LineChart
+              data={data}
+              margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#fb923c" stopOpacity={0.1} />
+                  <stop offset="95%" stopColor="#fb923c" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="#f3f4f6"
+              />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 10, fontWeight: 600, fill: '#9ca3af' }}
+                axisLine={false}
+                tickLine={false}
+                dy={10}
+                tickFormatter={formatXAxisTick}
+              />
+              <YAxis
+                tick={{ fontSize: 10, fontWeight: 600, fill: '#9ca3af' }}
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={formatYAxisTick}
+              />
+              <Tooltip
+                content={<CustomTooltip />}
+                cursor={{ stroke: '#f3f4f6', strokeWidth: 2 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="sales"
+                stroke="#fb923c"
+                strokeWidth={3}
+                dot={false}
+                activeDot={{
+                  r: 6,
+                  stroke: '#fb923c',
+                  strokeWidth: 3,
+                  fill: '#fff',
+                }}
+                name="Sales"
+              />
+              <Line
+                type="monotone"
+                dataKey="orders"
+                stroke="#3b82f6"
+                strokeWidth={2}
+                dot={false}
+                activeDot={{
+                  r: 5,
+                  stroke: '#3b82f6',
+                  strokeWidth: 2,
+                  fill: '#fff',
+                }}
+                name="Orders"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </NoSSR>
       </div>
     </div>
   )

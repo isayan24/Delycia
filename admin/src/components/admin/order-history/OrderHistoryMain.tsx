@@ -12,7 +12,14 @@ export default function OrderHistoryMain() {
 
   const rid = user?.selected_rid || ''
 
-  // Use the refactored hook with pagination and search
+  // Handle session-related errors - don't render if no rid
+  const sessionError = !user?.restaurant_rids?.[0] || !rid
+
+  if (sessionError) {
+    return <LoadingScreen message="Authenticating..." />
+  }
+
+  // Use the refactored hook with pagination and search - only when rid is valid
   const orderHistoryHook = UseAdminOrderHistory({ rid })
 
   const {
@@ -22,23 +29,13 @@ export default function OrderHistoryMain() {
     isFetching,
     error,
     pagination,
-    goToPage,
     nextPage,
-    prevPage,
-    currentPage,
     search,
     setSearch,
     setDateRange,
     clearFilters,
     hasNextPage,
   } = orderHistoryHook
-
-  // Handle session-related errors
-  const sessionError = !user?.restaurant_rids?.[0]
-
-  if (sessionError) {
-    return <LoadingScreen message="Authenticating..." />
-  }
 
   return (
     <ErrorBoundary>
@@ -51,12 +48,11 @@ export default function OrderHistoryMain() {
               <OrderHistoryTablePaginated
                 items={orderHistory}
                 loading={loading}
+                isFetching={isFetching}
                 error={error}
                 pagination={pagination}
-                currentPage={currentPage}
-                onPageChange={goToPage}
+                hasNextPage={hasNextPage}
                 onNextPage={nextPage}
-                onPrevPage={prevPage}
                 search={search}
                 onSearchChange={setSearch}
                 onDateRangeChange={setDateRange}

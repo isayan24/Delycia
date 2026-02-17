@@ -69,17 +69,18 @@ export function CreateStaffDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="w-full sm:w-auto gap-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-6 sm:py-2 rounded-xl sm:rounded-lg shadow-lg shadow-orange-200 transition-all active:scale-[0.98]">
+        <Button className="w-full sm:w-auto gap-3 bg-orange-600 hover:bg-orange-700 text-white font-black text-[10px] sm:text-xs uppercase tracking-widest py-6 sm:py-5 px-6 rounded-2xl shadow-lg shadow-orange-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
           <Plus className="h-5 w-5 sm:h-4 sm:w-4" />
           Add New Staff
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Add New Staff Member</DialogTitle>
-          <DialogDescription>
-            Create a new account for a staff member. They will be able to log in
-            using these credentials.
+      <DialogContent className="sm:max-w-[425px] rounded-2xl border-[#ead9cd] dark:border-primary/10">
+        <DialogHeader className="space-y-3">
+          <DialogTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
+            Onboard New Staff
+          </DialogTitle>
+          <DialogDescription className="text-[10px] font-bold text-[#a16b45] uppercase tracking-widest opacity-60">
+            Configure credentials and access roles for your restaurant team.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -91,7 +92,17 @@ export function CreateStaffDialog() {
                 <FormItem>
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. John Doe" {...field} />
+                    <Input
+                      placeholder={
+                        field.name === 'name'
+                          ? 'e.g. John Doe'
+                          : field.name === 'username'
+                            ? 'e.g. john_d'
+                            : '******'
+                      }
+                      className="rounded-xl border-[#ead9cd] dark:border-primary/5 focus-visible:ring-orange-500 placeholder:opacity-30"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -134,36 +145,66 @@ export function CreateStaffDialog() {
                     defaultValue={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="rounded-xl border-[#ead9cd] dark:border-primary/5 focus:ring-orange-500">
                         <SelectValue placeholder="Select a role" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="2">Admin</SelectItem>
-                      <SelectItem value="3">Restaurant Owner</SelectItem>
-                      <SelectItem value="4">Restaurant Manager</SelectItem>
-                      <SelectItem value="5">Waiter</SelectItem>
-                      <SelectItem value="6">Kitchen Staff</SelectItem>
-                      <SelectItem value="7">Delivery</SelectItem>
+                    <SelectContent className="rounded-xl border-[#ead9cd] dark:border-primary/10">
+                      <SelectItem
+                        value="2"
+                        className="text-xs font-bold uppercase tracking-tight focus:bg-orange-50"
+                      >
+                        Admin
+                      </SelectItem>
+                      <SelectItem
+                        value="3"
+                        className="text-xs font-bold uppercase tracking-tight focus:bg-orange-50"
+                      >
+                        Restaurant Owner
+                      </SelectItem>
+                      <SelectItem
+                        value="4"
+                        className="text-xs font-bold uppercase tracking-tight focus:bg-orange-50"
+                      >
+                        Restaurant Manager
+                      </SelectItem>
+                      <SelectItem
+                        value="5"
+                        className="text-xs font-bold uppercase tracking-tight focus:bg-orange-50"
+                      >
+                        Waiter
+                      </SelectItem>
+                      <SelectItem
+                        value="6"
+                        className="text-xs font-bold uppercase tracking-tight focus:bg-orange-50"
+                      >
+                        Kitchen Staff
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex justify-end gap-3 pt-6">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 onClick={() => setOpen(false)}
+                className="rounded-xl text-[10px] font-black uppercase tracking-widest text-[#a16b45]"
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={createMutation.isPending}>
-                {createMutation.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Button
+                type="submit"
+                disabled={createMutation.isPending}
+                className="bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest px-6 shadow-lg shadow-orange-500/10"
+              >
+                {createMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  'Create Account'
                 )}
-                Create Account
               </Button>
             </div>
           </form>

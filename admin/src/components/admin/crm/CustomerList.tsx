@@ -8,30 +8,24 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
 import {
   Search,
-  User,
-  Calendar,
-  MoreHorizontal,
   Phone,
   Mail,
-  Eye,
   TrendingUp,
-  ChevronLeft,
+  Users,
   ChevronRight,
 } from 'lucide-react'
 import { Customer } from '@/hooks/queries/useCRMQueries'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
-import LoadingScreen from '@/components/common/LoadingScreen'
+import { useLoadMore } from '@/hooks/useLoadMore'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 interface CustomerListProps {
   data: Customer[]
@@ -39,301 +33,295 @@ interface CustomerListProps {
   onSelectCustomer: (id: string) => void
 }
 
+const MobileCustomerCard: React.FC<{
+  customer: Customer
+  onSelect: (id: string) => void
+}> = ({ customer, onSelect }) => (
+  <div
+    onClick={() => onSelect(customer.user_id.toString())}
+    className="bg-white dark:bg-[#2d1e14] rounded-xl p-3 border border-[#ead9cd] dark:border-primary/10 shadow-sm active:scale-[0.98] transition-all"
+  >
+    <div className="flex items-center gap-3">
+      <Avatar className="h-10 w-10 border-2 border-white dark:border-[#3a291d] shadow-sm">
+        <AvatarImage src={customer.profile_pic || ''} />
+        <AvatarFallback className="bg-orange-50 dark:bg-[#3a291d] text-orange-600 font-black text-sm uppercase">
+          {customer.name.charAt(0)}
+        </AvatarFallback>
+      </Avatar>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-2">
+          <h4 className="text-[15px] font-[500] text-slate-900 dark:text-white truncate tracking-wider">
+            {customer.name}
+          </h4>
+          <span className="text-[10px] font-black text-orange-600 bg-orange-50 dark:bg-orange-900/10 px-1.5 py-0.5 rounded-md uppercase">
+            {customer.visit_count} Visits
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 text-[10px] text-[#a16b45] font-semibold mt-1">
+          <Phone className="w-3 h-3" />
+          {customer.phone_number}
+        </div>
+      </div>
+    </div>
+
+    <div className="mt-3 pt-3 border-t border-slate-50 dark:border-primary/5 grid grid-cols-2 gap-2">
+      <div className="space-y-0.5">
+        <p className="text-[8px] font-bold text-[#a16b45]/60 uppercase tracking-widest">
+          Lifetime Value
+        </p>
+        <p className="text-[11px] font-black text-slate-900 dark:text-white uppercase">
+          ₹{Number(customer.total_spent).toLocaleString('en-IN')}
+        </p>
+      </div>
+      <div className="space-y-0.5 text-right">
+        <p className="text-[8px] font-bold text-[#a16b45]/60 uppercase tracking-widest">
+          Last Visit
+        </p>
+        <p className="text-[11px] font-black text-slate-900 dark:text-white uppercase">
+          {new Date(customer.last_visit_at).toLocaleDateString(undefined, {
+            month: 'short',
+            day: 'numeric',
+          })}
+        </p>
+      </div>
+    </div>
+  </div>
+)
+
 const CustomerList: React.FC<CustomerListProps> = ({
   data,
   isLoading,
   onSelectCustomer,
 }) => {
   const [searchTerm, setSearchTerm] = useState('')
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 10
 
-  const filteredData = data.filter(
-    (customer) =>
-      customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.phone_number.includes(searchTerm) ||
-      (customer.email &&
-        customer.email.toLowerCase().includes(searchTerm.toLowerCase())),
-  )
+  const filteredData = React.useMemo(() => {
+    return data.filter(
+      (customer) =>
+        customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.phone_number.includes(searchTerm) ||
+        (customer.email &&
+          customer.email.toLowerCase().includes(searchTerm.toLowerCase())),
+    )
+  }, [data, searchTerm])
 
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedData = filteredData.slice(
-    startIndex,
-    startIndex + itemsPerPage,
-  )
+  const { visibleItems, sentinelRef, hasMore } = useLoadMore(filteredData, 12)
 
-  // Reset to page 1 when search changes
   const handleSearch = (value: string) => {
     setSearchTerm(value)
-    setCurrentPage(1)
   }
 
   if (isLoading) {
-    return <LoadingScreen message="Loading CRM data..." />
+    return (
+      <div className="space-y-4">
+        <div className="h-10 w-full bg-slate-100 dark:bg-[#3a291d] rounded-xl animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="h-40 bg-slate-100 dark:bg-[#3a291d] rounded-xl animate-pulse"
+            />
+          ))}
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="space-y-2">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="relative w-full sm:max-w-md">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+    <div className="space-y-6">
+      {/* Search & Filter Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="relative w-full max-w-xl group">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#a16b45] group-focus-within:text-orange-600 transition-colors" />
           <Input
-            placeholder="Search name, phone, or email..."
-            className="pl-10 h-10 bg-white border-gray-100 focus:bg-white focus:ring-orange-500/10 transition-all rounded-xl"
+            placeholder="Search with (Name, Phone, Email)..."
+            className="pl-11 h-11 bg-white dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 focus:ring-orange-500/10 transition-all rounded-xl text-xs lg:text-sm font-[500] tracking-wider placeholder:text-[#a16b45]/40"
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-2.5 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100 self-start sm:self-auto">
-          <User className="w-3.5 h-3.5 text-orange-500" />
-          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
-            {filteredData.length} Customers Found
-          </span>
-        </div>
       </div>
 
-      <div className="rounded-2xl border border-gray-100 bg-white shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)] overflow-hidden">
-        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
-          <Table>
-            <TableHeader className="bg-gray-50/50">
-              <TableRow className="hover:bg-transparent border-gray-100">
-                <TableHead className="w-[240px] font-bold text-gray-700 text-xs uppercase tracking-wider py-4 pl-6">
-                  Customer
-                </TableHead>
-                <TableHead className="font-bold text-gray-700 text-xs uppercase tracking-wider py-4">
-                  Engagement
-                </TableHead>
-                <TableHead className="font-bold text-gray-700 text-xs uppercase tracking-wider py-4">
-                  Lifetime Value
-                </TableHead>
-                <TableHead className="font-bold text-gray-700 text-xs uppercase tracking-wider py-4">
-                  Recent Activity
-                </TableHead>
-                <TableHead className="text-right font-bold text-gray-700 text-xs uppercase tracking-wider py-4 pr-6">
-                  Actions
-                </TableHead>
+      {/* Mobile View */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:hidden gap-3">
+        {visibleItems.length === 0 ? (
+          <div className="col-span-full py-12 text-center bg-white dark:bg-[#2d1e14] rounded-2xl border border-dashed border-[#ead9cd] dark:border-primary/10">
+            <Users className="h-10 w-10 text-[#a16b45]/20 mx-auto mb-2" />
+            <p className="text-xs font-black text-[#a16b45] uppercase tracking-widest">
+              No matching records
+            </p>
+          </div>
+        ) : (
+          visibleItems.map((customer) => (
+            <MobileCustomerCard
+              key={customer.user_id}
+              customer={customer}
+              onSelect={onSelectCustomer}
+            />
+          ))
+        )}
+      </div>
+
+      {/* Desktop View */}
+      <div className="hidden lg:block bg-white dark:bg-[#2d1e14] rounded-2xl border border-[#ead9cd] dark:border-primary/10 shadow-sm overflow-hidden">
+        <Table>
+          <TableHeader className="bg-slate-50/50 dark:bg-[#3a291d]/20">
+            <TableRow className="border-b border-[#ead9cd] dark:border-primary/5 hover:bg-transparent">
+              <TableHead className="py-4 pl-6 text-[10px] lg:text-xs font-medium text-[#a16b45] uppercase tracking-widest">
+                Customer
+              </TableHead>
+              <TableHead className="py-4 text-[10px] lg:text-xs font-medium text-[#a16b45] uppercase tracking-widest">
+                Engagement
+              </TableHead>
+              <TableHead className="py-4 text-[10px] lg:text-xs font-medium text-[#a16b45] uppercase tracking-widest">
+                Economics
+              </TableHead>
+              <TableHead className="py-4 text-[10px] lg:text-xs font-medium text-[#a16b45] uppercase tracking-widest text-right">
+                Activity
+              </TableHead>
+              <TableHead className="w-10 pr-6" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {visibleItems.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="h-64 text-center">
+                  <div className="flex flex-col items-center justify-center">
+                    <Users className="h-10 w-10 text-[#a16b45]/20 mb-3" />
+                    <p className="text-xs lg:text-sm font-black text-[#a16b45] uppercase tracking-widest">
+                      Database empty or no matches
+                    </p>
+                  </div>
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredData.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-64 text-center">
-                    <div className="flex flex-col items-center justify-center py-12">
-                      <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mb-4">
-                        <User className="h-8 w-8 text-gray-200" />
+            ) : (
+              visibleItems.map((customer) => (
+                <TableRow
+                  key={customer.user_id}
+                  className="group cursor-pointer hover:bg-orange-50/5 dark:hover:bg-[#3a291d]/10 border-b border-[#ead9cd]/50 dark:border-primary/5 transition-colors"
+                  onClick={() => onSelectCustomer(customer.user_id.toString())}
+                >
+                  <TableCell className="py-4 pl-6">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10 border-2 border-white dark:border-[#3a291d] group-hover:border-orange-200 transition-colors shadow-sm">
+                        <AvatarImage src={customer.profile_pic || ''} />
+                        <AvatarFallback className="bg-orange-50 dark:bg-[#3a291d] text-orange-600 font-[500] text-sm uppercase">
+                          {customer.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs lg:text-[16px] font-[500] text-slate-900 dark:text-white   group-hover:text-orange-600 transition-colors">
+                          {customer.name}
+                        </span>
+                        <div className="flex items-center gap-1.5 text-[10px] lg:text-xs text-[#a16b45] font-semibold mt-0.5">
+                          <Phone className="w-2.5 h-2.5" />
+                          <span className="truncate max-w-[150px]">
+                            {customer.phone_number || 'N/A'}
+                          </span>
+                        </div>
                       </div>
-                      <p className="text-lg font-bold text-gray-900">
-                        No customers found
-                      </p>
-                      <p className="text-sm text-gray-400 mt-1">
-                        Try adjusting your search terms
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Badge className="hover:bg-orange-50 bg-orange-50 dark:bg-orange-900/10 text-orange-600 border-none text-[9px] lg:text-[12px] font-black uppercase px-2 py-0.5">
+                          {customer.visit_count} VISITS
+                        </Badge>
+                      </div>
+                      <p className="text-[9px] lg:text-[13px] font-[410] text-[#262626] tracking-tight">
+                        Memb. Since{' '}
+                        {new Date(customer.first_visit_at).getFullYear()}
                       </p>
                     </div>
                   </TableCell>
-                </TableRow>
-              ) : (
-                paginatedData.map((customer) => (
-                  <TableRow
-                    key={customer.user_id}
-                    className="group cursor-pointer hover:bg-gray-50/50 border-gray-50 transition-colors"
-                    onClick={() =>
-                      onSelectCustomer(customer.user_id.toString())
-                    }
-                  >
-                    <TableCell className="py-3.5 pl-6">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-gray-100">
-                          <AvatarImage src={customer.profile_pic || ''} />
-                          <AvatarFallback className="bg-linear-to-br from-orange-50 to-orange-100 text-orange-600 font-black text-sm">
-                            {customer.name.charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col min-w-0">
-                          <span className=" text-gray-900 text-sm truncate group-hover:text-orange-600 transition-colors">
-                            {customer.name}
-                          </span>
-                          <div className="flex items-center gap-1.5 text-[11px] text-gray-400 font-medium mt-0.5">
-                            <Phone className="w-3 h-3" />
-                            {customer.phone_number}
-                          </div>
-                        </div>
+                  <TableCell>
+                    <div className="space-y-1">
+                      <p className="text-xs lg:text-[15px] font-[500] text-slate-900 dark:text-white uppercase">
+                        ₹{Number(customer.total_spent).toLocaleString('en-IN')}
+                      </p>
+                      <div className="flex items-center gap-1 text-[10px] lg:text-[12px] text-emerald-600 font-[500] uppercase tracking-tighter">
+                        <TrendingUp className="w-3 h-3" />
+                        AVG ₹{Number(customer.avg_order_value).toFixed(0)}
                       </div>
-                    </TableCell>
-                    <TableCell className="py-3.5">
-                      <div className="flex flex-col gap-1.5">
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant="secondary"
-                            className="bg-blue-50 text-blue-600 hover:bg-blue-100 border-none  text-[10px] px-2 py-0.5"
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="space-y-1">
+                      <p className="text-[10px] lg:text-[15px] font-[500] text-slate-900 dark:text-white ">
+                        {new Date(customer.last_visit_at).toLocaleDateString(
+                          undefined,
+                          {
+                            month: 'long',
+                            day: 'numeric',
+                          },
+                        )}
+                      </p>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <p className="text-[9px] w-fit ml-auto lg:text-[12px] font-[500] text-[#070707] opacity-60 cursor-help">
+                              {customer.last_order_items?.[0] || 'No Data'}
+                            </p>
+                          </TooltipTrigger>
+                          <TooltipContent
+                            side="left"
+                            className="bg-white dark:bg-[#2d1e14] border-[#ead9cd] dark:border-primary/10 text-slate-900 dark:text-white p-2 shadow-xl"
                           >
-                            {customer.visit_count} Visits
-                          </Badge>
-                        </div>
-                        <span className="text-[10px] text-gray-400  uppercase tracking-tight">
-                          Since{' '}
-                          {new Date(customer.first_visit_at).toLocaleDateString(
-                            undefined,
-                            { month: 'short', year: 'numeric' },
-                          )}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-3.5">
-                      <div className="flex flex-col">
-                        <div className="flex items-center gap-1 font-[500] text-gray-900 text-sm">
-                          <span>
-                            ₹
-                            {Number(customer.total_spent).toLocaleString(
-                              'en-IN',
-                              { minimumFractionDigits: 0 },
-                            )}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1 text-[10px] text-emerald-600 font-[500] mt-0.5">
-                          <TrendingUp className="w-3 h-3" />
-                          <span>
-                            AVG ₹{Number(customer.avg_order_value).toFixed(0)}
-                          </span>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-3.5">
-                      <div className="space-y-1.5">
-                        <div className="flex items-center gap-1.5 text-[11px] text-gray-500 ">
-                          <Calendar className="w-3.5 h-3.5 text-orange-500" />
-                          <span className="text-gray-900">
-                            {new Date(
-                              customer.last_visit_at,
-                            ).toLocaleDateString(undefined, {
-                              month: 'short',
-                              day: 'numeric',
-                            })}
-                          </span>
-                        </div>
-                        <div className="flex gap-1 flex-wrap">
-                          {customer.last_order_items &&
-                          customer.last_order_items.length > 0 ? (
-                            customer.last_order_items
-                              .slice(0, 2)
-                              .map((item, idx) => (
-                                <Badge
-                                  key={idx}
-                                  variant="outline"
-                                  className="text-[9px] px-1.5 py-0 h-4.5 bg-gray-50 text-gray-500 border-gray-100  uppercase tracking-tight"
+                            <div className="space-y-1">
+                              <p className="text-[10px] font-black text-[#a16b45] uppercase tracking-widest border-b border-[#ead9cd] dark:border-primary/5 pb-1 mb-1">
+                                Last Order Items
+                              </p>
+                              {customer.last_order_items?.map((item, i) => (
+                                <div
+                                  key={i}
+                                  className="text-[12px] font-medium"
                                 >
-                                  {item}
-                                </Badge>
-                              ))
-                          ) : (
-                            <span className="text-[10px] text-gray-400 font-medium italic">
-                              No items
-                            </span>
-                          )}
-                          {customer.last_order_items &&
-                            customer.last_order_items.length > 2 && (
-                              <span className="text-[9px] text-gray-400 self-center ">
-                                +{customer.last_order_items.length - 2}
-                              </span>
-                            )}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right py-3.5 pr-6">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            className="h-8 w-8 p-0 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
-                          >
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                          align="end"
-                          className="w-44 rounded-xl shadow-xl border-gray-100 p-1"
-                        >
-                          <DropdownMenuLabel className="text-[10px]  text-gray-400 uppercase tracking-widest px-2 py-1.5">
-                            Customer Actions
-                          </DropdownMenuLabel>
-                          <DropdownMenuItem
-                            className="cursor-pointer gap-2 text-xs  rounded-lg focus:bg-orange-50 focus:text-orange-600"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              navigator.clipboard.writeText(
-                                customer.phone_number,
-                              )
-                            }}
-                          >
-                            <Phone className="w-3.5 h-3.5" />
-                            Copy Phone
-                          </DropdownMenuItem>
-                          {customer.email && (
-                            <DropdownMenuItem
-                              className="cursor-pointer gap-2 text-xs  rounded-lg focus:bg-orange-50 focus:text-orange-600"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                navigator.clipboard.writeText(
-                                  customer.email || '',
-                                )
-                              }}
-                            >
-                              <Mail className="w-3.5 h-3.5" />
-                              Copy Email
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem
-                            className="cursor-pointer gap-2 text-xs font-black text-orange-600 rounded-lg focus:bg-orange-50 focus:text-orange-700"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              onSelectCustomer(customer.user_id.toString())
-                            }}
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            View Full Insights
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                                  • {item}
+                                </div>
+                              ))}
+                              {(!customer.last_order_items ||
+                                customer.last_order_items.length === 0) && (
+                                <p className="text-[11px] text-[#a16b45]/60">
+                                  No items found
+                                </p>
+                              )}
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </TableCell>
+                  <TableCell className="pr-6">
+                    <ChevronRight className="h-4 w-4 text-[#000000] opacity-100 group-hover:translate-x-0.5 transition-all duration-300" />
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-between items-center px-1">
-          <div className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-gray-400">
-            Page <span className="text-gray-900">{currentPage}</span> of{' '}
-            <span className="text-gray-900">{totalPages}</span>
+      {/* Infinite Scroll Sentinel */}
+      {hasMore && (
+        <div
+          ref={sentinelRef}
+          className="h-20 flex items-center justify-center"
+        >
+          <div className="flex items-center gap-2 text-[10px] font-black text-orange-500 uppercase tracking-widest animate-pulse">
+            <div className="h-1.5 w-1.5 rounded-full bg-orange-500" />
+            <span>Loading more...</span>
+            <div className="h-1.5 w-1.5 rounded-full bg-orange-500" />
           </div>
-          <div className="flex gap-2">
-            <Button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              variant="outline"
-              size="sm"
-              className="h-8 px-3 rounded-xl border-gray-100 text-xs font-bold disabled:opacity-30"
-            >
-              <ChevronLeft className="h-3.5 w-3.5 mr-1" />
-              Prev
-            </Button>
-            <Button
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              variant="outline"
-              size="sm"
-              className="h-8 px-3 rounded-xl border-gray-100 text-xs font-bold disabled:opacity-30"
-            >
-              Next
-              <ChevronRight className="h-3.5 w-3.5 ml-1" />
-            </Button>
-          </div>
+        </div>
+      )}
+
+      {/* End of results message */}
+      {!hasMore && filteredData.length > 0 && (
+        <div className="py-8 text-center">
+          <p className="text-[10px] font-black text-[#a16b45]/40 uppercase tracking-[0.2em]">
+            End of Results
+          </p>
         </div>
       )}
     </div>

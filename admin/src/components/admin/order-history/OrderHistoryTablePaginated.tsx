@@ -1,6 +1,5 @@
-import { useState, useCallback, useMemo } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { useState, useCallback, useMemo, useEffect } from 'react'
+import { Loader2, ArrowUp } from 'lucide-react'
 import { PrintBillDialog } from './shared/PrintBillDialog'
 import { formatDateTime } from '@/utils/dateUtils'
 import { OrderHistoryStatsCards } from './large/components/OrderHistoryStatsCards'
@@ -8,31 +7,30 @@ import { LargeOrderFilters } from './large/components/LargeOrderFilters'
 import { LargeOrderCard } from './large/components/LargeOrderCard'
 import { useMergeOrders } from '@/hooks/mutations/useMergeOrders'
 import useToast from '@/hooks/UseToast'
+import { useLoadMore } from '@/hooks/useLoadMore'
 
 interface OrderHistoryTablePaginatedProps {
   items: any[]
   loading: boolean
+  isFetching?: boolean
   error: string | null
   pagination: any | null
-  currentPage: number
-  onPageChange: (page: number) => void
+  hasNextPage?: boolean
   onNextPage: () => void
-  onPrevPage: () => void
   search: string
   onSearchChange: (search: string) => void
-  onDateRangeChange: (start_date?: string, end_date?: string) => void
+  onDateRangeChange: (start_date?: string, end_date?: string, filter_type?: string) => void
   onClearFilters: () => void
 }
 
 export default function OrderHistoryTablePaginated({
   items = [],
   loading,
+  isFetching,
   error,
   pagination,
-  currentPage,
-  onPageChange,
+  hasNextPage,
   onNextPage,
-  onPrevPage,
   search,
   onSearchChange,
   onDateRangeChange,
@@ -42,8 +40,40 @@ export default function OrderHistoryTablePaginated({
   const [selectedOrderForBill, setSelectedOrderForBill] = useState<any>(null)
   const [selectedCartIds, setSelectedCartIds] = useState<Set<string>>(new Set())
   const [isSelectionMode, setIsSelectionMode] = useState(false)
+  const [showScrollTop, setShowScrollTop] = useState(false)
   const mergeMutation = useMergeOrders()
   const { showError } = useToast()
+
+  // Progressive rendering with useLoadMore - natural page scroll
+  const { visibleItems, hasMore, sentinelRef } = useLoadMore(items, 10)
+
+  // Sync server-side loading with local progressive rendering
+  useEffect(() => {
+    // Trigger server fetch only when local cache is exhausted and no fetch is currently active
+    if (
+      hasNextPage &&
+      !isFetching &&
+      visibleItems.length >= items.length &&
+      items.length > 0
+    ) {
+      onNextPage()
+    }
+  }, [visibleItems.length, items.length, hasNextPage, isFetching, onNextPage])
+
+  // Show/hide scroll to top button based on window scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400)
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // Scroll to top handler
+  const scrollToTop = useCallback(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
 
   // Get currently selected customer ID to restrict selection
   const activeCustomerId = useMemo(() => {
@@ -53,10 +83,7 @@ export default function OrderHistoryTablePaginated({
     return order?.customerId || order?.customer_id
   }, [selectedCartIds, items])
 
-  const totalPages = pagination?.total_pages || 1
   const totalOrders = pagination?.total_orders || 0
-  const hasNextPage = pagination?.has_next_page || false
-  const hasPrevPage = pagination?.has_prev_page || false
 
   // Print bill handler
   const handlePrintBill = useCallback((order: any) => {
@@ -130,11 +157,13 @@ export default function OrderHistoryTablePaginated({
   }, [])
 
   return (
-    <div className="relative p-4 lg:p-10 space-y-8 bg-slate-50/30">
+    <div className="relative bg-slate-50/30">
       {/* Stats Cards */}
-      <OrderHistoryStatsCards stats={pagination} />
+      <div className="p-4 lg:p-10 pb-4">
+        <OrderHistoryStatsCards stats={pagination} />
+      </div>
 
-      {/* Filters Section */}
+      {/* Filters Section - Sticky */}
       <LargeOrderFilters
         search={search}
         onSearchChange={onSearchChange}
@@ -149,14 +178,16 @@ export default function OrderHistoryTablePaginated({
 
       {/* Error State */}
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
-          {error}
+        <div className="px-4 lg:px-10 pb-8">
+          <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
+            {error}
+          </div>
         </div>
       )}
 
-      {/* Orders List */}
-      <div className="space-y-6">
-        {loading ? (
+      {/* Orders List - Progressive rendering with natural page scroll */}
+      <div className="px-4 lg:px-10 space-y-6 pb-8">
+        {loading && items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 space-y-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
             <p className="text-[#a16b45] font-medium">Loading orders...</p>
@@ -168,70 +199,73 @@ export default function OrderHistoryTablePaginated({
             </p>
           </div>
         ) : (
-          items.map((order, index) => (
-            <LargeOrderCard
-              key={`${order.id}-${index}`}
-              order={order}
-              onPrintBill={handlePrintBill}
-              isSelectionMode={isSelectionMode}
-              isSelected={selectedCartIds.has(order.id)}
-              onSelect={() => toggleSelection(order.id)}
-              isSelectionDisabled={
-                activeCustomerId !== null &&
-                activeCustomerId !== (order.customerId || order.customer_id)
-              }
-            />
-          ))
+          <>
+            {visibleItems.map((order) => (
+              <LargeOrderCard
+                key={order.id}
+                order={order}
+                onPrintBill={handlePrintBill}
+                isSelectionMode={isSelectionMode}
+                isSelected={selectedCartIds.has(order.id)}
+                onSelect={() => toggleSelection(order.id)}
+                isSelectionDisabled={
+                  activeCustomerId !== null &&
+                  activeCustomerId !== (order.customerId || order.customer_id)
+                }
+              />
+            ))}
+
+            {/* Intersection Observer Sentinel for Progressive Loading */}
+            {(hasNextPage || hasMore) && (
+              <div
+                ref={sentinelRef}
+                className="flex flex-col items-center justify-center py-12 gap-3"
+              >
+                {isFetching || (hasNextPage && !hasMore) ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <Loader2 className="size-8 text-primary animate-spin" />
+                    <p className="text-sm font-bold text-[#a16b45] uppercase tracking-widest">
+                      Loading more orders...
+                    </p>
+                  </div>
+                ) : (
+                  <div className="h-2 w-2 rounded-full bg-[#ead9cd] animate-pulse" />
+                )}
+              </div>
+            )}
+
+            {!hasNextPage && !hasMore && items.length > 0 && (
+              <div className="py-12 text-center">
+                <p className="text-sm font-bold text-[#a16b45]/40 uppercase tracking-widest">
+                  End of Order History
+                </p>
+              </div>
+            )}
+          </>
         )}
       </div>
 
-      {/* Pagination Style matched to mockup */}
-      <div className="pt-6 border-t border-[#ead9cd] dark:border-primary/10 flex items-center justify-between">
-        <p className="text-sm text-[#a16b45]">
-          Showing{' '}
-          <span className="font-bold text-[#1d130c] dark:text-white">
-            {items.length}
-          </span>{' '}
-          of {totalOrders} orders
-        </p>
-
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={onPrevPage}
-            disabled={!hasPrevPage || loading}
-            className="size-10 rounded-xl bg-white dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 text-[#a16b45] hover:text-primary transition-all"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </Button>
-
-          {/* Simple Page Numbers */}
-          {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => (
-            <Button
-              key={i}
-              onClick={() => onPageChange(i + 1)}
-              className={`size-10 rounded-xl font-bold transition-all ${
-                currentPage === i + 1
-                  ? 'bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary'
-                  : 'bg-white dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 text-[#a16b45] hover:text-primary'
-              }`}
-            >
-              {i + 1}
-            </Button>
-          ))}
-
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={onNextPage}
-            disabled={!hasNextPage || loading}
-            className="size-10 rounded-xl bg-white dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 text-[#a16b45] hover:text-primary transition-all"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </Button>
+      {/* Footer Summary */}
+      {items.length > 0 && (
+        <div className="px-4 lg:px-10 py-6 border-t border-[#ead9cd] dark:border-primary/10 flex items-center justify-between bg-slate-50/30">
+          <p className="text-sm text-[#a16b45]">
+            Showing{' '}
+            <span className="font-bold text-[#1d130c] dark:text-white">
+              {items.length}
+            </span>{' '}
+            of{' '}
+            <span className="font-bold text-[#1d130c] dark:text-white">
+              {totalOrders}
+            </span>{' '}
+            orders
+          </p>
+          {hasNextPage && (
+            <p className="text-xs text-[#a16b45] italic">
+              Scroll to load more
+            </p>
+          )}
         </div>
-      </div>
+      )}
 
       {/* Print Bill Dialog */}
       <PrintBillDialog
@@ -239,6 +273,17 @@ export default function OrderHistoryTablePaginated({
         onOpenChange={setShowBillDialog}
         billData={selectedOrderForBill}
       />
+
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 z-50 size-14 rounded-full bg-primary text-white shadow-2xl shadow-primary/30 hover:shadow-primary/50 hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center group animate-in fade-in slide-in-from-bottom-4"
+          aria-label="Scroll to top"
+        >
+          <ArrowUp className="size-6 group-hover:-translate-y-0.5 transition-transform duration-300" />
+        </button>
+      )}
     </div>
   )
 }

@@ -8,6 +8,7 @@ interface OrderHistoryQueryParams {
   search?: string
   start_date?: string
   end_date?: string
+  filter_type?: string
 }
 
 interface OrderHistoryResponse {
@@ -32,10 +33,16 @@ export const useOrderHistoryQuery = ({
   search = '',
   start_date,
   end_date,
+  filter_type,
 }: OrderHistoryQueryParams) => {
   return useQuery<OrderHistoryResponse>({
-    queryKey: ['order-history', rid, page, limit, search, start_date, end_date],
+    queryKey: ['order-history', rid, page, limit, search, start_date, end_date, filter_type],
     queryFn: async () => {
+      // Ensure rid is valid before making the request
+      if (!rid) {
+        throw new Error('Restaurant ID is required')
+      }
+
       const params: Record<string, any> = {
         rid,
         page,
@@ -44,6 +51,10 @@ export const useOrderHistoryQuery = ({
 
       if (search && search.trim() !== '') {
         params.search = search.trim()
+      }
+
+      if (filter_type) {
+        params.filter_type = filter_type
       }
 
       if (start_date) {
@@ -61,10 +72,12 @@ export const useOrderHistoryQuery = ({
       // The API returns data nested in response.data.data
       return response.data.data || response.data
     },
-    enabled: !!rid,
-    staleTime: 0, // Always consider data stale - refetch on every page change
-    gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes (formerly cacheTime)
-    refetchOnMount: true, // Always refetch when component mounts
+    enabled: !!rid, // Only run query if rid exists
+    staleTime: 1000, // Consider data fresh for 1 second to prevent rapid refetches
+    gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
+    refetchOnMount: false, // Don't refetch on mount if data is fresh
     refetchOnWindowFocus: false,
+    retry: 1, // Only retry once on failure
+    retryDelay: 1000, // Wait 1 second before retrying
   })
 }

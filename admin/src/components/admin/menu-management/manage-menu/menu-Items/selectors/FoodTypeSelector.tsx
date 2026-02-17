@@ -1,4 +1,5 @@
-import { HelpCircle, LeafyGreen, Triangle } from 'lucide-react'
+import { HelperTooltip } from '@/components/common/HelperTooltip'
+import { LeafyGreen, Triangle } from 'lucide-react'
 
 export default function FoodTypeSelector({ selectedType, onTypeChange }: any) {
   return (
@@ -10,12 +11,7 @@ export default function FoodTypeSelector({ selectedType, onTypeChange }: any) {
             Food Type
           </h2>
         </div>
-        <div className="group relative">
-          <HelpCircle className="h-4 w-4 text-gray-400 cursor-help" />
-          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
-            Food type of the item
-          </div>
-        </div>
+        <HelperTooltip content="Food type of the item" />
       </div>
       <div className="flex gap-2 sm:gap-3">
         <button

@@ -116,11 +116,11 @@ const VariantManagerMain: React.FC<ExtendedVariantManagerProps> = ({
 
   return (
     <div className="">
-      <div className="bg-white rounded-lg shadow-sm">
+      <div className="rounded-lg">
         <Accordion
           type="single"
           collapsible
-          className="w-full border-b border-dashed border-black"
+          className="w-full border-b border-dashed border-gray-400"
         >
           <AccordionItem value="variant-manager" className="border-0">
             <AccordionTrigger className="hover:no-underline px-3 py-3 sm:px-6 sm:py-4 text-base sm:text-xl font-semibold justify-between">
