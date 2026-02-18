@@ -73,6 +73,17 @@ const handleAuth = async (req) => {
       [access_token, refresh_token, userData.uid]
     );
 
+    // Create session entry for multi-device support
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+    const deviceInfo = req.headers['user-agent'] ? req.headers['user-agent'].substring(0, 255) : null;
+    const ipAddress = req.ip || req.connection?.remoteAddress || null;
+    
+    await pool.query(
+      `INSERT INTO user_sessions (user_id, refresh_token, device_info, ip_address, user_agent, expires_at) 
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [userData.id, refresh_token, deviceInfo, ipAddress, req.headers['user-agent'], expiresAt]
+    );
+
     return apiResponse.success(200, "Authentication successful", {
       data: {
         id: userData.id,
@@ -260,7 +271,18 @@ const verifyMagicLink = async (req) => {
     await pool.query(
       "UPDATE users SET access_token = ?, refresh_token = ? WHERE id = ?",
       [access_token, refresh_token, userData.id]
-    ); 
+    );
+
+    // Create session entry for multi-device support
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+    const deviceInfo = req.headers['user-agent'] ? req.headers['user-agent'].substring(0, 255) : null;
+    const ipAddress = req.ip || req.connection?.remoteAddress || null;
+    
+    await pool.query(
+      `INSERT INTO user_sessions (user_id, refresh_token, device_info, ip_address, user_agent, expires_at) 
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [userData.id, refresh_token, deviceInfo, ipAddress, req.headers['user-agent'], expiresAt]
+    );
 
     return apiResponse.success(200, "Authentication successful", {
       data: {
@@ -314,6 +336,17 @@ const admin_login = async (req) => {
     await pool.query(
       "UPDATE users SET access_token = ?, refresh_token = ? WHERE uid = ?",
       [access_token, refresh_token, userData.uid]
+    );
+
+    // Create session entry for multi-device support
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+    const deviceInfo = req.headers['user-agent'] ? req.headers['user-agent'].substring(0, 255) : null;
+    const ipAddress = req.ip || req.connection?.remoteAddress || null;
+    
+    await pool.query(
+      `INSERT INTO user_sessions (user_id, refresh_token, device_info, ip_address, user_agent, expires_at) 
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [userData.id, refresh_token, deviceInfo, ipAddress, req.headers['user-agent'], expiresAt]
     );
 
     let [restaurant_rids] = await pool.query(

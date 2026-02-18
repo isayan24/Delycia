@@ -27,55 +27,74 @@ const refresh = async (req, res) => {
     // Verify the refresh token
     const decoded = jwt.verify(refresh_token, process.env.REFRESH_SECRET);
     
-    // Verify the refresh token exists in the database and matches
-    const [result] = await pool.query(
-      "SELECT id, uid, role, name, username, email, phone_number, profile_pic, refresh_token FROM users WHERE uid = ?",
+    // Get user data
+    const [userResult] = await pool.query(
+      "SELECT id, uid, role, name, username, email, phone_number, profile_pic FROM users WHERE uid = ?",
       [decoded.uid]
     );
 
-    if (!result.length) {
+    if (!userResult.length) {
       return res.status(401).json({ 
         status: false, 
         error: "User not found" 
       });
     }
 
-    const userData = result[0];
+    const userData = userResult[0];
 
-    // Verify the refresh token matches the one in the database
-    if (userData.refresh_token !== refresh_token) {
-      return res.status(401).json({ 
-        status: false, 
-        error: "Invalid refresh token" 
-      });
-    }
-
-    // Generate new access token AND new refresh token (token rotation)
-    const newAccessToken = authUtil.generateAccessToken(userData);
-    const newRefreshToken = authUtil.generateRefreshToken(userData);
-
-    // Update the refresh token in the database
-    await pool.query(
-      "UPDATE users SET access_token = ?, refresh_token = ? WHERE uid = ?",
-      [newAccessToken, newRefreshToken, userData.uid]
+    // Check if this refresh token exists in user_sessions table
+    const [sessionResult] = await pool.query(
+      "SELECT id, expires_at FROM user_sessions WHERE user_id = ? AND refresh_token = ? AND expires_at > NOW()",
+      [userData.id, refresh_token]
     );
 
-    // Set new tokens in httpOnly cookies
-    authUtil.setCookies(res, "access_token", newAccessToken, 7);
-    authUtil.setCookies(res, "refresh_token", newRefreshToken, 30);
+    if (!sessionResult.length) {
+      // Fallback: Check old single-token system (for backward compatibility)
+      const [legacyCheck] = await pool.query(
+        "SELECT refresh_token FROM users WHERE id = ? AND refresh_token = ?",
+        [userData.id, refresh_token]
+      );
+      
+      if (!legacyCheck.length) {
+        return res.status(401).json({ 
+          status: false, 
+          error: "Invalid refresh token" 
+        });
+      }
+    }
 
-    // Return success response with new tokens
+    // Generate new access token (keep same refresh token for multi-device support)
+    const newAccessToken = authUtil.generateAccessToken(userData);
+
+    // Update access token in users table
+    await pool.query(
+      "UPDATE users SET access_token = ? WHERE uid = ?",
+      [newAccessToken, userData.uid]
+    );
+
+    // Update last_used_at in user_sessions if session exists
+    if (sessionResult.length) {
+      await pool.query(
+        "UPDATE user_sessions SET last_used_at = NOW() WHERE id = ?",
+        [sessionResult[0].id]
+      );
+    }
+
+    // Set new access token in httpOnly cookie (keep refresh token unchanged)
+    authUtil.setCookies(res, "access_token", newAccessToken, 7);
+
+    // Return success response with new access token
     res.status(200).json({ 
       status: true, 
-      message: "Tokens refreshed successfully",
+      message: "Token refreshed successfully",
       access_token: newAccessToken,
-      refresh_token: newRefreshToken
+      refresh_token: refresh_token // Return same refresh token
     });
   } catch (error) {
-    console.error("Token refresh error:", error);
+    console.error("[refresh] Token refresh error:", error.message);
     res.status(401).json({ 
       status: false, 
-      error: "Token expired or invalid, please login again" 
+      error: "Invalid refresh token" 
     });
   }
 };
@@ -115,9 +134,61 @@ const create_admin = async (req, res) => {
   res.status(response.statusCode).json(response);
 };
 
+const logout = async (req, res) => {
+  const refresh_token = req.cookies?.refresh_token || req.headers?.authorization?.split(" ")[1];
+  
+  console.log('[logout] Logout request received');
+  
+  if (!refresh_token) {
+    console.log('[logout] No refresh token provided');
+    // Clear cookies anyway
+    authUtil.setCookies(res, "access_token", "", -1);
+    authUtil.setCookies(res, "refresh_token", "", -1);
+    return res.status(200).json({ 
+      status: true, 
+      message: "Logged out successfully" 
+    });
+  }
+
+  try {
+    // Verify the refresh token to get user info
+    const decoded = jwt.verify(refresh_token, process.env.REFRESH_SECRET);
+    console.log('[logout] Logging out user:', decoded.uid);
+    
+    // Delete this specific session from user_sessions
+    const [deleteResult] = await pool.query(
+      "DELETE FROM user_sessions WHERE refresh_token = ?",
+      [refresh_token]
+    );
+    
+    console.log('[logout] Deleted session, affected rows:', deleteResult.affectedRows);
+    
+    // Clear cookies
+    authUtil.setCookies(res, "access_token", "", -1);
+    authUtil.setCookies(res, "refresh_token", "", -1);
+    
+    console.log('[logout] ✅ Logout successful for user:', decoded.uid);
+    
+    res.status(200).json({ 
+      status: true, 
+      message: "Logged out successfully" 
+    });
+  } catch (error) {
+    console.error("[logout] Logout error:", error.message);
+    // Clear cookies anyway
+    authUtil.setCookies(res, "access_token", "", -1);
+    authUtil.setCookies(res, "refresh_token", "", -1);
+    res.status(200).json({ 
+      status: true, 
+      message: "Logged out successfully" 
+    });
+  }
+};
+
 export default {
   handleAuth,
   refresh,
+  logout,
   requestLoginLink,
   verifyMagicLink,
   admin_login,

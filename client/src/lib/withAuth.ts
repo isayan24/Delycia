@@ -1,8 +1,12 @@
-import axiosInstance from './axios'
 import { parseCookies, getAccessTokenFromCookie } from './server-cookies'
+import { refreshCoordinator } from './refreshCoordinator'
+import { tokenCache } from './tokenCache'
 
 /**
  * Server-side (BFF) auth helper that handles token refresh transparently.
+ *
+ * This helper uses the RefreshCoordinator to ensure only ONE token refresh
+ * happens at a time, even when multiple concurrent requests need a refresh.
  *
  * Usage in any BFF route handler:
  * ```ts
@@ -16,13 +20,13 @@ import { parseCookies, getAccessTokenFromCookie } from './server-cookies'
  *
  * The helper:
  * 1. Extracts access token from request cookies
- * 2. Calls your function with the token
- * 3. If the function throws a 401/403 ("Token expired"), it:
- *    - Extracts refresh token from request cookies
- *    - Calls the backend refresh endpoint directly
- *    - Retries your function with the new access token
+ * 2. Checks token cache for fresh token (from recent refresh)
+ * 3. Calls your function with the token
+ * 4. If the function throws a 401/403 ("Token expired"), it:
+ *    - Delegates to RefreshCoordinator for token refresh
+ *    - Retries your function with the new access token (ONCE)
  *    - Adds Set-Cookie headers to update httpOnly cookies
- * 4. If refresh fails, returns a 401 Response
+ * 5. If refresh fails or retry still fails, returns a 401 Response
  */
 
 interface WithAuthOptions {
@@ -63,49 +67,53 @@ export async function withAuth(
 ): Promise<Response> {
   const { requireAuth = true } = options
 
-  const accessToken = getAccessTokenFromCookie(request)
+  // First, try to get the freshest token from cache
+  const cookieHeader = request.headers.get('cookie')
+  const cookies = parseCookies(cookieHeader)
+  const refreshToken = cookies['refresh_token']
 
-  if (!accessToken) {
-    if (requireAuth) {
-      return new Response(
-        JSON.stringify({
-          status: 401,
-          message: 'Not authenticated',
-          error: true,
-        }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } },
-      )
+  let accessToken = getAccessTokenFromCookie(request)
+
+  // Check if we have a fresher token in cache (from a recent refresh)
+  if (refreshToken) {
+    const cachedToken = tokenCache.get(refreshToken)
+    if (cachedToken) {
+      accessToken = cachedToken
     }
-    // If auth is not required, call fn with empty token
-    return fn('', new Headers())
   }
 
-  try {
-    // First attempt with current access token
-    return await fn(accessToken, new Headers())
-  } catch (error: any) {
-    if (!isTokenExpiredError(error)) {
-      // Not an auth error — rethrow
-      throw error
+  if (!accessToken) {
+    if (!requireAuth) {
+      return fn('', new Headers())
     }
 
-    // Attempt token refresh
-    const refreshResult = await refreshTokensServerSide(request)
+    // Attempt refresh through coordinator
+    const refreshResult = await refreshCoordinator.refreshTokens(request)
 
     if (!refreshResult) {
-      // Refresh failed — return 401
+      // Clear expired cookies
+      const clearCookieHeaders = new Headers()
+      clearCookieHeaders.append(
+        'Set-Cookie',
+        'access_token=; Max-Age=0; HttpOnly; SameSite=strict; Path=/',
+      )
+      clearCookieHeaders.append(
+        'Set-Cookie',
+        'refresh_token=; Max-Age=0; HttpOnly; SameSite=strict; Path=/',
+      )
+
       return new Response(
         JSON.stringify({
           status: 401,
           message: 'Session expired. Please log in again.',
           error: true,
+          sessionExpired: true,
         }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } },
+        { status: 401, headers: clearCookieHeaders },
       )
     }
 
-    // Retry the original request with the new access token
-    // Pass Set-Cookie headers so the browser gets the updated tokens
+    // Retry with new token
     const refreshHeaders = new Headers()
     for (const cookie of refreshResult.setCookieHeaders) {
       refreshHeaders.append('Set-Cookie', cookie)
@@ -113,73 +121,85 @@ export async function withAuth(
 
     return await fn(refreshResult.accessToken, refreshHeaders)
   }
-}
 
-// ─────────────────────────────────────────────────────────
-// Internal: Server-side token refresh
-// ─────────────────────────────────────────────────────────
-
-interface RefreshResult {
-  accessToken: string
-  setCookieHeaders: string[]
-}
-
-/**
- * Refresh tokens by calling the backend directly from the server side.
- * This bypasses the BFF refresh route and talks to the backend refresh endpoint.
- */
-async function refreshTokensServerSide(
-  request: Request,
-): Promise<RefreshResult | null> {
   try {
-    const cookieHeader = request.headers.get('cookie')
-    const cookies = parseCookies(cookieHeader)
-    const refreshToken = cookies['refresh_token']
-
-    if (!refreshToken) {
-      console.error('[withAuth] No refresh token found in cookies')
-      return null
-    }
-
-    // Call the backend refresh endpoint directly
-    const response = await axiosInstance.post('/users/auth/refresh', null, {
-      headers: {
-        Authorization: `Bearer ${refreshToken}`,
-        Accept: 'application/json',
-      },
-    })
-
-    // Backend returns: { status: true, refresh_token, access_token }
-    if (response.data?.access_token && response.data?.refresh_token) {
-      const { access_token, refresh_token } = response.data
-
-      console.log('[withAuth] Token refreshed successfully')
-
-      // Build Set-Cookie headers for the new tokens
-      const isProduction = process.env.NODE_ENV === 'production'
-      const secure = isProduction ? 'Secure;' : ''
-      const setCookieHeaders = [
-        `access_token=${access_token}; Max-Age=${7 * 24 * 60 * 60}; HttpOnly; ${secure} SameSite=strict; Path=/`,
-        `refresh_token=${refresh_token}; Max-Age=${30 * 24 * 60 * 60}; HttpOnly; ${secure} SameSite=strict; Path=/`,
-      ]
-
-      return {
-        accessToken: access_token,
-        setCookieHeaders,
-      }
-    }
-
-    console.error(
-      '[withAuth] Backend refresh returned unexpected data:',
-      response.data,
-    )
-    return null
+    // First attempt with current access token
+    return await fn(accessToken, new Headers())
   } catch (error: any) {
-    console.error(
-      '[withAuth] Token refresh failed:',
-      error?.response?.data || error.message,
-    )
-    return null
+    // Check if this is a token expiration error (401 or 403 with "Token expired")
+    if (!isTokenExpiredError(error)) {
+      // Not an auth error — rethrow
+      throw error
+    }
+
+    // Token expired → attempt refresh through coordinator
+    const refreshResult = await refreshCoordinator.refreshTokens(request)
+
+    if (!refreshResult) {
+      // Clear expired cookies
+      const clearCookieHeaders = new Headers({
+        'Content-Type': 'application/json',
+      })
+      clearCookieHeaders.append(
+        'Set-Cookie',
+        'access_token=; Max-Age=0; HttpOnly; SameSite=strict; Path=/',
+      )
+      clearCookieHeaders.append(
+        'Set-Cookie',
+        'refresh_token=; Max-Age=0; HttpOnly; SameSite=strict; Path=/',
+      )
+
+      return new Response(
+        JSON.stringify({
+          status: 401,
+          message: 'Session expired. Please log in again.',
+          error: true,
+          sessionExpired: true,
+        }),
+        { status: 401, headers: clearCookieHeaders },
+      )
+    }
+
+    // Retry with new token (mark as retry to prevent infinite loops)
+    const refreshHeaders = new Headers()
+    for (const cookie of refreshResult.setCookieHeaders) {
+      refreshHeaders.append('Set-Cookie', cookie)
+    }
+
+    try {
+      return await fn(refreshResult.accessToken, refreshHeaders)
+    } catch (retryError: any) {
+      // If retry also fails with auth error, give up and force logout
+      const retryStatus = retryError?.response?.status
+      if (retryStatus === 401 || retryStatus === 403) {
+        console.error(
+          '[withAuth] Retry with refreshed token failed - forcing logout',
+        )
+        const clearCookieHeaders = new Headers({
+          'Content-Type': 'application/json',
+        })
+        clearCookieHeaders.append(
+          'Set-Cookie',
+          'access_token=; Max-Age=0; HttpOnly; SameSite=strict; Path=/',
+        )
+        clearCookieHeaders.append(
+          'Set-Cookie',
+          'refresh_token=; Max-Age=0; HttpOnly; SameSite=strict; Path=/',
+        )
+
+        return new Response(
+          JSON.stringify({
+            status: 401,
+            message: 'Session expired. Please log in again.',
+            error: true,
+            sessionExpired: true,
+          }),
+          { status: 401, headers: clearCookieHeaders },
+        )
+      }
+      // If it's not an auth error, rethrow
+      throw retryError
+    }
   }
 }
 

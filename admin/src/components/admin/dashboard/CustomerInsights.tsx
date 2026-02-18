@@ -11,10 +11,10 @@ interface CustomerActivityProps {
 }
 
 const CustomerActivityCard: React.FC<{ row: any }> = ({ row }) => (
-  <div className="group bg-white dark:bg-[#2d1e14] rounded-2xl border border-[#ead9cd] dark:border-primary/10 p-4 md:p-5 shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 flex flex-col gap-3 md:gap-4">
+  <div className="group bg-white dark:bg-[#2d1e14] rounded-xl border border-[#ead9cd] dark:border-primary/10 p-5 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col gap-4">
     <div className="flex justify-between items-start">
-      <div className="flex items-center gap-2 md:gap-3">
-        <div className="size-10 md:size-12 rounded-full bg-orange-50 dark:bg-[#3a291d] text-orange-600 flex items-center justify-center font-bold text-base md:text-lg border border-orange-100 dark:border-primary/5 overflow-hidden">
+      <div className="flex items-center gap-3">
+        <div className="size-11 md:size-12 rounded-full bg-slate-50 dark:bg-[#3a291d] text-slate-400 flex items-center justify-center font-bold text-lg md:text-xl border border-slate-100 dark:border-primary/5 overflow-hidden">
           {row.profilePic ? (
             <img
               src={row.profilePic}
@@ -27,10 +27,10 @@ const CustomerActivityCard: React.FC<{ row: any }> = ({ row }) => (
           )}
         </div>
         <div className="flex flex-col">
-          <span className="font-bold text-slate-900 dark:text-white text-sm md:text-base leading-tight">
+          <span className="font-semibold text-slate-900 dark:text-white text-[15px] md:text-lg leading-tight group-hover:text-orange-600 transition-colors">
             {row.customerName || 'Guest'}
           </span>
-          <span className="text-[10px] md:text-xs text-[#a16b45] flex items-center gap-1 font-semibold mt-0.5">
+          <span className="text-[11px] md:text-sm text-slate-400 flex items-center gap-1 font-medium mt-1">
             <Phone className="size-2.5 md:size-3" />
             {row.phoneNumber || 'N/A'}
           </span>
@@ -39,32 +39,30 @@ const CustomerActivityCard: React.FC<{ row: any }> = ({ row }) => (
       <Link
         to="/reports/crm"
         search={{ customerId: row.userId.toString() }}
-        className="size-8 md:size-9 rounded-xl bg-orange-50 dark:bg-[#3a291d] text-orange-600 flex items-center justify-center hover:bg-orange-600 hover:text-white transition-all shadow-sm"
+        className="size-8 rounded-lg text-slate-300 group-hover:text-orange-500 flex items-center justify-center transition-colors"
       >
-        <ExternalLink className="size-3.5 md:size-4" />
+        <ExternalLink className="size-4 md:size-4.5" />
       </Link>
     </div>
 
-    <div className="grid grid-cols-2 gap-2 md:gap-3 py-2 border-y border-dashed border-[#ead9cd] dark:border-primary/10">
-      <div className="flex flex-col gap-0.5 md:gap-1">
-        <span className="text-[9px] md:text-[10px] font-black text-[#a16b45] uppercase tracking-widest">
-          Orders
+    <div className="grid grid-cols-2 gap-4 py-1">
+      <div className="flex flex-col gap-1">
+        <span className="text-[9px] md:text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+          Recent Orders
         </span>
-        <div className="flex items-center gap-1.5 md:gap-2">
-          <div className="size-6 md:size-7 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center scale-90 md:scale-100">
-            <ShoppingBag className="size-3.5 md:size-4" />
-          </div>
-          <span className="font-bold text-slate-900 dark:text-white text-xs md:text-sm">
+        <div className="flex items-center gap-2">
+          <ShoppingBag className="size-3.5 md:size-4 text-orange-500" />
+          <span className="font-bold text-slate-900 dark:text-white text-sm md:text-base">
             {row.totalOrders}
           </span>
         </div>
       </div>
-      <div className="flex flex-col gap-0.5 md:gap-1">
-        <span className="text-[9px] md:text-[10px] font-black text-[#a16b45] uppercase tracking-widest">
-          Total Spent
+      <div className="flex flex-col gap-1">
+        <span className="text-[9px] md:text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+          Total Invested
         </span>
-        <div className="flex items-center gap-1 md:gap-1.5 mt-0.5 md:mt-0">
-          <span className="font-black text-emerald-600 text-sm md:text-base">
+        <div className="flex items-center">
+          <span className="font-black text-slate-900 dark:text-white text-sm md:text-base">
             ₹
             {row.totalSpent.toLocaleString('en-IN', {
               minimumFractionDigits: 0,
@@ -74,22 +72,22 @@ const CustomerActivityCard: React.FC<{ row: any }> = ({ row }) => (
       </div>
     </div>
 
-    <div className="space-y-2 md:space-y-3">
-      <div className="flex items-center justify-between text-[10px] md:text-[11px]">
-        <span className="font-bold text-[#a16b45] uppercase tracking-wider flex items-center gap-1 md:gap-1.5">
+    <div className="space-y-4 pt-1">
+      <div className="flex items-center justify-between text-[11px] md:text-[13px]">
+        <span className="font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
           <Calendar className="size-3 md:size-3.5" />
-          Last Order
+          Last Visit
         </span>
         <span className="font-bold text-slate-600 dark:text-slate-300">
           {formatDateTime(row.lastOrderDate)}
         </span>
       </div>
-      <div className="bg-slate-50 dark:bg-[#3a291d]/30 rounded-xl p-2 md:p-3 border border-slate-100 dark:border-primary/5">
-        <span className="text-[9px] md:text-[10px] font-black text-[#a16b45] uppercase tracking-widest block mb-1 md:mb-1.5">
-          Frequently Ordered
+      <div className="space-y-1.5">
+        <span className="text-[9px] md:text-[11px] font-bold text-slate-400 uppercase tracking-widest block">
+          Core Interest
         </span>
-        <p className="text-[11px] md:text-xs text-slate-600 dark:text-slate-400 font-medium line-clamp-1 md:line-clamp-2 italic leading-relaxed">
-          {row.topItems}
+        <p className="text-[12px] md:text-[14px] text-slate-500 dark:text-slate-400 font-medium line-clamp-2 leading-relaxed italic">
+          "{row.topItems}"
         </p>
       </div>
     </div>
@@ -132,7 +130,7 @@ const CustomerActivityTable: React.FC<CustomerActivityProps> = ({ rid }) => {
           <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
             Customer Insights
           </h3>
-          <p className="text-sm text-[#a16b45] font-bold mt-1">
+          <p className="text-sm text-[#a16b45] font-[500] mt-1">
             Analyzing purchase patterns and loyalty
           </p>
         </div>

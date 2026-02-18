@@ -25,62 +25,13 @@ class SessionCleanupService {
 
   /**
    * Start periodic session validation via server.
-   * If the session is invalid, attempt a token refresh before logging out.
+   * REMOVED: Periodic validation now handled by TanStack Query's useAdminAuthQuery
+   * with proper caching (1 minute staleTime). This eliminates redundant API calls.
    */
   private startPeriodicCleanup(): void {
-    // Check session validity every 5 minutes
-    this.cleanupInterval = setInterval(
-      async () => {
-        const isValid = await sessionService.isSessionValid()
-        if (!isValid) {
-          console.log(
-            '[SessionCleanup] Session check failed, attempting refresh...',
-          )
-
-          // Don't immediately clear session — try refreshing first
-          // The /api/auth/session endpoint now handles auto-refresh,
-          // but if that failed too, try an explicit refresh
-          try {
-            const refreshResponse = await axios.post(
-              '/api/auth/refresh',
-              {},
-              { withCredentials: true },
-            )
-
-            if (
-              refreshResponse.status === 200 &&
-              refreshResponse.data?.statusCode === 200
-            ) {
-              console.log(
-                '[SessionCleanup] Token refreshed successfully, re-validating...',
-              )
-              // Re-validate session with new token
-              const recheck = await sessionService.isSessionValid()
-              if (recheck) {
-                console.log('[SessionCleanup] Session recovered after refresh')
-                return // Session is good now, don't clear anything
-              }
-            }
-          } catch (refreshError) {
-            console.error(
-              '[SessionCleanup] Refresh attempt failed:',
-              refreshError,
-            )
-          }
-
-          // Refresh failed — session is truly expired
-          console.log(
-            '[SessionCleanup] Session expired and refresh failed, clearing...',
-          )
-          sessionService.clearSession()
-
-          if (typeof window !== 'undefined') {
-            window.location.href = '/login'
-          }
-        }
-      },
-      5 * 60 * 1000, // 5 minutes
-    )
+    // No-op: Session validation is now handled by TanStack Query
+    // The useAdminAuthQuery hook manages session state with proper caching
+    console.log('[SessionCleanup] Periodic validation disabled - using TanStack Query cache')
   }
 
   /**

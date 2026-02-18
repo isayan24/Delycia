@@ -50,6 +50,13 @@ export const Route = createFileRoute('/api/imagekit')({
             { status: 200, headers: { 'Content-Type': 'application/json' } },
           )
         } catch (error: any) {
+          if (
+              error.response?.status === 401 ||
+              error.response?.status === 403
+            ) {
+              throw error // Let withAuth handle auth errors
+            }
+
           console.error('ImageKit upload error:', error)
           return new Response(
             JSON.stringify({
@@ -109,6 +116,13 @@ export const Route = createFileRoute('/api/imagekit')({
             { status: 200, headers: { 'Content-Type': 'application/json' } },
           )
         } catch (error: any) {
+          if (
+              error.response?.status === 401 ||
+              error.response?.status === 403
+            ) {
+              throw error // Let withAuth handle auth errors
+            }
+            
           console.error('ImageKit delete error:', error)
 
           // If image already deleted or not found, return success

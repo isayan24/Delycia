@@ -122,6 +122,11 @@ const transformDeliveryTypeData = (apiData: any[]): DeliveryTypeData[] => {
 
 /**
  * Fetch dashboard statistics (sales, orders, customers, avg order value)
+ * 
+ * Dashboard stats caching strategy:
+ * - 30 second staleTime: balance between freshness and performance
+ * - 5 minute gcTime: keep stats in cache for quick navigation
+ * - No window focus refetch: stats don't need immediate updates
  */
 export function useDashboardStatsQuery(params: DashboardQueryParams) {
   return useQuery({
@@ -139,8 +144,9 @@ export function useDashboardStatsQuery(params: DashboardQueryParams) {
       return transformStatsData(response.data.stats)
     },
     enabled: !!params.rid,
-    staleTime: 2 * 60 * 1000, // 2 minutes - relatively fresh for real-time metrics
+    staleTime: 30 * 1000, // 30 seconds (increased from 2 minutes for better UX)
     gcTime: 5 * 60 * 1000, // 5 minutes in cache
+    refetchOnWindowFocus: false, // Dashboard stats don't need immediate updates
   })
 }
 

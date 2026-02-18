@@ -19,7 +19,13 @@ export const Route = createFileRoute('/api/category/cuisine-types')({
               'Cache-Control': 'public, max-age=1800', // Cache for 30 minutes
             },
           })
-        } catch (error) {
+        } catch (error: any) {
+          if (
+              error.response?.status === 401 ||
+              error.response?.status === 403
+            ) {
+              throw error // Let withAuth handle auth errors
+            }
           const errorResponse = handleApiError(
             error,
             'Failed to fetch cuisine types',

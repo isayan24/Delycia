@@ -19,7 +19,11 @@ interface OrderHistoryTablePaginatedProps {
   onNextPage: () => void
   search: string
   onSearchChange: (search: string) => void
-  onDateRangeChange: (start_date?: string, end_date?: string, filter_type?: string) => void
+  onDateRangeChange: (
+    start_date?: string,
+    end_date?: string,
+    filter_type?: string,
+  ) => void
   onClearFilters: () => void
 }
 
@@ -260,9 +264,7 @@ export default function OrderHistoryTablePaginated({
             orders
           </p>
           {hasNextPage && (
-            <p className="text-xs text-[#a16b45] italic">
-              Scroll to load more
-            </p>
+            <p className="text-xs text-[#a16b45] italic">Scroll to load more</p>
           )}
         </div>
       )}

@@ -453,7 +453,7 @@ function InventoryItemDetailPage() {
             </div>
 
             {/* Mobile List View */}
-            <div className="sm:hidden divide-y divide-gray-100">
+            <div className="sm:hidden divide-y divide-gray-300">
               {visibleItems.length === 0 ? (
                 <div className="p-8 text-center text-gray-500 text-xs">
                   No orders found for this item.
@@ -467,17 +467,17 @@ function InventoryItemDetailPage() {
                           #{order.id}
                         </span>
                         <div className="mt-1 font-medium text-xs flex flex-col items-start gap-1 text-gray-900">
-                          <span className="text-[13px]">
+                          <span className="text-[15px]">
                             {order.customer.name}
                           </span>
-                          <span className="text-[9px] text-gray-500 flex items-center gap-1">
-                            <Phone className="inline" size={8} />{' '}
+                          <span className="text-[12px] text-gray-500 flex items-center gap-1">
+                            <Phone className="inline" size={9} />{' '}
                             {order.customer.phone}
                           </span>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-bold text-xs text-gray-900">
+                        <div className="font-bold text-sm text-gray-900">
                           ₹{order.amount?.toFixed(0)}
                         </div>
                         {order.discount > 0 && (
@@ -487,7 +487,7 @@ function InventoryItemDetailPage() {
                         )}
                       </div>
                     </div>
-                    <div className="flex justify-between items-end text-[10px] text-gray-500">
+                    <div className="flex justify-between items-end text-[11px] text-gray-500">
                       <div>{convertToIST(order.date)}</div>
                       <div className="font-medium bg-gray-100 px-1.5 py-0.5 rounded">
                         Qty: {order.quantity}

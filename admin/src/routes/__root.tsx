@@ -26,6 +26,7 @@ import DynamicHeader from '@/components/admin/header/DynamicHeader'
 import WaiterHeader from '@/components/admin/header/WaiterHeader'
 import { SubscriptionGuard } from '@/components/admin/settings/SubscriptionGuard'
 import { NotificationToastManager } from '@/components/common/NotificationToastManager'
+import { MobileDock } from '@/components/admin/layout/MobileDock'
 
 // Note: We don't define beforeLoad here because we get auth from component
 // and pass it via router instantiation in the app setup
@@ -135,7 +136,7 @@ function RootComponent() {
                 <SubscriptionGuard>
                   <DynamicHeader />
 
-                  <div className="p-5 max-[500px]:p-1 max-w-[90vw]s mx-autod borderx">
+                  <div className="@container p-5 max-[500px]:p-1 sidebar:pb-5 pb-24 max-[500px]:pb-32">
                     <Toaster
                       position="top-center"
                       richColors
@@ -145,6 +146,7 @@ function RootComponent() {
                     <Outlet />
                   </div>
                 </SubscriptionGuard>
+                <MobileDock />
               </SidebarInset>
             </SidebarProvider>
           ) : (

@@ -1,12 +1,12 @@
 import { Card } from '@/components/ui/card'
 import BillSummary from './BillSummary'
 import CustomerSearch from './CustomerSearch'
-import { CartItem, Customer } from './QuickBillMain'
+import { Customer } from './QuickBillMain'
 
 interface QuickBillSidebarProps {
   selectedCustomer: Customer | null
   setSelectedCustomer: (customer: Customer | null) => void
-  cart: CartItem[]
+  cart: any[]
   updateQuantity: (itemId: string, delta: number) => void
   onOrderComplete: () => void
   discount: number
@@ -31,8 +31,8 @@ export default function QuickBillSidebar({
   grandTotal,
 }: QuickBillSidebarProps) {
   return (
-    <Card className="flex-1 flex flex-col overflow-hidden p-3 gap-3 h-full border-none shadow-none md:border md:shadow-sm">
-      <h2 className="text-lg font-bold hidden md:block">Quick Bill</h2>
+    <Card className="flex-1 flex flex-col overflow-hidden p-3 gap-3 sidebar:h-[calc(100vh-6rem)] border-none shadow-none @md:border @md:shadow-sm">
+      <h2 className="text-lg font-bold hidden @md:block">Quick Bill</h2>
 
       <CustomerSearch
         selectedCustomer={selectedCustomer}

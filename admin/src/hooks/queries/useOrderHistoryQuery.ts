@@ -73,10 +73,15 @@ export const useOrderHistoryQuery = ({
       return response.data.data || response.data
     },
     enabled: !!rid, // Only run query if rid exists
-    staleTime: 1000, // Consider data fresh for 1 second to prevent rapid refetches
-    gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
+    
+    // Order history caching strategy:
+    // - 1 minute staleTime: historical data doesn't change frequently
+    // - 5 minute gcTime: keep paginated results in cache
+    // - No window focus refetch: historical data is stable
+    staleTime: 60 * 1000, // 1 minute (increased from 1 second)
+    gcTime: 5 * 60 * 1000, // 5 minutes
     refetchOnMount: false, // Don't refetch on mount if data is fresh
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: false, // Historical data doesn't need real-time updates
     retry: 1, // Only retry once on failure
     retryDelay: 1000, // Wait 1 second before retrying
   })

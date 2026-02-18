@@ -28,6 +28,15 @@ export const Route = createFileRoute('/api/staff-reports/$staffId')({
 
             return jsonResponse(response.data, 200, authHeaders)
           } catch (error: any) {
+            // If it's an auth error (401/403), throw it so withAuth can handle token refresh
+            if (
+              error.response?.status === 401 ||
+              error.response?.status === 403
+            ) {
+              throw error // Let withAuth handle auth errors
+            }
+
+            // For other errors, return a generic error response
             console.error('Staff orders error:', error)
             const errorResponse = handleApiError(
               error,

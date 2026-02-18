@@ -1,12 +1,6 @@
 import { useState, memo } from 'react'
 import { useSearch } from '@tanstack/react-router'
-import {
-  Search,
-  Filter,
-  X,
-  Layers,
-  Merge,
-} from 'lucide-react'
+import { Search, Filter, X, Layers, Merge } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { OrderHistoryDateFilter } from '../../shared/OrderHistoryDateFilter'
@@ -14,7 +8,11 @@ import { OrderHistoryDateFilter } from '../../shared/OrderHistoryDateFilter'
 interface LargeOrderFiltersProps {
   search: string
   onSearchChange: (value: string) => void
-  onDateRangeChange: (start_date?: string, end_date?: string, filter_type?: string) => void
+  onDateRangeChange: (
+    start_date?: string,
+    end_date?: string,
+    filter_type?: string,
+  ) => void
   onClearFilters: () => void
   isSelectionMode: boolean
   onToggleSelectionMode: () => void
@@ -36,7 +34,7 @@ export const LargeOrderFilters = memo(
     isMergePending,
   }: LargeOrderFiltersProps) => {
     const [showFilters, setShowFilters] = useState(false)
-    
+
     // Read current filters from URL to show active state
     const urlSearch = useSearch({ strict: false }) as any
     const hasActiveFilters = !!(urlSearch?.filter_type || search)
@@ -45,7 +43,7 @@ export const LargeOrderFilters = memo(
     const handleClearAll = () => {
       onClearFilters()
     }
-    
+
     return (
       <div className="sticky top-14 z-30 bg-slate-50/95 dark:bg-[#1d130c]/95 backdrop-blur-md border-b border-[#ead9cd] dark:border-primary/10 px-4 lg:px-10 py-5 mb-8">
         <div className="space-y-4 max-w-[1600px] mx-auto">

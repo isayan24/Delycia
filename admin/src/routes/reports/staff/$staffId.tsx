@@ -160,11 +160,7 @@ function StaffOrdersPage() {
 
   return (
     <div className="space-y-6 px-4 py-4 md:py-8 max-w-7xl mx-auto font-sans bg-slate-50/50 min-h-screen">
-      {/* <DateRangeDisplay /> */}
-
-      {/* <DateRangeDisplay /> */}
-
-      {/* KPI Cards */}
+      {/*mark KPI Cards */}
       <div className="grid grid-cols-3 md:grid-cols-3 gap-3 md:gap-6">
         {/* Total Revenue */}
         <div className="bg-white dark:bg-[#2d1e14] p-3 sm:p-6 rounded-2xl border border-[#ead9cd] dark:border-primary/10 shadow-sm transition-alls hover:shadow-orange-500/5 group relative overflow-hidden">

@@ -332,21 +332,12 @@ export function useAuth(): UseAuthReturn {
   }, [logout])
 
   // Periodic session validation
-  useEffect(() => {
-    if (!authState.isAuthenticated) return
-
-    const interval = setInterval(
-      async () => {
-        const isValid = await sessionService.isSessionValid()
-        if (!isValid) {
-          await logout()
-        }
-      },
-      5 * 60 * 1000,
-    ) // Check every 5 minutes
-
-    return () => clearInterval(interval)
-  }, [authState.isAuthenticated, logout])
+  // REMOVED: Periodic validation now handled by TanStack Query's useAdminAuthQuery
+  // with proper caching (1 minute staleTime). This eliminates redundant API calls.
+  // Session validation is triggered by:
+  // 1. TanStack Query's background refetch (when data becomes stale)
+  // 2. 401 responses caught by axios interceptor (triggers token refresh)
+  // 3. Manual refetchSession() calls when needed
 
   return {
     ...authState,

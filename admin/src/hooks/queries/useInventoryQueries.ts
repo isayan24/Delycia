@@ -68,6 +68,14 @@ export const useInventoryItemStats = (
     },
     enabled: !!itemId && !!rid,
     placeholderData: keepPreviousData,
+    
+    // Inventory stats caching strategy:
+    // - 5 minute staleTime: inventory data changes infrequently
+    // - 10 minute gcTime: keep in cache for navigation
+    // - No window focus refetch: static data
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: false,
   })
 }
 

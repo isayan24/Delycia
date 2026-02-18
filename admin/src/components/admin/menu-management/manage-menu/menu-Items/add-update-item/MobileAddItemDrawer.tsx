@@ -20,6 +20,7 @@ import type {
   ItemImage,
 } from '../types/addItemModal'
 import type { Variant } from '../variants/types/variant.types'
+import { useMobileViewport } from '@/hooks/use-mobile-viewport'
 
 interface MobileAddItemDrawerProps {
   open: boolean
@@ -80,8 +81,15 @@ export default function MobileAddItemDrawer({
 }: MobileAddItemDrawerProps) {
   if (!open) return null
 
+  useMobileViewport()
+
   return (
-    <Drawer open={open} onOpenChange={onOpenChange} dismissible={false}>
+    <Drawer
+      open={open}
+      onOpenChange={onOpenChange}
+      dismissible={false}
+      repositionInputs={false}
+    >
       <DrawerContent className="max-h-[90vh] flex flex-col bg-white dark:bg-[#1a130f] border-none rounded-t-[24px] shadow-2xl">
         <div className="flex-1 overflow-y-auto overflow-x-hidden px-5 pb-10">
           {/* Header Section (Scrollable) */}
@@ -178,7 +186,7 @@ export default function MobileAddItemDrawer({
             </Button>
             <StatefulButton
               onClick={onSubmit}
-              className="flex-[2] h-12 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold shadow-lg shadow-orange-600/20 border-none transition-all active:scale-[0.98]"
+              className="flex-2 h-12 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold shadow-lg shadow-orange-600/20 border-none transition-all active:scale-[0.98]"
               disabled={isPending}
               loading={isPending}
             >

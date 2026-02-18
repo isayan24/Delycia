@@ -134,7 +134,7 @@ function StaffReportsPage() {
       {/* Sub-Header */}
       <div className="flex items-center justify-between gap-4 px-1">
         <div>
-          <h2 className="text-[10px] lg:text-xs font-black uppercase tracking-[0.2em] text-[#a16b45] opacity-80 mb-1">
+          <h2 className="text-[10px] lg:text-xs font-[600] uppercase tracking-[0.1rem] text-[#a16b45] opacity-80 mb-1">
             Performance Leaderboard
           </h2>
           <div className="h-0.5 w-12 bg-emerald-500 rounded-full" />
@@ -144,17 +144,16 @@ function StaffReportsPage() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Revenue */}
-        <div className="p-4 rounded-2xl bg-white dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all group overflow-hidden relative">
-          <div className="absolute -top-6 -right-6 w-20 h-20 bg-orange-50 dark:bg-[#3a291d] rounded-full border border-orange-100/50 dark:border-orange-900/10 group-hover:scale-125 transition-transform duration-500" />
+        <div className="p-2 sm:p-4 rounded-2xl bg-white dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 transition-all group overflow-hidden relative">
           <div className="relative flex items-center gap-3">
             <div className="shrink-0 p-2.5 rounded-xl bg-orange-50 dark:bg-[#3a291d] text-orange-600 border border-orange-100 dark:border-orange-900/10">
-              <IndianRupee className="h-5 w-5" />
+              <IndianRupee className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-widest text-[#a16b45] mb-0.5 opacity-70">
+              <p className="text-[10px] font-black uppercase tracking-wide text-[#a16b45] mb-0.5 opacity-70">
                 Total Revenue
               </p>
-              <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white leading-none">
+              <h3 className="text-sm font-[520] sm:text-xl sm:font-black text-slate-900 dark:text-white leading-none">
                 ₹{totalRevenue.toLocaleString()}
               </h3>
             </div>
@@ -162,17 +161,17 @@ function StaffReportsPage() {
         </div>
 
         {/* Total Orders */}
-        <div className="p-4 rounded-2xl bg-white dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all group overflow-hidden relative">
+        <div className="p-2 rounded-2xl bg-white dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 transition-all group overflow-hidden relative">
           <div className="absolute -top-6 -right-6 w-20 h-20 bg-blue-50 dark:bg-blue-900/5 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-110 opacity-30" />
           <div className="relative flex items-center gap-3">
             <div className="shrink-0 p-2.5 rounded-xl bg-blue-50 dark:bg-blue-900/10 text-blue-600 border border-blue-100 dark:border-blue-900/20">
-              <ShoppingCart className="h-5 w-5" />
+              <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
             <div className="min-w-0">
               <p className="text-[10px] font-black uppercase tracking-widest text-[#a16b45] mb-0.5 opacity-70">
                 Total Orders
               </p>
-              <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white leading-none">
+              <h3 className="text-sm font-[520] sm:text-xl sm:font-black text-slate-900 dark:text-white leading-none">
                 {totalOrders.toLocaleString()}
               </h3>
             </div>
@@ -180,17 +179,17 @@ function StaffReportsPage() {
         </div>
 
         {/* Avg Order Value */}
-        <div className="p-4 rounded-2xl bg-white dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all group overflow-hidden relative">
+        <div className="p-2 rounded-2xl bg-white dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 transition-all group overflow-hidden relative">
           <div className="absolute -top-6 -right-6 w-20 h-20 bg-emerald-50 dark:bg-emerald-900/5 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-110 opacity-30" />
           <div className="relative flex items-center gap-3">
             <div className="shrink-0 p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/10 text-emerald-600 border border-emerald-100 dark:border-emerald-900/20">
-              <TrendingUp className="h-5 w-5" />
+              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
             <div className="min-w-0">
               <p className="text-[10px] font-black uppercase tracking-widest text-[#a16b45] mb-0.5 opacity-70">
                 Avg Value
               </p>
-              <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white leading-none">
+              <h3 className="text-sm font-[520] sm:text-xl sm:font-black text-slate-900 dark:text-white leading-none">
                 ₹{avgOrderValue.toFixed(0)}
               </h3>
             </div>
@@ -198,17 +197,17 @@ function StaffReportsPage() {
         </div>
 
         {/* Unique Customers */}
-        <div className="p-4 rounded-2xl bg-white dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all group overflow-hidden relative">
+        <div className="p-2 rounded-2xl bg-white dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 transition-all group overflow-hidden relative">
           <div className="absolute -top-6 -right-6 w-20 h-20 bg-purple-50 dark:bg-purple-900/5 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-110 opacity-30" />
           <div className="relative flex items-center gap-3">
             <div className="shrink-0 p-2.5 rounded-xl bg-purple-50 dark:bg-purple-900/10 text-purple-600 border border-purple-100 dark:border-purple-900/20">
-              <Users2 className="h-5 w-5" />
+              <Users2 className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
             <div className="min-w-0">
               <p className="text-[10px] font-black uppercase tracking-widest text-[#a16b45] mb-0.5 opacity-70">
                 Customers
               </p>
-              <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white leading-none">
+              <h3 className="text-sm font-[520] sm:text-xl sm:font-black text-slate-900 dark:text-white leading-none">
                 {totalCustomers.toLocaleString()}
               </h3>
             </div>
@@ -218,117 +217,112 @@ function StaffReportsPage() {
 
       {/* Leaderboard Table Container */}
       {/* Leaderboard Container */}
-      <div className="bg-white dark:bg-[#2d1e14] rounded-2xl border border-[#ead9cd] dark:border-primary/10 shadow-sm overflow-hidden transition-all hover:shadow-lg group/container">
-        <div className="px-6 py-5 border-b border-[#ead9cd] dark:border-primary/10 bg-slate-50/10 dark:bg-background-dark/30 flex items-center justify-between">
-          <h2 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white">
-            Staff Leaderboard
-          </h2>
-        </div>
-
+      <div className="bg-white dark:bg-[#2d1e14] rounded-2xl border border-[#ead9cd] dark:border-primary/10   overflow-hidden transition-all   group/container">
         {/* Mobile Card View (Hidden on Tablet/Desktop) */}
-        <div className="grid grid-cols-1 divide-y divide-[#ead9cd]/50 dark:divide-primary/5 md:hidden">
+        <div className="grid grid-cols-1 divide-y divide-[#ead9cd] dark:divide-primary/5 md:hidden">
           {data?.staff.map((staff, index) => (
-            <div
+            <Link
+              to="/reports/staff/$staffId"
+              params={{ staffId: staff.staff_id.toString() }}
               key={staff.staff_id}
-              className="p-4 hover:bg-orange-50/20 dark:hover:bg-[#3a291d]/20 transition-all group/card relative"
+              className="p-4 hover:bg-orange-50/10 dark:hover:bg-[#3a291d]/10 transition-all group/card relative space-y-3"
             >
-              <div className="flex items-center gap-4 mb-4">
-                {/* Rank & Avatar */}
+              <div className="flex items-center gap-3">
+                {/* Avatar & Rank */}
                 <div className="relative shrink-0">
-                  <Avatar className="h-12 w-12 border-2 border-white dark:border-[#3a291d] shadow-md transition-transform group-hover/card:scale-105">
+                  <Avatar className="h-9 w-9 border border-slate-100 dark:border-primary/10 shadow-sm">
                     <AvatarImage src={staff.profile_pic || undefined} />
-                    <AvatarFallback className="bg-orange-50 dark:bg-[#3a291d] text-orange-600 font-black">
+                    <AvatarFallback className="bg-slate-50 dark:bg-[#3a291d] text-slate-400 font-bold text-sm">
                       {staff.staff_name.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="absolute -top-1 -left-1 w-6 h-6 flex items-center justify-center text-lg z-10">
-                    {index === 0 ? (
-                      '🥇'
-                    ) : index === 1 ? (
-                      '🥈'
-                    ) : index === 2 ? (
-                      '🥉'
-                    ) : (
-                      <div className="w-5 h-5 rounded-full bg-white dark:bg-[#3a291d] border border-[#ead9cd] dark:border-primary/20 text-[10px] font-black text-[#a16b45] flex items-center justify-center shadow-sm">
-                        {index + 1}
-                      </div>
-                    )}
+                  <div className="absolute -top-1.5 -left-1.5 size-6 flex items-center justify-center text-lg z-10">
+                    {index === 0
+                      ? '🥇'
+                      : index === 1
+                        ? '🥈'
+                        : index === 2
+                          ? '🥉'
+                          : null}
                   </div>
-                  <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white dark:border-[#2d1e14] shadow-sm ring-2 ring-emerald-500/10" />
+                  {index > 2 && (
+                    <div className="absolute -top-1 -left-1 size-5 rounded-lg bg-white dark:bg-[#3a291d] border border-slate-100 dark:border-primary/10 text-[9px] font-bold text-slate-400 flex items-center justify-center shadow-sm z-10">
+                      {index + 1}
+                    </div>
+                  )}
+                  <div className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-500 border-2 border-white dark:border-[#2d1e14] shadow-sm" />
                 </div>
 
                 {/* Info */}
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-black text-slate-900 dark:text-white truncate">
+                  <h3 className="text-[14.5px] font-semibold text-slate-900 dark:text-white truncate group-hover/card:text-orange-600 transition-colors">
                     {staff.staff_name}
-                  </p>
-                  <p className="text-[10px] text-[#a16b45] font-bold uppercase tracking-widest opacity-60">
+                  </h3>
+                  <p className="text-[11px] text-slate-400 font-[500]  mt-0.5">
                     @{staff.username}
                   </p>
                 </div>
 
-                {/* Action */}
-                <Link
-                  to="/reports/staff/$staffId"
-                  params={{ staffId: staff.staff_id.toString() }}
-                  className="shrink-0 h-9 w-9 flex items-center justify-center rounded-xl bg-slate-50 dark:bg-[#3a291d] text-slate-400 border border-slate-100 dark:border-primary/5 group-hover/card:bg-orange-600 group-hover/card:text-white transition-all shadow-sm"
-                >
-                  <ChevronRight className="w-4 h-4" strokeWidth={3} />
-                </Link>
+                {/* Action Link */}
+                <div className="shrink-0 text-slate-600 group-hover/card:text-orange-500 transition-colors p-1">
+                  <ChevronRight className="size-4.5" />
+                </div>
               </div>
 
-              {/* Metrics Grid */}
-              <div className="grid grid-cols-3 gap-2">
-                <div className="bg-slate-50/50 dark:bg-[#3a291d]/20 p-2 rounded-xl border border-slate-100/50 dark:border-primary/5">
-                  <p className="text-[8px] font-black uppercase tracking-widest text-[#a16b45] opacity-60 mb-1">
+              {/* Metrics Row */}
+              <div className="flex items-center justify-between bg-slate-50 dark:bg-primary/5 rounded-lg px-4 h-12">
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                     Orders
-                  </p>
-                  <p className="text-xs font-black text-slate-700 dark:text-slate-300">
+                  </span>
+                  <span className="text-[14px] font-black text-slate-900 dark:text-white mt-0.5">
                     {staff.total_orders}
-                  </p>
+                  </span>
                 </div>
-                <div className="bg-emerald-50/30 dark:bg-emerald-900/10 p-2 rounded-xl border border-emerald-100/20 dark:border-emerald-900/10">
-                  <p className="text-[8px] font-black uppercase tracking-widest text-emerald-600 opacity-60 mb-1">
+                <div className="h-5 w-px bg-[#ead9cd]/40 dark:bg-primary/10" />
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                     Revenue
-                  </p>
-                  <p className="text-xs font-black text-emerald-600 dark:text-emerald-500">
+                  </span>
+                  <span className="text-[14px] font-black text-slate-900 dark:text-white mt-0.5">
                     ₹{staff.total_revenue.toLocaleString()}
-                  </p>
+                  </span>
                 </div>
-                <div className="bg-slate-50/50 dark:bg-[#3a291d]/20 p-2 rounded-xl border border-slate-100/50 dark:border-primary/5">
-                  <p className="text-[8px] font-black uppercase tracking-widest text-[#a16b45] opacity-60 mb-1">
+                <div className="h-5 w-px bg-[#ead9cd]/40 dark:bg-primary/10" />
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                     Avg Val
-                  </p>
-                  <p className="text-xs font-black text-slate-700 dark:text-slate-300">
+                  </span>
+                  <span className="text-[14px] font-black text-slate-900 dark:text-white mt-0.5">
                     ₹{parseFloat(staff.avg_order_value.toString()).toFixed(0)}
-                  </p>
+                  </span>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
 
         {/* Desktop Table View (Hidden on Mobile) */}
         <div className="hidden md:block overflow-x-auto">
           <Table>
-            <TableHeader className="bg-slate-50/5 dark:bg-[#3a291d]/10">
+            <TableHeader className="bg-slate-50/50 dark:bg-[#3a291d]/10">
               <TableRow className="border-[#ead9cd] dark:border-primary/10 hover:bg-transparent">
-                <TableHead className="w-20 pl-6 h-12 text-[10px] font-black uppercase tracking-widest text-[#a16b45] opacity-60">
+                <TableHead className="w-24 pl-6 h-14 text-[11px] font-bold uppercase tracking-widest text-slate-400">
                   Rank
                 </TableHead>
-                <TableHead className="h-12 text-[10px] font-black uppercase tracking-widest text-[#a16b45] opacity-60">
+                <TableHead className="h-14 text-[11px] font-bold uppercase tracking-widest text-slate-400">
                   Staff Member
                 </TableHead>
-                <TableHead className="h-12 text-right text-[10px] font-black uppercase tracking-widest text-[#a16b45] opacity-60">
+                <TableHead className="h-14 text-right text-[11px] font-bold uppercase tracking-widest text-slate-400">
                   Orders
                 </TableHead>
-                <TableHead className="h-12 text-right text-[10px] font-black uppercase tracking-widest text-[#a16b45] opacity-60">
+                <TableHead className="h-14 text-right text-[11px] font-bold uppercase tracking-widest text-slate-400">
                   Revenue
                 </TableHead>
-                <TableHead className="h-12 text-right text-[10px] font-black uppercase tracking-widest text-[#a16b45] opacity-60">
+                <TableHead className="h-14 text-right text-[11px] font-bold uppercase tracking-widest text-slate-400">
                   Avg Value
                 </TableHead>
-                <TableHead className="h-12 text-right text-[10px] font-black uppercase tracking-widest text-[#a16b45] opacity-60">
+                <TableHead className="h-14 text-right text-[11px] font-bold uppercase tracking-widest text-slate-400">
                   Customers
                 </TableHead>
                 <TableHead className="w-16 pr-6"></TableHead>
@@ -338,62 +332,62 @@ function StaffReportsPage() {
               {data?.staff.map((staff, index) => (
                 <TableRow
                   key={staff.staff_id}
-                  className="border-[#ead9cd]/50 dark:border-primary/5 hover:bg-orange-50/30 dark:hover:bg-[#3a291d]/20 transition-all group/row"
+                  className="border-[#ead9cd]/40 dark:border-primary/5 hover:bg-slate-50/50 dark:hover:bg-[#3a291d]/10 transition-all group/row h-20"
                 >
                   <TableCell className="py-4 pl-6">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-xl font-black text-sm relative group-hover/row:scale-110 transition-transform">
-                      {index === 0 && (
-                        <div className="absolute inset-0 bg-yellow-400 opacity-10 rounded-full animate-pulse blur-md" />
-                      )}
-                      <span className="relative z-10 text-xl">
-                        {index === 0 ? (
-                          '🥇'
-                        ) : index === 1 ? (
-                          '🥈'
-                        ) : index === 2 ? (
-                          '🥉'
-                        ) : (
-                          <div className="w-6 h-6 rounded-full bg-slate-50 dark:bg-[#3a291d] flex items-center justify-center text-[10px] text-slate-400 border border-slate-100 dark:border-primary/5">
-                            {index + 1}
-                          </div>
-                        )}
-                      </span>
+                    <div className="flex items-center justify-start">
+                      <div
+                        className={`
+                        flex items-center justify-center w-8 h-8 rounded-lg font-bold text-xs
+                        ${
+                          index === 0
+                            ? 'bg-amber-50 text-amber-600 border border-amber-100'
+                            : index === 1
+                              ? 'bg-slate-50 text-slate-400 border border-slate-100'
+                              : index === 2
+                                ? 'bg-orange-50 text-orange-600 border border-orange-100'
+                                : 'text-slate-300'
+                        }
+                      `}
+                      >
+                        #{index + 1}
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell className="py-4">
                     <div className="flex items-center gap-4">
                       <div className="relative shrink-0">
-                        <Avatar className="h-10 w-10 border-2 border-white dark:border-[#3a291d] shadow-sm transform group-hover/row:scale-105 transition-all">
+                        <Avatar className="h-11 w-11 border border-slate-100 dark:border-primary/10 shadow-sm transition-transform group-hover/row:scale-105">
                           <AvatarImage src={staff.profile_pic || undefined} />
-                          <AvatarFallback className="bg-orange-50 dark:bg-[#3a291d] text-orange-600 font-black text-[10px]">
+                          <AvatarFallback className="bg-slate-50 dark:bg-[#3a291d] text-slate-400 font-bold text-sm">
                             {staff.staff_name.substring(0, 2).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white dark:border-[#2d1e14] shadow-sm ring-2 ring-emerald-500/20" />
+                        <div className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-emerald-500 border-2 border-white dark:border-[#2d1e14] shadow-sm" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-black text-slate-900 dark:text-white truncate group-hover/row:text-orange-600 transition-colors">
+                        <p className="text-[15px] font-semibold text-slate-900 dark:text-white truncate group-hover/row:text-orange-600 transition-colors">
                           {staff.staff_name}
                         </p>
-                        <p className="text-[10px] text-[#a16b45] font-bold uppercase tracking-widest opacity-60 truncate">
+                        <p className="text-[11px] text-slate-400 font-medium uppercase tracking-widest mt-1">
                           @{staff.username}
                         </p>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell className="text-right py-4">
-                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                    <span className="text-sm font-bold text-slate-900 dark:text-white">
                       {staff.total_orders.toLocaleString()}
                     </span>
                   </TableCell>
                   <TableCell className="text-right py-4">
-                    <span className="text-sm font-black text-emerald-600 dark:text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-lg">
+                    <span className="text-sm font-black text-slate-900 dark:text-white">
                       ₹{staff.total_revenue.toLocaleString()}
                     </span>
                   </TableCell>
                   <TableCell className="text-right py-4">
-                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400 opacity-80">
-                      ₹{parseFloat(staff.avg_order_value.toString()).toFixed(2)}
+                    <span className="text-xs font-bold text-slate-400">
+                      ₹{parseFloat(staff.avg_order_value.toString()).toFixed(0)}
                     </span>
                   </TableCell>
                   <TableCell className="text-right py-4">
@@ -405,12 +399,9 @@ function StaffReportsPage() {
                     <Link
                       to="/reports/staff/$staffId"
                       params={{ staffId: staff.staff_id.toString() }}
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-slate-50 dark:bg-[#3a291d] text-slate-400 group-hover/row:bg-orange-600 group-hover/row:text-white transition-all shadow-sm"
+                      className="inline-flex size-8 items-center justify-center rounded-lg text-slate-300 group-hover/row:text-orange-500 transition-colors"
                     >
-                      <ChevronRight
-                        className="w-4 h-4 transform group-hover/row:translate-x-0.5 transition-transform"
-                        strokeWidth={3}
-                      />
+                      <ChevronRight className="size-5 transition-transform group-hover/row:translate-x-0.5" />
                     </Link>
                   </TableCell>
                 </TableRow>

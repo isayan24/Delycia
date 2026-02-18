@@ -7,37 +7,41 @@ import { QueryClient, QueryCache } from '@tanstack/react-query'
  * - Optimized caching and refetching strategies
  * - Global error handling for both queries and mutations
  * - Session error detection for 401 authentication errors
+ * - Smart staleTime to prevent excessive refetching
  */
 export function createQueryClient(): QueryClient {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        // ❌ Removed staleTime - let mutations control freshness via invalidation
+        // Data is considered fresh for 30 seconds by default
+        // This prevents excessive refetching on window focus or component remounts
+        staleTime: 30 * 1000, // 30 seconds
 
         // Cache time: how long inactive data stays in cache
         gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
 
-        // Retry failed requests
+        // Retry failed requests with smart logic
         retry: (failureCount: number, error: Error) => {
-          // Don't retry on 4xx errors (client errors)
+          // Don't retry on 4xx errors (client errors, including auth failures)
           if (error instanceof Error && 'status' in error) {
             const status = (error as any).status
             if (status >= 400 && status < 500) return false
           }
-          // Retry up to 2 times for other errors
+          // Retry up to 2 times for other errors (network, 5xx)
           return failureCount < 2
         },
         // Retry delay with exponential backoff
         retryDelay: (attemptIndex: number) =>
           Math.min(1000 * 2 ** attemptIndex, 30000),
 
-        // Refetch on window focus in production for fresh data
-        refetchOnWindowFocus: true,
+        // Disable refetch on window focus by default
+        // Individual queries can override this for real-time data
+        refetchOnWindowFocus: false,
 
-        // Don't refetch on mount if data is fresh
+        // Don't refetch on mount if data is fresh (within staleTime)
         refetchOnMount: false,
 
-        // Refetch on reconnect
+        // Refetch on reconnect to get fresh data after network issues
         refetchOnReconnect: true,
       },
       mutations: {

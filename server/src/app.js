@@ -90,6 +90,8 @@ const allowedOrigins = [
   "https://delycia-frontend-wquuyx-617afa-195-35-21-102.traefik.me",
   "http://192.168.0.115:5173",
   "http://72.61.255.194:4000",
+  "http://192.168.0.110:4500/",
+  "http://192.168.0.110:4000/"
 ];
 app.use(
   cors({

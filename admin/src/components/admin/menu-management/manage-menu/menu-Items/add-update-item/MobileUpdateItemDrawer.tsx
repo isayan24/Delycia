@@ -71,7 +71,12 @@ export default function MobileUpdateItemDrawer({
   if (!open) return null
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange} dismissible={false}>
+    <Drawer
+      open={open}
+      onOpenChange={onOpenChange}
+      dismissible={false}
+      repositionInputs={false}
+    >
       <DrawerContent className="max-h-[90vh] flex flex-col bg-white dark:bg-[#1a130f] border-none rounded-t-[24px] shadow-2xl">
         <div className="flex-1 overflow-y-auto overflow-x-hidden px-5 pb-10">
           {/* Header Section (Scrollable) */}

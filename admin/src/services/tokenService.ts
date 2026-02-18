@@ -52,11 +52,14 @@ class TokenService {
 
         // Check if this is a token expiration error
         const status = error.response?.status
+        const responseData = error.response?.data
         const isTokenError =
           status === 401 ||
           (status === 403 &&
-            (error.response?.data as any)?.error ===
-              'Forbidden : Token expired.')
+            responseData?.error === 'Forbidden : Token expired.')
+
+        // Check if session is completely expired (no refresh token)
+        const isSessionExpired = responseData?.sessionExpired === true
 
         // Skip retry for auth endpoints and already-retried requests
         const isAuthEndpoint =
@@ -67,6 +70,15 @@ class TokenService {
         if (isTokenError && !originalRequest._retry && !isAuthEndpoint) {
           originalRequest._retry = true
 
+          // If session is completely expired, don't try to refresh
+          if (isSessionExpired) {
+            console.log(
+              '[TokenService] Session completely expired, triggering logout',
+            )
+            this.triggerLogout()
+            return Promise.reject(error)
+          }
+
           try {
             const refreshSuccess = await this.refreshTokens()
 
@@ -74,10 +86,15 @@ class TokenService {
               // Retry the original request — cookies are already updated
               return axios(originalRequest)
             } else {
+              console.log('[TokenService] Refresh failed, triggering logout')
               this.triggerLogout()
               return Promise.reject(error)
             }
           } catch (refreshError) {
+            console.log(
+              '[TokenService] Refresh error, triggering logout',
+              refreshError,
+            )
             this.triggerLogout()
             return Promise.reject(refreshError)
           }
@@ -123,8 +140,17 @@ class TokenService {
   }
 
   private triggerLogout() {
+    console.log('[TokenService] Triggering logout callback')
     if (this.onLogoutCallback) {
       this.onLogoutCallback()
+    } else {
+      console.warn(
+        '[TokenService] No logout callback registered, redirecting to login',
+      )
+      // Fallback: redirect to login if no callback is set
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login'
+      }
     }
   }
 }

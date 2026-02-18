@@ -22,7 +22,16 @@ export const Route = createFileRoute('/api/ws-token')({
             response.headers.set('Cache-Control', 'no-store')
 
             return response
-          } catch (error) {
+          } catch (error: any) {
+            // If it's an auth error (401/403), throw it so withAuth can handle token refresh
+            if (
+              error.response?.status === 401 ||
+              error.response?.status === 403
+            ) {
+              throw error // Let withAuth handle auth errors
+            }
+
+            // For other errors, return a generic error response
             console.error('Error getting WS token:', error)
             return jsonResponse(
               {

@@ -37,7 +37,16 @@ export const Route = createFileRoute('/api/category')({
             // ❌ REMOVED Cache-Control - was causing 5 minute delay!
             // Browser/CDN was caching old data even after mutations
             return jsonResponse(response.data, 200, authHeaders)
-          } catch (error) {
+          } catch (error: any) {
+            // If it's an auth error (401/403), throw it so withAuth can handle token refresh
+            if (
+              error.response?.status === 401 ||
+              error.response?.status === 403
+            ) {
+              throw error // Let withAuth handle auth errors
+            }
+
+            // For other errors, return a generic error response
             const errorResponse = handleApiError(
               error,
               'Failed to fetch categories',
@@ -79,7 +88,16 @@ export const Route = createFileRoute('/api/category')({
               200,
               authHeaders,
             )
-          } catch (error) {
+          } catch (error: any) {
+            // If it's an auth error (401/403), throw it so withAuth can handle token refresh
+            if (
+              error.response?.status === 401 ||
+              error.response?.status === 403
+            ) {
+              throw error // Let withAuth handle auth errors
+            }
+
+            // For other errors, return a generic error response
             const errorResponse = handleApiError(error, 'Failed to add category')
             return jsonResponse(
               errorResponse,
@@ -117,7 +135,16 @@ export const Route = createFileRoute('/api/category')({
               200,
               authHeaders,
             )
-          } catch (error) {
+          } catch (error: any) {
+            // If it's an auth error (401/403), throw it so withAuth can handle token refresh
+            if (
+              error.response?.status === 401 ||
+              error.response?.status === 403
+            ) {
+              throw error // Let withAuth handle auth errors
+            }
+
+            // For other errors, return a generic error response
             const errorResponse = handleApiError(
               error,
               'Failed to update category',
@@ -169,7 +196,16 @@ export const Route = createFileRoute('/api/category')({
               200,
               authHeaders,
             )
-          } catch (error) {
+          } catch (error: any) {
+            // If it's an auth error (401/403), throw it so withAuth can handle token refresh
+            if (
+              error.response?.status === 401 ||
+              error.response?.status === 403
+            ) {
+              throw error // Let withAuth handle auth errors
+            }
+
+            // For other errors, return a generic error response
             const errorResponse = handleApiError(
               error,
               'Failed to delete category',

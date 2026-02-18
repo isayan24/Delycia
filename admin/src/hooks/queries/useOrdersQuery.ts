@@ -18,6 +18,8 @@ export const orderKeys = {
 
 /**
  * Fetch orders with optional filters
+ * 
+ * This is for ACTIVE orders (pending, processing, ready) - real-time data
  */
 export function useOrdersQuery(
   params?: {
@@ -34,9 +36,16 @@ export function useOrdersQuery(
       return response.data
     },
     enabled,
-    staleTime: 30 * 1000, // 30 seconds (orders change frequently)
+    
+    // Active orders caching strategy:
+    // - 10 second staleTime: balance between freshness and API calls
+    // - 2 minute gcTime: keep recent orders in cache
+    // - Refetch on window focus: ensure fresh data when user returns
+    // - Auto-refetch every 30s: keep orders up-to-date
+    staleTime: 10 * 1000, // 10 seconds (reduced from 30s for real-time feel)
     gcTime: 2 * 60 * 1000, // 2 minutes
     refetchInterval: 30000, // Auto-refetch every 30s for live orders
+    refetchOnWindowFocus: true, // Enable for real-time data
   })
 }
 

@@ -16,7 +16,7 @@ const createUserModel = (user) => {
 
 const generateAccessToken = (user) => {
   return jwt.sign(createUserModel(user), ACCESS_SECRET, {
-    expiresIn: "10m",
+    expiresIn: "15m", // 15 minutes - matches frontend expectation
   });
 };
 

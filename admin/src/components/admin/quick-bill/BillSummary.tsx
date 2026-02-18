@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { CartItem, Customer } from './QuickBillMain'
+import { Customer } from './QuickBillMain'
 import { Plus, Minus, Tag } from 'lucide-react'
 import ThermalBill from '@/components/billing/ThermalBill'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
@@ -11,7 +11,7 @@ import useToast from '@/hooks/UseToast'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 
 interface BillSummaryProps {
-  cart: CartItem[]
+  cart: any[]
   updateQuantity: (itemId: string, delta: number) => void
   selectedCustomer: Customer | null
   onOrderComplete: () => void

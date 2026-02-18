@@ -157,8 +157,8 @@ export default function MenuSection({ addToCart, cart }: MenuSectionProps) {
 
   return (
     <div className="flex flex-col h-full gap-0 bg-background/50 rounded-lg">
-      {/* Search and Category Filter Header */}
-      <div className="space-y-2 p-1">
+      {/* Search and Category Filter Header - STICKY */}
+      <div className="sticky top-[3.5rem] z-40 space-y-2 p-1 bg-background/95 backdrop-blur-md pb-3">
         {/* Search Bar - Modernized */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -179,8 +179,8 @@ export default function MenuSection({ addToCart, cart }: MenuSectionProps) {
           }}
           className="w-full "
         >
-          <div className="w-full overflow-x-auto pb-2 -mx-1 px-1 scrollbar-none">
-            <TabsList className="flex flex-nowrap bg-transparent gap-2 h-auto justify-start w-max">
+          <div className="w-full overflow-x-auto pb-2 -mx-1 px-1 no-scrollbar scroll-smooth">
+            <TabsList className="flex flex-nowrap bg-transparent gap-2 h-auto justify-start w-max no-scrollbar scroll-smooth">
               <TabsTrigger
                 value="all"
                 className="rounded-full px-3 py-2 border bg-white data-[state=active]:bg-primary data-[state=active]:text-primary-foreground shadow-sm hover:bg-gray-50 transition-all data-[state=active]:border-primary shrink-0"
@@ -201,14 +201,14 @@ export default function MenuSection({ addToCart, cart }: MenuSectionProps) {
         </Tabs>
       </div>
 
-      {/* Item Grid */}
-      <ScrollArea className="flex-1 pr-2 overflow-auto">
+      {/* Item Grid - Natural Scroll */}
+      <div className="flex-1 pr-2">
         {loadingCategories || (loadingItems && allItems.length === 0) ? (
           <div className="h-64 flex items-center justify-center">
             <LoadingScreen message="Loading Menu..." />
           </div>
         ) : (
-          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 pb-20">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3 pb-10">
             {filteredItems.map((item) => (
               <MenuGridItem
                 key={item.id}
@@ -229,7 +229,7 @@ export default function MenuSection({ addToCart, cart }: MenuSectionProps) {
               )}
           </div>
         )}
-      </ScrollArea>
+      </div>
     </div>
   )
 }

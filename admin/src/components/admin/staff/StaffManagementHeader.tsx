@@ -68,7 +68,7 @@ export const StaffManagementHeader: React.FC = () => {
             <Users2 className="h-4 w-4" />
           </div>
           <div className="hidden xs:block">
-            <h1 className="text-sm sm:text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight truncate max-w-[120px] sm:max-w-none">
+            <h1 className="text-sm sm:text-lg font-[530] text-slate-900 dark:text-white uppercase tracking-wide truncate max-w-[120px] sm:max-w-none">
               {isReports ? 'Staff Performance' : 'Staff Management'}
             </h1>
           </div>

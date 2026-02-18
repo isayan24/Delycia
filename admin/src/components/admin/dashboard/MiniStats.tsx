@@ -21,7 +21,7 @@ const StatItem = ({
   color: string
   loading: boolean
 }) => (
-  <div className="flex items-center gap-3 px-3 md:px-6 border-b border-r last:border-b-0 md:last:border-b-0 even:border-r-0 md:even:border-r md:last:border-r-0 border-gray-100 dark:border-primary/5 min-w-0 py-2 md:py-0">
+  <div className="flex items-center gap-3 px-3 md:px-6 border-b border-r md:last:border-b-0 even:border-r-0 md:even:border-r md:last:border-r-0 border-gray-100 dark:border-primary/5 min-w-0 py-2 md:py-0">
     <div
       className={`shrink-0 p-2 md:p-2.5 rounded-xl ${color} bg-opacity-10 dark:bg-opacity-20`}
     >

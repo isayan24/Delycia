@@ -22,24 +22,40 @@ export interface LoginCredentials {
 }
 
 /**
- * Fetch current session from server
+ * Fetch current session from server via BFF route
  * Uses localStorage as initial data for instant hydration
+ * 
+ * IMPORTANT: Uses BFF /api/auth/session route which handles token refresh automatically
+ * via withAuth(). This prevents the session from being cleared when tokens expire.
  */
 const fetchSession = async (): Promise<UserData | null> => {
   try {
-    // Use axiosInstance which has the correct baseURL (/api/v1)
-    // /users endpoint maps to user.controller.getUser
-    const response = await axiosInstance.get('/users')
+    // Call BFF session route (NOT backend directly)
+    // This route uses withAuth() which handles token refresh automatically
+    const response = await axios.get('/api/auth/session', {
+      withCredentials: true,
+    })
 
-    if (response.data?.status === true && response.data?.user) {
-      const userData = response.data.user
+    if (
+      response.data?.statusCode === 200 &&
+      response.data?.isAuthenticated &&
+      response.data?.data?.user
+    ) {
+      const userData = response.data.data.user
       // Sync to localStorage for persistence across refreshes
       sessionService.setUserData(userData)
       return userData
     }
 
+    // Session not valid - clear localStorage
+    if (response.data?.statusCode === 401 || !response.data?.isAuthenticated) {
+      sessionService.clearSession()
+    }
+
     return null
   } catch (error) {
+    // Only clear session on 401/403 (auth errors)
+    // Don't clear on network errors (500, timeout, etc.)
     if (
       axios.isAxiosError(error) &&
       (error.response?.status === 401 || error.response?.status === 403)

@@ -130,11 +130,17 @@ export function useAdminAuthQuery() {
   } = useQuery({
     queryKey: queryKeys.auth.session(),
     queryFn: fetchSession,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    
+    // Auth session caching strategy:
+    // - 1 minute staleTime: session data doesn't change frequently
+    // - 10 minute gcTime: keep in cache for quick navigation
+    // - No background refetch: rely on user activity to trigger refresh
+    // - Refetch on window focus: ensure session is valid when user returns
+    staleTime: 60 * 1000, // 1 minute (increased from 5 minutes for better UX)
     gcTime: 10 * 60 * 1000, // 10 minutes
-    refetchInterval: 10 * 60 * 1000, // Background refresh every 10 minutes
-    refetchOnWindowFocus: true,
-    retry: false, // Don't retry auth - if it fails, user needs to login
+    refetchInterval: false, // Disabled - rely on token refresh mechanism
+    refetchOnWindowFocus: false, // Disabled - token refresh handles this
+    retry: 1, // Retry once on failure (network issues)
 
     // Initialize from localStorage for instant page load
     initialData: () => {

@@ -1,6 +1,5 @@
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import MenuSection from './MenuSection'
-import { Item } from '@/types/menu.types'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import {
   Drawer,
@@ -12,10 +11,11 @@ import {
 import QuickBillSidebar from './QuickBillSidebar'
 import { Button } from '@/components/ui/button'
 import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
-
-export interface CartItem extends Item {
-  quantity: number
-}
+import { useCartStore, selectCartTotalItems } from '@/store/useCartStore'
+import { motion, AnimatePresence } from 'motion/react'
+import { useMobileViewport } from '@/hooks/use-mobile-viewport'
+import { useScrollHide } from '@/hooks/use-scroll-hide'
+import { cn } from '@/lib/utils'
 
 export interface Customer {
   id: string
@@ -25,134 +25,125 @@ export interface Customer {
 }
 
 export default function QuickBillMain() {
-  const [cart, setCart] = useState<CartItem[]>([])
+  useMobileViewport()
+  const isHiddenOnScroll = useScrollHide()
+  const { cart, addToCart, updateQuantity, clearCart } = useCartStore()
+  const totalItems = useCartStore(selectCartTotalItems)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null,
   )
   const [discount, setDiscount] = useState<number>(0)
-  const isDesktop = useMediaQuery('(min-width: 768px)')
+  const isDesktop = useMediaQuery('(min-width: 900px)')
 
-  const addToCart = useCallback(
-    (item: Item, behavior: 'add' | 'toggle' = 'add') => {
-      setCart((prev) => {
-        const existing = prev.find((i) => i.id === item.id)
-
-        if (behavior === 'toggle' && existing) {
-          // Remove item if it exists and behavior is toggle
-          return prev.filter((i) => i.id !== item.id)
-        }
-
-        if (existing) {
-          return prev.map((i) =>
-            i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i,
-          )
-        }
-        return [...prev, { ...item, quantity: 1 }]
-      })
-    },
-    [],
-  )
-
-  const updateQuantity = useCallback((itemId: string, delta: number) => {
-    setCart((prev) => {
-      return prev
-        .map((item) => {
-          if (item.id === itemId) {
-            const newQty = Math.max(0, item.quantity + delta)
-            return { ...item, quantity: newQty }
-          }
-          return item
-        })
-        .filter((item) => item.quantity > 0)
-    })
-  }, [])
-
-  const clearCart = useCallback(() => {
-    setCart([])
-    setSelectedCustomer(null)
-    setDiscount(0)
-  }, [])
-
-  // Calculations
-  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0)
   const subtotal = cart.reduce(
-    (sum, item) => sum + (item.price ?? item.cost_price) * item.quantity,
+    (sum, item) => sum + (item.price ?? item.cost_price ?? 0) * item.quantity,
     0,
   )
 
-  // Use hook for tax calculation
-  const { grandTotal, taxAmount, taxPercent, discountAmount } =
-    useOrderTaxCalculation({
-      subtotal,
-      discountAmount: discount,
-    })
+  const { grandTotal, taxAmount, taxPercent } = useOrderTaxCalculation({
+    subtotal,
+    discountAmount: discount,
+  })
 
   return (
-    <div className="flex h-full gap-1 text-black relative">
+    <div className="flex flex-col @container min-[900px]:flex-row gap-4 text-black relative">
       {/* Left Side: Menu Selection */}
-      <div className={`flex-1 min-w-0 ${!isDesktop ? 'pb-20' : ''}`}>
+      <div className="flex-1 min-w-0">
         <MenuSection addToCart={addToCart} cart={cart} />
       </div>
 
-      {/* Desktop Right Side */}
-      {isDesktop ? (
-        <div className="w-[380px] flex flex-col gap-3">
-          <QuickBillSidebar
-            selectedCustomer={selectedCustomer}
-            setSelectedCustomer={setSelectedCustomer}
-            cart={cart}
-            updateQuantity={updateQuantity}
-            onOrderComplete={clearCart}
-            discount={discount}
-            setDiscount={setDiscount}
-            // Tax Props
-            subtotal={subtotal}
-            taxAmount={taxAmount}
-            taxPercent={taxPercent}
-            grandTotal={grandTotal}
-          />
-        </div>
-      ) : (
-        /* Mobile Bottom Bar & Drawer */
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg z-50">
-          <Drawer>
-            <DrawerTrigger asChild>
-              <Button
-                className="w-full h-12 flex justify-between items-center text-lg"
-                size="lg"
+      {/* Right Side: Sidebar (Sticky on Desktop) */}
+      <div
+        className={cn(
+          isDesktop
+            ? 'w-[320px] @xl:w-[380px] shrink-0 sticky top-[3.5rem] self-start'
+            : 'hidden',
+        )}
+      >
+        <QuickBillSidebar
+          selectedCustomer={selectedCustomer}
+          setSelectedCustomer={setSelectedCustomer}
+          cart={cart}
+          updateQuantity={updateQuantity}
+          onOrderComplete={clearCart}
+          discount={discount}
+          setDiscount={setDiscount}
+          subtotal={subtotal}
+          taxAmount={taxAmount}
+          taxPercent={taxPercent}
+          grandTotal={grandTotal}
+        />
+      </div>
+
+      {!isDesktop && (
+        /* Mobile Sticky Bar & Drawer */
+        <Drawer
+          open={isDrawerOpen}
+          onOpenChange={setIsDrawerOpen}
+          repositionInputs={false} // CRITICAL: Prevents the sheet from jumping "way too up"
+        >
+          <AnimatePresence>
+            {!isDrawerOpen && totalItems > 0 && !isHiddenOnScroll && (
+              <motion.div
+                initial={{ y: 100, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 100, opacity: 0 }}
+                transition={{
+                  type: 'spring',
+                  damping: 25, // Increased from 20 for more control
+                  stiffness: 150, // Reduced from 250 for slower movement
+                  mass: 1.5, // Increased from 0.5 for heavier feel
+                  opacity: { duration: 0.2 },
+                }}
+                className="fixed bottom-[110px]  max-[500px]:bottom-[75px] left-1/2 -translate-x-1/2 w-[92%] max-w-[450px] z-50"
               >
-                <div className="flex items-center gap-2">
-                  <div className="bg-primary-foreground/20 px-2 py-0.5 rounded text-sm font-bold">
-                    {totalItems}
-                  </div>
-                  <span className="text-sm font-normal">View Bill</span>
-                </div>
-                <div className="font-bold">₹{grandTotal.toFixed(2)}</div>
-              </Button>
-            </DrawerTrigger>
-            <DrawerContent className="h-[85vh]">
-              <DrawerHeader>
-                <DrawerTitle>Current Order</DrawerTitle>
-              </DrawerHeader>
-              <div className="h-full px-4 pb-4">
-                <QuickBillSidebar
-                  selectedCustomer={selectedCustomer}
-                  setSelectedCustomer={setSelectedCustomer}
-                  cart={cart}
-                  updateQuantity={updateQuantity}
-                  onOrderComplete={clearCart}
-                  discount={discount}
-                  setDiscount={setDiscount}
-                  // Tax Props
-                  subtotal={subtotal}
-                  taxAmount={taxAmount}
-                  taxPercent={taxPercent}
-                  grandTotal={grandTotal}
-                />
-              </div>
-            </DrawerContent>
-          </Drawer>
-        </div>
+                <DrawerTrigger asChild>
+                  <Button
+                    className="w-full h-12 flex justify-between rounded-full items-center text-lg active:scale-95 transition-transform"
+                    size="lg"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="bg-primary-foreground/20 px-2 py-0.5 rounded text-sm font-bold">
+                        {totalItems}
+                      </div>
+                      <span className="text-sm font-normal">View Bill</span>
+                    </div>
+                    <div className="font-bold">₹{grandTotal.toFixed(2)}</div>
+                  </Button>
+                </DrawerTrigger>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <DrawerContent className="h-[90vh]">
+            <div className="mx-auto w-12 h-1.5 shrink-0 rounded-full bg-slate-200 my-4" />
+            <DrawerHeader className="pt-0">
+              <DrawerTitle className="text-center text-xl">
+                Confirm Order
+              </DrawerTitle>
+            </DrawerHeader>
+            <div className="flex-1 overflow-hidden px-4 pb-6">
+              <QuickBillSidebar
+                selectedCustomer={selectedCustomer}
+                setSelectedCustomer={setSelectedCustomer}
+                cart={cart}
+                updateQuantity={updateQuantity}
+                onOrderComplete={() => {
+                  clearCart()
+                  setIsDrawerOpen(false)
+                }}
+                discount={discount}
+                setDiscount={setDiscount}
+                subtotal={subtotal}
+                taxAmount={taxAmount}
+                taxPercent={taxPercent}
+                grandTotal={grandTotal}
+              />
+            </div>
+          </DrawerContent>
+        </Drawer>
       )}
     </div>
   )

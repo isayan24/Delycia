@@ -38,8 +38,6 @@ export const Route = createFileRoute('/api/auth/refresh')({
           if (response.data?.access_token && response.data?.refresh_token) {
             const { access_token, refresh_token } = response.data
 
-            console.log('[Client BFF] Token refreshed successfully')
-
             // Set new httpOnly cookies
             const isProduction = process.env.NODE_ENV === 'production'
             const secure = isProduction ? 'Secure;' : ''
@@ -64,6 +62,8 @@ export const Route = createFileRoute('/api/auth/refresh')({
               JSON.stringify({
                 statusCode: 200,
                 message: 'Token refreshed successfully',
+                access_token: access_token,
+                refresh_token: refresh_token,
               }),
               { status: 200, headers },
             )

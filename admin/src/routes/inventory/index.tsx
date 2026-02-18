@@ -8,15 +8,19 @@ export const Route = createFileRoute('/inventory/')({
 function InventoryOverviewPage() {
   return (
     <div className="max-w-[50rem] p-2">
-      {/* Header Section */}
-      <div className="mb-4 sm:mb-8">
-        <h1 className="text-lg sm:text-2xl font-bold text-gray-800 mb-1 sm:mb-2">
-          Inventory
-        </h1>
-        <p className="text-xs sm:text-base text-gray-600">
-          Manage your inventory
-        </p>
-      </div>
+      <div className='flex gap-3 items-center'>
+        <div>
+          <h1 className="text-lg sm:text-xl font-[700] tracking-[0.08rem] text-[#000000] pl-0.5">
+            Inventory
+          </h1>
+          <div className="px-1 mb-4">
+            <h2 className="text-[12px] lg:text-[15px] font-[500] tracking-[0.07rem] text-[#000000] opacity-80 mb-1">
+              Manage your inventory
+            </h2>
+            <div className="h-[2px] w-12 bg-emerald-500 rounded-full" />
+          </div>
+        </div>
+      </div> 
       <div className="grid grid-cols-2 sm:flex gap-3 sm:gap-6 sm:flex-wrap">
         {/* Manage Menu Card */}
         <Link to="/inventory/menu" className="flex-1 sm:min-w-[20rem]">

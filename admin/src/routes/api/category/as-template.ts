@@ -38,7 +38,13 @@ export const Route = createFileRoute('/api/category/as-template')({
               200,
               authHeaders,
             )
-          } catch (error) {
+          } catch (error:any) {
+            if (
+              error.response?.status === 401 ||
+              error.response?.status === 403
+            ) {
+              throw error // Let withAuth handle auth errors
+            }
             const errorResponse = handleApiError(
               error,
               'Failed to create category template',

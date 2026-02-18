@@ -67,28 +67,24 @@ function InventoryReportPage() {
       label: 'All Items',
       count: summary.total,
       icon: Box,
-      color: 'blue',
     },
     {
       id: 'available' as InventoryFilter,
       label: 'In Stock',
       count: (summary?.good || 0) + (summary?.medium || 0),
       icon: Box,
-      color: 'emerald',
     },
     {
       id: 'low' as InventoryFilter,
       label: 'Low Stock',
       count: summary.low,
       icon: Box,
-      color: 'orange',
     },
     {
       id: 'critical' as InventoryFilter,
       label: 'Out of Stock',
       count: summary.critical,
       icon: Box,
-      color: 'red',
     },
   ]
 
@@ -157,54 +153,43 @@ function InventoryReportPage() {
             const isActive = activeTab === tab.id
             const Icon = tab.icon
 
-            const colorConfig = {
-              blue: 'bg-blue-50 text-blue-600 border-blue-100',
-              emerald: 'bg-emerald-50 text-emerald-600 border-emerald-100',
-              orange: 'bg-orange-50 text-orange-600 border-orange-100',
-              red: 'bg-red-50 text-red-600 border-red-100',
-            }[tab.color]
-
             return (
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id as InventoryFilter)}
                 className={`
-                  group relative flex items-center gap-3 p-4 rounded-2xl border transition-all duration-300 text-left
+                  group relative flex items-center gap-3 p-2.5 rounded-xl border transition-all duration-300 text-left
                   ${
                     isActive
-                      ? `bg-white border-orange-200 shadow-[0px_0px_0px_1px_#ffa500] ring-2 ring-orange-100/50`
-                      : 'bg-white border-[#ead9cd] dark:border-primary/10 hover:border-orange-200 hover:shadow-md'
+                      ? `bg-orange-50/50 border-orange-200 shadow-sm ring-1 ring-orange-100`
+                      : 'bg-white border-[#ead9cd] dark:bg-[#2d1e14] dark:border-primary/10 hover:border-orange-200 hover:shadow-sm'
                   }
                 `}
               >
                 <div
                   className={`
-                  shrink-0 p-1 md:p-3 rounded-xl transition-colors
-                  ${isActive ? 'bg-orange-100 text-orange-600' : `${colorConfig} opacity-80 group-hover:opacity-100`}
+                  shrink-0 p-2 rounded-lg transition-colors
+                  ${isActive ? 'bg-orange-100 text-orange-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 opacity-80 group-hover:opacity-100'}
                 `}
                 >
-                  <Icon className="w-4 h-4 md:w-5 md:h-5" />
+                  <Icon className="w-4 h-4" />
                 </div>
 
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p
-                    className={`text-[10px] md:text-xs font-black uppercase tracking-widest mb-0.5 transition-colors ${isActive ? 'text-orange-500' : 'text-[#a16b45] opacity-60'}`}
+                    className={`text-[9px] md:text-[10px] font-bold uppercase tracking-widest mb-0.5 transition-colors ${isActive ? 'text-orange-600' : 'text-slate-500 dark:text-slate-400'}`}
                   >
                     {tab.label}
                   </p>
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-md md:text-2xl font-black text-slate-900 dark:text-white leading-none">
+                    <span className="text-lg md:text-xl font-black text-slate-900 dark:text-white leading-none">
                       {tab.count}
                     </span>
-                    <span className="text-[10px] md:text-xs text-slate-400 font-bold uppercase tracking-tight">
+                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tight">
                       Items
                     </span>
                   </div>
                 </div>
-
-                {isActive && (
-                  <div className="absolute top-3 right-3 h-2 w-2 rounded-full bg-orange-500 animate-pulse shadow-[0_0_8px_rgba(249,115,22,0.5)]" />
-                )}
               </button>
             )
           })}

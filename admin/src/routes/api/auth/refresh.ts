@@ -13,12 +13,26 @@ export const Route = createFileRoute('/api/auth/refresh')({
           const refreshToken = cookies['admin_refresh_token']
 
           if (!refreshToken) {
+            // Clear expired cookies
+            const headers = new Headers({
+              'Content-Type': 'application/json',
+            })
+            headers.append(
+              'Set-Cookie',
+              'admin_access_token=; Max-Age=0; HttpOnly; SameSite=strict; Path=/',
+            )
+            headers.append(
+              'Set-Cookie',
+              'admin_refresh_token=; Max-Age=0; HttpOnly; SameSite=strict; Path=/',
+            )
+
             return new Response(
               JSON.stringify({
                 statusCode: 401,
                 message: 'No refresh token found',
+                sessionExpired: true,
               }),
-              { status: 401, headers: { 'Content-Type': 'application/json' } },
+              { status: 401, headers },
             )
           }
 
@@ -37,8 +51,6 @@ export const Route = createFileRoute('/api/auth/refresh')({
           // Backend returns: { status: true, refresh_token, access_token }
           if (response.data?.access_token && response.data?.refresh_token) {
             const { access_token, refresh_token } = response.data
-
-            console.log('*** Token Refreshed ***')
 
             // Set new httpOnly cookies
             const isProduction = process.env.NODE_ENV === 'production'
@@ -64,6 +76,8 @@ export const Route = createFileRoute('/api/auth/refresh')({
               JSON.stringify({
                 statusCode: 200,
                 message: 'Token refreshed successfully',
+                access_token: access_token,
+                refresh_token: refresh_token,
               }),
               { status: 200, headers },
             )
@@ -88,6 +102,22 @@ export const Route = createFileRoute('/api/auth/refresh')({
 
           // Handle 401 from backend (invalid refresh token)
           const status = error.response?.status === 401 ? 401 : 500
+          const headers = new Headers({
+            'Content-Type': 'application/json',
+          })
+
+          // If refresh token is invalid/expired, clear cookies
+          if (status === 401) {
+            headers.append(
+              'Set-Cookie',
+              'admin_access_token=; Max-Age=0; HttpOnly; SameSite=strict; Path=/',
+            )
+            headers.append(
+              'Set-Cookie',
+              'admin_refresh_token=; Max-Age=0; HttpOnly; SameSite=strict; Path=/',
+            )
+          }
+
           return new Response(
             JSON.stringify({
               statusCode: status,
@@ -95,8 +125,9 @@ export const Route = createFileRoute('/api/auth/refresh')({
                 status === 401
                   ? 'Refresh token expired or invalid'
                   : 'Token refresh failed',
+              sessionExpired: status === 401,
             }),
-            { status, headers: { 'Content-Type': 'application/json' } },
+            { status, headers },
           )
         }
       },

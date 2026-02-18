@@ -48,7 +48,16 @@ export const Route = createFileRoute('/api/admin/update')({
               200,
               authHeaders,
             )
-          } catch (error) {
+          } catch (error: any) {
+            // If it's an auth error (401/403), throw it so withAuth can handle token refresh
+            if (
+              error.response?.status === 401 ||
+              error.response?.status === 403
+            ) {
+              throw error // Let withAuth handle auth errors
+            }
+
+            // For other errors, return a generic error response
             const errorResponse = handleApiError(error, 'updating user')
             return jsonResponse(
               errorResponse,

@@ -36,7 +36,16 @@ export const Route = createFileRoute('/api/users/search')({
             })
 
             return jsonResponse(response.data, 200, authHeaders)
-          } catch (error) {
+          } catch (error: any) {
+            // If it's an auth error (401/403), throw it so withAuth can handle token refresh
+            if (
+              error.response?.status === 401 ||
+              error.response?.status === 403
+            ) {
+              throw error // Let withAuth handle auth errors
+            }
+
+            // For other errors, return a generic error response
             const errorResponse = handleApiError(error, 'Failed to search users')
             return jsonResponse(
               errorResponse,

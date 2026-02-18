@@ -32,7 +32,16 @@ export const Route = createFileRoute('/api/inventory')({
             })
 
             return jsonResponse(response.data, 200, authHeaders)
-          } catch (error) {
+          } catch (error: any) {
+            // If it's an auth error (401/403), throw it so withAuth can handle token refresh
+            if (
+              error.response?.status === 401 ||
+              error.response?.status === 403
+            ) {
+              throw error // Let withAuth handle auth errors
+            }
+
+            // For other errors, return a generic error response
             console.error('Error in GET /api/inventory:', error)
             const errorResponse = handleApiError(error, 'fetching')
             return jsonResponse(
@@ -86,7 +95,16 @@ export const Route = createFileRoute('/api/inventory')({
               200,
               authHeaders,
             )
-          } catch (error) {
+          } catch (error: any) {
+            // If it's an auth error (401/403), throw it so withAuth can handle token refresh
+            if (
+              error.response?.status === 401 ||
+              error.response?.status === 403
+            ) {
+              throw error // Let withAuth handle auth errors
+            }
+
+            // For other errors, return a generic error response
             console.error('Error in POST /api/inventory:', error)
             const errorResponse = handleApiError(error, 'adding')
             return jsonResponse(
@@ -195,7 +213,16 @@ export const Route = createFileRoute('/api/inventory')({
               200,
               authHeaders,
             )
-          } catch (error) {
+          } catch (error: any) {
+            // If it's an auth error (401/403), throw it so withAuth can handle token refresh
+            if (
+              error.response?.status === 401 ||
+              error.response?.status === 403
+            ) {
+              throw error // Let withAuth handle auth errors
+            }
+
+            // For other errors, return a generic error response
             console.error('Error in PATCH /api/inventory:', error)
             const errorResponse = handleApiError(error, 'updating')
             return jsonResponse(
@@ -261,7 +288,16 @@ export const Route = createFileRoute('/api/inventory')({
               200,
               authHeaders,
             )
-          } catch (error) {
+          } catch (error: any) {
+            // If it's an auth error (401/403), throw it so withAuth can handle token refresh
+            if (
+              error.response?.status === 401 ||
+              error.response?.status === 403
+            ) {
+              throw error // Let withAuth handle auth errors
+            }
+
+            // For other errors, return a generic error response
             console.error('Error in DELETE /api/inventory:', error)
             const errorResponse = handleApiError(error, 'deleting')
             return jsonResponse(
