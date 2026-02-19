@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Customer } from './QuickBillMain'
@@ -9,6 +8,7 @@ import ThermalBill from '@/components/billing/ThermalBill'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import useToast from '@/hooks/UseToast'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
+import { useCreateGuestCustomer } from '@/hooks/mutations/useCreateGuestCustomer'
 
 interface BillSummaryProps {
   cart: any[]
@@ -41,6 +41,7 @@ export default function BillSummary({
   const [showBillDialog, setShowBillDialog] = useState(false)
   const [completedOrderData, setCompletedOrderData] = useState<any>(null)
   const { showSuccess, showError } = useToast()
+  const createGuestCustomer = useCreateGuestCustomer()
 
   // Ensure discount doesn't exceed subtotal
   // Note: Parent component handles calculation, this is just for input validation visuals if needed
@@ -74,18 +75,17 @@ export default function BillSummary({
     }
 
     setIsPlacingOrder(true)
-    try {
+
+    // Helper function to place the order with customer details
+    const placeOrderWithCustomer = async (customerDetails: any) => {
+      const { default: axios } = await import('axios')
+      
       // Unified payload for /api/quick-bill
       // Distribute discount proportionally across items
       const discountPerItem = validatedDiscount / cart.length
 
       const payload = {
-        customerDetails: {
-          username: selectedCustomer.username,
-          name: selectedCustomer.name,
-          phone_number: selectedCustomer.phone_number,
-          id: selectedCustomer.id || undefined,
-        },
+        customerDetails,
         orderItems: cart.map((item) => ({
           ...item,
           id: item.id.toString().includes('_')
@@ -99,7 +99,6 @@ export default function BillSummary({
         })),
       }
 
-      const { default: axios } = await import('axios')
       const res = await axios.post('/api/quick-bill', payload)
 
       if (res.data && (res.data.success || res.data.status === 201)) {
@@ -110,8 +109,8 @@ export default function BillSummary({
           orderId: res.data.order_id || 'New',
           restaurantName: selectedRestaurant?.name || 'Restaurant',
           tableNo: 'N/A',
-          customerName: selectedCustomer.name,
-          customerPhone: selectedCustomer.phone_number,
+          customerName: customerDetails.name,
+          customerPhone: customerDetails.phone_number,
           items: cart.map((i: any) => ({
             name: i.cartItemName || i.name,
             quantity: i.quantity,
@@ -146,16 +145,63 @@ export default function BillSummary({
           res.data.message || res.data.error || 'Failed to place order',
         )
       }
+    }
+
+    try {
+      // If this is a guest customer, create it first using TanStack Query mutation
+      if (selectedCustomer.isGuest) {
+        createGuestCustomer.mutate(undefined, {
+          onSuccess: async (guestData) => {
+            try {
+              // Update customer details with the created guest customer
+              const customerDetails = {
+                username: guestData.data.username,
+                name: guestData.data.name,
+                phone_number: guestData.data.phone_number,
+                id: guestData.data.uid,
+              }
+              await placeOrderWithCustomer(customerDetails)
+            } catch (error: any) {
+              console.error('Order error after guest creation:', error)
+              showError(
+                'Error',
+                error.response?.data?.message || 'Error placing order',
+              )
+            } finally {
+              setIsPlacingOrder(false)
+            }
+          },
+          onError: (error: any) => {
+            console.error('Guest customer creation error:', error)
+            showError(
+              'Error',
+              error.response?.data?.message ||
+                'Failed to create guest customer',
+            )
+            setIsPlacingOrder(false)
+          },
+        })
+      } else {
+        // Regular customer - place order directly
+        const customerDetails = {
+          username: selectedCustomer.username,
+          name: selectedCustomer.name,
+          phone_number: selectedCustomer.phone_number,
+          id: selectedCustomer.id || undefined,
+        }
+        
+        await placeOrderWithCustomer(customerDetails)
+        setIsPlacingOrder(false)
+      }
     } catch (error: any) {
       console.error('Order error', error)
       showError('Error', error.response?.data?.message || 'Error placing order')
-    } finally {
       setIsPlacingOrder(false)
     }
   }
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 rounded-md">
+    <div className="flex flex-col sidebar:h-full bg-slate-50 rounded-md">
       {completedOrderData && showBillDialog && (
         <ThermalBill
           isOpen={showBillDialog}
@@ -167,7 +213,7 @@ export default function BillSummary({
         />
       )}
 
-      <ScrollArea className="flex-1 p-3 overflow-auto">
+      <div className="p-3 sidebar:flex-1 sidebar:overflow-auto">
         {cart.length === 0 ? (
           <div className="text-center text-gray-400 mt-10">Cart is empty</div>
         ) : (
@@ -209,7 +255,7 @@ export default function BillSummary({
             ))}
           </div>
         )}
-      </ScrollArea>
+      </div>
 
       <div className="p-3 bg-white border-t space-y-3">
         {/* Discount Input */}

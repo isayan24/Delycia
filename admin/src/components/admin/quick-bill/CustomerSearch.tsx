@@ -107,6 +107,19 @@ export default function CustomerSearch({
     }
   }
 
+  const handleGuestOrder = () => {
+    // Don't create the guest customer yet - just mark it as pending
+    // The actual customer will be created when the order is placed
+    const pendingGuestCustomer: Customer = {
+      id: '', // Empty ID indicates pending guest
+      name: 'Guest',
+      phone_number: 'GUEST_PENDING', // Temporary placeholder
+      username: 'guest_pending',
+      isGuest: true, // Flag to indicate this is a guest order
+    }
+    onSelectCustomer(pendingGuestCustomer)
+  }
+
   if (selectedCustomer) {
     return (
       <Card className="bg-green-50 border-green-200">
@@ -116,11 +129,15 @@ export default function CustomerSearch({
               {selectedCustomer.name}
             </div>
             <div className="text-sm text-green-700">
-              {selectedCustomer.phone_number}
+              {selectedCustomer.isGuest
+                ? 'Guest Customer'
+                : selectedCustomer.phone_number}
             </div>
             {!selectedCustomer.id && (
               <span className="text-xs text-orange-600 font-medium">
-                (New Customer)
+                {selectedCustomer.isGuest
+                  ? '(Will be created on order)'
+                  : '(New Customer)'}
               </span>
             )}
           </div>
@@ -143,6 +160,22 @@ export default function CustomerSearch({
         <Label className="text-xs font-semibold text-gray-500 uppercase">
           Customer Details
         </Label>
+
+        {/* Guest Order Button */}
+        <Button
+          variant="outline"
+          className="w-full border-dashed border-2 hover:bg-slate-50"
+          onClick={handleGuestOrder}
+        >
+          <UserPlus className="w-4 h-4 mr-2" />
+          Guest Order
+        </Button>
+
+        <div className="relative flex items-center">
+          <div className="grow border-t border-gray-300"></div>
+          <span className="shrink mx-4 text-xs text-gray-400">OR</span>
+          <div className="grow border-t border-gray-300"></div>
+        </div>
 
         {/* Name Search Section - Ref attached here */}
         <div className="relative" ref={searchSectionRef}>
