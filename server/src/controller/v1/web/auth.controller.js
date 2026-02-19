@@ -134,6 +134,11 @@ const create_admin = async (req, res) => {
   res.status(response.statusCode).json(response);
 };
 
+const create_guest_customer = async (req, res) => {
+  const response = await auth.create_guest_customer(req);
+  res.status(response.statusCode).json(response);
+};
+
 const logout = async (req, res) => {
   const refresh_token = req.cookies?.refresh_token || req.headers?.authorization?.split(" ")[1];
   
@@ -194,4 +199,5 @@ export default {
   admin_login,
   waiter_auth,
   create_admin,
+  create_guest_customer,
 };

@@ -156,7 +156,7 @@ export function MobileDock() {
                     {item.title}
                   </span>
 
-                  {isActive && (
+                  {/* {isActive && (
                     <motion.div
                       layoutId="dock-indicator"
                       className="absolute -bottom-1 w-1.5 h-1.5 bg-primary rounded-full"
@@ -166,7 +166,7 @@ export function MobileDock() {
                         stiffness: 120,
                       }}
                     />
-                  )}
+                  )} */}
                 </div>
               </Link>
             )

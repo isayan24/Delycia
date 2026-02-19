@@ -1,11 +1,12 @@
-import {} from 'react'
 import MobileOrderHistory from './mobile/MobileOrderHistory'
 import ErrorBoundary from './ErrorBoundary'
 import { UseAdminOrderHistory } from './hooks/UseAdminOrderHistory'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import OrderHistoryTablePaginated from './OrderHistoryTablePaginated'
 import LoadingScreen from '@/components/common/LoadingScreen'
-import {} from 'lucide-react'
+import { useState, useCallback, useMemo } from 'react'
+import { useMergeOrders } from '@/hooks/mutations/useMergeOrders'
+import useToast from '@/hooks/UseToast'
 
 export default function OrderHistoryMain() {
   const { user } = useAdminAuthQuery()
@@ -37,6 +38,60 @@ export default function OrderHistoryMain() {
     hasNextPage,
   } = orderHistoryHook
 
+  // Lifted selection logic for merging
+  const [selectedCartIds, setSelectedCartIds] = useState<Set<string>>(new Set())
+  const [isSelectionMode, setIsSelectionMode] = useState(false)
+  const mergeMutation = useMergeOrders()
+  const { showError, showSuccess } = useToast()
+
+  const toggleSelection = useCallback((cartId: string) => {
+    setSelectedCartIds((prev) => {
+      const newSet = new Set(prev)
+      if (newSet.has(cartId)) {
+        newSet.delete(cartId)
+      } else {
+        newSet.add(cartId)
+      }
+      return newSet
+    })
+  }, [])
+
+  const toggleSelectionMode = useCallback(() => {
+    setIsSelectionMode((prev) => !prev)
+    setSelectedCartIds(new Set())
+  }, [])
+
+  const activeCustomerId = useMemo(() => {
+    if (selectedCartIds.size === 0) return null
+    const firstSelectedId = selectedCartIds.values().next().value
+    const order = orderHistory.find((o) => o.id === firstSelectedId)
+    return (order as any)?.customerId || (order as any)?.customer_id
+  }, [selectedCartIds, orderHistory])
+
+  const handleMerge = async () => {
+    if (selectedCartIds.size < 2) {
+      showError('Error', 'Select at least 2 orders to merge')
+      return
+    }
+
+    const cartIdsArray = Array.from(selectedCartIds)
+    const targetCartId = cartIdsArray[0]
+
+    mergeMutation.mutate(
+      { cartIds: cartIdsArray, targetCartId },
+      {
+        onSuccess: (data) => {
+          if (data.statusCode === 200) {
+            setSelectedCartIds(new Set())
+            setIsSelectionMode(false)
+            showSuccess('Success', 'Orders merged successfully')
+            refreshHistory()
+          }
+        },
+      },
+    )
+  }
+
   return (
     <ErrorBoundary>
       <div className="font-sans  min-h-screen">
@@ -57,6 +112,14 @@ export default function OrderHistoryMain() {
                 onSearchChange={setSearch}
                 onDateRangeChange={setDateRange}
                 onClearFilters={clearFilters}
+                // Selection props
+                selectedCartIds={selectedCartIds}
+                isSelectionMode={isSelectionMode}
+                activeCustomerId={activeCustomerId}
+                toggleSelection={toggleSelection}
+                toggleSelectionMode={toggleSelectionMode}
+                onMerge={handleMerge}
+                isMergePending={mergeMutation.isPending}
               />
             </div>
 
@@ -72,7 +135,6 @@ export default function OrderHistoryMain() {
                 search={search}
                 onSearchChange={setSearch}
                 onDateRangeChange={setDateRange}
-                onClearFilters={clearFilters}
                 hasNextPage={hasNextPage}
                 onNextPage={nextPage}
               />

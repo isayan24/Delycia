@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useSearch } from '@tanstack/react-router'
 import { Calendar, X } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { DateFilterType, DateRangeCalculator } from '@/utils/dashboardDateUtils'
 import {
   Select,
@@ -36,14 +37,14 @@ const dateFilterOptions: DateFilterOption[] = [
     description: 'Previous day',
   },
   {
-    value: 'last7days',
-    label: 'Last 7 Days',
-    description: 'Past week including today',
+    value: 'thisWeek',
+    label: 'This Week',
+    description: 'Current week (Sun-Sat)',
   },
   {
-    value: 'lastMonth',
-    label: 'Last Month',
-    description: 'Previous calendar month',
+    value: 'lastWeek',
+    label: 'Last Week',
+    description: 'Previous week',
   },
   {
     value: 'thisMonth',
@@ -51,9 +52,19 @@ const dateFilterOptions: DateFilterOption[] = [
     description: 'Current month to date',
   },
   {
+    value: 'lastMonth',
+    label: 'Last Month',
+    description: 'Previous calendar month',
+  },
+  {
+    value: 'thisYear',
+    label: 'This Year',
+    description: 'Current calendar year',
+  },
+  {
     value: 'allTime',
     label: 'All Time',
-    description: 'All time orders',
+    description: 'All recorded orders',
   },
   {
     value: 'custom',
@@ -65,7 +76,11 @@ const dateFilterOptions: DateFilterOption[] = [
 interface OrderHistoryDateFilterProps {
   compact?: boolean
   className?: string
-  onFilterChange: (start_date?: string, end_date?: string, filter_type?: string) => void
+  onFilterChange: (
+    start_date?: string,
+    end_date?: string,
+    filter_type?: string,
+  ) => void
 }
 
 export const OrderHistoryDateFilter: React.FC<OrderHistoryDateFilterProps> = ({
@@ -76,7 +91,7 @@ export const OrderHistoryDateFilter: React.FC<OrderHistoryDateFilterProps> = ({
   // Read current filter from URL search params
   const search = useSearch({ strict: false }) as any
   const currentFilterType = (search?.filter_type as DateFilterType) || 'allTime'
-  
+
   const [tempStartDate, setTempStartDate] = useState('')
   const [tempEndDate, setTempEndDate] = useState('')
   const [isCustomDialogOpen, setIsCustomDialogOpen] = useState(false)
@@ -99,7 +114,7 @@ export const OrderHistoryDateFilter: React.FC<OrderHistoryDateFilterProps> = ({
       setIsCustomDialogOpen(true)
       return
     }
-    
+
     if (filterType === 'allTime') {
       // For all time, don't send any date parameters
       onFilterChange(undefined, undefined, filterType)
@@ -138,7 +153,9 @@ export const OrderHistoryDateFilter: React.FC<OrderHistoryDateFilterProps> = ({
   }
 
   const getCurrentLabel = () => {
-    const option = dateFilterOptions.find((opt) => opt.value === currentFilterType)
+    const option = dateFilterOptions.find(
+      (opt) => opt.value === currentFilterType,
+    )
     return option?.label || 'All Time'
   }
 
@@ -147,34 +164,37 @@ export const OrderHistoryDateFilter: React.FC<OrderHistoryDateFilterProps> = ({
       <div className={className}>
         <Select value={currentFilterType} onValueChange={handleFilterSelect}>
           <SelectTrigger
-            className={`
-              ${compact ? 'h-8 text-xs' : 'h-10 text-sm'}
-              bg-white dark:bg-transparent border-[#ead9cd] w-fit dark:border-primary/10 
-              rounded-xl font-medium tracking-wider text-slate-600 dark:text-slate-300
-              focus:ring-2 focus:ring-orange-500 focus:border-orange-500
-            `}
+            className={cn(
+              'bg-white dark:bg-transparent border-[#ead9cd] dark:border-primary/10 rounded-xl font-medium tracking-wider text-slate-600 dark:text-slate-300 focus:ring-2 focus:ring-primary/20 transition-all',
+              compact
+                ? 'h-9 px-3 text-xs w-full sm:w-auto'
+                : 'h-11 px-4 text-sm w-full md:w-[200px]',
+            )}
           >
-            <div className="flex items-center gap-2">
-              <Calendar className={`${compact ? 'w-3 h-3' : 'w-4 h-4'} text-orange-500`} />
-              <SelectValue placeholder="Select date range">
+            <div className="flex items-center gap-2 overflow-hidden">
+              <Calendar
+                className={cn(
+                  'text-orange-500 shrink-0',
+                  compact ? 'w-3.5 h-3.5' : 'w-4 h-4',
+                )}
+              />
+              <SelectValue placeholder="Select date range" className="truncate">
                 {getCurrentLabel()}
               </SelectValue>
             </div>
           </SelectTrigger>
-          <SelectContent className="rounded-xl border-[#ead9cd] dark:border-primary/10">
+          <SelectContent className="rounded-xl border-[#ead9cd] dark:border-primary/10 p-1 min-w-[220px]">
             {dateFilterOptions.map((option) => (
               <SelectItem
                 key={option.value}
                 value={option.value}
-                className="text-sm font-medium tracking-wider rounded-lg focus:bg-orange-50 dark:focus:bg-[#3a291d] focus:text-orange-600 cursor-pointer"
+                className="text-[13px] font-medium tracking-wide rounded-lg focus:bg-orange-50 dark:focus:bg-[#3a291d] focus:text-orange-600 cursor-pointer py-2.5"
               >
-                <div className="flex flex-col">
-                  <span>{option.label}</span>
-                  {!compact && (
-                    <span className="text-xs text-gray-500 dark:text-gray-400 font-normal">
-                      {option.description}
-                    </span>
-                  )}
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-bold">{option.label}</span>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal uppercase tracking-widest">
+                    {option.description}
+                  </span>
                 </div>
               </SelectItem>
             ))}

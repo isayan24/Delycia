@@ -22,6 +22,7 @@ export interface Customer {
   name: string
   phone_number: string
   username: string
+  isGuest?: boolean // Flag to indicate this is a pending guest customer
 }
 
 export default function QuickBillMain() {
@@ -124,7 +125,7 @@ export default function QuickBillMain() {
                 Confirm Order
               </DrawerTitle>
             </DrawerHeader>
-            <div className="flex-1 overflow-hidden px-4 pb-6">
+            <div className="flex-1 overflow-y-auto px-4 pb-6">
               <QuickBillSidebar
                 selectedCustomer={selectedCustomer}
                 setSelectedCustomer={setSelectedCustomer}

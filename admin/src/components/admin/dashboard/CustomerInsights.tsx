@@ -86,7 +86,7 @@ const CustomerActivityCard: React.FC<{ row: any }> = ({ row }) => (
         <span className="text-[9px] md:text-[11px] font-bold text-slate-400 uppercase tracking-widest block">
           Core Interest
         </span>
-        <p className="text-[12px] md:text-[14px] text-slate-500 dark:text-slate-400 font-medium line-clamp-2 leading-relaxed italic">
+        <p className="text-[12px] md:text-[14px] text-zinc-500 dark:text-zinc-400 font-medium line-clamp-2 leading-relaxed">
           "{row.topItems}"
         </p>
       </div>

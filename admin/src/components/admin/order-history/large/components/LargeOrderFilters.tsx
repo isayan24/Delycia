@@ -1,6 +1,6 @@
-import { useState, memo } from 'react'
+import { memo } from 'react'
 import { useSearch } from '@tanstack/react-router'
-import { Search, Filter, X, Layers, Merge } from 'lucide-react'
+import { Search, X, Layers, Merge } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { OrderHistoryDateFilter } from '../../shared/OrderHistoryDateFilter'
@@ -33,8 +33,6 @@ export const LargeOrderFilters = memo(
     onMerge,
     isMergePending,
   }: LargeOrderFiltersProps) => {
-    const [showFilters, setShowFilters] = useState(false)
-
     // Read current filters from URL to show active state
     const urlSearch = useSearch({ strict: false }) as any
     const hasActiveFilters = !!(urlSearch?.filter_type || search)
@@ -49,19 +47,6 @@ export const LargeOrderFilters = memo(
         <div className="space-y-4 max-w-[1600px] mx-auto">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="flex items-center gap-3">
-              <Button
-                variant={showFilters ? 'secondary' : 'outline'}
-                onClick={() => setShowFilters(!showFilters)}
-                className={`h-11 px-6 rounded-xl font-bold text-sm transition-all flex items-center gap-2 border shadow-sm ${
-                  showFilters
-                    ? 'bg-orange-50 text-orange-600 border-orange-100 dark:bg-primary/20 dark:text-primary dark:border-primary/20'
-                    : 'bg-white text-slate-600 border-[#ead9cd] dark:bg-[#2d1e14] dark:text-slate-200 dark:border-primary/10'
-                }`}
-              >
-                <Filter className="w-4 h-4" />
-                {showFilters ? 'Hide Filters' : 'Show Filters'}
-              </Button>
-
               <Button
                 variant={isSelectionMode ? 'secondary' : 'outline'}
                 onClick={onToggleSelectionMode}
@@ -88,13 +73,19 @@ export const LargeOrderFilters = memo(
                 </Button>
               )}
 
+              <OrderHistoryDateFilter
+                onFilterChange={onDateRangeChange}
+                compact={true}
+                className="w-64"
+              />
+
               {hasActiveFilters && !isSelectionMode && (
                 <Button
                   variant="ghost"
                   onClick={handleClearAll}
                   className="h-11 px-4 rounded-xl font-bold text-sm text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all flex items-center gap-2"
                 >
-                  <X className="w-4 h-4" /> Clear Filters
+                  <X className="w-4 h-4" /> Clear
                 </Button>
               )}
             </div>
@@ -120,19 +111,6 @@ export const LargeOrderFilters = memo(
               )}
             </div>
           </div>
-
-          {showFilters && (
-            <div className="flex flex-wrap items-center gap-3 p-4 bg-orange-50/30 dark:bg-primary/5 rounded-2xl border border-orange-100/50 dark:border-primary/10 animate-in fade-in slide-in-from-top-2 duration-300">
-              <div className="flex items-center gap-2 text-sm font-bold text-[#a16b45] mr-2">
-                Date Filter:
-              </div>
-
-              <OrderHistoryDateFilter
-                onFilterChange={onDateRangeChange}
-                className="flex-1"
-              />
-            </div>
-          )}
         </div>
       </div>
     )

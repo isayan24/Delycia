@@ -1,13 +1,12 @@
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Loader2, ArrowUp } from 'lucide-react'
 import { PrintBillDialog } from './shared/PrintBillDialog'
 import { formatDateTime } from '@/utils/dateUtils'
 import { OrderHistoryStatsCards } from './large/components/OrderHistoryStatsCards'
 import { LargeOrderFilters } from './large/components/LargeOrderFilters'
-import { LargeOrderCard } from './large/components/LargeOrderCard'
-import { useMergeOrders } from '@/hooks/mutations/useMergeOrders'
-import useToast from '@/hooks/UseToast'
 import { useLoadMore } from '@/hooks/useLoadMore'
+import LargeOrderCard from './large/components/LargeOrderCard'
+import { LargeOrderCardSkeleton } from './LoadingSkeleton'
 
 interface OrderHistoryTablePaginatedProps {
   items: any[]
@@ -25,6 +24,14 @@ interface OrderHistoryTablePaginatedProps {
     filter_type?: string,
   ) => void
   onClearFilters: () => void
+  // Selection Props
+  selectedCartIds: Set<string>
+  isSelectionMode: boolean
+  activeCustomerId: string | null
+  toggleSelection: (cartId: string) => void
+  toggleSelectionMode: () => void
+  onMerge: () => void
+  isMergePending: boolean
 }
 
 export default function OrderHistoryTablePaginated({
@@ -39,14 +46,18 @@ export default function OrderHistoryTablePaginated({
   onSearchChange,
   onDateRangeChange,
   onClearFilters,
+  // Selection Props
+  selectedCartIds,
+  isSelectionMode,
+  activeCustomerId,
+  toggleSelection,
+  toggleSelectionMode,
+  onMerge,
+  isMergePending,
 }: OrderHistoryTablePaginatedProps) {
   const [showBillDialog, setShowBillDialog] = useState(false)
   const [selectedOrderForBill, setSelectedOrderForBill] = useState<any>(null)
-  const [selectedCartIds, setSelectedCartIds] = useState<Set<string>>(new Set())
-  const [isSelectionMode, setIsSelectionMode] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
-  const mergeMutation = useMergeOrders()
-  const { showError } = useToast()
 
   // Progressive rendering with useLoadMore - natural page scroll
   const { visibleItems, hasMore, sentinelRef } = useLoadMore(items, 10)
@@ -78,14 +89,6 @@ export default function OrderHistoryTablePaginated({
   const scrollToTop = useCallback(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
-
-  // Get currently selected customer ID to restrict selection
-  const activeCustomerId = useMemo(() => {
-    if (selectedCartIds.size === 0) return null
-    const firstSelectedId = selectedCartIds.values().next().value
-    const order = items.find((o) => o.id === firstSelectedId)
-    return order?.customerId || order?.customer_id
-  }, [selectedCartIds, items])
 
   const totalOrders = pagination?.total_orders || 0
 
@@ -119,52 +122,10 @@ export default function OrderHistoryTablePaginated({
     setShowBillDialog(true)
   }, [])
 
-  // Toggle selection for merging
-  const toggleSelection = useCallback((cartId: string) => {
-    setSelectedCartIds((prev) => {
-      const newSet = new Set(prev)
-      if (newSet.has(cartId)) {
-        newSet.delete(cartId)
-      } else {
-        newSet.add(cartId)
-      }
-      return newSet
-    })
-  }, [])
-
-  // Handle Merge Orders
-  const handleMerge = async () => {
-    if (selectedCartIds.size < 2) {
-      showError('Error', 'Select at least 2 orders to merge')
-      return
-    }
-
-    const cartIdsArray = Array.from(selectedCartIds)
-    const targetCartId = cartIdsArray[0]
-
-    mergeMutation.mutate(
-      { cartIds: cartIdsArray, targetCartId },
-      {
-        onSuccess: (data) => {
-          if (data.statusCode === 200) {
-            setSelectedCartIds(new Set())
-            setIsSelectionMode(false)
-          }
-        },
-      },
-    )
-  }
-
-  const toggleSelectionMode = useCallback(() => {
-    setIsSelectionMode((prev) => !prev)
-    setSelectedCartIds(new Set())
-  }, [])
-
   return (
     <div className="relative bg-slate-50/30">
-      {/* Stats Cards */}
       <div className="p-4 lg:p-10 pb-4">
-        <OrderHistoryStatsCards stats={pagination} />
+        <OrderHistoryStatsCards stats={pagination} loading={loading} />
       </div>
 
       {/* Filters Section - Sticky */}
@@ -176,8 +137,8 @@ export default function OrderHistoryTablePaginated({
         isSelectionMode={isSelectionMode}
         onToggleSelectionMode={toggleSelectionMode}
         selectedCount={selectedCartIds.size}
-        onMerge={handleMerge}
-        isMergePending={mergeMutation.isPending}
+        onMerge={onMerge}
+        isMergePending={isMergePending}
       />
 
       {/* Error State */}
@@ -192,9 +153,10 @@ export default function OrderHistoryTablePaginated({
       {/* Orders List - Progressive rendering with natural page scroll */}
       <div className="px-4 lg:px-10 space-y-6 pb-8">
         {loading && items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-            <p className="text-[#a16b45] font-medium">Loading orders...</p>
+          <div className="space-y-6">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <LargeOrderCardSkeleton key={index} />
+            ))}
           </div>
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-[#ead9cd] border-dashed">
@@ -223,18 +185,10 @@ export default function OrderHistoryTablePaginated({
             {(hasNextPage || hasMore) && (
               <div
                 ref={sentinelRef}
-                className="flex flex-col items-center justify-center py-12 gap-3"
+                className="flex items-center justify-center py-8 text-sm text-slate-400 gap-2"
               >
-                {isFetching || (hasNextPage && !hasMore) ? (
-                  <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="size-8 text-primary animate-spin" />
-                    <p className="text-sm font-bold text-[#a16b45] uppercase tracking-widest">
-                      Loading more orders...
-                    </p>
-                  </div>
-                ) : (
-                  <div className="h-2 w-2 rounded-full bg-[#ead9cd] animate-pulse" />
-                )}
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                Loading more orders...
               </div>
             )}
 
@@ -251,11 +205,11 @@ export default function OrderHistoryTablePaginated({
 
       {/* Footer Summary */}
       {items.length > 0 && (
-        <div className="px-4 lg:px-10 py-6 border-t border-[#ead9cd] dark:border-primary/10 flex items-center justify-between bg-slate-50/30">
+        <div className="px-4 lg:px-10 py-6 border-t border-[#ead9cd] dark:border-primary/10 flex items-center justify-between bg-white dark:bg-slate-900/10">
           <p className="text-sm text-[#a16b45]">
             Showing{' '}
             <span className="font-bold text-[#1d130c] dark:text-white">
-              {items.length}
+              {visibleItems.length}
             </span>{' '}
             of{' '}
             <span className="font-bold text-[#1d130c] dark:text-white">
@@ -263,7 +217,7 @@ export default function OrderHistoryTablePaginated({
             </span>{' '}
             orders
           </p>
-          {hasNextPage && (
+          {(hasNextPage || hasMore) && (
             <p className="text-xs text-[#a16b45] italic">Scroll to load more</p>
           )}
         </div>

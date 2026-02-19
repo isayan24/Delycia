@@ -33,6 +33,11 @@ interface CustomerListProps {
   onSelectCustomer: (id: string) => void
 }
 
+// Helper function to detect guest customers by phone number pattern
+const isGuestCustomer = (phoneNumber: string): boolean => {
+  return /^0{4}\d{6}$/.test(phoneNumber)
+}
+
 const MobileCustomerCard: React.FC<{
   customer: Customer
   onSelect: (id: string) => void
@@ -50,16 +55,30 @@ const MobileCustomerCard: React.FC<{
       </Avatar>
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
-          <h4 className="text-[15px] font-[500] text-slate-900 dark:text-white truncate tracking-wider">
-            {customer.name}
-          </h4>
+          <div className="flex items-center gap-2">
+            <h4 className="text-[15px] font-[500] text-slate-900 dark:text-white truncate tracking-wider">
+              {customer.name}
+            </h4>
+            {isGuestCustomer(customer.phone_number) && (
+              <Badge
+                variant="secondary"
+                className="text-[9px] font-black uppercase px-1.5 py-0.5"
+              >
+                Guest
+              </Badge>
+            )}
+          </div>
           <span className="text-[10px] font-black text-orange-600 bg-orange-50 dark:bg-orange-900/10 px-1.5 py-0.5 rounded-md uppercase">
             {customer.visit_count} Visits
           </span>
         </div>
         <div className="flex items-center gap-1.5 text-[10px] text-[#a16b45] font-semibold mt-1">
           <Phone className="w-3 h-3" />
-          {customer.phone_number}
+          {isGuestCustomer(customer.phone_number) ? (
+            <span className="text-gray-400">Guest</span>
+          ) : (
+            customer.phone_number
+          )}
         </div>
       </div>
     </div>
@@ -210,13 +229,27 @@ const CustomerList: React.FC<CustomerListProps> = ({
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col min-w-0">
-                        <span className="text-xs lg:text-[16px] font-[500] text-slate-900 dark:text-white   group-hover:text-orange-600 transition-colors">
-                          {customer.name}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs lg:text-[16px] font-[500] text-slate-900 dark:text-white   group-hover:text-orange-600 transition-colors">
+                            {customer.name}
+                          </span>
+                          {isGuestCustomer(customer.phone_number) && (
+                            <Badge
+                              variant="secondary"
+                              className="text-[9px] font-black uppercase px-1.5 py-0.5"
+                            >
+                              Guest
+                            </Badge>
+                          )}
+                        </div>
                         <div className="flex items-center gap-1.5 text-[10px] lg:text-xs text-[#a16b45] font-semibold mt-0.5">
                           <Phone className="w-2.5 h-2.5" />
                           <span className="truncate max-w-[150px]">
-                            {customer.phone_number || 'N/A'}
+                            {isGuestCustomer(customer.phone_number) ? (
+                              <span className="text-gray-400">Guest</span>
+                            ) : (
+                              customer.phone_number || 'N/A'
+                            )}
                           </span>
                         </div>
                       </div>

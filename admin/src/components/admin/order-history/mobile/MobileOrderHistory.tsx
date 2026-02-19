@@ -8,24 +8,12 @@ import { formatDateTime } from '@/utils/dateUtils'
 import { OrderHistoryDateFilter } from '../shared/OrderHistoryDateFilter'
 import {
   Search,
-  SlidersHorizontal,
   TrendingUp,
   CheckCircle,
   XCircle,
-  Filter,
   ArrowUp,
   Loader2,
 } from 'lucide-react'
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-  DrawerFooter,
-  DrawerClose,
-} from '@/components/ui/drawer'
-import { Button } from '@/components/ui/button'
 import { useLoadMore } from '@/hooks/useLoadMore'
 
 interface MobileOrderHistoryProps {
@@ -37,8 +25,11 @@ interface MobileOrderHistoryProps {
   pagination?: any
   search: string
   onSearchChange: (search: string) => void
-  onDateRangeChange?: (start_date?: string, end_date?: string, filter_type?: string) => void
-  onClearFilters?: () => void
+  onDateRangeChange?: (
+    start_date?: string,
+    end_date?: string,
+    filter_type?: string,
+  ) => void
   hasNextPage?: boolean
   onNextPage?: () => void
 }
@@ -87,7 +78,6 @@ const LoadingState = memo(() => (
   </div>
 ))
 LoadingState.displayName = 'LoadingState'
-
 const MobileOrderHistory = memo(function MobileOrderHistory({
   orders,
   loading,
@@ -98,7 +88,6 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
   search,
   onSearchChange,
   onDateRangeChange,
-  onClearFilters,
   hasNextPage,
   onNextPage,
 }: MobileOrderHistoryProps) {
@@ -106,9 +95,6 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
   const [showBillDialog, setShowBillDialog] = useState(false)
   const [selectedOrderForBill, setSelectedOrderForBill] = useState<any>(null)
   const [showScrollTop, setShowScrollTop] = useState(false)
-
-  // Filter Drawer State
-  const [isFilterOpen, setIsFilterOpen] = useState(false)
 
   // Progressive rendering with useLoadMore - natural page scroll
   const { visibleItems, hasMore, sentinelRef } = useLoadMore(orders, 10)
@@ -126,14 +112,12 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
     }
   }, [visibleItems.length, orders.length, hasNextPage, isFetching, onNextPage])
 
-  const handleApplyFilters = (start_date?: string, end_date?: string, filter_type?: string) => {
+  const handleApplyFilters = (
+    start_date?: string,
+    end_date?: string,
+    filter_type?: string,
+  ) => {
     onDateRangeChange?.(start_date, end_date, filter_type)
-    setIsFilterOpen(false)
-  }
-
-  const handleClearAll = () => {
-    onClearFilters?.()
-    setIsFilterOpen(false)
   }
 
   const handlePrintBill = useCallback(
@@ -232,71 +216,27 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
       </section>
 
       {/* Search & Filter Section */}
-      <section className="px-4 py-3 sticky top-0 z-40 bg-slate-50/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-[#ead9cd]/20 dark:border-primary/5 flex gap-2">
-        <div className="flex flex-1 items-stretch rounded-2xl h-10 bg-[#fffbf6] dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 shadow-sm overflow-hidden focus-within:border-primary transition-all">
-          <div className="text-[#a16b45] flex items-center justify-center pl-4">
-            <Search className="size-5" />
+      <section className="px-4 py-3 sticky top-0 z-40 bg-slate-50/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-[#ead9cd]/20 dark:border-primary/5">
+        <div className="flex items-center gap-2">
+          <div className="flex flex-[1.5] items-center rounded-2xl h-10 bg-[#fffbf6] dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 shadow-sm overflow-hidden focus-within:border-primary transition-all">
+            <div className="text-[#a16b45] flex items-center justify-center pl-3">
+              <Search className="size-4" />
+            </div>
+            <input
+              className="w-full border-none bg-transparent focus:outline-none focus:border-0 px-2 text-sm font-normal text-slate-900 dark:text-white placeholder:text-[#a16b45]/50"
+              placeholder="Search..."
+              type="text"
+              value={search}
+              onChange={(e) => onSearchChange(e.target.value)}
+            />
           </div>
-          <input
-            className="w-full border-none bg-transparent focus:outline-none focus:border-0 px-3 text-sm font-normal text-slate-900 dark:text-white placeholder:text-[#a16b45]/50"
-            placeholder="Search orders..."
-            type="text"
-            value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
+
+          <OrderHistoryDateFilter
+            onFilterChange={handleApplyFilters}
+            compact={true}
+            className="flex-1 min-w-[110px]"
           />
         </div>
-
-        {/* Functional Filter Drawer */}
-        <Drawer open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-          <DrawerTrigger asChild>
-            <button
-              className={`flex size-10 items-center justify-center rounded-2xl border shadow-sm active:scale-95 transition-all bg-[#fffbf6] dark:bg-[#2d1e14] border-[#ead9cd] dark:border-primary/10 text-[#a16b45]`}
-            >
-              <SlidersHorizontal className="size-5" />
-            </button>
-          </DrawerTrigger>
-          <DrawerContent className="bg-white dark:bg-[#1d130c] border-[#ead9cd] dark:border-primary/10">
-            <DrawerHeader className="border-b border-[#ead9cd]/50 dark:border-primary/5 px-6 pb-4">
-              <div className="flex items-center justify-between w-full">
-                <DrawerTitle className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Filter className="size-5 text-primary" />
-                  Filter Orders
-                </DrawerTitle>
-                <Button
-                  variant="ghost"
-                  onClick={handleClearAll}
-                  className="text-rose-600 font-bold text-xs h-8 px-2 hover:bg-rose-50 dark:hover:bg-rose-900/20"
-                >
-                  Clear All
-                </Button>
-              </div>
-            </DrawerHeader>
-
-            <div className="px-6 py-6 space-y-8 overflow-y-auto max-h-[60vh] no-scrollbar">
-              {/* Date Range Section */}
-              <div className="space-y-4">
-                <p className="text-xs font-bold text-[#a16b45] uppercase tracking-widest">
-                  Date Range
-                </p>
-                <OrderHistoryDateFilter
-                  onFilterChange={handleApplyFilters}
-                  className="w-full"
-                />
-              </div>
-            </div>
-
-            <DrawerFooter className="p-6 border-t border-[#ead9cd]/50 dark:border-primary/5">
-              <DrawerClose asChild>
-                <Button
-                  variant="outline"
-                  className="w-full h-12 rounded-xl border-[#ead9cd] font-bold text-slate-600 dark:border-primary/10 dark:text-slate-300"
-                >
-                  Close
-                </Button>
-              </DrawerClose>
-            </DrawerFooter>
-          </DrawerContent>
-        </Drawer>
       </section>
 
       {/* Orders List - Progressive rendering with natural page scroll */}
@@ -321,18 +261,10 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
             {(hasNextPage || hasMore) && (
               <div
                 ref={sentinelRef}
-                className="flex flex-col items-center justify-center py-12 gap-3"
+                className="flex items-center justify-center py-6 text-[11px] text-slate-400 gap-2"
               >
-                {isFetching || (hasNextPage && !hasMore) ? (
-                  <div className="flex flex-col items-center gap-2">
-                    <Loader2 className="size-6 text-primary animate-spin" />
-                    <p className="text-[10px] font-bold text-[#a16b45] uppercase tracking-widest">
-                      Loading more...
-                    </p>
-                  </div>
-                ) : (
-                  <div className="h-2 w-2 rounded-full bg-[#ead9cd] animate-pulse" />
-                )}
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                Loading more...
               </div>
             )}
 
@@ -346,6 +278,25 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
           </>
         )}
       </main>
+
+      {/* Mobile Footer Summary */}
+      {orders.length > 0 && (
+        <div className="px-6 py-4 mb-20 border-t border-[#ead9cd]/20 dark:border-primary/5 flex items-center justify-between bg-white dark:bg-slate-900/10">
+          <p className="text-xs text-[#a16b45]">
+            Showing{' '}
+            <span className="font-bold text-slate-900 dark:text-white">
+              {visibleItems.length}
+            </span>{' '}
+            of{' '}
+            <span className="font-bold text-slate-900 dark:text-white">
+              {total}
+            </span>
+          </p>
+          {(hasNextPage || hasMore) && (
+            <p className="text-[10px] text-[#a16b45] italic">Scroll for more</p>
+          )}
+        </div>
+      )}
 
       <PrintBillDialog
         open={showBillDialog}

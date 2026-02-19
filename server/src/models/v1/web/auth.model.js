@@ -453,4 +453,126 @@ const create_admin = async (req) => {
   }
 };
 
-export default { handleAuth, requestLoginLink, verifyMagicLink, admin_login, waiter_auth, create_admin };
+/**
+ * Create a guest customer with sequential phone number assignment
+ * Guest customers have:
+ * - Name: "Guest"
+ * - Username: "guest" + 8-digit random number
+ * - Phone: Sequential 10-digit number starting from "0000000001"
+ */
+const create_guest_customer = async (req) => {
+  // Authorization check: Only staff members (role >= 1) can create guest customers
+  if (req.user && req.user.role !== undefined && req.user.role < 1) {
+    return apiResponse.error(403, "Insufficient permissions. Only staff members can create guest orders.");
+  }
+
+  const connection = await pool.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    // 1. Find highest guest phone number with row lock for concurrency safety
+    // Guest phone numbers are in range "0000000000" to "9999999999"
+    const [phoneResults] = await connection.query(
+      `SELECT phone_number FROM users
+       WHERE phone_number REGEXP '^[0-9]{10}$'
+       AND phone_number >= '0000000000'
+       AND phone_number <= '9999999999'
+       ORDER BY phone_number DESC
+       LIMIT 1
+       FOR UPDATE`,
+      []
+    );
+
+    // 2. Calculate next sequential phone number and ensure it doesn't exist
+    let nextPhoneNumber = '0000000001';
+    let phoneAttempts = 0;
+    const maxPhoneAttempts = 100; // Try up to 100 phone numbers
+
+    if (phoneResults.length > 0) {
+      const currentMax = parseInt(phoneResults[0].phone_number, 10);
+      nextPhoneNumber = (currentMax + 1).toString().padStart(10, '0');
+    }
+
+    // Keep trying phone numbers until we find one that doesn't exist
+    while (phoneAttempts < maxPhoneAttempts) {
+      // Check if we've exceeded the maximum guest phone number
+      if (nextPhoneNumber > '9999999999') {
+        await connection.rollback();
+        return apiResponse.error(500, "Maximum guest customer limit reached");
+      }
+
+      // Check if this phone number already exists
+      const [existingPhone] = await connection.query(
+        'SELECT id FROM users WHERE phone_number = ?',
+        [nextPhoneNumber]
+      );
+
+      if (existingPhone.length === 0) {
+        // Phone number is available
+        break;
+      }
+
+      // Phone number exists, try next one
+      const currentNum = parseInt(nextPhoneNumber, 10);
+      nextPhoneNumber = (currentNum + 1).toString().padStart(10, '0');
+      phoneAttempts++;
+    }
+
+    if (phoneAttempts === maxPhoneAttempts) {
+      await connection.rollback();
+      return apiResponse.error(500, "Failed to find available guest phone number after maximum attempts");
+    }
+
+    // 3. Generate unique username with retry logic
+    let username;
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    while (attempts < maxAttempts) {
+      // Generate 8-digit random number (10000000 to 99999999)
+      const randomNum = Math.floor(10000000 + Math.random() * 90000000);
+      username = `guest${randomNum}`;
+
+      const [existing] = await connection.query(
+        'SELECT id FROM users WHERE username = ?',
+        [username]
+      );
+
+      if (existing.length === 0) break;
+      attempts++;
+    }
+
+    if (attempts === maxAttempts) {
+      await connection.rollback();
+      return apiResponse.error(500, "Failed to generate unique username after maximum attempts");
+    }
+
+    // 4. Create guest customer record
+    const uid = uuidv4();
+    const [result] = await connection.query(
+      `INSERT INTO users (uid, name, username, phone_number, country_code, role)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [uid, 'Guest', username, nextPhoneNumber, '+91', 0]
+    );
+
+    await connection.commit();
+
+    return apiResponse.success(201, "Guest customer created successfully", {
+      id: result.insertId,
+      uid,
+      name: 'Guest',
+      username,
+      phone_number: nextPhoneNumber
+    });
+
+  } catch (error) {
+    await connection.rollback();
+    console.error('create_guest_customer error:', error);
+    return apiResponse.error(500, "Failed to create guest customer: " + error.message);
+  } finally {
+    connection.release();
+  }
+}
+
+export default { handleAuth, requestLoginLink, verifyMagicLink, admin_login, waiter_auth, create_admin, create_guest_customer };

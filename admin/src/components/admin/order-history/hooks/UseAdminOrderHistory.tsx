@@ -14,7 +14,7 @@ interface UseAdminOrdersProps {
 export const UseAdminOrderHistory = ({ rid }: UseAdminOrdersProps) => {
   const navigate = useNavigate()
   const search = useSearch({ strict: false }) as any
-  
+
   // Get filter values from URL search params
   const page = search?.page || 1
   const searchQuery = search?.search || ''
@@ -23,7 +23,7 @@ export const UseAdminOrderHistory = ({ rid }: UseAdminOrdersProps) => {
   const end_date = search?.end_date
 
   // Debounce search to avoid excessive API calls
-  const debouncedSearch = useDebounce(searchQuery, 500)
+  const debouncedSearch = useDebounce(searchQuery, 1000)
 
   // Only trigger search if 2+ characters are entered (or if cleared)
   const effectiveSearch =
@@ -92,12 +92,15 @@ export const UseAdminOrderHistory = ({ rid }: UseAdminOrdersProps) => {
   }, [orders, page, isLoading, isFetching])
 
   // Pagination controls - update URL search params
-  const goToPage = useCallback((newPage: number) => {
-    navigate({
-      to: '/orders/history',
-      search: (prev: any) => ({ ...prev, page: newPage }),
-    })
-  }, [navigate])
+  const goToPage = useCallback(
+    (newPage: number) => {
+      navigate({
+        to: '/orders/history',
+        search: (prev: any) => ({ ...prev, page: newPage }),
+      })
+    },
+    [navigate],
+  )
 
   const nextPage = useCallback(() => {
     navigate({
@@ -109,30 +112,39 @@ export const UseAdminOrderHistory = ({ rid }: UseAdminOrdersProps) => {
   const prevPage = useCallback(() => {
     navigate({
       to: '/orders/history',
-      search: (prev: any) => ({ ...prev, page: Math.max(1, (prev?.page || 1) - 1) }),
+      search: (prev: any) => ({
+        ...prev,
+        page: Math.max(1, (prev?.page || 1) - 1),
+      }),
     })
   }, [navigate])
 
   // Search and filter controls - update URL search params
-  const setSearch = useCallback((search: string) => {
-    navigate({
-      to: '/orders/history',
-      search: (prev: any) => ({ ...prev, search, page: 1 }),
-    })
-  }, [navigate])
+  const setSearch = useCallback(
+    (search: string) => {
+      navigate({
+        to: '/orders/history',
+        search: (prev: any) => ({ ...prev, search, page: 1 }),
+      })
+    },
+    [navigate],
+  )
 
-  const setDateRange = useCallback((start_date?: string, end_date?: string, filter_type?: string) => {
-    navigate({
-      to: '/orders/history',
-      search: (prev: any) => ({ 
-        ...prev, 
-        start_date, 
-        end_date, 
-        filter_type,
-        page: 1 // Reset to page 1 when filters change
-      }),
-    })
-  }, [navigate])
+  const setDateRange = useCallback(
+    (start_date?: string, end_date?: string, filter_type?: string) => {
+      navigate({
+        to: '/orders/history',
+        search: (prev: any) => ({
+          ...prev,
+          start_date,
+          end_date,
+          filter_type,
+          page: 1, // Reset to page 1 when filters change
+        }),
+      })
+    },
+    [navigate],
+  )
 
   const clearFilters = useCallback(() => {
     navigate({

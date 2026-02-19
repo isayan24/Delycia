@@ -647,59 +647,15 @@ const get_paginated_orders = async (req) => {
       params.push(searchPattern, searchPattern, searchPattern, searchPattern);
     }
 
-    // Handle date filtering based on filter_type or explicit start_date/end_date
-    if (filter_type && filter_type !== 'custom' && filter_type !== 'allTime') {
-      // Calculate date range based on filter_type
-      let calculatedStartDate, calculatedEndDate;
-      const now = new Date();
-      
-      switch (filter_type) {
-        case 'today':
-          calculatedStartDate = new Date(now.setHours(0, 0, 0, 0));
-          calculatedEndDate = new Date(now.setHours(23, 59, 59, 999));
-          break;
-        case 'yesterday':
-          const yesterday = new Date(now);
-          yesterday.setDate(yesterday.getDate() - 1);
-          calculatedStartDate = new Date(yesterday.setHours(0, 0, 0, 0));
-          calculatedEndDate = new Date(yesterday.setHours(23, 59, 59, 999));
-          break;
-        case 'last7days':
-          calculatedEndDate = new Date(now.setHours(23, 59, 59, 999));
-          calculatedStartDate = new Date(now);
-          calculatedStartDate.setDate(calculatedStartDate.getDate() - 6);
-          calculatedStartDate.setHours(0, 0, 0, 0);
-          break;
-        case 'lastMonth':
-          const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-          calculatedStartDate = new Date(lastMonth.setHours(0, 0, 0, 0));
-          const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-          calculatedEndDate = new Date(lastMonthEnd.setHours(23, 59, 59, 999));
-          break;
-        case 'thisMonth':
-          calculatedStartDate = new Date(now.getFullYear(), now.getMonth(), 1);
-          calculatedStartDate.setHours(0, 0, 0, 0);
-          calculatedEndDate = new Date(now.setHours(23, 59, 59, 999));
-          break;
-      }
-      
-      if (calculatedStartDate && calculatedEndDate) {
-        conditions.push("o.created_at >= ?");
-        params.push(calculatedStartDate.toISOString().split('T')[0]);
-        conditions.push("o.created_at <= ?");
-        params.push(calculatedEndDate.toISOString().split('T')[0] + ' 23:59:59');
-      }
-    } else {
-      // Use explicit start_date and end_date for custom or when filter_type is not provided
-      if (start_date) {
-        conditions.push("o.created_at >= ?");
-        params.push(start_date);
-      }
+    // Simplified Date Filtering: Ranges are calculated on the frontend to ensure IST alignment
+    if (start_date) {
+      conditions.push("o.created_at >= ?");
+      params.push(start_date);
+    }
 
-      if (end_date) {
-        conditions.push("o.created_at <= ?");
-        params.push(end_date + ' 23:59:59');
-      }
+    if (end_date) {
+      conditions.push("o.created_at <= ?");
+      params.push(end_date + ' 23:59:59');
     }
 
     const whereClause = conditions.join(" AND ");

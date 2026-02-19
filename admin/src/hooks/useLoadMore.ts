@@ -26,14 +26,24 @@ export function useLoadMore<T>(
   // Reset visible count only when the source data fundamentally changes (e.g. search/filter)
   useEffect(() => {
     setVisibleCount((prev) => {
-      // If list emptied or first item changed (new search/filter), reset
-      if (items.length === 0 || items[0] !== prevItemsRef.current[0]) {
+      // If list emptied, reset
+      if (items.length === 0) return batchSize
+
+      // Check if the FIRST ID changed (indicates major filter/search change)
+      const firstId = (items[0] as any)?.id || (items[0] as any)?.orderId
+      const prevFirstId =
+        (prevItemsRef.current[0] as any)?.id ||
+        (prevItemsRef.current[0] as any)?.orderId
+
+      if (firstId !== prevFirstId) {
         return batchSize
       }
+
       // If list shrank significantly, reset
       if (items.length < prevItemsRef.current.length) {
         return batchSize
       }
+
       // If it's an append or same list, maintain current count
       return prev
     })
@@ -66,7 +76,7 @@ export function useLoadMore<T>(
             loadMore()
           }
         },
-        { rootMargin: '50px' }, // Pre-fetch before user reaches the bottom
+        { rootMargin: '200px' }, // Pre-fetch before user reaches the bottom
       )
 
       observerRef.current.observe(node)

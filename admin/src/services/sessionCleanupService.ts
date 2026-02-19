@@ -31,7 +31,6 @@ class SessionCleanupService {
   private startPeriodicCleanup(): void {
     // No-op: Session validation is now handled by TanStack Query
     // The useAdminAuthQuery hook manages session state with proper caching
-    console.log('[SessionCleanup] Periodic validation disabled - using TanStack Query cache')
   }
 
   /**

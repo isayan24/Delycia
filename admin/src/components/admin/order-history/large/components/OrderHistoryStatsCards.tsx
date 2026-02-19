@@ -7,6 +7,7 @@ import {
   Bolt,
   Minus,
 } from 'lucide-react'
+import { StatsCardsSkeleton } from '../../LoadingSkeleton'
 
 interface OrderHistoryStatsCardsProps {
   stats:
@@ -17,10 +18,15 @@ interface OrderHistoryStatsCardsProps {
       }
     | null
     | undefined
+  loading?: boolean
 }
 
 export const OrderHistoryStatsCards = React.memo(
-  ({ stats }: OrderHistoryStatsCardsProps) => {
+  ({ stats, loading }: OrderHistoryStatsCardsProps) => {
+    if (loading && !stats) {
+      return <StatsCardsSkeleton />
+    }
+
     const total = stats?.total_orders || 0
     const delivered = stats?.total_delivered || 0
     const cancelled = stats?.total_cancelled || 0

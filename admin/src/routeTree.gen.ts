@@ -52,6 +52,7 @@ import { Route as ApiNotificationsRouteImport } from './routes/api/notifications
 import { Route as ApiInventoryStatsRouteImport } from './routes/api/inventory-stats'
 import { Route as ApiInventoryRouteImport } from './routes/api/inventory'
 import { Route as ApiImagekitRouteImport } from './routes/api/imagekit'
+import { Route as ApiGuestCustomerRouteImport } from './routes/api/guest-customer'
 import { Route as ApiDashboardRouteImport } from './routes/api/dashboard'
 import { Route as ApiCrmRouteImport } from './routes/api/crm'
 import { Route as ApiCategoryRouteImport } from './routes/api/category'
@@ -303,6 +304,11 @@ const ApiImagekitRoute = ApiImagekitRouteImport.update({
   path: '/api/imagekit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiGuestCustomerRoute = ApiGuestCustomerRouteImport.update({
+  id: '/api/guest-customer',
+  path: '/api/guest-customer',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDashboardRoute = ApiDashboardRouteImport.update({
   id: '/api/dashboard',
   path: '/api/dashboard',
@@ -498,6 +504,7 @@ export interface FileRoutesByFullPath {
   '/api/category': typeof ApiCategoryRouteWithChildren
   '/api/crm': typeof ApiCrmRouteWithChildren
   '/api/dashboard': typeof ApiDashboardRoute
+  '/api/guest-customer': typeof ApiGuestCustomerRoute
   '/api/imagekit': typeof ApiImagekitRoute
   '/api/inventory': typeof ApiInventoryRouteWithChildren
   '/api/inventory-stats': typeof ApiInventoryStatsRoute
@@ -572,6 +579,7 @@ export interface FileRoutesByTo {
   '/api/category': typeof ApiCategoryRouteWithChildren
   '/api/crm': typeof ApiCrmRouteWithChildren
   '/api/dashboard': typeof ApiDashboardRoute
+  '/api/guest-customer': typeof ApiGuestCustomerRoute
   '/api/imagekit': typeof ApiImagekitRoute
   '/api/inventory': typeof ApiInventoryRouteWithChildren
   '/api/inventory-stats': typeof ApiInventoryStatsRoute
@@ -653,6 +661,7 @@ export interface FileRoutesById {
   '/api/category': typeof ApiCategoryRouteWithChildren
   '/api/crm': typeof ApiCrmRouteWithChildren
   '/api/dashboard': typeof ApiDashboardRoute
+  '/api/guest-customer': typeof ApiGuestCustomerRoute
   '/api/imagekit': typeof ApiImagekitRoute
   '/api/inventory': typeof ApiInventoryRouteWithChildren
   '/api/inventory-stats': typeof ApiInventoryStatsRoute
@@ -735,6 +744,7 @@ export interface FileRouteTypes {
     | '/api/category'
     | '/api/crm'
     | '/api/dashboard'
+    | '/api/guest-customer'
     | '/api/imagekit'
     | '/api/inventory'
     | '/api/inventory-stats'
@@ -809,6 +819,7 @@ export interface FileRouteTypes {
     | '/api/category'
     | '/api/crm'
     | '/api/dashboard'
+    | '/api/guest-customer'
     | '/api/imagekit'
     | '/api/inventory'
     | '/api/inventory-stats'
@@ -889,6 +900,7 @@ export interface FileRouteTypes {
     | '/api/category'
     | '/api/crm'
     | '/api/dashboard'
+    | '/api/guest-customer'
     | '/api/imagekit'
     | '/api/inventory'
     | '/api/inventory-stats'
@@ -970,6 +982,7 @@ export interface RootRouteChildren {
   ApiCategoryRoute: typeof ApiCategoryRouteWithChildren
   ApiCrmRoute: typeof ApiCrmRouteWithChildren
   ApiDashboardRoute: typeof ApiDashboardRoute
+  ApiGuestCustomerRoute: typeof ApiGuestCustomerRoute
   ApiImagekitRoute: typeof ApiImagekitRoute
   ApiInventoryRoute: typeof ApiInventoryRouteWithChildren
   ApiInventoryStatsRoute: typeof ApiInventoryStatsRoute
@@ -1301,6 +1314,13 @@ declare module '@tanstack/react-router' {
       path: '/api/imagekit'
       fullPath: '/api/imagekit'
       preLoaderRoute: typeof ApiImagekitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/guest-customer': {
+      id: '/api/guest-customer'
+      path: '/api/guest-customer'
+      fullPath: '/api/guest-customer'
+      preLoaderRoute: typeof ApiGuestCustomerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/dashboard': {
@@ -1770,6 +1790,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCategoryRoute: ApiCategoryRouteWithChildren,
   ApiCrmRoute: ApiCrmRouteWithChildren,
   ApiDashboardRoute: ApiDashboardRoute,
+  ApiGuestCustomerRoute: ApiGuestCustomerRoute,
   ApiImagekitRoute: ApiImagekitRoute,
   ApiInventoryRoute: ApiInventoryRouteWithChildren,
   ApiInventoryStatsRoute: ApiInventoryStatsRoute,

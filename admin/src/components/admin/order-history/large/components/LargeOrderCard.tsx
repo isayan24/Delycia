@@ -2,7 +2,6 @@ import React, { useState, useMemo, memo } from 'react'
 import {
   Beef,
   Calendar,
-  CheckCircle,
   ChevronDown,
   Coffee,
   History,
@@ -28,8 +27,10 @@ import {
 } from '../../utils/orderHistoryUtils'
 import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
 import { formatDateTime } from '@/utils/dateUtils'
-
 import { Checkbox } from '@/components/ui/checkbox'
+import { cn } from '@/lib/utils'
+import { motion, AnimatePresence } from 'motion/react'
+import { useSidebar } from '@/components/ui/sidebar'
 
 interface LargeOrderCardProps {
   order: TransformedOrder
@@ -83,13 +84,13 @@ const getStatusStyles = (status: string) => {
 const getItemIcon = (name: string) => {
   const n = name.toLowerCase()
   if (n.includes('burger') || n.includes('fastfood'))
-    return <Carrot className="w-5 h-5" />
-  if (n.includes('pizza')) return <Pizza className="w-5 h-5" />
+    return <Carrot className="w-4 h-4" />
+  if (n.includes('pizza')) return <Pizza className="w-4 h-4" />
   if (n.includes('coffee') || n.includes('latte') || n.includes('macchiato'))
-    return <Coffee className="w-5 h-5" />
+    return <Coffee className="w-4 h-4" />
   if (n.includes('meat') || n.includes('beef') || n.includes('steak'))
-    return <Beef className="w-5 h-5" />
-  return <UtensilsCrossed className="w-5 h-5" />
+    return <Beef className="w-4 h-4" />
+  return <UtensilsCrossed className="w-4 h-4" />
 }
 
 // --- Sub-components for better readability ---
@@ -122,15 +123,19 @@ const OrderHeader = memo(
     onSelect?: () => void
     isMergeable: boolean
   }) => {
-    const StatusIcon = statusInfo.iconName
+    const { state } = useSidebar()
+    const isSidebarCollapsed = state === 'collapsed'
 
     return (
       <div
-        className={`p-4 cursor-pointer select-none transition-colors ${
-          isSelectionMode && isSelected
-            ? 'bg-rose-50/50 dark:bg-rose-900/10'
-            : ''
-        } ${isSelectionMode && !isMergeable ? 'opacity-50 cursor-not-allowed' : ''}`}
+        className={cn(
+          'p-4 cursor-pointer transition-all duration-200 px-6 select-none group/header relative',
+          isExpanded
+            ? 'bg-slate-50/80 dark:bg-slate-800/60'
+            : 'hover:bg-slate-50 dark:hover:bg-slate-800/20',
+          isSelectionMode && isSelected && 'bg-rose-50/40 dark:bg-rose-900/10',
+          isSelectionMode && !isMergeable && 'opacity-50 cursor-not-allowed',
+        )}
         onClick={() => {
           if (isSelectionMode) {
             if (isMergeable && onSelect) onSelect()
@@ -139,93 +144,141 @@ const OrderHeader = memo(
           }
         }}
       >
-        <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center">
-          {/* Selection / Status Icon */}
-          <div className="flex items-center gap-4">
+        <div
+          className={cn(
+            'flex flex-col justify-between gap-[4%] max-[1200px]:gap-2',
+            isSidebarCollapsed
+              ? 'md:flex-row md:items-center'
+              : 'min-[1200px]:flex-row min-[1200px]:items-center',
+          )}
+        >
+          {/* Left: ID & Status */}
+          <div
+            className={cn(
+              'flex items-center min-w-[8rem]',
+              isSidebarCollapsed
+                ? 'max-[768px]:pr-32 transition-spacing'
+                : 'max-[1024px]:pr-32 transition-spacing',
+            )}
+          >
             {isSelectionMode && (
-              <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+              <div onClick={(e) => e.stopPropagation()}>
                 <Checkbox
                   checked={isSelected}
                   onCheckedChange={() => isMergeable && onSelect?.()}
                   disabled={!isMergeable}
-                  className="size-5 rounded-md border-[#ead9cd] data-[state=checked]:bg-rose-600 data-[state=checked]:border-rose-600"
+                  className="rounded border-slate-200"
                 />
               </div>
             )}
-            <div
-              className={`size-14 rounded-xl flex items-center justify-center shrink-0 ${statusInfo.icon}`}
-            >
-              <StatusIcon className="w-6 h-6" />
-            </div>
-          </div>
-
-          {/* Order Brief Info */}
-          <div className="flex-1 space-y-2">
-            <div className="flex items-center gap-3">
-              <h3 className="text-md font-medium text-slate-900 dark:text-white">
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <Badge
+                  className={cn(
+                    'px-1.5 py-0 border-none text-[9px] font-bold uppercase tracking-tight',
+                    statusInfo.badge,
+                  )}
+                >
+                  {statusInfo.label}
+                </Badge>
+                {order.paymentStatus === 'refunded' && (
+                  <Badge className="bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400 border-none text-[9px] font-bold uppercase">
+                    Paid
+                  </Badge>
+                )}
+              </div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white leading-none">
                 #{order.orderId}
               </h3>
-              <Badge
-                className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${statusInfo.badge}`}
-              >
-                {statusInfo.label}
-              </Badge>
-              {order.paymentStatus === 'refunded' && (
-                <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-bold flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" /> Refunded
-                </span>
-              )}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-[#a16b45]">
-              <span className="flex items-center gap-1.5 font-medium">
-                <Calendar className="w-4 h-4" /> {formattedDate}
-              </span>
-              <span className="flex items-center gap-1.5 font-medium">
-                <Layers className="w-4 h-4" /> {totalItems} Items
-              </span>
-              <span className="flex items-center gap-1.5 font-medium">
-                <User2 className="w-4 h-4" /> {order.customerName || 'Guest'}
-              </span>
             </div>
           </div>
 
-          {/* Total Section */}
-          <div className="flex items-center gap-3 divide-x divide-[#ead9cd] dark:divide-primary/10">
-            <div className="pr-6">
+          {/* Center: Customer & Time */}
+          <div
+            className={cn(
+              'flex-1 grid grid-cols-2 gap-6',
+              !isSidebarCollapsed && 'max-[1200px]:grid-cols-1',
+            )}
+          >
+            <div
+              className={cn(
+                'space-y-1 pl:6 min-w-0',
+                isSidebarCollapsed ? 'max-[1200px]:pl-6' : 'max-[1200px]:pl-0',
+              )}
+            >
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Brief
+              </p>
+              <div className="flex flex-col gap-1">
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate flex items-center gap-1.5">
+                  <User2 className="w-3.5 h-3.5 text-[#a16b45] shrink-0" />{' '}
+                  {order.customerName || 'Guest'}
+                </p>
+                <p className="text-[11px] font-medium text-[#a16b45] flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 shrink-0" /> {totalItems} Items
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-1 min-w-0">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Timeline
+              </p>
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 whitespace-nowrap flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-[#a16b45] shrink-0" />{' '}
+                {formattedDate}
+              </p>
+            </div>
+          </div>
+
+          {/* Right: Total & Actions */}
+          <div
+            className={cn(
+              'flex items-center gap-6 justify-end',
+              isSidebarCollapsed
+                ? 'absolute top-4 right-6 md:static md:pl-6 md:min-w-[200px]'
+                : 'absolute top-4 right-6 min-[1200px]:static lg:pl-6 lg:min-w-[200px]',
+            )}
+          >
+            <div className="text-right">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
+                Final Total
+              </p>
+              <p className="text-xl font-bold text-slate-900 dark:text-white tabular-nums leading-none">
+                ₹
+                {finalGrandTotal.toLocaleString('en-IN', {
+                  minimumFractionDigits: 2,
+                })}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
               <Button
-                variant="outline"
-                size="sm"
+                variant="ghost"
+                size="icon"
                 onClick={(e) => {
                   e.stopPropagation()
                   onPrintBill(order)
                 }}
-                className="h-10 px-6 rounded-xl border border-[#ead9cd] dark:border-primary/10 text-slate-700 dark:text-slate-200 font-bold text-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-all flex items-center gap-2"
+                className="h-9 w-9 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
               >
-                <Printer className="w-4 h-4 text-[#a16b45]" />
+                <Printer className="w-4 h-4 text-slate-400" />
               </Button>
-            </div>
 
-            <div className="pl-6 flex items-center gap-6">
-              <div className="text-right">
-                <p className="text-sm text-[#a16b45] font-medium mb-1">
-                  Order Total
-                </p>
-                <p
-                  className={`text-xl font-bold ${statusInfo.text === 'text-rose-600' ? 'text-rose-600' : 'text-primary'}`}
-                >
-                  ₹
-                  {finalGrandTotal.toLocaleString('en-IN', {
-                    minimumFractionDigits: 2,
-                  })}
-                </p>
-              </div>
-
-              {/* Expand Icon */}
               <div
-                className={`p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors ${isExpanded ? 'rotate-180' : ''}`}
+                className={cn(
+                  'h-9 w-9 flex items-center justify-center rounded-lg transition-all duration-200',
+                  isExpanded
+                    ? 'bg-slate-100 dark:bg-slate-800'
+                    : 'bg-transparent',
+                )}
               >
-                <ChevronDown className="w-5 h-5 text-[#a16b45] transition-transform duration-300" />
+                <ChevronDown
+                  className={cn(
+                    'w-4 h-4 text-slate-400 transition-transform duration-300',
+                    isExpanded && 'rotate-180',
+                  )}
+                />
               </div>
             </div>
           </div>
@@ -238,53 +291,71 @@ OrderHeader.displayName = 'OrderHeader'
 
 const ItemDetailsTable = memo(({ items }: { items: any[] }) => (
   <div className="space-y-4">
-    <h4 className="text-sm font-bold uppercase tracking-widest text-[#a16b45]">
-      Item Details
-    </h4>
-    <div className="bg-white dark:bg-[#2d1e14] rounded-xl border border-[#ead9cd] dark:border-primary/10 overflow-hidden shadow-sm">
+    <div className="flex items-center justify-between px-2">
+      <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+        Items Summary
+      </h4>
+      <span className="text-[10px] font-bold text-slate-300">
+        {items.length} Entries
+      </span>
+    </div>
+
+    <div className="bg-slate-50/50 dark:bg-slate-800/10 rounded-2xl border border-slate-100 dark:border-slate-800/50 overflow-hidden">
       <table className="w-full text-left text-sm">
         <thead>
-          <tr className="bg-background-light dark:bg-[#3a291d] text-[#a16b45] font-bold border-b border-[#ead9cd] dark:border-primary/10">
-            <th className="px-6 py-4">Item</th>
-            <th className="px-6 py-4 text-center">Qty</th>
-            <th className="px-6 py-4 text-right">Price</th>
-            <th className="px-6 py-4 text-right">Total</th>
+          <tr className="bg-slate-50 dark:bg-slate-800/30 text-slate-400 text-[9px] font-bold uppercase tracking-wider">
+            <th className="py-3 pl-6 pr-4">Description</th>
+            <th className="py-3 px-4 text-center">Qty</th>
+            <th className="py-3 px-4 text-right">Unit Price</th>
+            <th className="py-3 pl-4 pr-6 text-right">Total</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-[#ead9cd] dark:divide-primary/10">
+        <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
           {items.map((item, idx) => (
-            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-              <td className="px-6 py-4">
-                <div className="flex items-center gap-3">
-                  <div className="size-10 rounded-lg bg-orange-50 dark:bg-[#3a291d] flex items-center justify-center text-primary">
+            <tr
+              key={idx}
+              className="hover:bg-white dark:hover:bg-slate-800/30 transition-colors"
+            >
+              <td className="py-4 pl-6 pr-4">
+                <div className="flex items-start gap-4">
+                  <div className="mt-1 shrink-0 text-primary/60">
                     {getItemIcon(item.name)}
                   </div>
-                  <div className="flex flex-col">
-                    <span className="font-semibold text-slate-900 dark:text-white">
-                      {item.name}{' '}
-                      <span className="text-xs text-[#a16b45] italic">
-                        {item?.variant_name && `(${item.variant_name})`}
-                      </span>
-                    </span>
+                  <div className="space-y-0.5">
+                    <p className="font-semibold text-[15px] text-slate-700 dark:text-slate-200">
+                      {item.name}
+                      {item?.variant_name && (
+                        <span className="text-slate-400 ml-1.5 font-medium">
+                          / {item.variant_name}
+                        </span>
+                      )}
+                    </p>
                     {item?.addons && item.addons.length > 0 && (
-                      <span className="text-[11px] text-[#a16b45] italic">
-                        +{' '}
+                      <p className="text-[11px] text-slate-400">
                         {item.addons
                           .map((a: any) => (typeof a === 'string' ? a : a.name))
                           .join(', ')}
-                      </span>
+                      </p>
                     )}
                   </div>
                 </div>
               </td>
-              <td className="px-6 py-4 text-center font-medium">
-                {item.quantity}
+              <td className="py-4 px-4 text-center">
+                <span className="text-[13px] font-bold text-slate-600 dark:text-slate-300">
+                  {item.quantity}
+                </span>
               </td>
-              <td className="px-6 py-4 text-right text-[#a16b45]">
-                ₹{item.price.toFixed(2)}
+              <td className="py-4 px-4 text-right tabular-nums text-slate-400 text-xs">
+                ₹
+                {item.price.toLocaleString('en-IN', {
+                  minimumFractionDigits: 2,
+                })}
               </td>
-              <td className="px-6 py-4 text-right font-bold text-slate-900 dark:text-white">
-                ₹{(item.quantity * item.price).toFixed(2)}
+              <td className="py-4 pl-4 pr-6 text-right tabular-nums font-bold text-slate-700 dark:text-slate-200">
+                ₹
+                {(item.quantity * item.price).toLocaleString('en-IN', {
+                  minimumFractionDigits: 2,
+                })}
               </td>
             </tr>
           ))}
@@ -305,50 +376,58 @@ const TimelineSection = memo(
     timeline: any[]
     timelineColorClass: string
   }) => (
-    <div className="flex-1 w-full space-y-6 bg-white dark:bg-[#2d1e14] p-6 rounded-xl border border-[#ead9cd] dark:border-primary/10 shadow-sm overflow-hidden">
-      <div className="flex justify-between items-center mb-2">
-        <h4 className="text-sm font-bold uppercase tracking-widest text-[#a16b45]">
-          Order Timeline
+    <div className="space-y-4 px-2">
+      <div className="flex justify-between items-center">
+        <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+          Lifecycle
         </h4>
-        <span className="text-xs font-semibold text-[#a16b45] bg-orange-50 dark:bg-[#3a291d] px-3 py-1 rounded-full">
+        <span className="text-[10px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded uppercase">
           {deliveryTimeMsg}
         </span>
       </div>
 
-      <div className="relative py-4 px-2">
-        <div
-          className={`absolute top-10 left-8 right-8 h-0.5 ${timelineColorClass.replace('bg-', 'bg-opacity-20 bg-')}`}
-        >
+      <div className="relative pt-2 pb-2 px-4">
+        {/* Track Line */}
+        <div className="absolute top-[1.2rem] left-8 right-8 h-[2px] bg-slate-100 dark:bg-slate-800">
           <div
-            className={`h-full ${timelineColorClass}`}
+            className={cn(
+              'h-full transition-all duration-500',
+              timelineColorClass,
+            )}
             style={{
               width:
-                timeline.filter((s) => s.completed).length > 1 ? '100%' : '0%',
+                timeline.filter((s) => s.completed).length > 1 ? '98%' : '0%',
             }}
           />
         </div>
 
         <div className="flex justify-between relative z-10">
           {timeline.map((step, index) => (
-            <div key={index} className="flex flex-col items-center gap-3">
+            <div key={index} className="flex flex-col items-center gap-2">
               <div
-                className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-500 ${
+                className={cn(
+                  'size-3.5 rounded-full border-2 transition-all mt-1 bg-white dark:bg-slate-900',
                   step.completed
-                    ? `${timelineColorClass} scale-110`
-                    : 'bg-slate-200 dark:bg-slate-700 text-slate-400'
-                }`}
+                    ? cn('border-transparent scale-110', timelineColorClass)
+                    : 'border-slate-200 dark:border-slate-700',
+                )}
               >
-                {step.completed ? (
-                  <CheckCircle className="w-6 h-6 text-white" />
-                ) : (
-                  <div className="w-2.5 h-2.5 rounded-full bg-current" />
+                {step.completed && (
+                  <CheckCircle2 className="size-2 text-white m-auto" />
                 )}
               </div>
-              <div className="text-center space-y-1">
-                <p className="text-xs font-bold text-slate-900 dark:text-white">
+              <div className="text-center">
+                <p
+                  className={cn(
+                    'text-[12px] font-bold tracking-tight',
+                    step.completed
+                      ? 'text-slate-700 dark:text-slate-200'
+                      : 'text-slate-400',
+                  )}
+                >
                   {step.label}
                 </p>
-                <p className="text-[10px] font-medium text-[#a16b45]">
+                <p className="text-[11px] text-slate-400 tabular-nums">
                   {step.time}
                 </p>
               </div>
@@ -361,7 +440,7 @@ const TimelineSection = memo(
 )
 TimelineSection.displayName = 'TimelineSection'
 
-const TotalsBreakdown = memo(
+const UnifiedDetails = memo(
   ({
     order,
     taxInfo,
@@ -371,132 +450,182 @@ const TotalsBreakdown = memo(
     taxInfo: any
     finalGrandTotal: number
   }) => (
-    <div className="w-full lg:w-72 shrink-0 space-y-3 bg-white dark:bg-[#2d1e14] p-5 rounded-xl border border-[#ead9cd] dark:border-primary/10 shadow-sm">
-      <div className="flex justify-between text-sm text-[#a16b45]">
-        <span>Subtotal</span>
-        <span className="font-semibold text-slate-900 dark:text-white">
-          ₹{order.totalAmount.toFixed(2)}
-        </span>
+    <div className="space-y-6">
+      {/* Profiler - Very Compact */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="size-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-slate-600 dark:text-slate-300">
+            {(order.customerName || 'G').charAt(0).toUpperCase()}
+          </div>
+          <div className="space-y-0.5">
+            <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-none">
+              {order.customerName || 'Guest User'}
+            </h4>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-2.5 pl-1">
+          <div className="flex items-center gap-3 text-[12px] text-slate-500">
+            <User2 className="w-3.5 h-3.5 opacity-40 shrink-0" />
+            <span className="font-medium">
+              {order.customerEmail || 'No email provided'}
+            </span>
+          </div>
+          <div className="flex items-center gap-3 text-[12px] text-slate-500">
+            <Phone className="w-3.5 h-3.5 opacity-40 shrink-0" />
+            <span className="font-medium">
+              {order.customerPhone || 'Contact Not Available'}
+            </span>
+          </div>
+          <div className="flex items-center gap-3 text-[12px] text-slate-500">
+            <TableIcon className="w-3.5 h-3.5 opacity-40 shrink-0" />
+            <span className="font-medium">
+              {order.tableNo ? `Table ${order.tableNo}` : 'Takeaway'}
+            </span>
+          </div>
+          <div className="flex items-start gap-3 text-[12px] text-slate-500 leading-snug">
+            <Pin className="w-3.5 h-3.5 opacity-40 mt-0.5 shrink-0" />
+            <span className="font-medium italic">
+              {order.deliveryAddress || 'Takeaway Order / No Address'}
+            </span>
+          </div>
+        </div>
       </div>
-      {order.deliveryFee ? (
-        <div className="flex justify-between text-sm text-[#a16b45]">
-          <span>Delivery Fee</span>
-          <span className="font-semibold text-slate-900 dark:text-white">
-            ₹{order.deliveryFee.toFixed(2)}
+
+      {/* Financial Section - Integrated (No dark box) */}
+      <div className="p-5 rounded-2xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-800/50 space-y-4">
+        <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-slate-800/50">
+          <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+            Bill Summary
+          </h4>
+          <span className="text-[10px] font-bold text-slate-500 uppercase">
+            {order.paymentMethod || 'CASH'}
           </span>
         </div>
-      ) : null}
-      {(order.discountAmount || 0) > 0 && (
-        <div className="flex justify-between text-sm text-emerald-600 font-medium">
-          <span>Discount</span>
-          <span>-₹{(order.discountAmount || 0).toFixed(2)}</span>
+
+        <div className="space-y-2.5 tabular-nums">
+          <div className="flex justify-between text-xs font-semibold text-slate-500/80">
+            <span>Sub-total</span>
+            <span>
+              ₹
+              {order.totalAmount.toLocaleString('en-IN', {
+                minimumFractionDigits: 2,
+              })}
+            </span>
+          </div>
+
+          {order.deliveryFee ? (
+            <div className="flex justify-between text-xs font-semibold text-slate-500/80">
+              <span>Surcharge</span>
+              <span>
+                ₹
+                {order.deliveryFee.toLocaleString('en-IN', {
+                  minimumFractionDigits: 2,
+                })}
+              </span>
+            </div>
+          ) : null}
+
+          {(order.discountAmount || 0) > 0 && (
+            <div className="flex justify-between text-xs font-semibold text-emerald-600">
+              <span>Benefits</span>
+              <span>
+                -₹
+                {(order.discountAmount || 0).toLocaleString('en-IN', {
+                  minimumFractionDigits: 2,
+                })}
+              </span>
+            </div>
+          )}
+
+          <div className="flex justify-between text-xs font-semibold text-slate-500/80">
+            <span>Tax ({taxInfo.taxPercent}%)</span>
+            <span>
+              ₹
+              {taxInfo.taxAmount.toLocaleString('en-IN', {
+                minimumFractionDigits: 2,
+              })}
+            </span>
+          </div>
+
+          <div className="flex justify-between items-center pt-3 border-t border-slate-200 dark:border-slate-700">
+            <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-tight">
+              Total
+            </span>
+            <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+              ₹
+              {finalGrandTotal.toLocaleString('en-IN', {
+                minimumFractionDigits: 2,
+              })}
+            </span>
+          </div>
         </div>
-      )}
-      <div className="flex justify-between text-sm text-[#a16b45]">
-        <span>Tax (GST {taxInfo.taxPercent}%)</span>
-        <span className="font-semibold text-slate-900 dark:text-white">
-          ₹{taxInfo.taxAmount.toFixed(2)}
-        </span>
-      </div>
-      <div className="flex justify-between text-lg font-bold border-t border-[#ead9cd] dark:border-primary/10 pt-3 text-primary">
-        <span>Grand Total</span>
-        <span>₹{finalGrandTotal.toFixed(2)}</span>
       </div>
     </div>
   ),
 )
-TotalsBreakdown.displayName = 'TotalsBreakdown'
+UnifiedDetails.displayName = 'UnifiedDetails'
 
-const CustomerInfoSection = memo(({ order }: { order: TransformedOrder }) => (
-  <div className="space-y-4">
-    <h4 className="text-sm font-bold uppercase tracking-widest text-[#a16b45]">
-      Customer Information
-    </h4>
-    <div className="bg-white dark:bg-[#2d1e14] p-6 rounded-xl border border-[#ead9cd] dark:border-primary/10 space-y-4 shadow-sm">
-      <div className="flex items-center gap-4">
-        <div className="size-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg">
-          {(order.customerName || 'G').charAt(0).toUpperCase()}
-        </div>
-        <div>
-          <p className="font-bold text-slate-900 dark:text-white">
-            {order.customerName || 'Guest'}
-          </p>
-          <p className="text-xs text-[#a16b45]">
-            {order.customerEmail || 'No email provided'}
-          </p>
-        </div>
-      </div>
-      <div className="pt-4 flex flex-col gap-3 border-t border-[#ead9cd] dark:border-primary/10">
-        <div className="flex items-center gap-3 text-xs font-semibold text-slate-700 dark:text-slate-200">
-          <div className="size-8 rounded-lg bg-orange-50 flex items-center justify-center text-primary shrink-0">
-            <Phone className="w-4 h-4" />
+const ExpandedContent = memo(
+  ({
+    order,
+    taxInfo,
+    finalGrandTotal,
+    deliveryTimeMsg,
+    timeline,
+    timelineColorClass,
+  }: {
+    order: TransformedOrder
+    taxInfo: any
+    finalGrandTotal: number
+    deliveryTimeMsg: string
+    timeline: any[]
+    timelineColorClass: string
+  }) => {
+    return (
+      <div className="border-t border-slate-100 dark:border-slate-800/50 p-6 pt-6 pb-8 bg-white dark:bg-slate-900/10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          {/* Main Hero Logic Column */}
+          <div className="lg:col-span-8 space-y-6">
+            <ItemDetailsTable items={order.items} />
+            <TimelineSection
+              deliveryTimeMsg={deliveryTimeMsg}
+              timeline={timeline}
+              timelineColorClass={timelineColorClass}
+            />
           </div>
-          {order.customerPhone || 'Contact Not Available'}
-        </div>
-        {order.deliveryAddress && (
-          <div className="flex items-start gap-3 text-xs font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
-            <div className="size-8 rounded-lg bg-orange-50 flex items-center justify-center text-primary shrink-0">
-              <Pin className="w-4 h-4" />
-            </div>
-            {order.deliveryAddress || 'Takeaway Order / No Address'}
+
+          {/* Context Sidebar */}
+          <div className="lg:col-span-4">
+            <UnifiedDetails
+              order={order}
+              taxInfo={taxInfo}
+              finalGrandTotal={finalGrandTotal}
+            />
           </div>
-        )}
-      </div>
-    </div>
-  </div>
-))
-CustomerInfoSection.displayName = 'CustomerInfoSection'
-
-const MetadataSection = memo(({ order }: { order: TransformedOrder }) => (
-  <div className="space-y-4">
-    <h4 className="text-sm font-bold uppercase tracking-widest text-[#a16b45]">
-      Order Metadata
-    </h4>
-    <div className="grid grid-cols-2 gap-4">
-      <div className="bg-white dark:bg-[#2d1e14] p-4 rounded-xl border border-[#ead9cd] dark:border-primary/10 shadow-sm">
-        <p className="text-[10px] text-[#a16b45] uppercase font-bold tracking-wider mb-2">
-          Payment
-        </p>
-        <div className="flex items-center gap-2">
-          <CreditCard className="w-4 h-4 text-primary" />
-          <p className="text-xs font-bold text-slate-900 dark:text-white uppercase">
-            {order.paymentMethod || 'UPI / Cash'}
-          </p>
         </div>
       </div>
-      <div className="bg-white dark:bg-[#2d1e14] p-4 rounded-xl border border-[#ead9cd] dark:border-primary/10 shadow-sm">
-        <p className="text-[10px] text-[#a16b45] uppercase font-bold tracking-wider mb-2">
-          Table/Spot
-        </p>
-        <div className="flex items-center gap-2">
-          <TableIcon className="w-4 h-4 text-primary" />
-          <p className="text-xs font-bold text-slate-900 dark:text-white">
-            {order.tableNo ? `Table ${order.tableNo}` : 'Takeaway'}
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-))
-MetadataSection.displayName = 'MetadataSection'
+    )
+  },
+)
+ExpandedContent.displayName = 'ExpandedContent'
 
-// --- Main Component ---
-
-export const LargeOrderCard = React.memo(
+const LargeOrderCard = React.memo(
   ({
     order,
     onPrintBill,
-    isSelectionMode = false,
     isSelected = false,
     onSelect,
+    isSelectionMode = false,
     isSelectionDisabled = false,
   }: LargeOrderCardProps) => {
     const [isExpanded, setIsExpanded] = useState(false)
+    const isMergeable = !isSelectionDisabled
+
     const statusInfo = useMemo(
       () => getStatusStyles(order.status || (order as any).order_status),
       [order.status, order],
     )
-    const isMergeable = !isSelectionDisabled
 
     const totalItems = useMemo(
       () =>
@@ -505,6 +634,11 @@ export const LargeOrderCard = React.memo(
           0,
         ),
       [order.items],
+    )
+
+    const formattedDate = useMemo(
+      () => formatDateTime(order.createdAt),
+      [order.createdAt],
     )
 
     const taxInfo = useOrderTaxCalculation({
@@ -518,18 +652,13 @@ export const LargeOrderCard = React.memo(
       [taxInfo.grandTotal, order.deliveryFee],
     )
 
-    const formattedDate = useMemo(
-      () => formatDateTime(order.createdAt),
-      [order.createdAt],
-    )
-
-    // Only calculate these expensive values when expanded
-    const timeline = useMemo(
-      () => (isExpanded ? generateOrderTimeline(order) : []),
-      [order, isExpanded],
-    )
     const deliveryTimeMsg = useMemo(
       () => (isExpanded ? calculateDeliveryTime(order) : ''),
+      [order, isExpanded],
+    )
+
+    const timeline = useMemo(
+      () => (isExpanded ? generateOrderTimeline(order) : []),
       [order, isExpanded],
     )
 
@@ -546,7 +675,7 @@ export const LargeOrderCard = React.memo(
     }, [order.status, isExpanded])
 
     return (
-      <div className="group bg-white dark:bg-[#2d1e14] rounded-xl border border-[#ead9cd] dark:border-primary/10 hover:shadow-xl hover:shadow-primary/5 transition-all overflow-hidden">
+      <div className="group bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800/50 hover:border-slate-200 dark:hover:border-slate-700 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-lg hover:shadow-slate-200/50 dark:hover:shadow-none">
         <OrderHeader
           order={order}
           statusInfo={statusInfo}
@@ -562,35 +691,28 @@ export const LargeOrderCard = React.memo(
           isMergeable={isMergeable}
         />
 
-        {isExpanded && (
-          <div className="border-t border-[#ead9cd] dark:border-primary/10 p-8 bg-background-light/50 dark:bg-background-dark/30 animate-in fade-in slide-in-from-top-2 duration-300">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-              <div className="lg:col-span-2 space-y-6">
-                <ItemDetailsTable items={order.items} />
-
-                <div className="flex flex-col lg:flex-row justify-between items-start gap-8 pt-2">
-                  <TimelineSection
-                    deliveryTimeMsg={deliveryTimeMsg}
-                    timeline={timeline}
-                    timelineColorClass={timelineColorClass}
-                  />
-                  <TotalsBreakdown
-                    order={order}
-                    taxInfo={taxInfo}
-                    finalGrandTotal={finalGrandTotal}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-8">
-                <CustomerInfoSection order={order} />
-                <MetadataSection order={order} />
-              </div>
-            </div>
-          </div>
-        )}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.4, ease: [0.33, 1, 0.68, 1] }}
+            >
+              <ExpandedContent
+                order={order}
+                taxInfo={taxInfo}
+                finalGrandTotal={finalGrandTotal}
+                deliveryTimeMsg={deliveryTimeMsg}
+                timeline={timeline}
+                timelineColorClass={timelineColorClass}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     )
   },
 )
 LargeOrderCard.displayName = 'LargeOrderCard'
+export default LargeOrderCard

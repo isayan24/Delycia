@@ -11,9 +11,12 @@ import {
 export type DateFilterType =
   | 'today'
   | 'yesterday'
+  | 'thisWeek'
+  | 'lastWeek'
   | 'last7days'
   | 'lastMonth'
   | 'thisMonth'
+  | 'thisYear'
   | 'allTime'
   | 'custom'
 
@@ -62,6 +65,28 @@ export class DateRangeCalculator {
     }
   }
 
+  static thisWeek(): DateRange {
+    const today = new Date()
+    const start = startOfDay(subDays(today, today.getDay())) // Start of week (Sunday)
+    const end = endOfDay(today)
+
+    return {
+      startDate: format(start, 'yyyy-MM-dd'),
+      endDate: format(end, 'yyyy-MM-dd'),
+    }
+  }
+
+  static lastWeek(): DateRange {
+    const today = new Date()
+    const lastWeekStart = subDays(startOfDay(today), today.getDay() + 7)
+    const lastWeekEnd = subDays(endOfDay(today), today.getDay() + 1)
+
+    return {
+      startDate: format(lastWeekStart, 'yyyy-MM-dd'),
+      endDate: format(lastWeekEnd, 'yyyy-MM-dd'),
+    }
+  }
+
   static lastMonth(): DateRange {
     const lastMonth = subMonths(new Date(), 1)
     const start = startOfMonth(lastMonth)
@@ -77,6 +102,17 @@ export class DateRangeCalculator {
     const today = new Date()
     const start = startOfMonth(today)
     const end = endOfDay(today) // Up to today in current month
+
+    return {
+      startDate: format(start, 'yyyy-MM-dd'),
+      endDate: format(end, 'yyyy-MM-dd'),
+    }
+  }
+
+  static thisYear(): DateRange {
+    const today = new Date()
+    const start = new Date(today.getFullYear(), 0, 1) // Jan 1st
+    const end = endOfDay(today)
 
     return {
       startDate: format(start, 'yyyy-MM-dd'),
@@ -116,12 +152,18 @@ export class DateRangeCalculator {
         return this.today()
       case 'yesterday':
         return this.yesterday()
+      case 'thisWeek':
+        return this.thisWeek()
+      case 'lastWeek':
+        return this.lastWeek()
       case 'last7days':
         return this.last7Days()
       case 'lastMonth':
         return this.lastMonth()
       case 'thisMonth':
         return this.thisMonth()
+      case 'thisYear':
+        return this.thisYear()
       case 'allTime':
         return this.allTime()
       case 'custom':
@@ -130,7 +172,7 @@ export class DateRangeCalculator {
         }
         return this.custom(customStart, customEnd)
       default:
-        return this.last7Days() // Default fallback
+        return this.allTime() // Change default to allTime for Order History
     }
   }
 
@@ -144,6 +186,10 @@ export class DateRangeCalculator {
         return `Today (${format(new Date(), 'MMM dd, yyyy')})`
       case 'yesterday':
         return `Yesterday (${format(subDays(new Date(), 1), 'MMM dd, yyyy')})`
+      case 'thisWeek':
+        return 'This Week'
+      case 'lastWeek':
+        return 'Last Week'
       case 'last7days':
         return `Last 7 Days (${format(subDays(new Date(), 6), 'MMM dd')} - ${format(new Date(), 'MMM dd, yyyy')})`
       case 'lastMonth':
@@ -152,13 +198,15 @@ export class DateRangeCalculator {
       case 'thisMonth':
         const today = new Date()
         return `This Month (${format(startOfMonth(today), 'MMM dd')} - ${format(today, 'MMM dd, yyyy')})`
+      case 'thisYear':
+        return `This Year (${new Date().getFullYear()})`
       case 'allTime':
-        return 'All Time Earnings'
+        return 'All Time'
       case 'custom':
         if (!customStart || !customEnd) return 'Custom Range'
         return `${format(customStart, 'MMM dd')} - ${format(customEnd, 'MMM dd, yyyy')}`
       default:
-        return 'Last 7 Days'
+        return 'All Time'
     }
   }
 
