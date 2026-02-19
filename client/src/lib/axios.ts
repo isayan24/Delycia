@@ -5,6 +5,7 @@ const axiosInstance = axios.create({
   // Use environment variable for API base URL (production vs development)
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8020/api/v1',
   withCredentials: true, // ensures cookies are sent automatically
+  timeout: 30000, // 30 second timeout to prevent hanging requests
 })
 
 axiosInstance.interceptors.request.use(
@@ -35,14 +36,18 @@ axiosInstance.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    try {
+    // Log errors for debugging
+    if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+      console.error(`[axios] Request timeout to ${error.config?.url}`)
+    } else if (error.response) {
       console.error(
-        'API Response Error:',
-        error?.response?.data || error.message,
+        `[axios] Error ${error.response.status} from ${error.config?.url}:`,
+        error.response.data?.message || error.message,
       )
-    } catch (err) {
-      console.error('Error handling response:', err)
+    } else if (error.request) {
+      console.error(`[axios] Network error - no response received`)
     }
+
     return Promise.reject(error)
   },
 )

@@ -16,7 +16,7 @@ import ThermalBill from '@/components/billing/ThermalBill'
 import { orderToBillData, handleShareToMobile } from '@/components/billing'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
-import { formatDateTime } from '@/utils/dateUtils'
+import { formatDateTime, formatDateTimeIST } from '@/utils/dateUtils'
 
 interface CancelledOrderCardProps {
   order: ProcessedOrder
@@ -77,7 +77,7 @@ const OrderHeader = memo(
               </span>
               <span className="flex items-center gap-1.5 font-medium">
                 <Calendar className="w-4 h-4" />{' '}
-                {formatDateTime(order.created_at)}
+                {formatDateTimeIST(order.created_at)}
               </span>
             </div>
           </div>
@@ -289,7 +289,7 @@ export function CancelledOrderCard({ order }: CancelledOrderCardProps) {
                   <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
                     This order was cancelled on{' '}
                     <span className="font-bold text-slate-700 dark:text-slate-200">
-                      {formatDateTime(order.created_at)}
+                      {formatDateTimeIST(order.created_at)}
                     </span>
                     .
                   </p>

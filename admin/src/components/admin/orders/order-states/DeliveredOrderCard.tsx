@@ -19,7 +19,7 @@ import ThermalBill from '@/components/billing/ThermalBill'
 import { orderToBillData, handleShareToMobile } from '@/components/billing'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
-import { formatDateTime } from '@/utils/dateUtils'
+import { formatDateTime, formatDateTimeIST } from '@/utils/dateUtils'
 
 interface DeliveredOrderCardProps {
   order: ProcessedOrder
@@ -86,7 +86,7 @@ const OrderHeader = memo(
               </span>
               <span className="flex items-center gap-1.5 font-medium">
                 <Calendar className="w-4 h-4" />{' '}
-                {formatDateTime(order.created_at)}
+                {formatDateTimeIST(order.created_at)}
               </span>
             </div>
           </div>

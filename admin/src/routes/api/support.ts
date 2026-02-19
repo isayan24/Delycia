@@ -44,9 +44,9 @@ export const Route = createFileRoute('/api/support')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        return withAuth(request, async (_accessToken, authHeaders) => {
+        return withAuth(request, async (_accessToken, authHeaders, req) => {
           try {
-            const body = await request.json()
+            const body = await req.json()
             const { subject, description, userName, userEmail } = body
 
             // Validate required fields

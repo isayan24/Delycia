@@ -1,6 +1,5 @@
 import { parseCookies, getAccessTokenFromCookie } from './server-cookies'
 import { refreshCoordinator } from './refreshCoordinator'
-import { tokenCache } from './tokenCache'
 
 /**
  * Server-side (BFF) auth helper that handles token refresh transparently.
@@ -10,7 +9,7 @@ import { tokenCache } from './tokenCache'
  *
  * Usage in any BFF route handler:
  * ```ts
- * return withAuth(request, async (token, headers) => {
+ * return withAuth(request, async (token, headers, req) => {
  *   const res = await axiosInstance.get('/users', {
  *     headers: { Authorization: `Bearer ${token}` },
  *   })
@@ -20,13 +19,12 @@ import { tokenCache } from './tokenCache'
  *
  * The helper:
  * 1. Extracts access token from request cookies
- * 2. Checks token cache for fresh token (from recent refresh)
- * 3. Calls your function with the token
- * 4. If the function throws a 401/403 ("Token expired"), it:
+ * 2. Calls your function with the token
+ * 3. If the function throws a 401/403 ("Token expired"), it:
  *    - Delegates to RefreshCoordinator for token refresh
  *    - Retries your function with the new access token (ONCE)
  *    - Adds Set-Cookie headers to update httpOnly cookies
- * 5. If refresh fails or retry still fails, returns a 401 Response
+ * 4. If refresh fails or retry still fails, returns a 401 Response
  */
 
 interface WithAuthOptions {
@@ -53,8 +51,13 @@ export function isTokenExpiredError(error: any): boolean {
 /**
  * Execute a BFF handler with automatic token refresh on 401/403.
  *
+ * IMPORTANT: For handlers that read request.json() or request.text(),
+ * the request body can only be consumed once. This helper automatically
+ * clones the request before the first attempt to enable retries.
+ *
  * @param request - The incoming Request object from TanStack Start
- * @param fn - Your handler function. Receives (accessToken, responseHeaders).
+ * @param fn - Your handler function. Receives (accessToken, responseHeaders, request).
+ *             The request parameter is a fresh clone on retry attempts.
  *             The responseHeaders may contain Set-Cookie for refreshed tokens.
  *             You should include these headers in your Response.
  * @param options - Optional configuration
@@ -62,10 +65,14 @@ export function isTokenExpiredError(error: any): boolean {
  */
 export async function withAuth(
   request: Request,
-  fn: (accessToken: string, headers: Headers) => Promise<Response>,
+  fn: (accessToken: string, headers: Headers, request: Request) => Promise<Response>,
   options: WithAuthOptions = {},
 ): Promise<Response> {
   const { requireAuth = true } = options
+
+  // CRITICAL: Clone the request IMMEDIATELY before any body consumption
+  // This allows us to retry with a fresh request if token refresh is needed
+  const clonedRequest = request.clone()
 
   // First, try to get the freshest token from cache
   const cookieHeader = request.headers.get('cookie')
@@ -74,17 +81,9 @@ export async function withAuth(
 
   let accessToken = getAccessTokenFromCookie(request)
 
-  // Check if we have a fresher token in cache (from a recent refresh)
-  if (refreshToken) {
-    const cachedToken = tokenCache.get(refreshToken)
-    if (cachedToken) {
-      accessToken = cachedToken
-    }
-  }
-
   if (!accessToken) {
     if (!requireAuth) {
-      return fn('', new Headers())
+      return fn('', new Headers(), request)
     }
 
     // Attempt refresh through coordinator
@@ -119,12 +118,12 @@ export async function withAuth(
       refreshHeaders.append('Set-Cookie', cookie)
     }
 
-    return await fn(refreshResult.accessToken, refreshHeaders)
+    return await fn(refreshResult.accessToken, refreshHeaders, request)
   }
 
   try {
     // First attempt with current access token
-    return await fn(accessToken, new Headers())
+    return await fn(accessToken, new Headers(), request)
   } catch (error: any) {
     // Check if this is a token expiration error (401 or 403 with "Token expired")
     if (!isTokenExpiredError(error)) {
@@ -160,14 +159,16 @@ export async function withAuth(
       )
     }
 
-    // Retry with new token (mark as retry to prevent infinite loops)
+    // Retry with new token
     const refreshHeaders = new Headers()
     for (const cookie of refreshResult.setCookieHeaders) {
       refreshHeaders.append('Set-Cookie', cookie)
     }
 
     try {
-      return await fn(refreshResult.accessToken, refreshHeaders)
+      console.log(`[withAuth] Retrying request with refreshed token`)
+      // Use the pre-cloned request from the beginning of the function
+      return await fn(refreshResult.accessToken, refreshHeaders, clonedRequest)
     } catch (retryError: any) {
       // If retry also fails with auth error, give up and force logout
       const retryStatus = retryError?.response?.status

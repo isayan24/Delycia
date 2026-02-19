@@ -7,10 +7,10 @@ export const Route = createFileRoute('/api/orders/order-history')({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
             // Parse URL to get query params
-            const url = new URL(request.url)
+            const url = new URL(req.url)
             const rid = url.searchParams.get('rid')
             const page = url.searchParams.get('page')
             const limit = url.searchParams.get('limit')

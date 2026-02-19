@@ -7,9 +7,9 @@ export const Route = createFileRoute('/api/admin/update')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
-            const body = await request.json()
+            const body = await req.json()
             const { uid, username, name, password, profile_pic, phone_number } =
               body
 

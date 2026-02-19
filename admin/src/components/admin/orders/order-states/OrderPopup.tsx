@@ -25,6 +25,7 @@ import { PrintBillDialog } from '../../order-history/shared/PrintBillDialog'
 import { orderToBillData } from '@/components/billing/utils/orderToBillData'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import { useSoundContext } from '@/context/SoundContext'
+import { formatDateTimeIST } from '@/utils/dateUtils'
 
 interface OrderPopupProps {
   order: ProcessedOrder
@@ -65,7 +66,7 @@ export const OrderPopup = memo(function OrderPopup({
   const handleAccept = () => {
     onAccept(order, prepTime)
   }
-  const orderTimeLabel = formatOrderTime(order.created_at)
+  const orderTimeLabel = formatDateTimeIST(order.created_at)
   const tableNumber =
     order.unique_table_numbers.length > 0 ? order.unique_table_numbers[0] : null
 

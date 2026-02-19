@@ -7,10 +7,10 @@ export const Route = createFileRoute('/api/variants')({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
             // Parse query params
-            const url = new URL(request.url)
+            const url = new URL(req.url)
             const inventoryId = url.searchParams.get('inventory_id')
 
             if (!inventoryId) {

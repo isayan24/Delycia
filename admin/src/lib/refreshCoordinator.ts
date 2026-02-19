@@ -12,6 +12,20 @@ export interface RefreshResult {
 }
 
 /**
+ * Reason why refresh failed (helps withAuth decide whether to trigger logout)
+ */
+export enum RefreshFailureReason {
+  NO_COOKIES = 'NO_COOKIES', // This request had no cookies (SSR race condition)
+  BACKEND_ERROR = 'BACKEND_ERROR', // Backend rejected the refresh (true session expiry)
+  NETWORK_ERROR = 'NETWORK_ERROR', // Network error during refresh
+}
+
+/**
+ * Extended result that includes failure reason
+ */
+export type RefreshResultOrFailure = RefreshResult | { failed: true; reason: RefreshFailureReason }
+
+/**
  * Centralized token refresh coordinator for server-side BFF routes.
  *
  * This singleton ensures that only ONE token refresh happens at a time,
@@ -37,7 +51,7 @@ class RefreshCoordinator {
   private static instance: RefreshCoordinator
 
   // In-flight refresh promise for deduplication
-  private refreshPromise: Promise<RefreshResult | null> | null = null
+  private refreshPromise: Promise<RefreshResultOrFailure | null> | null = null
 
   // Last successful refresh timestamp
   private lastRefreshTime: number = 0
@@ -67,23 +81,45 @@ class RefreshCoordinator {
    *
    * This method:
    * 1. Checks if a refresh is already in progress → waits for it
-   * 2. Checks if we refreshed recently → returns cached result
-   * 3. Otherwise, performs a new refresh
+   * 2. Checks cache FIRST (before checking timing) → returns cached token
+   * 3. Checks if we refreshed recently → returns cached result (if available)
+   * 4. Otherwise, performs a new refresh
    *
    * @param request - The incoming Request object (for extracting cookies)
-   * @returns RefreshResult with new tokens, or null if refresh failed
+   * @returns RefreshResult with new tokens, or failure object with reason
    */
-  async refreshTokens(request: Request): Promise<RefreshResult | null> {
+  async refreshTokens(request: Request): Promise<RefreshResultOrFailure | null> {
     const requestId = `req_${++this.requestCounter}`
+
+    // Extract refresh token early for cache lookup
+    const cookieHeader = request.headers.get('cookie')
+    const cookies = parseCookies(cookieHeader)
+    const refreshToken = cookies['admin_refresh_token']
+
+    // CRITICAL: Check cache FIRST before any other logic
+    // This prevents 100+ cache misses when parallel requests arrive
+    if (refreshToken) {
+      const cachedAccessToken = tokenCache.get(refreshToken)
+      if (cachedAccessToken) {
+        console.log(`[RefreshCoordinator:${requestId}] ✅ Using cached token (no refresh needed)`)
+        return {
+          accessToken: cachedAccessToken,
+          refreshToken: refreshToken,
+          setCookieHeaders: [],
+        }
+      }
+    }
 
     // Case 1: Refresh already in progress → wait for it
     if (this.refreshPromise) {
+      console.log(`[RefreshCoordinator:${requestId}] Waiting for in-flight refresh...`)
       return this.refreshPromise
     }
 
-    // Case 2: Refreshed recently → skip (prevent refresh storms)
+    // Case 2: Refreshed recently → try to use cached token (already checked above)
     if (this.shouldSkipRefresh()) {
-      return null
+      console.log(`[RefreshCoordinator:${requestId}] Skipping refresh (too soon), but cache was empty`)
+      // Cache was already checked above and was empty, so we need to refresh
     }
 
     // Case 3: Perform new refresh
@@ -108,12 +144,14 @@ class RefreshCoordinator {
   }
 
   /**
-   * Perform the actual refresh call to backend
+   * Perform the actual refresh call to BFF
    */
   private async performRefresh(
     request: Request,
     requestId: string,
-  ): Promise<RefreshResult | null> {
+  ): Promise<RefreshResultOrFailure | null> {
+    const isServer = typeof window === 'undefined'
+    
     try {
       // Extract refresh token from httpOnly cookie
       const cookieHeader = request.headers.get('cookie')
@@ -121,15 +159,16 @@ class RefreshCoordinator {
       const refreshToken = cookies['admin_refresh_token']
 
       if (!refreshToken) {
-        console.error(
-          `[RefreshCoordinator:${requestId}] No refresh token - session expired`,
-        )
-        return null
+        if (isServer) {
+          // SSR context - this is expected for initial renders without cookies
+          return { failed: true, reason: RefreshFailureReason.NO_COOKIES }
+        } else {
+          // Client context - user needs to login
+          console.error(`[RefreshCoordinator] No refresh token in browser - user needs to login`)
+          return { failed: true, reason: RefreshFailureReason.BACKEND_ERROR }
+        }
       }
 
-      // Detect if we're in server-side context
-      const isServer = typeof window === 'undefined'
-      
       // Build URL - use full URL in SSR, relative in browser
       const baseUrl = isServer 
         ? (process.env.VITE_APP_URL || 'http://localhost:4500')
@@ -137,7 +176,6 @@ class RefreshCoordinator {
       const url = `${baseUrl}/api/auth/refresh`
 
       // Use plain axios to call BFF route (NOT axiosInstance which calls backend directly)
-      // Flow: RefreshCoordinator → BFF /api/auth/refresh → Backend /users/auth/refresh
       const response = await axios.post(
         url,
         {},
@@ -147,6 +185,7 @@ class RefreshCoordinator {
             ...(isServer && cookieHeader ? { Cookie: cookieHeader } : {}),
           },
           withCredentials: true,
+          timeout: 15000, // 15 second timeout for refresh requests
         },
       )
 
@@ -154,11 +193,8 @@ class RefreshCoordinator {
 
       // Validate response
       if (!data?.access_token || !data?.refresh_token) {
-        console.error(
-          `[RefreshCoordinator:${requestId}] Backend returned unexpected data:`,
-          data,
-        )
-        return null
+        console.error(`[RefreshCoordinator] Backend returned unexpected data`)
+        return { failed: true, reason: RefreshFailureReason.BACKEND_ERROR }
       }
 
       const { access_token, refresh_token } = data
@@ -167,7 +203,8 @@ class RefreshCoordinator {
       this.lastRefreshTime = Date.now()
 
       // Cache the new tokens for immediate use in parallel requests
-      tokenCache.set(refreshToken, access_token)
+      // CRITICAL: Cache under BOTH old and new refresh tokens to handle token rotation
+      tokenCache.set(refreshToken, access_token, refresh_token)
 
       return {
         accessToken: access_token,
@@ -179,7 +216,20 @@ class RefreshCoordinator {
         `[RefreshCoordinator:${requestId}] ❌ Refresh failed:`,
         error?.response?.data || error?.message || error,
       )
-      return null
+      
+      // Check if this is a timeout error
+      if (error?.code === 'ECONNABORTED' || error?.code === 'ETIMEDOUT') {
+        console.error(`[RefreshCoordinator:${requestId}] Request timed out - backend not responding`)
+        return { failed: true, reason: RefreshFailureReason.NETWORK_ERROR }
+      }
+      
+      // Check if this is a backend 401 (session truly expired)
+      if (error?.response?.status === 401) {
+        return { failed: true, reason: RefreshFailureReason.BACKEND_ERROR }
+      }
+      
+      // Otherwise it's a network error
+      return { failed: true, reason: RefreshFailureReason.NETWORK_ERROR }
     }
   }  /**
    * Reset coordinator state (useful for testing)

@@ -9,11 +9,12 @@
  * All parallel requests check the cache FIRST before using cookies.
  *
  * This ensures all parallel SSR requests use the SAME fresh token.
+ *
+ * CRITICAL: Supports token rotation by caching under BOTH old and new refresh tokens.
  */
 
 interface CachedToken {
   accessToken: string
-  refreshToken: string
   timestamp: number
 }
 
@@ -24,15 +25,29 @@ class TokenCache {
 
   /**
    * Store a fresh access token in the cache.
-   * @param refreshToken - The refresh token (used as cache key)
+   * CRITICAL: If newRefreshToken is provided (token rotation), cache under BOTH tokens.
+   *
+   * @param refreshToken - The old refresh token (used as cache key)
    * @param accessToken - The fresh access token to cache
+   * @param newRefreshToken - The new refresh token (if token rotation occurred)
    */
-  set(refreshToken: string, accessToken: string): void {
-    this.cache.set(refreshToken, {
+  set(
+    refreshToken: string,
+    accessToken: string,
+    newRefreshToken?: string,
+  ): void {
+    const entry: CachedToken = {
       accessToken,
-      refreshToken,
       timestamp: Date.now(),
-    })
+    }
+
+    // Always cache under the old refresh token
+    this.cache.set(refreshToken, entry)
+
+    // If we have a new refresh token (from rotation), also cache under that
+    if (newRefreshToken && newRefreshToken !== refreshToken) {
+      this.cache.set(newRefreshToken, entry)
+    }
 
     // Schedule cleanup if not already scheduled
     this.scheduleCleanup()
@@ -100,12 +115,6 @@ class TokenCache {
           this.cache.delete(key)
           removedCount++
         }
-      }
-
-      if (removedCount > 0) {
-        console.log(
-          `[TokenCache] Cleaned up ${removedCount} expired token(s). Cache size: ${this.cache.size}`,
-        )
       }
 
       // Stop cleanup if cache is empty

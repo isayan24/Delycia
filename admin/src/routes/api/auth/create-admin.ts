@@ -7,9 +7,9 @@ export const Route = createFileRoute('/api/auth/create-admin')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        return withAuth(request, async (token, authHeaders) => {
+        return withAuth(request, async (token, authHeaders, req) => {
           try {
-            const body = await request.json()
+            const body = await req.json()
 
             // Make request to backend with token from cookie
             const response = await axiosInstance.post(

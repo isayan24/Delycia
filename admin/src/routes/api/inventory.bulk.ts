@@ -10,9 +10,9 @@ export const Route = createFileRoute('/api/inventory/bulk')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
-            const data: BulkInventoryRequest = await request.json()
+            const data: BulkInventoryRequest = await req.json()
             const { rid, category_id, is_veg, items } = data
 
             if (!rid || !category_id) {

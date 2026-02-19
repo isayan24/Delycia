@@ -7,12 +7,12 @@ export const Route = createFileRoute('/api/orders/by-table')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
             const data: {
               table_id: number
               rid: string
-            } = await request.json()
+            } = await req.json()
 
             if (!data.table_id || !data.rid) {
               return jsonResponse(

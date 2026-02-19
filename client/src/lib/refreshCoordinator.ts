@@ -18,9 +18,9 @@ export interface RefreshResult {
  * even when multiple concurrent requests need a refresh.
  *
  * Key features:
+ * - Cache-first: Checks token cache BEFORE attempting refresh
  * - Deduplicates concurrent refresh attempts
- * - Enforces minimum time between refreshes (5 seconds)
- * - Caches tokens for immediate use in parallel requests
+ * - Caches tokens under BOTH old and new refresh tokens (handles rotation)
  * - Thread-safe Promise-based coordination
  *
  * Usage:
@@ -41,9 +41,6 @@ class RefreshCoordinator {
 
   // Last successful refresh timestamp
   private lastRefreshTime: number = 0
-
-  // Minimum time between refreshes (5 seconds)
-  private readonly MIN_REFRESH_INTERVAL = 5000
 
   // Request counter for logging
   private requestCounter = 0
@@ -66,8 +63,8 @@ class RefreshCoordinator {
    * Attempt to refresh tokens with intelligent deduplication.
    *
    * This method:
-   * 1. Checks if a refresh is already in progress → waits for it
-   * 2. Checks if we refreshed recently → returns cached result
+   * 1. Checks token cache FIRST → returns cached token if available
+   * 2. Checks if a refresh is already in progress → waits for it
    * 3. Otherwise, performs a new refresh
    *
    * @param request - The incoming Request object (for extracting cookies)
@@ -76,18 +73,34 @@ class RefreshCoordinator {
   async refreshTokens(request: Request): Promise<RefreshResult | null> {
     const requestId = `req_${++this.requestCounter}`
 
+    // Extract refresh token for cache lookup
+    const cookieHeader = request.headers.get('cookie')
+    const cookies = parseCookies(cookieHeader)
+    const refreshToken = cookies['refresh_token']
+
+    if (!refreshToken) {
+      return null
+    }
+
+    // CRITICAL: Check cache FIRST before checking in-flight refresh
+    // This prevents thundering herd when 100+ requests hit at once
+    const cachedToken = tokenCache.get(refreshToken)
+    if (cachedToken) {
+      // Return cached token with empty setCookieHeaders (cookies already set)
+      return {
+        accessToken: cachedToken,
+        refreshToken: refreshToken,
+        setCookieHeaders: [],
+      }
+    }
+
     // Case 1: Refresh already in progress → wait for it
     if (this.refreshPromise) {
       return this.refreshPromise
     }
 
-    // Case 2: Refreshed recently → skip (prevent refresh storms)
-    if (this.shouldSkipRefresh()) {
-      return null
-    }
-
-    // Case 3: Perform new refresh
-    this.refreshPromise = this.performRefresh(request, requestId)
+    // Case 2: Perform new refresh
+    this.refreshPromise = this.performRefresh(request, requestId, refreshToken)
 
     try {
       const result = await this.refreshPromise
@@ -99,36 +112,17 @@ class RefreshCoordinator {
   }
 
   /**
-   * Check if we should skip refresh based on timing
-   */
-  private shouldSkipRefresh(): boolean {
-    if (this.lastRefreshTime === 0) return false
-    const timeSinceLastRefresh = Date.now() - this.lastRefreshTime
-    return timeSinceLastRefresh < this.MIN_REFRESH_INTERVAL
-  }
-
-  /**
    * Perform the actual refresh call to BFF
    */
   private async performRefresh(
     request: Request,
     requestId: string,
+    oldRefreshToken: string,
   ): Promise<RefreshResult | null> {
+    const isServer = typeof window === 'undefined'
+
     try {
-      // Extract refresh token from httpOnly cookie
       const cookieHeader = request.headers.get('cookie')
-      const cookies = parseCookies(cookieHeader)
-      const refreshToken = cookies['refresh_token']
-
-      if (!refreshToken) {
-        console.error(
-          `[RefreshCoordinator:${requestId}] No refresh token - session expired`,
-        )
-        return null
-      }
-
-      // Detect if we're in server-side context
-      const isServer = typeof window === 'undefined'
 
       // Build URL - use full URL in SSR, relative in browser
       const baseUrl = isServer
@@ -137,7 +131,6 @@ class RefreshCoordinator {
       const url = `${baseUrl}/api/auth/refresh`
 
       // Use plain axios to call BFF route (NOT axiosInstance which calls backend directly)
-      // Flow: RefreshCoordinator → BFF /api/auth/refresh → Backend /users/auth/refresh
       const response = await axios.post(
         url,
         {},
@@ -147,6 +140,7 @@ class RefreshCoordinator {
             ...(isServer && cookieHeader ? { Cookie: cookieHeader } : {}),
           },
           withCredentials: true,
+          timeout: 15000, // 15 second timeout
         },
       )
 
@@ -154,10 +148,7 @@ class RefreshCoordinator {
 
       // Validate response
       if (!data?.access_token || !data?.refresh_token) {
-        console.error(
-          `[RefreshCoordinator:${requestId}] Backend returned unexpected data:`,
-          data,
-        )
+        console.error(`[RefreshCoordinator] Backend returned unexpected data`)
         return null
       }
 
@@ -166,8 +157,8 @@ class RefreshCoordinator {
       // Update last refresh time
       this.lastRefreshTime = Date.now()
 
-      // Cache the new tokens for immediate use in parallel requests
-      tokenCache.set(refreshToken, access_token)
+      // CRITICAL: Cache under BOTH old and new refresh tokens to handle token rotation
+      tokenCache.set(oldRefreshToken, access_token, refresh_token)
 
       return {
         accessToken: access_token,
@@ -176,8 +167,8 @@ class RefreshCoordinator {
       }
     } catch (error: any) {
       console.error(
-        `[RefreshCoordinator:${requestId}] ❌ Refresh failed:`,
-        error?.response?.data || error?.message || error,
+        `[RefreshCoordinator] Refresh failed:`,
+        error?.response?.data?.message || error?.message,
       )
       return null
     }

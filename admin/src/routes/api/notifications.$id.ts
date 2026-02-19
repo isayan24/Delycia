@@ -8,10 +8,10 @@ export const Route = createFileRoute('/api/notifications/$id')({
     handlers: {
       // PATCH - Mark single notification as read
       PATCH: async ({ request, params }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
             const { id } = params
-            const data: any = await request.json()
+            const data: any = await req.json()
             const { rid } = data
 
             const response = await axiosInstance.patch(
@@ -50,10 +50,10 @@ export const Route = createFileRoute('/api/notifications/$id')({
 
       // DELETE - Delete a notification
       DELETE: async ({ request, params }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
             const { id } = params
-            const data: any = await request.json()
+            const data: any = await req.json()
             const { rid } = data
 
             const response = await axiosInstance.delete(

@@ -6,7 +6,7 @@ export const Route = createFileRoute('/api/users')({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
             const response = await axiosInstance.get('/users', {
               headers: { Authorization: `Bearer ${accessToken}` },

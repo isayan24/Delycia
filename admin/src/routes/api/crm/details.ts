@@ -7,9 +7,9 @@ export const Route = createFileRoute('/api/crm/details')({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
-            const url = new URL(request.url)
+            const url = new URL(req.url)
             const rid = url.searchParams.get('rid')
             const customerId = url.searchParams.get('customerId')
 

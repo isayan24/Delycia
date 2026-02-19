@@ -7,7 +7,7 @@ export const Route = createFileRoute('/api/subscription/plans')({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
             // Fetch plans from backend
             const response = await axiosInstance.get(

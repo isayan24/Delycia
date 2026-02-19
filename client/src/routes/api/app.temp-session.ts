@@ -6,7 +6,7 @@ export const Route = createFileRoute('/api/app/temp-session')({
     handlers: {
       POST: async ({ request }) => {
         try {
-          const body = await request.json()
+          const body = await req.json()
           const response = await axiosInstance.post('/app/temp-session', body)
           return Response.json(response.data)
         } catch (error: any) {

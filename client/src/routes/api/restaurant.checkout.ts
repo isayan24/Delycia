@@ -8,19 +8,17 @@ export const Route = createFileRoute('/api/restaurant/checkout')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
-            const data = await request.json()
+            const data = await req.json()
             const {
               rid,
               table,
-              table_id, // Add table_id
               special_instruction,
               orderItems,
-              // totalPrice,
               customer_id,
               party_size,
-            } = data
+            } = data  
 
             // Validation
             if (
@@ -42,7 +40,7 @@ export const Route = createFileRoute('/api/restaurant/checkout')({
               const transformedOrderItems = orderItems.map((item: any) => ({
                 rid,
                 customer_id, //parseInt(customer_id!),
-                item_id: item.id,
+                item_id: item.productId,
                 variant_id: item?.variantId || 0,
                 quantity: item.quantity.toString(),
                 payment_method: 'cash',
@@ -50,8 +48,7 @@ export const Route = createFileRoute('/api/restaurant/checkout')({
                 discount_amount: 0,
                 special_instructions: special_instruction,
                 total_amount: item.price || 0,
-                table_no: table || null, // Add table number to each order item,
-                table_id: table_id || null, // Add table_id
+                table_id: table || null, // Add table_id
                 party_size: party_size || 1,
                 addons: item.addons || [],
               }))
@@ -59,6 +56,7 @@ export const Route = createFileRoute('/api/restaurant/checkout')({
               const signature = signatureService.generateOrderSignature(
                 transformedOrderItems,
               )
+              console.log(transformedOrderItems, "transformedOrderItems")
               const ordersResponse = await axiosInstance.post(
                 cryptoConfig.getOrdersEndpoint(),
                 transformedOrderItems,

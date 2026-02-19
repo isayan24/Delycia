@@ -11,6 +11,7 @@ import { GroupedUserOrder, Order } from '@/types/Order'
 import UseOptimizeImage from '@/hooks/UseOptimizeImage'
 import { parseImageString } from '@/helpers/imageParser'
 import { safeJsonParse } from '@/helpers/jsonParser'
+import { formatDateTimeIST, formatISTDateTime } from '@/utils/dateUtils'
 
 interface GroupedOrderCardProps {
   group: GroupedUserOrder
@@ -84,32 +85,6 @@ const getStatusDisplay = (status: string) => {
   }
 }
 
-// Helper to format date
-const formatDate = (dateString: string | Date) => {
-  if (!dateString) return 'N/A'
-  const date = new Date(dateString)
-  // Add 5 hours and 30 minutes to the time as requested by user to fix server time discrepancy
-  date.setHours(date.getHours() + 5)
-  date.setMinutes(date.getMinutes() + 30)
-
-  const now = new Date()
-  const isToday = date.toDateString() === now.toDateString()
-
-  return date.toLocaleString('en-IN', {
-    timeZone: 'Asia/Kolkata',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true,
-    ...(isToday
-      ? {}
-      : {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric',
-        }),
-  })
-}
-
 // Get the first valid image from all orders in the group
 const getGroupImage = (orders: Order[]): string | null => {
   for (const order of orders) {
@@ -161,7 +136,7 @@ export default function GroupedOrderCard({ group }: GroupedOrderCardProps) {
           )}
         </div>
         <p className="text-xs text-gray-500 mr-2">
-          Ordered: {formatDate(firstOrder?.created_at || group.createdAt)}
+          Ordered: {formatDateTimeIST(firstOrder?.created_at)}
         </p>
       </div>
 

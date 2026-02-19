@@ -18,7 +18,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ProcessingCountdownDisplay } from '../countdown'
 import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
-import { formatDateTime } from '@/utils/dateUtils'
+import { formatDateTime, formatDateTimeIST } from '@/utils/dateUtils'
 import ThermalBill from '@/components/billing/ThermalBill'
 import { orderToBillData, handleShareToMobile } from '@/components/billing'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
@@ -87,7 +87,7 @@ const OrderHeader = memo(
               </span>
               <span className="flex items-center gap-1.5 font-medium">
                 <Calendar className="w-4 h-4" />{' '}
-                {formatDateTime(order.created_at)}
+                {formatDateTimeIST(order.created_at)}
               </span>
             </div>
           </div>

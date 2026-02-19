@@ -7,12 +7,12 @@ export const Route = createFileRoute('/api/staff-reports/$staffId')({
   server: {
     handlers: {
       GET: async ({ request, params }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
             const { staffId } = params
 
             // Parse URL to get query parameters
-            const url = new URL(request.url)
+            const url = new URL(req.url)
             const queryParams = url.searchParams.toString()
 
             // Forward request to backend

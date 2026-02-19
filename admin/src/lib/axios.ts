@@ -18,6 +18,7 @@ const SERVER_URL = process.env.VITE_SERVER_URL
 const axiosInstance = axios.create({
   baseURL: SERVER_URL,
   withCredentials: true,
+  timeout: 30000, // 30 second timeout to prevent hanging requests
 })
 
 // Request interceptor — sets default headers
@@ -44,18 +45,20 @@ axiosInstance.interceptors.request.use(
 
 // Response interceptor — logging only, no auth logic
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    return response
+  },
   (error) => {
-    // Log non-auth errors for debugging
-    try {
-      if (error.response?.status !== 401 && error.response?.status !== 403) {
-        console.error(
-          'API Response Error:',
-          error?.response?.data || error.message,
-        )
-      }
-    } catch (err) {
-      console.error('Error handling response:', err)
+    // Log errors for debugging
+    if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+      console.error(`[axios] Request timeout to ${error.config?.url}`)
+    } else if (error.response) {
+      console.error(
+        `[axios] Error ${error.response.status} from ${error.config?.url}:`,
+        error.response.data?.message || error.message,
+      )
+    } else if (error.request) {
+      console.error(`[axios] Network error - no response received`)
     }
 
     return Promise.reject(error)

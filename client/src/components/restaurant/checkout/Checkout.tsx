@@ -111,6 +111,7 @@ export default function Checkout() {
     },
   })
 
+  // mark filter item
   const { totalPrice, filteredCartItems } = useMemo(() => {
     const filteredCartItems = showCartItems.filter((item) =>
       selectedItems.includes(item.id),

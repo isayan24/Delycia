@@ -5,13 +5,13 @@ export const Route = createFileRoute('/api/ws-token')({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        return withAuth(request, async (token, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
             // Return the actual access token - backend validates this with ACCESS_SECRET
             // No need to create a new JWT, just pass through the existing token
             const response = jsonResponse(
               {
-                token: token,
+                token: accessToken,
                 expiresIn: 900, // 15 minutes (typical access token expiry)
               },
               200,
@@ -36,7 +36,8 @@ export const Route = createFileRoute('/api/ws-token')({
             return jsonResponse(
               {
                 error: 'Token retrieval failed',
-                message: error instanceof Error ? error.message : 'Unknown error',
+                message:
+                  error instanceof Error ? error.message : 'Unknown error',
               },
               500,
               authHeaders,

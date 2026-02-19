@@ -27,6 +27,40 @@ export const formatDateTime = (
   }
 }
 
+/**
+ * Formats a UTC date string or Date object to IST (UTC+5:30) locale format (en-IN).
+ * Example: "Feb 12, 2026, 11:03 PM"
+ */
+export const formatDateTimeIST = (
+  date: string | Date | undefined | null,
+): string => {
+  if (!date) return 'N/A'
+
+  try {
+    const d = new Date(date)
+    if (isNaN(d.getTime())) return 'N/A'
+
+    // Add 5 hours 30 minutes (IST offset) in milliseconds
+    const istOffset = (5 * 60 + 30) * 60 * 1000
+    const istDate = new Date(d.getTime() + istOffset)
+
+    const finalTime = istDate.toLocaleString('en-IN', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'Asia/Kolkata', // treat the shifted time as UTC to avoid double-conversion
+    })
+
+    return finalTime
+  } catch (error) {
+    console.error('Error formatting date:', error)
+    return 'N/A'
+  }
+}
+
 export const formatTimeNew = (
   date: string | Date | undefined | null,
 ): string => {

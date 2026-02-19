@@ -7,8 +7,8 @@ export const Route = createFileRoute('/api/crm')({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
-          const url = new URL(request.url)
+        return withAuth(request, async (accessToken, authHeaders, req) => {
+          const url = new URL(req.url)
           const rid = url.searchParams.get('rid')
           const timeRange = url.searchParams.get('timeRange')
 

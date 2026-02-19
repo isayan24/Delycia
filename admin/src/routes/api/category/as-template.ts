@@ -8,9 +8,9 @@ export const Route = createFileRoute('/api/category/as-template')({
     handlers: {
       // POST - Create category as template
       POST: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
-            const body = await request.json()
+            const body = await req.json()
             const { name, description, img, rid, cuisine_type, saveAsTemplate } =
               body
 

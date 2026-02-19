@@ -1,152 +1,169 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { imagekit } from '@/lib/imagekit'
 import { deleteImagesOneByOne } from '@/helpers/image/formatImage'
+import { withAuth } from '@/lib/withAuth'
 
 /**
  * ImageKit Route - Intentionally NOT refactored to use withAuth
- * 
+ *
  * This route only performs ImageKit SDK operations (upload/delete) and does not
  * make authenticated backend API calls. Therefore, it does not need the withAuth
  * wrapper or token management.
- * 
+ *
  * Excluded from api-routes-withauth-refactor per Requirements 1.4
  */
 export const Route = createFileRoute('/api/imagekit')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        try {
-          const {
-            base64Image,
-            fileName,
-            folder = '/category',
-          } = await request.json()
+        return withAuth(request, async (accessToken, authHeaders, req) => {
+          try {
+            const {
+              base64Image,
+              fileName,
+              folder = '/category',
+            } = await req.json()
 
-          if (!base64Image) {
+            if (!base64Image) {
+              return new Response(
+                JSON.stringify({ error: 'No image data provided' }),
+                {
+                  status: 400,
+                  headers: { 'Content-Type': 'application/json' },
+                },
+              )
+            }
+
+            // Upload using ImageKit SDK
+            const uploadResponse = await imagekit.upload({
+              file: base64Image,
+              fileName: fileName || `upload_${Date.now()}.jpg`,
+              folder: folder,
+            })
+
+            // Hash fragments aren't sent to server, so won't affect ImageKit
+            const urlWithFileId = `${uploadResponse.url}#${uploadResponse.fileId}`
+
             return new Response(
-              JSON.stringify({ error: 'No image data provided' }),
-              { status: 400, headers: { 'Content-Type': 'application/json' } },
+              JSON.stringify({
+                success: true,
+                url: urlWithFileId,
+                fileId: uploadResponse.fileId,
+                thumbnailUrl: uploadResponse.thumbnailUrl,
+                filePath: uploadResponse.filePath,
+              }),
+              { status: 200, headers: { 'Content-Type': 'application/json' } },
             )
-          }
-
-          // Upload using ImageKit SDK
-          const uploadResponse = await imagekit.upload({
-            file: base64Image,
-            fileName: fileName || `upload_${Date.now()}.jpg`,
-            folder: folder,
-          })
-
-          // Hash fragments aren't sent to server, so won't affect ImageKit
-          const urlWithFileId = `${uploadResponse.url}#${uploadResponse.fileId}`
-
-          return new Response(
-            JSON.stringify({
-              success: true,
-              url: urlWithFileId,
-              fileId: uploadResponse.fileId,
-              thumbnailUrl: uploadResponse.thumbnailUrl,
-              filePath: uploadResponse.filePath,
-            }),
-            { status: 200, headers: { 'Content-Type': 'application/json' } },
-          )
-        } catch (error: any) {
-          if (
+          } catch (error: any) {
+            if (
               error.response?.status === 401 ||
               error.response?.status === 403
             ) {
               throw error // Let withAuth handle auth errors
             }
 
-          console.error('ImageKit upload error:', error)
-          return new Response(
-            JSON.stringify({
-              error: 'Failed to upload image',
-              details: error.message || 'Unknown error',
-            }),
-            { status: 500, headers: { 'Content-Type': 'application/json' } },
-          )
-        }
+            console.error('ImageKit upload error:', error)
+            return new Response(
+              JSON.stringify({
+                error: 'Failed to upload image',
+                details: error.message || 'Unknown error',
+              }),
+              { status: 500, headers: { 'Content-Type': 'application/json' } },
+            )
+          }
+        })
       },
       DELETE: async ({ request }) => {
-        try {
-          const body = await request.json()
-          const { img_id, imageUrl, imageUrls } = body
+        return withAuth(request, async (accessToken, authHeaders, req) => {
+          try {
+            const body = await req.json()
+            const { img_id, imageUrl, imageUrls } = body
 
-          // Support multiple formats
-          if (img_id) {
-            // Single deletion by file ID (legacy support)
-            await imagekit.deleteFile(img_id)
+            // Support multiple formats
+            if (img_id) {
+              // Single deletion by file ID (legacy support)
+              await imagekit.deleteFile(img_id)
+              return new Response(
+                JSON.stringify({
+                  success: true,
+                  message: 'Image deleted successfully',
+                  deleted: 1,
+                  failed: 0,
+                }),
+                {
+                  status: 200,
+                  headers: { 'Content-Type': 'application/json' },
+                },
+              )
+            }
+
+            // Convert to array for unified handling
+            const urlsToDelete = imageUrls || (imageUrl ? [imageUrl] : [])
+
+            if (urlsToDelete.length === 0) {
+              return new Response(
+                JSON.stringify({
+                  error: 'img_id, imageUrl, or imageUrls required',
+                }),
+                {
+                  status: 400,
+                  headers: { 'Content-Type': 'application/json' },
+                },
+              )
+            }
+
+            // Delete multiple images using helper function
+            const results = await deleteImagesOneByOne(urlsToDelete, imagekit)
+
+            // Analyze results
+            const failures = results.filter((r: any) => r.status === 'error')
+            const successes = results.filter((r: any) => r.status === 'success')
+
             return new Response(
               JSON.stringify({
                 success: true,
-                message: 'Image deleted successfully',
-                deleted: 1,
-                failed: 0,
+                deleted: successes.length,
+                failed: failures.length,
+                results,
               }),
               { status: 200, headers: { 'Content-Type': 'application/json' } },
             )
-          }
-
-          // Convert to array for unified handling
-          const urlsToDelete = imageUrls || (imageUrl ? [imageUrl] : [])
-
-          if (urlsToDelete.length === 0) {
-            return new Response(
-              JSON.stringify({
-                error: 'img_id, imageUrl, or imageUrls required',
-              }),
-              { status: 400, headers: { 'Content-Type': 'application/json' } },
-            )
-          }
-
-          // Delete multiple images using helper function
-          const results = await deleteImagesOneByOne(urlsToDelete, imagekit)
-
-          // Analyze results
-          const failures = results.filter((r: any) => r.status === 'error')
-          const successes = results.filter((r: any) => r.status === 'success')
-
-          return new Response(
-            JSON.stringify({
-              success: true,
-              deleted: successes.length,
-              failed: failures.length,
-              results,
-            }),
-            { status: 200, headers: { 'Content-Type': 'application/json' } },
-          )
-        } catch (error: any) {
-          if (
+          } catch (error: any) {
+            if (
               error.response?.status === 401 ||
               error.response?.status === 403
             ) {
               throw error // Let withAuth handle auth errors
             }
-            
-          console.error('ImageKit delete error:', error)
 
-          // If image already deleted or not found, return success
-          if (
-            error.message?.includes('NOT_FOUND') ||
-            error.statusCode === 404
-          ) {
+            console.error('ImageKit delete error:', error)
+
+            // If image already deleted or not found, return success
+            if (
+              error.message?.includes('NOT_FOUND') ||
+              error.statusCode === 404
+            ) {
+              return new Response(
+                JSON.stringify({
+                  success: true,
+                  message: 'Image already deleted or not found',
+                }),
+                {
+                  status: 200,
+                  headers: { 'Content-Type': 'application/json' },
+                },
+              )
+            }
+
             return new Response(
               JSON.stringify({
-                success: true,
-                message: 'Image already deleted or not found',
+                error: 'Failed to delete image',
+                details: error.message || 'Unknown error',
               }),
-              { status: 200, headers: { 'Content-Type': 'application/json' } },
+              { status: 500, headers: { 'Content-Type': 'application/json' } },
             )
           }
-
-          return new Response(
-            JSON.stringify({
-              error: 'Failed to delete image',
-              details: error.message || 'Unknown error',
-            }),
-            { status: 500, headers: { 'Content-Type': 'application/json' } },
-          )
-        }
+        })
       },
     },
   },

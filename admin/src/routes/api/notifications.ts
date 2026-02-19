@@ -8,8 +8,8 @@ export const Route = createFileRoute('/api/notifications')({
     handlers: {
       // GET - Fetch notifications
       GET: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
-          const url = new URL(request.url)
+        return withAuth(request, async (accessToken, authHeaders, req) => {
+          const url = new URL(req.url)
           const rid = url.searchParams.get('rid')
           const page = url.searchParams.get('page')
           const limit = url.searchParams.get('limit')
@@ -50,9 +50,9 @@ export const Route = createFileRoute('/api/notifications')({
 
       // PATCH - Mark all notifications as read
       PATCH: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
-            const data: any = await request.json()
+            const data: any = await req.json()
             const { rid } = data
 
             const response = await axiosInstance.patch(

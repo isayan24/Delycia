@@ -6,7 +6,7 @@ export const Route = createFileRoute('/api/users/auth/handleAuth')({
     handlers: {
       POST: async ({ request }) => {
         try {
-          const body = await request.json()
+          const body = await req.json()
           // Ensure body is forwarded correctly
           const response = await axiosInstance.post(
             '/users/auth/handleAuth',

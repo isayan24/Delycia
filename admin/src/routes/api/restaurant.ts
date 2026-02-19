@@ -7,10 +7,10 @@ export const Route = createFileRoute('/api/restaurant')({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
             // Get rid from query parameters
-            const url = new URL(request.url)
+            const url = new URL(req.url)
             const rid = url.searchParams.get('rid')
 
             // Fetch specific restaurant with token from cookie
@@ -63,9 +63,9 @@ export const Route = createFileRoute('/api/restaurant')({
         })
       },
       PATCH: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
-            const body = await request.json()
+            const body = await req.json()
 
             // Use the admin endpoint for PATCH
             const response = await axiosInstance.patch(

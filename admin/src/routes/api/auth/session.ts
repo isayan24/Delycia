@@ -17,7 +17,7 @@ export const Route = createFileRoute('/api/auth/session')({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
             // Decode token to get user ID
             const decoded: any = jwt.decode(accessToken)

@@ -8,9 +8,9 @@ export const Route = createFileRoute('/api/inventory')({
       GET: async ({ request }) => {
         return withAuth(
           request,
-          async (accessToken, authHeaders) => {
+          async (accessToken, authHeaders, req) => {
             try {
-              const url = new URL(request.url)
+              const url = new URL(req.url)
               const endpoint = `/inventory${url.search}`
 
               // If no accessToken, we still make the request but without the header

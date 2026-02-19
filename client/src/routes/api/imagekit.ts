@@ -100,7 +100,7 @@ export const Route = createFileRoute('/api/imagekit')({
        */
       DELETE: async ({ request }) => {
         try {
-          const body = await request.json()
+          const body = await req.json()
           const { img_id, imageUrl, imageUrls } = body
 
           // Support multiple formats

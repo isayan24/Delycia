@@ -7,9 +7,9 @@ export const Route = createFileRoute('/api/users')({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
-            const url = new URL(request.url)
+            const url = new URL(req.url)
 
             // Forward all query parameters
             const endpoint = `/admin/users${url.search}`
@@ -39,9 +39,9 @@ export const Route = createFileRoute('/api/users')({
         })
       },
       PATCH: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
-            const body = await request.json()
+            const body = await req.json()
 
             const response = await axiosInstance.patch('/admin/users', body, {
               headers: { Authorization: `Bearer ${accessToken}` },
@@ -68,9 +68,9 @@ export const Route = createFileRoute('/api/users')({
         })
       },
       DELETE: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
-            const url = new URL(request.url)
+            const url = new URL(req.url)
             const uid = url.searchParams.get('uid')
 
             if (!uid) {

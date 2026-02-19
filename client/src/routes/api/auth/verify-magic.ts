@@ -12,7 +12,7 @@ export const Route = createFileRoute('/api/auth/verify-magic')({
     handlers: {
       GET: async ({ request }) => {
         try {
-          const url = new URL(request.url)
+          const url = new URL(req.url)
           const token = url.searchParams.get('token')
 
           if (!token) {

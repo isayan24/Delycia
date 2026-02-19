@@ -7,9 +7,9 @@ export const Route = createFileRoute('/api/users/search')({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           // Extract query params
-          const url = new URL(request.url)
+          const url = new URL(req.url)
           const name = url.searchParams.get('name')
           const rid = url.searchParams.get('rid')
 

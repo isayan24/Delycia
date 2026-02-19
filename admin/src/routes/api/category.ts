@@ -10,8 +10,8 @@ export const Route = createFileRoute('/api/category')({
     handlers: {
       // GET - Fetch categories by restaurant ID
       GET: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
-          const url = new URL(request.url)
+        return withAuth(request, async (accessToken, authHeaders, req) => {
+          const url = new URL(req.url)
           const rid = url.searchParams.get('rid')
 
           if (!rid) {
@@ -61,9 +61,9 @@ export const Route = createFileRoute('/api/category')({
       },
       // POST - Create new category
       POST: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
-            const body = await request.json()
+            const body = await req.json()
             const { name, description, img, rid } = body
 
             const response = await axiosInstance.post(
@@ -108,9 +108,9 @@ export const Route = createFileRoute('/api/category')({
         })
       },
       PATCH: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
-            const body = await request.json()
+            const body = await req.json()
             const { rid, id, name, description, img, is_active } = body
 
             const data = {
@@ -158,9 +158,9 @@ export const Route = createFileRoute('/api/category')({
         })
       },
       DELETE: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
-            const body = await request.json()
+            const body = await req.json()
             const { img, id, rid, template_id } = body
 
             // Only delete image from ImageKit if this is a custom category (no template_id)

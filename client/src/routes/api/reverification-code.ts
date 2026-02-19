@@ -6,7 +6,7 @@ export const Route = createFileRoute('/api/reverification-code')({
     handlers: {
       POST: async ({ request }) => {
         try {
-          const body = await request.json()
+          const body = await req.json()
           const { id, userInfo } = body
 
           if (!id) {

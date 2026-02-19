@@ -74,7 +74,6 @@ function UsernameMenuPage() {
   useEffect(() => {
     if (restaurant?.username) {
       localStorage.setItem('currentRestaurantUsername', restaurant.username)
-      console.log(`[Menu] Stored username: ${restaurant.username}`)
     }
   }, [restaurant])
 
@@ -82,7 +81,6 @@ function UsernameMenuPage() {
   useEffect(() => {
     const { table } = searchParams
     if (table) {
-      console.log(`[Menu] Setting table cookie: ${table}`)
       setCookie('table', table, {
         maxAge: 7200,
         httpOnly: false,

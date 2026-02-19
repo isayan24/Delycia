@@ -8,10 +8,10 @@ export const Route = createFileRoute('/api/orders/actions')({
     handlers: {
       // POST /api/orders/actions - Handle order accept/reject/update
       POST: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
-            const body = await request.json()
-            const url = new URL(request.url)
+            const body = await req.json()
+            const url = new URL(req.url)
             const action = url.searchParams.get('action') // accept, reject, update-time
 
             let endpoint = ''

@@ -5,13 +5,13 @@ import signatureService from '@/lib/crypto/signatureService'
 import logger from '@/lib/logger-dynamic'
 import { withAuth, jsonResponse } from '@/lib/withAuth'
 import { handleApiError } from '@/helpers/handleApiError'
-import jwt from 'jsonwebtoken' 
+import jwt from 'jsonwebtoken'
 
 export const Route = createFileRoute('/api/quick-bill')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
             // Decode JWT to extract staff information
             let staffId: number | null = null
@@ -28,7 +28,7 @@ export const Route = createFileRoute('/api/quick-bill')({
               })
             }
 
-            const data = await request.json()
+            const data = await req.json()
             const { customerDetails, orderItems } = data
 
             let customer_id: string | undefined
@@ -59,7 +59,8 @@ export const Route = createFileRoute('/api/quick-bill')({
                 customer_id = authResponse.data.id || authResponse.data.data?.id
               } catch (error) {
                 logger.error('Customer authentication failed', {
-                  error: error instanceof Error ? error.message : 'Unknown error',
+                  error:
+                    error instanceof Error ? error.message : 'Unknown error',
                 })
                 return jsonResponse(
                   {
@@ -68,7 +69,9 @@ export const Route = createFileRoute('/api/quick-bill')({
                     details: {
                       step: 'authentication',
                       message:
-                        error instanceof Error ? error.message : 'Unknown error',
+                        error instanceof Error
+                          ? error.message
+                          : 'Unknown error',
                     },
                   },
                   401,
@@ -93,7 +96,7 @@ export const Route = createFileRoute('/api/quick-bill')({
                 placed_by_staff_id: staffId,
                 placed_by_role_id: staffRole,
                 addons: item.addons,
-              })) 
+              }))
 
               // Generate signature for the transformed order items
               const signature = signatureService.generateOrderSignature(
@@ -152,7 +155,8 @@ export const Route = createFileRoute('/api/quick-bill')({
                 alive: false,
                 details: {
                   step: 'api_call',
-                  message: error instanceof Error ? error.message : 'Unknown error',
+                  message:
+                    error instanceof Error ? error.message : 'Unknown error',
                 },
               },
               (errorResponse as any).status || 500,

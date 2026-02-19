@@ -7,9 +7,9 @@ export const Route = createFileRoute('/api/dashboard')({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           // Parse URL to get query params
-          const url = new URL(request.url)
+          const url = new URL(req.url)
           const endpoint = url.searchParams.get('endpoint')
           const rid = url.searchParams.get('rid')
           const startDate = url.searchParams.get('startDate')

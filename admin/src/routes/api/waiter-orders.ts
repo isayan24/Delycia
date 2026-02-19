@@ -16,7 +16,7 @@ export const Route = createFileRoute('/api/waiter-orders')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
             // Decode JWT to extract staff information
             let staffId: number | null = null
@@ -33,7 +33,7 @@ export const Route = createFileRoute('/api/waiter-orders')({
               })
             }
 
-            const data: WaiterOrderRequest = await request.json()
+            const data: WaiterOrderRequest = await req.json()
             const {
               customerDetails,
               specialInstructions,
@@ -71,7 +71,8 @@ export const Route = createFileRoute('/api/waiter-orders')({
                 customer_id = authResponse.data.id
               } catch (error) {
                 logger.error('Customer authentication failed', {
-                  error: error instanceof Error ? error.message : 'Unknown error',
+                  error:
+                    error instanceof Error ? error.message : 'Unknown error',
                 })
                 return jsonResponse(
                   {
@@ -80,7 +81,9 @@ export const Route = createFileRoute('/api/waiter-orders')({
                     details: {
                       step: 'authentication',
                       message:
-                        error instanceof Error ? error.message : 'Unknown error',
+                        error instanceof Error
+                          ? error.message
+                          : 'Unknown error',
                     },
                   },
                   401,
@@ -91,14 +94,17 @@ export const Route = createFileRoute('/api/waiter-orders')({
 
             if (customer_id) {
               // Calculate subtotal from order items
-              const subtotal = orderItems.reduce((sum: number, item: FullOrderItem) => {
-                return sum + (item.totalPrice || 0)
-              }, 0)
+              const subtotal = orderItems.reduce(
+                (sum: number, item: FullOrderItem) => {
+                  return sum + (item.totalPrice || 0)
+                },
+                0,
+              )
 
               // Fetch restaurant tax rate
               let taxPercent = 0
               const rid = orderItems[0]?.rid
-              
+
               if (rid) {
                 try {
                   const restaurantResponse = await axiosInstance.get(
@@ -109,10 +115,12 @@ export const Route = createFileRoute('/api/waiter-orders')({
                       },
                     },
                   )
-                  taxPercent = restaurantResponse.data?.restaurant_info?.tax_percent || 0
+                  taxPercent =
+                    restaurantResponse.data?.restaurant_info?.tax_percent || 0
                 } catch (error) {
                   logger.error('Failed to fetch restaurant tax rate', {
-                    error: error instanceof Error ? error.message : 'Unknown error',
+                    error:
+                      error instanceof Error ? error.message : 'Unknown error',
                     restaurantId: rid,
                   })
                   // Continue with tax_percent = 0 if fetch fails
@@ -200,7 +208,8 @@ export const Route = createFileRoute('/api/waiter-orders')({
                   alive: false,
                   details: {
                     step: 'authentication',
-                    message: 'Customer details are required for order processing',
+                    message:
+                      'Customer details are required for order processing',
                   },
                 },
                 400,

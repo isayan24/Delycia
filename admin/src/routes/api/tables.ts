@@ -14,45 +14,50 @@ export const Route = createFileRoute('/api/tables')({
        */
       GET: async ({ request }) => {
         // Tables endpoint doesn't require auth (public data)
-        try {
-          const url = new URL(request.url)
-          const rid = url.searchParams.get('rid')
-          const type = url.searchParams.get('type') || 'tables'
+        return withAuth(request, async (accessToken, authHeaders, req) => {
+          try {
+            const url = new URL(req.url)
+            const rid = url.searchParams.get('rid')
+            const type = url.searchParams.get('type') || 'tables'
 
-          if (!rid) {
-            return new Response(
-              JSON.stringify({
-                status: 400,
-                message: 'Restaurant ID (rid) is required',
-                error: true,
-              }),
-              { status: 400, headers: { 'Content-Type': 'application/json' } },
-            )
-          }
+            if (!rid) {
+              return new Response(
+                JSON.stringify({
+                  status: 400,
+                  message: 'Restaurant ID (rid) is required',
+                  error: true,
+                }),
+                {
+                  status: 400,
+                  headers: { 'Content-Type': 'application/json' },
+                },
+              )
+            }
 
-          const endpoint = type === 'zones' ? '/tables/zones' : '/tables'
-          const response = await axiosInstance.get(endpoint, {
-            params: { rid },
-          })
+            const endpoint = type === 'zones' ? '/tables/zones' : '/tables'
+            const response = await axiosInstance.get(endpoint, {
+              params: { rid },
+            })
 
-          return new Response(JSON.stringify(response.data), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          })
-        } catch (error: any) {
-          if (
+            return new Response(JSON.stringify(response.data), {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' },
+            })
+          } catch (error: any) {
+            if (
               error.response?.status === 401 ||
               error.response?.status === 403
             ) {
               throw error // Let withAuth handle auth errors
             }
 
-          const errorResponse = handleApiError(error, 'fetching tables')
-          return new Response(JSON.stringify(errorResponse), {
-            status: (errorResponse as any).status || 500,
-            headers: { 'Content-Type': 'application/json' },
-          })
-        }
+            const errorResponse = handleApiError(error, 'fetching tables')
+            return new Response(JSON.stringify(errorResponse), {
+              status: (errorResponse as any).status || 500,
+              headers: { 'Content-Type': 'application/json' },
+            })
+          }
+        })
       },
 
       /**
@@ -60,9 +65,9 @@ export const Route = createFileRoute('/api/tables')({
        * Body: { rid, table_number, capacity, zone }
        */
       POST: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
-            const body = await request.json()
+            const body = await req.json()
             const { rid, table_number, capacity, zone } = body
 
             if (!rid || !table_number || !capacity || !zone) {
@@ -117,9 +122,9 @@ export const Route = createFileRoute('/api/tables')({
        * Body: { id, status, capacity?, zone? }
        */
       PATCH: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
-            const body = await request.json()
+            const body = await req.json()
             const { id, status, capacity, zone } = body
 
             if (!id) {
@@ -173,9 +178,9 @@ export const Route = createFileRoute('/api/tables')({
        * Body: { id }
        */
       DELETE: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
-            const body = await request.json()
+            const body = await req.json()
             const { id } = body
 
             if (!id) {

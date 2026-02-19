@@ -77,7 +77,7 @@ const handleAuth = async (req) => {
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
     const deviceInfo = req.headers['user-agent'] ? req.headers['user-agent'].substring(0, 255) : null;
     const ipAddress = req.ip || req.connection?.remoteAddress || null;
-    
+
     await pool.query(
       `INSERT INTO user_sessions (user_id, refresh_token, device_info, ip_address, user_agent, expires_at) 
        VALUES (?, ?, ?, ?, ?, ?)`,
@@ -197,7 +197,7 @@ const verifyMagicLink = async (req) => {
        WHERE token_hash = ? 
        LIMIT 1`,
       [tokenHash]
-    ); 
+    );
 
     if (!tokenRecords.length) {
       return apiResponse.error(400, "Invalid login link. Please request a new one.");
@@ -211,9 +211,9 @@ const verifyMagicLink = async (req) => {
     }
 
     // Check if token is expired
-    // if (new Date(tokenRecord.expires_at) < new Date()) {
-    //   return apiResponse.error(400, "This link has expired. Please request a new one.");
-    // }
+    if (new Date(tokenRecord.expires_at) < new Date()) {
+      return apiResponse.error(400, "This link has expired. Please request a new one.");
+    }
 
     // Mark token as used
     await pool.query(
@@ -267,7 +267,7 @@ const verifyMagicLink = async (req) => {
     // Generate tokens
     const access_token = authUtil.generateAccessToken(userData);
     const refresh_token = authUtil.generateRefreshToken(userData);
-    
+
     await pool.query(
       "UPDATE users SET access_token = ?, refresh_token = ? WHERE id = ?",
       [access_token, refresh_token, userData.id]
@@ -277,7 +277,7 @@ const verifyMagicLink = async (req) => {
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
     const deviceInfo = req.headers['user-agent'] ? req.headers['user-agent'].substring(0, 255) : null;
     const ipAddress = req.ip || req.connection?.remoteAddress || null;
-    
+
     await pool.query(
       `INSERT INTO user_sessions (user_id, refresh_token, device_info, ip_address, user_agent, expires_at) 
        VALUES (?, ?, ?, ?, ?, ?)`,
@@ -342,7 +342,7 @@ const admin_login = async (req) => {
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
     const deviceInfo = req.headers['user-agent'] ? req.headers['user-agent'].substring(0, 255) : null;
     const ipAddress = req.ip || req.connection?.remoteAddress || null;
-    
+
     await pool.query(
       `INSERT INTO user_sessions (user_id, refresh_token, device_info, ip_address, user_agent, expires_at) 
        VALUES (?, ?, ?, ?, ?, ?)`,

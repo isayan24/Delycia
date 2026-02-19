@@ -8,10 +8,10 @@ export const Route = createFileRoute('/api/addons')({
     handlers: {
       // GET /api/addons - Fetch addons with optional filters
       GET: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
             // Extract query parameters
-            const url = new URL(request.url)
+            const url = new URL(req.url)
             const rid = url.searchParams.get('rid')
             const is_active = url.searchParams.get('is_active')
             const id = url.searchParams.get('id')
@@ -66,10 +66,10 @@ export const Route = createFileRoute('/api/addons')({
 
       // POST /api/addons - Create addon or link/unlink operations
       POST: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
-            const body = await request.json()
-            const url = new URL(request.url)
+            const body = await req.json()
+            const url = new URL(req.url)
             const action = url.searchParams.get('action') // link-item, unlink-item, link-order
 
             // Determine endpoint based on action
@@ -111,9 +111,9 @@ export const Route = createFileRoute('/api/addons')({
 
       // PATCH /api/addons - Update addon
       PATCH: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
-            const body = await request.json()
+            const body = await req.json()
 
             const response = await axiosInstance.patch('/admin/addons', body, {
               headers: {
@@ -144,9 +144,9 @@ export const Route = createFileRoute('/api/addons')({
 
       // DELETE /api/addons - Delete addon
       DELETE: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
-            const body = await request.json()
+            const body = await req.json()
 
             await axiosInstance.delete('/admin/addons', {
               data: body,

@@ -8,9 +8,9 @@ export const Route = createFileRoute('/api/category/from-templates')({
     handlers: {
       // POST - Create categories from existing template IDs (bulk operation)
       POST: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
-            const body = await request.json()
+            const body = await req.json()
             const { rid, template_ids } = body
 
             if (!rid || !template_ids || !Array.isArray(template_ids)) {

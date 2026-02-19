@@ -15,9 +15,9 @@ export const Route = createFileRoute('/api/inventory')({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        return withAuth(request, async (token, authHeaders) => {
+        return withAuth(request, async (token, authHeaders, req) => {
           try {
-            const url = new URL(request.url)
+            const url = new URL(req.url)
             const rid = url.searchParams.get('rid')
             const categoryId = url.searchParams.get('category_id')
 
@@ -53,9 +53,9 @@ export const Route = createFileRoute('/api/inventory')({
         })
       },
       POST: async ({ request }) => {
-        return withAuth(request, async (token, authHeaders) => {
+        return withAuth(request, async (token, authHeaders, req) => {
           try {
-            const data: any = await request.json()
+            const data: any = await req.json()
             const { variants } = data
 
             // For POST, always include images (even if empty array)
@@ -116,9 +116,9 @@ export const Route = createFileRoute('/api/inventory')({
         })
       },
       PATCH: async ({ request }) => {
-        return withAuth(request, async (token, authHeaders) => {
+        return withAuth(request, async (token, authHeaders, req) => {
           try {
-            const data: any = await request.json()
+            const data: any = await req.json()
 
             const { id, rid, variants, images, selectiveFields, currentStatus } =
               data
@@ -234,9 +234,9 @@ export const Route = createFileRoute('/api/inventory')({
         })
       },
       DELETE: async ({ request }) => {
-        return withAuth(request, async (token, authHeaders) => {
+        return withAuth(request, async (token, authHeaders, req) => {
           try {
-            const data: any = await request.json()
+            const data: any = await req.json()
             const { id, img, rid } = data
 
             if (!id || !rid) {

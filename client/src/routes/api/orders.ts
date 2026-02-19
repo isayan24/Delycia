@@ -6,9 +6,9 @@ export const Route = createFileRoute('/api/orders')({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        return withAuth(request, async (accessToken, authHeaders) => {
+        return withAuth(request, async (accessToken, authHeaders, req) => {
           try {
-            const url = new URL(request.url)
+            const url = new URL(req.url)
             const endpoint = `/orders${url.search}`
 
             const response = await axiosInstance.get(endpoint, {
