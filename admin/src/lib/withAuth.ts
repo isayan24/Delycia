@@ -79,8 +79,6 @@ export async function withAuth(
     // CRITICAL: Check if refresh token exists before attempting refresh
     // If no refresh token, don't even try to refresh (prevents thundering herd)
     if (!refreshToken) {
-      console.log(`[withAuth] No refresh token available, cannot refresh`)
-      
       const clearCookieHeaders = new Headers()
       clearCookieHeaders.append(
         'Set-Cookie',
@@ -96,14 +94,14 @@ export async function withAuth(
           status: 401,
           message: 'Session expired. Please log in again.',
           error: true,
-          sessionExpired: false, // Don't trigger logout for missing cookies
+          sessionExpired: true, // Trigger logout when no refresh token
         }),
         { status: 401, headers: clearCookieHeaders },
       )
     }
 
     // Attempt refresh through coordinator
-    // The coordinator will check cache first and deduplicate concurrent refresh attempts
+    // The coordinator will deduplicate concurrent refresh attempts
     const refreshResult = await refreshCoordinator.refreshTokens(request)
 
     // Check if refresh failed
@@ -113,12 +111,6 @@ export async function withAuth(
       // Only trigger sessionExpired logout if backend rejected the refresh
       // Don't trigger logout if this request just didn't have cookies (SSR race condition)
       const shouldTriggerLogout = failureReason !== RefreshFailureReason.NO_COOKIES
-      
-      if (shouldTriggerLogout) {
-        console.log(`[withAuth] Refresh failed with reason: ${failureReason}, triggering logout`)
-      } else {
-        console.log(`[withAuth] Request had no cookies (SSR race), returning 401 without sessionExpired`)
-      }
       
       // Clear expired cookies
       const clearCookieHeaders = new Headers()
@@ -145,13 +137,12 @@ export async function withAuth(
     // At this point, refreshResult is guaranteed to be a success object
     const successResult = refreshResult as { accessToken: string; refreshToken: string; setCookieHeaders: string[] }
 
-    // Retry with new token
+    // Retry with new token and set cookies
     const refreshHeaders = new Headers()
     for (const cookie of successResult.setCookieHeaders) {
       refreshHeaders.append('Set-Cookie', cookie)
     }
 
-    console.log(`[withAuth] Using refreshed token for initial request`)
     return await fn(successResult.accessToken, refreshHeaders, request)
   }
 
@@ -228,12 +219,6 @@ export async function withAuth(
       // Only trigger sessionExpired logout if backend rejected the refresh
       const shouldTriggerLogout = failureReason !== RefreshFailureReason.NO_COOKIES
       
-      if (shouldTriggerLogout) {
-        console.log(`[withAuth] Refresh failed with reason: ${failureReason}, triggering logout`)
-      } else {
-        console.log(`[withAuth] Request had no cookies (SSR race), returning 401 without sessionExpired`)
-      }
-      
       // Clear expired cookies
       const clearCookieHeaders = new Headers({
         'Content-Type': 'application/json',
@@ -262,14 +247,13 @@ export async function withAuth(
     // Type assertion to help TypeScript
     const successResult = refreshResult as { accessToken: string; refreshToken: string; setCookieHeaders: string[] }
 
-    // Retry with new token (mark as retry to prevent infinite loops)
+    // Retry with new token and set cookies
     const refreshHeaders = new Headers()
     for (const cookie of successResult.setCookieHeaders) {
       refreshHeaders.append('Set-Cookie', cookie)
     }
 
     try {
-      console.log(`[withAuth] Retrying request with refreshed token`)
       // Use the pre-cloned request from the beginning of the function
       const retryResult = await fn(successResult.accessToken, refreshHeaders, clonedRequest)
       return retryResult

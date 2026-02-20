@@ -1,6 +1,5 @@
 import axios from 'axios'
 import { parseCookies } from './server-cookies'
-import { tokenCache } from './tokenCache'
 
 /**
  * Result of a successful token refresh
@@ -91,35 +90,15 @@ class RefreshCoordinator {
   async refreshTokens(request: Request): Promise<RefreshResultOrFailure | null> {
     const requestId = `req_${++this.requestCounter}`
 
-    // Extract refresh token early for cache lookup
-    const cookieHeader = request.headers.get('cookie')
-    const cookies = parseCookies(cookieHeader)
-    const refreshToken = cookies['admin_refresh_token']
-
-    // CRITICAL: Check cache FIRST before any other logic
-    // This prevents 100+ cache misses when parallel requests arrive
-    if (refreshToken) {
-      const cachedAccessToken = tokenCache.get(refreshToken)
-      if (cachedAccessToken) {
-        console.log(`[RefreshCoordinator:${requestId}] ✅ Using cached token (no refresh needed)`)
-        return {
-          accessToken: cachedAccessToken,
-          refreshToken: refreshToken,
-          setCookieHeaders: [],
-        }
-      }
-    }
-
     // Case 1: Refresh already in progress → wait for it
     if (this.refreshPromise) {
-      console.log(`[RefreshCoordinator:${requestId}] Waiting for in-flight refresh...`)
       return this.refreshPromise
     }
 
-    // Case 2: Refreshed recently → try to use cached token (already checked above)
+    // Case 2: Refreshed recently → skip refresh
     if (this.shouldSkipRefresh()) {
-      console.log(`[RefreshCoordinator:${requestId}] Skipping refresh (too soon), but cache was empty`)
-      // Cache was already checked above and was empty, so we need to refresh
+      // Return null to indicate no refresh needed - withAuth will use existing token
+      return null
     }
 
     // Case 3: Perform new refresh
@@ -202,14 +181,18 @@ class RefreshCoordinator {
       // Update last refresh time
       this.lastRefreshTime = Date.now()
 
-      // Cache the new tokens for immediate use in parallel requests
-      // CRITICAL: Cache under BOTH old and new refresh tokens to handle token rotation
-      tokenCache.set(refreshToken, access_token, refresh_token)
+      // Build Set-Cookie headers for the new tokens
+      const isProduction = process.env.NODE_ENV === 'production'
+      const secure = isProduction ? 'Secure;' : ''
+      const setCookieHeaders = [
+        `admin_access_token=${access_token}; Max-Age=${7 * 24 * 60 * 60}; HttpOnly; ${secure} SameSite=strict; Path=/`,
+        `admin_refresh_token=${refresh_token}; Max-Age=${30 * 24 * 60 * 60}; HttpOnly; ${secure} SameSite=strict; Path=/`,
+      ]
 
       return {
         accessToken: access_token,
         refreshToken: refresh_token,
-        setCookieHeaders: [], // BFF handles cookies
+        setCookieHeaders,
       }
     } catch (error: any) {
       console.error(
