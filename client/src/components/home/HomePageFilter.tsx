@@ -6,6 +6,7 @@ import HeaderHero from '../header/HeaderHero'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { useCategoriesQuery } from '@/hooks/queries/useCategoriesQuery'
 import HeaderSearch from '../header/HeaderSearch'
+import UseOptimizeImage from '@/hooks/UseOptimizeImage'
 
 export default function HomePageFilter() {
   const { categories: category, loading: isLoading } = useCategoriesQuery()
@@ -74,15 +75,15 @@ export default function HomePageFilter() {
             className="bg-white rounded-2xl p-6 flex flex-col items-center gap-3 hover:shadow-lg transition-all duration-300 border border-gray-100 group cursor-pointer data-[state=active]:bg-orange-50 data-[state=active]:border-orange-200 h-auto"
           >
             <div className="w-16 h-16 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 overflow-hidden">
-              {/* <UseOptimizeImage
+              <UseOptimizeImage
                 src={link.img}
                 alt={link.name}
                 rounded="rounded-xl"
                 width={48}
                 height={48}
                 className="object-cover"
-              /> */}
-              <img src={link.img} alt={link.name} />
+              />
+              {/* <img src={link.img} alt={link.name} /> */}
             </div>
             <div className="text-center">
               <h3 className="font-[500] text-gray-900 text-[1rem]">
@@ -179,7 +180,7 @@ export default function HomePageFilter() {
         {/* Content sections */}
         <div className="min-h-screen">
           <div className={`${isMobile ? 'pt-[11rem]' : ''} `}>
-            {categoryTabs.map((tab, index) => (
+            {categoryTabs.map((tab: any, index: any) => (
               <div key={index} className={`${isMobile ? '' : 'py-2'} `}>
                 {tab}
               </div>
