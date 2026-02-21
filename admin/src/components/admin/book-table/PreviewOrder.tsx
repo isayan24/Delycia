@@ -1,38 +1,19 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import {
-  Receipt,
-  MapPin,
-  Users,
-  CheckCircle,
-  Edit3,
-  Trash2,
-  ChevronLeft,
-  UtensilsCrossed,
-} from 'lucide-react'
+import { Receipt, MapPin, CheckCircle, UtensilsCrossed } from 'lucide-react'
 import { useTableStore } from '@/store/useTableStore'
 import PartySizeSelector from './PartySizeSelector'
+import { motion, AnimatePresence } from 'motion/react'
+import { useScrollHide } from '@/hooks/use-scroll-hide'
 
 export default function PreviewOrder() {
-  const {
-    table,
-    orderItems,
-    clearAllItems,
-    changeState,
-    getTotalAmount,
-    partySize,
-  } = useTableStore()
+  const { table, orderItems, changeState, getTotalAmount, partySize } =
+    useTableStore()
 
   const [showPartySizeError, setShowPartySizeError] = useState(false)
+  const isHidden = useScrollHide()
 
-  const onCancelOrder = () => {
-    changeState(0)
-    clearAllItems()
-  }
-  const onEditOrder = () => {
-    changeState(1)
-  }
   const onConfirmOrder = () => {
     if (partySize === 0) {
       setShowPartySizeError(true)
@@ -46,48 +27,6 @@ export default function PreviewOrder() {
 
   return (
     <div className="h-full flex flex-col bg-[#fcfcfd] dark:bg-gray-950">
-      {/* Sticky Header */}
-      <div className="shrink-0 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-4 py-3">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={onEditOrder}
-              className="p-1.5 -ml-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            >
-              <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-            </button>
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-primary/10 rounded-lg">
-                <Receipt className="w-4 h-4 text-primary" />
-              </div>
-              <h1 className="text-base font-bold text-gray-900 dark:text-white">
-                Order Preview
-              </h1>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onCancelOrder}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 rounded-xl text-xs h-8 px-3"
-            >
-              <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-              Cancel
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onEditOrder}
-              className="rounded-xl text-xs h-8 px-3 border-gray-200 dark:border-gray-700"
-            >
-              <Edit3 className="h-3.5 w-3.5 mr-1.5" />
-              Edit
-            </Button>
-          </div>
-        </div>
-      </div>
-
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto no-scrollbar">
         <div className="max-w-4xl mx-auto p-4 space-y-4 pb-6">
@@ -184,19 +123,33 @@ export default function PreviewOrder() {
         </div>
       </div>
 
-      {/* Sticky Bottom Confirm Button */}
-      <div className="shrink-0 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-        <div className="max-w-4xl mx-auto">
-          <Button
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl h-12 text-base font-bold shadow-lg shadow-emerald-600/20 transition-all hover:shadow-emerald-600/30 hover:translate-y-[-1px] active:translate-y-0"
-            size="lg"
-            onClick={onConfirmOrder}
+      {/* Fixed Footer — hides/shows with MobileDock on scroll */}
+      <AnimatePresence>
+        {!isHidden && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{
+              type: 'spring',
+              damping: 25,
+              stiffness: 150,
+              mass: 1.5,
+              opacity: { duration: 0.2 },
+            }}
+            className="fixed bottom-[110px] max-[540px]:bottom-[75px] min-[900px]:bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-[500px] z-50"
           >
-            <CheckCircle className="h-5 w-5 mr-2" />
-            Confirm Order ₹{totalAmount.toFixed(2)}
-          </Button>
-        </div>
-      </div>
+            <Button
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl h-12 text-base font-bold shadow-[0_8px_32px_rgba(0,0,0,0.12)] transition-all active:translate-y-0"
+              size="lg"
+              onClick={onConfirmOrder}
+            >
+              <CheckCircle className="h-5 w-5 mr-2" />
+              Confirm Order ₹{totalAmount.toFixed(2)}
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

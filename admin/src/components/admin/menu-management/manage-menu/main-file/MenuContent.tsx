@@ -17,7 +17,7 @@ export const MenuContent = React.memo(() => {
     closeEditCategoryDialog,
   } = useMenuStore()
 
-  const isDesktop = useMediaQuery('(min-width: 768px)')
+  const isDesktop = useMediaQuery('(min-width: 1130px)')
 
   // ✅ No need to manually refresh! Mutations handle cache invalidation automatically
 
@@ -45,12 +45,12 @@ export const MenuContent = React.memo(() => {
         </>
       ) : (
         // Mobile: Horizontal Scroll Top + List Bottom
-        <div className="w-full h-full flex flex-col bg-gray-50 ">
+        <div className="w-full h-full flex flex-col ">
           <section className="w-full shrink-0">
             <CategoryList orientation="horizontal" />
           </section>
 
-          <section className="flex-1 min-h-0">
+          <section className="flex-1 min-h-0 max-[900px]:pb-20 max-[500px]:pb-8">
             <ItemList />
           </section>
         </div>

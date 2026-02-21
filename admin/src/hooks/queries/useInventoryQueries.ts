@@ -68,7 +68,7 @@ export const useInventoryItemStats = (
     },
     enabled: !!itemId && !!rid,
     placeholderData: keepPreviousData,
-    
+
     // Inventory stats caching strategy:
     // - 5 minute staleTime: inventory data changes infrequently
     // - 10 minute gcTime: keep in cache for navigation

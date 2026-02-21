@@ -15,7 +15,7 @@ export default function ManageMenu() {
   }
 
   return (
-    <div className="w-full h-fulls h-[calc(100vh-7rem)] flex flex-col gap-2 md:gap-2">
+    <div className="w-full h-fulls h-[calc(100vh-7rem)] max-[900px]:-mb-24  flex flex-col gap-2 md:gap-2">
       <TopButtons
         onSearch={handleSearch}
         onSubmit={handleSubmit}

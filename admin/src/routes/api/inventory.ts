@@ -120,8 +120,14 @@ export const Route = createFileRoute('/api/inventory')({
           try {
             const data: any = await req.json()
 
-            const { id, rid, variants, images, selectiveFields, currentStatus } =
-              data
+            const {
+              id,
+              rid,
+              variants,
+              images,
+              selectiveFields,
+              currentStatus,
+            } = data
 
             if (!id || !rid) {
               return jsonResponse(
@@ -150,7 +156,12 @@ export const Route = createFileRoute('/api/inventory')({
                   selectiveFields,
                   currentStatus,
                 )
-              : createPayload(data, shouldIncludeImages, undefined, currentStatus)
+              : createPayload(
+                  data,
+                  shouldIncludeImages,
+                  undefined,
+                  currentStatus,
+                )
 
             // Check if status was auto-updated
             const wasStatusAutoUpdated =
@@ -252,7 +263,10 @@ export const Route = createFileRoute('/api/inventory')({
 
             try {
               if (img && Array.isArray(img) && img.length > 0) {
-                const deletionResults = await deleteImagesOneByOne(img, imagekit)
+                const deletionResults = await deleteImagesOneByOne(
+                  img,
+                  imagekit,
+                )
 
                 // Check if any deletions failed
                 const failures = deletionResults.filter(

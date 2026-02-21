@@ -7,6 +7,7 @@ import { CRMHeader } from '../crm/CRMHeader'
 import { StaffReportHeader } from '../reports/StaffReportHeader'
 import { StaffManagementHeader } from '../staff/StaffManagementHeader'
 import { InventoryReportHeader } from '../reports/InventoryReportHeader'
+import BookTableHeader from '../book-table/BookTableHeader'
 
 export const DynamicHeader: React.FC = () => {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
@@ -46,6 +47,14 @@ export const DynamicHeader: React.FC = () => {
     pathname === '/reports/staff'
   ) {
     return <StaffManagementHeader />
+  }
+
+  // Book Table Header
+  if (
+    pathname === '/billing/book-table' ||
+    pathname.startsWith('/billing/book-table/')
+  ) {
+    return <BookTableHeader />
   }
 
   // Default header for all other routes

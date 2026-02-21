@@ -75,7 +75,7 @@ export function RestaurantActiveToggle() {
             },
           )
         }}
-        className="data-[state=checked]:bg-green-500 scale-[0.7]"
+        className="data-[state=checked]:bg-green-500 scale-[1]"
       />
     </div>
   )

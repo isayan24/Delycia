@@ -122,7 +122,7 @@ export default function AddonSelector({
 
   return (
     <div
-      className="w-[300px] flex flex-col gap-3 p-1 max-[768px]:w-full border border-amber-300 rounded-md bg-amber-50/40"
+      className="w-[300px] flex flex-col gap-3 p-2 max-[500px]:w-full border border-amber-300 rounded-md bg-white"
       onClick={(e) => e.stopPropagation()}
     >
       <div className="flex items-center justify-between px-1">
@@ -181,7 +181,7 @@ export default function AddonSelector({
               return (
                 <div
                   key={addon.id}
-                  className={`flex items-center justify-between p-2.5 rounded-lg border text-sm cursor-pointer transition-all ${
+                  className={`flex items-center bg-slate-50 justify-between p-2.5 rounded-lg border text-sm cursor-pointer transition-all ${
                     isSelected
                       ? 'border-primary bg-primary/5 shadow-sm'
                       : 'border-slate-100 hover:border-slate-300 hover:bg-slate-50'

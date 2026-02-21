@@ -30,12 +30,12 @@ export default function MobilePreview({ previewData }: any) {
   }, [previewData])
 
   return (
-    <div className="hidden md:flex w-full bg-gray-100 p-8  flex-col items-center justify-center">
+    <div className="hidden md:flex w-full  lg:p-8 md:p-4 flex-col items-center justify-center">
       <div className="relative">
-        <div className="w-80 h-[600px] bg-black rounded-[3rem] p-2 shadow-2xl relative">
+        <div className="lg:w-80 md:w-[280px] lg:h-[600px] md:h-[540px] bg-black rounded-[3rem] p-2 shadow-2xl relative transition-all duration-300">
           <div className="w-full h-full bg-white rounded-[2.5rem] overflow-hidden relative">
             <div className="absolute top-0 left-0 h-full w-full bg-black/70 z-[7] backdrop-blur-[2px]"></div>
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-6 bg-black rounded-b-2xl z-10"></div>
+            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 lg:w-32 md:w-24 h-6 bg-black rounded-b-2xl z-10"></div>
 
             <div
               ref={scrollContainerRef}

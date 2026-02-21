@@ -9,6 +9,7 @@ import DeleteTablesComponent from './add-delete/DeleteTablesComponent'
 import { useTablesQuery } from '@/hooks/queries/useTablesQuery'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import LoadingScreen from '@/components/common/LoadingScreen'
+import { motion, AnimatePresence } from 'motion/react'
 
 export default function BookTableMain() {
   const { changeState, currentState, setTable } = useTableStore()
@@ -47,71 +48,105 @@ export default function BookTableMain() {
     return <LoadingScreen message="Loading tables" />
   }
 
+  // Determine if an overlay is active (add/delete tables)
+  const isOverlayActive = showAddTables || showDeleteTables
+
   return (
-    <div className="relative max-[500px]:h-[calc(100vh-3rem)] h-[calc(100vh-7rem)] overflow-hidden">
-      {/* Add Tables View */}
-      <div
-        className={`absolute inset-0 transition-transform duration-500 ease-in-out ${
-          showAddTables ? 'translate-x-0' : 'translate-x-full'
-        }`}
-      >
-        <AddTablesComponent
-          clickedBackToTables={handleBackToTables}
-          onTablesAdded={handleTablesUpdated}
-        />
-      </div>
+    <div className="relative max-[900px]:-mb-24 max-[900px]:pb-[7rem] max-[500px]:h-[calc(100vh-4rem)] h-[calc(100vh-7.5rem)] overflow-hidden flex flex-col">
+      {/* Main Step Content */}
+      <div className="flex-1 overflow-hidden relative">
+        <AnimatePresence mode="wait">
+          {currentState === 0 && !isOverlayActive && (
+            <motion.div
+              key="tables"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              className="absolute inset-0"
+            >
+              <ShowTables
+                selectTable={selectTable}
+                handleShowAddTables={handleShowAddTables}
+                handleShowDeleteTables={handleShowDeleteTables}
+              />
+            </motion.div>
+          )}
 
-      {/* Delete Tables View */}
-      <div
-        className={`absolute inset-0 transition-transform duration-500 ease-in-out ${
-          showDeleteTables ? 'translate-x-0' : 'translate-x-full'
-        }`}
-      >
-        <DeleteTablesComponent
-          clickedBackToTables={handleBackToTables}
-          onTablesDeleted={handleTablesUpdated}
-        />
-      </div>
+          {currentState === 1 && !isOverlayActive && (
+            <motion.div
+              key="select-order"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              className="absolute inset-0"
+            >
+              <SelectOrder />
+            </motion.div>
+          )}
 
-      {/* Main Tables View */}
-      <div
-        className={`absolute inset-0 transition-transform duration-500 ease-in-out ${
-          currentState === 0 && !showAddTables && !showDeleteTables
-            ? 'translate-x-0'
-            : '-translate-x-full'
-        }`}
-      >
-        <ShowTables
-          selectTable={selectTable}
-          handleShowAddTables={handleShowAddTables}
-          handleShowDeleteTables={handleShowDeleteTables}
-        />
-      </div>
+          {currentState === 2 && !isOverlayActive && (
+            <motion.div
+              key="preview-order"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              className="absolute inset-0"
+            >
+              <PreviewOrder />
+            </motion.div>
+          )}
 
-      {/* Select Order View */}
-      <div
-        className={`absolute inset-0 transition-transform duration-500 ease-in-out
-          ${currentState === 1 ? 'translate-x-0' : currentState === 0 ? 'translate-x-full' : '-translate-x-full'}`}
-      >
-        <SelectOrder />
-      </div>
+          {currentState === 3 && !isOverlayActive && (
+            <motion.div
+              key="customer-details"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              className="absolute inset-0"
+            >
+              <AddCustomerDetails />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-      {/* Preview Order View */}
-      <div
-        className={`absolute inset-0 transition-transform duration-500 ease-in-out 
-          ${currentState === 2 ? 'translate-x-0' : currentState === 3 ? '-translate-x-full' : 'translate-x-full'}
-          `}
-      >
-        <PreviewOrder />
-      </div>
+        {/* Add/Delete Table Overlays */}
+        <AnimatePresence>
+          {showAddTables && (
+            <motion.div
+              key="add-tables"
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 40 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+              className="absolute inset-0 z-10"
+            >
+              <AddTablesComponent
+                clickedBackToTables={handleBackToTables}
+                onTablesAdded={handleTablesUpdated}
+              />
+            </motion.div>
+          )}
 
-      {/* Add Customer Details View */}
-      <div
-        className={`absolute inset-0 transition-transform duration-500 ease-in-out ${
-          currentState === 3 ? 'translate-x-0' : 'translate-x-full'
-        }`}
-      >
-        <AddCustomerDetails />
+          {showDeleteTables && (
+            <motion.div
+              key="delete-tables"
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 40 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+              className="absolute inset-0 z-10"
+            >
+              <DeleteTablesComponent
+                clickedBackToTables={handleBackToTables}
+                onTablesDeleted={handleTablesUpdated}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   )

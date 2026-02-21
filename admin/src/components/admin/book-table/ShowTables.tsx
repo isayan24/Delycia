@@ -121,7 +121,7 @@ export default function ShowTables({
   }
 
   return (
-    <div className="h-full flex flex-col overflow-y-auto no-scrollbar bg-[#fcfcfd] dark:bg-gray-950 p-4 sm:p-6">
+    <div className="h-full flex flex-col overflow-y-auto no-scrollbar pb-[5rem] bg-[#fcfcfd] dark:bg-gray-950 p-4 sm:p-6 ">
       {/* Header Section */}
       <div className="flex items-center justify-between mb-8 shrink-0">
         <div className="flex items-center gap-3">

@@ -435,7 +435,7 @@ export default function UpdateItemDetailsModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-0">
-      <div className="bg-white rounded-lg w-full max-w-7xl h-[95vh] sm:h-[90vh] flex overflow-hidden">
+      <div className="bg-white rounded-lg w-full max-w-7xl h-[95vh] max-[900px]:h-[80vh] flex overflow-hidden">
         <MobilePreview previewData={previewData} />
 
         <div className="w-full py-0 overflow-y-auto relative">

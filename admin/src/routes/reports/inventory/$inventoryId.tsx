@@ -11,15 +11,15 @@ import {
   ArrowLeft,
   Box,
   DollarSign,
-  Calendar,
-  Package,
-  Activity,
   Loader2,
-  Phone,
+  TrendingUp,
+  ShoppingBag,
+  Receipt,
+  MoreVertical,
+  AlertCircle,
+  Clock,
+  Calendar,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -28,13 +28,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 
-import { convertToIST } from '@/components/admin/order-history/utils/historyDateUtils'
 import { QuickRestockButton } from '@/components/admin/inventory/QuickRestockButton'
 
-import { Skeleton } from '@/components/ui/skeleton'
 import { requireAuth } from '@/middleware/auth'
-import { formatDateTime } from '@/utils/dateUtils'
 
 export const Route = createFileRoute('/reports/inventory/$inventoryId')({
   beforeLoad: requireAuth,
@@ -92,98 +92,67 @@ function InventoryItemDetailPage() {
     }
 
     return (
-      <div className="space-y-3 sm:space-y-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 bg-white min-h-screen">
         {/* Header Skeleton */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Skeleton className="h-8 w-8 rounded-full" />
-            <div>
-              <div className="flex items-center gap-2">
-                <Skeleton className="h-6 w-32 sm:w-48" />
-                <Skeleton className="h-5 w-16 rounded-full" />
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-gray-100">
+          <div className="flex items-center gap-5">
+            <Skeleton className="h-10 w-10 rounded-xl" />
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-16 w-16 rounded-xl" />
+              <div className="space-y-2">
+                <Skeleton className="h-6 w-48" />
+                <Skeleton className="h-3 w-32" />
               </div>
-              <Skeleton className="h-3 w-32 mt-1" />
             </div>
           </div>
-          <Skeleton className="h-9 w-32 sm:self-end" />
+          <div className="flex gap-2">
+            <Skeleton className="h-10 w-32 rounded-xl" />
+            <Skeleton className="h-10 w-10 rounded-xl" />
+          </div>
         </div>
 
-        {/* Stats Cards Skeleton */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+        {/* KPI Strip Skeleton */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="shadow border-gray-200/60">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-3 pb-1">
-                <Skeleton className="h-3 w-16 sm:w-20" />
-                <Skeleton className="h-3 w-3 rounded-full" />
-              </CardHeader>
-              <CardContent className="p-2 sm:p-3 pt-0">
-                <Skeleton className="h-5 sm:h-6 w-16 sm:w-24 mb-1" />
-                <Skeleton className="h-2 w-12 sm:w-16" />
-              </CardContent>
-            </Card>
+            <div
+              key={i}
+              className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100 space-y-3"
+            >
+              <div className="flex justify-between">
+                <Skeleton className="h-2 w-16" />
+                <Skeleton className="h-3 w-8 rounded-md" />
+              </div>
+              <Skeleton className="h-7 w-24" />
+            </div>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
-          {/* Item Details Skeleton */}
-          <Card className="lg:col-span-1 h-fit shadow border-gray-200/60">
-            <CardHeader className="p-3 sm:p-4 py-2 sm:py-3 border-b">
-              <Skeleton className="h-4 w-24" />
-            </CardHeader>
-            <CardContent className="p-3 sm:p-4 space-y-3 sm:space-y-4">
-              <Skeleton className="aspect-square w-full rounded-lg" />
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Skeleton className="h-3 w-10" />
-                  <Skeleton className="h-4 w-16" />
-                </div>
-                <div className="space-y-1">
-                  <Skeleton className="h-3 w-10" />
-                  <Skeleton className="h-4 w-16" />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <Skeleton className="h-3 w-20" />
-                <Skeleton className="h-3 w-full" />
-                <Skeleton className="h-3 w-3/4" />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Recent Orders Skeleton */}
-          <Card className="lg:col-span-2 h-full shadow border-gray-200/60">
-            <CardHeader className="p-3 sm:p-4 py-2 sm:py-3 border-b">
-              <Skeleton className="h-4 w-32" />
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="space-y-0">
-                <div className="hidden sm:flex p-2 border-b bg-gray-50/50 gap-4">
-                  {[1, 2, 3, 4, 5].map((j) => (
-                    <Skeleton key={j} className="h-4 w-full" />
-                  ))}
-                </div>
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div
-                    key={i}
-                    className="p-3 sm:p-2 sm:px-4 flex flex-col sm:flex-row gap-2 sm:gap-4 border-b last:border-0 sm:h-10 sm:items-center"
-                  >
-                    <div className="flex justify-between sm:contents">
-                      <Skeleton className="h-3 w-12" />
-                      <Skeleton className="h-3 w-12 sm:hidden" />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <Skeleton className="h-3 w-32 sm:w-24" />
-                      <Skeleton className="h-2 w-20 sm:w-16" />
-                    </div>
-                    <div className="flex justify-between sm:contents">
-                      <Skeleton className="h-3 w-24 sm:w-20" />
-                      <Skeleton className="h-3 w-12 sm:w-8" />
-                    </div>
+        {/* Table Skeleton */}
+        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-xs">
+          <div className="px-6 py-4 border-b border-gray-100 flex justify-between">
+            <Skeleton className="h-4 w-48" />
+            <Skeleton className="h-6 w-24 rounded-lg" />
+          </div>
+          <div className="p-6 space-y-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex justify-between items-center py-2">
+                <div className="flex gap-4 items-center">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-3 w-16" />
                   </div>
-                ))}
+                  <div className="space-y-2 ml-4">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                </div>
+                <div className="space-y-2 text-right">
+                  <Skeleton className="h-4 w-24 ml-auto" />
+                  <Skeleton className="h-3 w-16 ml-auto" />
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            ))}
+          </div>
         </div>
       </div>
     )
@@ -215,317 +184,271 @@ function InventoryItemDetailPage() {
   const stockLevel = getStockLevel(data.stock)
 
   return (
-    <div className="space-y-3 sm:space-y-4 p-3">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2 sm:gap-3">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-6 bg-white min-h-screen">
+      {/* Top Identity Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-gray-100/50">
+        <div className="flex items-center gap-6">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate({ to: '/reports/inventory' })}
-            className="h-7 w-7 sm:h-8 sm:w-8 rounded-full hover:bg-white bg-white shadow-sm border border-gray-200"
+            className="h-9 w-9 shrink-0 rounded-lg hover:bg-gray-50 border border-gray-100 transition-colors"
           >
-            <ArrowLeft className="w-3.5 h-3.5 text-gray-600" />
+            <ArrowLeft className="w-4 h-4 text-gray-400" />
           </Button>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg sm:text-xl font-[500] text-gray-900 truncate">
-                {data.name}
-              </h1>
-              <span
-                className={`shrink-0 px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-medium border ${
-                  stockLevel === 'critical'
-                    ? 'bg-red-50 text-red-700 border-red-200'
-                    : stockLevel === 'low'
-                      ? 'bg-orange-50 text-orange-700 border-orange-200'
-                      : 'bg-green-50 text-green-700 border-green-200'
-                }`}
-              >
-                {data.status}
-              </span>
+
+          <div className="flex items-center gap-4">
+            <div className="h-20 w-32 shrink-0 rounded-xl border border-gray-100 bg-gray-50 overflow-hidden shadow-sm">
+              {data.images && data.images.length > 0 ? (
+                <img
+                  src={data.images[0]}
+                  alt={data.name}
+                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                />
+              ) : (
+                <div className="flex items-center justify-center w-full h-full text-gray-200">
+                  <Box className="w-10 h-10" />
+                </div>
+              )}
             </div>
-            <p className="text-gray-500 text-[10px] sm:text-xs mt-0.5">
-              {data.category} • ID: #{data.id}
-            </p>
+
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-3">
+                <h1 className="text-xl font-bold text-gray-900 tracking-tight leading-none">
+                  {data.name}
+                </h1>
+                <span
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-widest border shadow-sm ${
+                    stockLevel === 'critical'
+                      ? 'bg-red-50 text-red-600 border-red-100'
+                      : stockLevel === 'low'
+                        ? 'bg-orange-50 text-orange-600 border-orange-100'
+                        : 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                  }`}
+                >
+                  {data.status}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-gray-500 font-semibold uppercase tracking-wider">
+                <span className="bg-gray-100/80 px-2 py-0.5 rounded text-[10px] text-gray-500 border border-gray-200/50">
+                  SKU: {data.id}
+                </span>
+                <span className="text-gray-300">•</span>
+                <span className="text-blue-600 font-bold">{data.category}</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
           <QuickRestockButton
             inventoryId={data.id}
             rid={Number(user?.selected_rid)}
             currentStock={data.stock}
             itemName={data.name}
             onStockUpdate={() => {}}
-            className="w-full sm:w-auto h-8 text-xs"
+            className="h-9 px-4 text-xs font-bold rounded-lg shadow-xs hover:shadow-md transition-all"
           />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 rounded-lg border border-gray-100 hover:bg-gray-50"
+          >
+            <MoreVertical className="w-4 h-4 text-gray-400" />
+          </Button>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+      {/* Compact KPI Strip */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           {
             label: 'Total Revenue',
             value: `₹${performance.revenue}`,
-            sub: 'Lifetime earnings',
-            icon: <DollarSign className="h-3 w-3 text-green-600" />,
+            icon: <DollarSign className="w-3.5 h-3.5" />,
+            trend: '+8.4%',
+            color: 'text-emerald-600',
+            bgColor: 'bg-emerald-50',
           },
           {
-            label: 'Units Sold',
+            label: 'Lifetime Sold',
             value: performance.unitsSold,
-            sub: 'Total items sold',
-            icon: <Package className="h-3 w-3 text-blue-600" />,
+            icon: <ShoppingBag className="w-3.5 h-3.5" />,
+            trend: 'Units',
+            color: 'text-blue-600',
+            bgColor: 'bg-blue-50',
           },
           {
             label: 'Total Orders',
             value: performance.totalOrders,
-            sub: 'Distinct orders',
-            icon: <Activity className="h-3 w-3 text-orange-600" />,
+            icon: <TrendingUp className="w-3.5 h-3.5" />,
+            trend: 'Direct',
+            color: 'text-indigo-600',
+            bgColor: 'bg-indigo-50',
           },
           {
-            label: 'Last Ordered',
-            value: performance.lastOrdered
-              ? convertToIST(performance.lastOrdered)
-              : 'Never',
-            sub:
-              performance.daysSinceLastOrder > 0
-                ? `${performance.daysSinceLastOrder} days ago`
-                : performance.lastOrdered
-                  ? 'Today'
-                  : 'No activity',
-            icon: <Calendar className="h-3 w-3 text-gray-600" />,
-            isDate: true,
+            label: 'Current Stock',
+            value: data.stock,
+            icon: <Box className="w-3.5 h-3.5" />,
+            trend: 'Live',
+            color: data.stock < 10 ? 'text-red-600' : 'text-emerald-600',
+            bgColor: data.stock < 10 ? 'bg-red-50' : 'bg-emerald-50',
+            status: data.stock < 10 ? 'text-red-600' : 'text-emerald-600',
           },
         ].map((stat, i) => (
-          <Card key={i} className="overflow-hidden shadow border-gray-200/60">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2 sm:p-3 pb-1">
-              <CardTitle className="text-[10px] sm:text-xs font-medium text-gray-500">
+          <div
+            key={i}
+            className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:border-gray-200 hover:shadow-md transition-all duration-200"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                <span
+                  className={`p-1 ${stat.bgColor} rounded-lg ${stat.color} shadow-sm`}
+                >
+                  {stat.icon}
+                </span>
                 {stat.label}
-              </CardTitle>
-              {stat.icon}
-            </CardHeader>
-            <CardContent className="p-2 sm:p-3 pt-0">
-              <div
-                className={`font-bold truncate ${stat.isDate ? 'text-[11px] sm:text-sm' : 'text-lg sm:text-xl'}`}
-              >
-                {stat.value}
-              </div>
-              <p className="text-[9px] sm:text-[10px] text-gray-500 truncate">
-                {stat.sub}
-              </p>
-            </CardContent>
-          </Card>
+              </span>
+              <span className="text-[8px] font-extrabold text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">
+                {stat.trend}
+              </span>
+            </div>
+            <div
+              className={`text-md pl-5 font-black tracking-tight ${stat.status || 'text-gray-900'}`}
+            >
+              {stat.value}
+            </div>
+          </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
-        {/* Item Details */}
-        <Card className="lg:col-span-1 h-fit shadow border-gray-200/60">
-          <CardHeader className="p-3 sm:p-4 py-2 sm:py-3 border-b">
-            <CardTitle className="text-xs sm:text-sm">Item Details</CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 sm:p-4 space-y-3 sm:space-y-4">
-            <div className="flex sm:block gap-3">
-              <div className="aspect-square w-24 sm:w-full shrink-0 rounded-lg bg-gray-100 overflow-hidden relative border border-gray-100">
-                {data.images && data.images.length > 0 ? (
-                  <img
-                    src={data.images[0]}
-                    alt={data.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center w-full h-full text-gray-400">
-                    <Box className="w-10 h-10 sm:w-12 sm:h-12" />
-                  </div>
-                )}
-              </div>
+      {/* Transactional Data Table */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/30 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Receipt className="w-4 h-4 text-gray-400" />
+            <h3 className="text-sm font-bold text-gray-900">
+              Recent Transactions
+            </h3>
+          </div>
+          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+            {allOrders.length} Events Total
+          </span>
+        </div>
 
-              <div className="flex-1 flex flex-col justify-center sm:block sm:mt-4 space-y-3">
-                <div className="grid grid-cols-2 gap-4 text-[10px] sm:text-xs">
-                  <div>
-                    <p className="text-gray-500">Price</p>
-                    <p className="font-semibold text-xs sm:text-sm">
-                      ₹{data.price}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Stock</p>
-                    <p
-                      className={`font-semibold text-xs sm:text-sm ${data.stock < 10 ? 'text-red-600' : 'text-gray-900'}`}
-                    >
-                      {data.stock} units
-                    </p>
-                  </div>
-                </div>
-
-                <div className="hidden sm:block">
-                  <p className="text-gray-500 text-[10px] sm:text-xs mb-1">
-                    Description
-                  </p>
-                  <p className="text-[10px] sm:text-xs text-gray-700 leading-relaxed line-clamp-3 sm:line-clamp-none">
-                    {data.description || 'No description available.'}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="sm:hidden border-t pt-2">
-              <p className="text-gray-500 text-[10px] mb-0.5">Description</p>
-              <p className="text-[11px] text-gray-700 leading-relaxed">
-                {data.description || 'No description available.'}
+        <div className="min-h-[400px]">
+          {visibleItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-24 opacity-40">
+              <Receipt className="w-10 h-10 mb-2" />
+              <p className="text-xs font-bold uppercase tracking-widest">
+                No activity log found
               </p>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Orders Section */}
-        <Card className="lg:col-span-2 flex flex-col h-full overflow-hidden shadow border-gray-200/60">
-          <CardHeader className="p-3 sm:p-4 py-2 sm:py-3 border-b">
-            <CardTitle className="text-xs sm:text-sm">Recent Orders</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0 flex-1 overflow-auto">
-            {/* Desktop Table */}
-            <div className="hidden sm:block">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-gray-50/50 hover:bg-gray-50/50 h-9">
-                    <TableHead className="h-9 text-xs">Order ID</TableHead>
-                    <TableHead className="h-9 text-xs">Customer</TableHead>
-                    <TableHead className="h-9 text-xs">Date</TableHead>
-                    <TableHead className="h-9 text-xs text-right">
-                      Qty
-                    </TableHead>
-                    <TableHead className="h-9 text-xs text-right">
-                      Amount
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {visibleItems.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={5}
-                        className="text-center h-24 text-gray-500 text-sm"
-                      >
-                        No orders found for this item.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    visibleItems.map((order) => (
-                      <TableRow key={order.id} className="h-10">
-                        <TableCell className="py-2 text-xs font-medium">
-                          #{order.id}
-                        </TableCell>
-                        <TableCell className="py-2">
-                          <div className="flex flex-col">
-                            <span className="text-[15px] font-medium text-gray-900">
-                              {order.customer.name}
-                            </span>
-                            <span className="text-xs text-gray-500 flex items-center gap-1">
-                              <Phone className="inline" size={10} />{' '}
-                              {order.customer.phone || 'N/A'}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="py-2 text-sm text-gray-500">
-                          {formatDateTime(order.date)}
-                        </TableCell>
-                        <TableCell className="py-2 text-sm text-right font-medium">
-                          {order.quantity}
-                        </TableCell>
-                        <TableCell className="py-2 text-sm text-right">
-                          <div className="font-medium">
-                            ₹{order.amount.toFixed(2)}
-                          </div>
-                          {order.discount > 0 && (
-                            <div className="text-[10px] text-green-500">
-                              -₹{order.discount.toFixed(2)}
-                            </div>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-
-            {/* Mobile List View */}
-            <div className="sm:hidden divide-y divide-gray-300">
-              {visibleItems.length === 0 ? (
-                <div className="p-8 text-center text-gray-500 text-xs">
-                  No orders found for this item.
-                </div>
-              ) : (
-                visibleItems.map((order) => (
-                  <div key={order.id} className="p-3 space-y-2">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
-                          #{order.id}
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent bg-gray-50/20 border-gray-100">
+                  <TableHead className="py-4 h-auto text-[11px] font-bold uppercase tracking-[0.1em] text-gray-400 px-6">
+                    ID
+                  </TableHead>
+                  <TableHead className="py-4 h-auto text-[11px] font-bold uppercase tracking-[0.1em] text-gray-400">
+                    Customer & Date
+                  </TableHead>
+                  <TableHead className="py-4 h-auto text-[11px] font-bold uppercase tracking-[0.1em] text-gray-400 text-center">
+                    Status
+                  </TableHead>
+                  <TableHead className="py-4 h-auto text-center text-[11px] font-bold uppercase tracking-[0.1em] text-gray-400">
+                    Sold
+                  </TableHead>
+                  <TableHead className="py-4 h-auto text-right text-[11px] font-bold uppercase tracking-[0.1em] text-gray-400 px-6">
+                    Revenue
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {visibleItems.map((order) => (
+                  <TableRow
+                    key={order.id}
+                    className="group border-gray-50 hover:bg-gray-50/50 transition-all duration-200"
+                  >
+                    <TableCell className="py-5 px-6">
+                      <span className="text-xs font-bold text-gray-400">
+                        #{order.id.toString().slice(-3)}
+                      </span>
+                    </TableCell>
+                    <TableCell className="py-5">
+                      <div className="flex flex-col">
+                        <span className="text-[15px] font-[500] text-gray-900 group-hover:text-blue-600 transition-colors">
+                          {order.customer.name}
                         </span>
-                        <div className="mt-1 font-medium text-xs flex flex-col items-start gap-1 text-gray-900">
-                          <span className="text-[15px]">
-                            {order.customer.name}
-                          </span>
-                          <span className="text-[12px] text-gray-500 flex items-center gap-1">
-                            <Phone className="inline" size={9} />{' '}
-                            {order.customer.phone}
-                          </span>
-                        </div>
+                        <span className="text-[12px] text-gray-400 font-semibold uppercase tracking-tight mt-0.5">
+                          {new Date(order.date).toLocaleDateString('en-IN', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
+                          {' • '}
+                          {new Date(order.date).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
                       </div>
-                      <div className="text-right">
-                        <div className="font-bold text-sm text-gray-900">
-                          ₹{order.amount?.toFixed(0)}
-                        </div>
+                    </TableCell>
+                    <TableCell className="text-center py-5">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-sm">
+                        <TrendingUp className="w-2.5 h-2.5" />
+                        Sale
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-center py-5">
+                      <span className="text-[13px] font-bold text-gray-900">
+                        {order.quantity}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right py-5 px-6">
+                      <div className="flex flex-col items-end">
+                        <span className="text-[15px] font-black text-gray-900">
+                          ₹{order.amount?.toFixed(2)}
+                        </span>
                         {order.discount > 0 && (
-                          <div className="text-[9px] text-green-500">
-                            -₹{order.discount.toFixed(2)}
-                          </div>
+                          <span className="text-[10px] text-emerald-500 font-semibold tracking-tight">
+                            -₹{order.discount?.toFixed(2)}
+                          </span>
                         )}
                       </div>
-                    </div>
-                    <div className="flex justify-between items-end text-[11px] text-gray-500">
-                      <div>{convertToIST(order.date)}</div>
-                      <div className="font-medium bg-gray-100 px-1.5 py-0.5 rounded">
-                        Qty: {order.quantity}
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </CardContent>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
 
-          {/* Infinite Scroll Sentinel */}
+          {/* Table Footer / Sentinel */}
           {(hasNextPage || hasMore) && (
             <div
               ref={sentinelRef}
-              className="flex flex-col items-center justify-center py-6 border-t gap-2"
+              className="py-12 border-t border-gray-50 flex flex-col items-center justify-center bg-gray-50/20"
             >
-              {isFetchingNextPage || (hasNextPage && !hasMore) ? (
-                <div className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin text-orange-500" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                    Retrieving...
-                  </span>
-                </div>
-              ) : (
+              <div className="flex items-center gap-1 mb-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-gray-200" />
                 <div className="h-1.5 w-1.5 rounded-full bg-gray-200 animate-pulse" />
-              )}
+                <div className="h-1.5 w-1.5 rounded-full bg-gray-200" />
+              </div>
+              <span className="text-[9px] font-bold text-gray-300 uppercase tracking-widest">
+                Scanning Ledger
+              </span>
             </div>
           )}
 
           {!hasNextPage && !hasMore && allOrders.length > 0 && (
-            <div className="py-6 text-center border-t bg-gray-50/30">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                End of orders
-              </p>
+            <div className="py-8 text-center border-t border-gray-50 bg-gray-50/10">
+              <span className="text-[9px] font-bold text-gray-200 uppercase tracking-[0.4em]">
+                intelligence feed complete
+              </span>
             </div>
           )}
-        </Card>
+        </div>
       </div>
     </div>
   )

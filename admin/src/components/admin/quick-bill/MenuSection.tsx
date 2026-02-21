@@ -212,7 +212,7 @@ export default function MenuSection({ addToCart, cart }: MenuSectionProps) {
             <LoadingScreen message="Loading Menu..." />
           </div>
         ) : (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3 pb-10">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3">
             {filteredItems.map((item: Item) => {
               const quantity = (cart || [])
                 .filter(

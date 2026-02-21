@@ -151,7 +151,7 @@ export function MobileDock() {
             'flex items-center justify-between gap-1 overflow-visible transition-all duration-300',
             isSmallScreen
               ? 'bg-white dark:bg-[#1d130c] border-t border-[#ead9cd] dark:border-primary/10 rounded-t-2xl p-1.5 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.08)]'
-              : 'bg-white/80 dark:bg-[#1d130c]/90 backdrop-blur-2xl border border-[#ead9cd] dark:border-primary/10 rounded-4xl p-2 shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)]',
+              : 'bg-white dark:bg-[#1d130c]/90 backdrop-blur-2xl border border-[#ead9cd] dark:border-primary/10 rounded-4xl p-2 shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)]',
           )}
         >
           {visibleItems.map((item) => {

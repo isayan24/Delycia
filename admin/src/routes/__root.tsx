@@ -139,7 +139,8 @@ function RootComponent() {
                 <SubscriptionGuard>
                   <DynamicHeader />
 
-                  <div className="@container p-5 max-[500px]:p-1 sidebar:pb-5 pb-24 max-[500px]:pb-32">
+                  <div className="@container p-5 max-[500px]:p-1 max-[900px]:mb-24 max-[500px]:mb-12">
+                    {/* sidebar:pb-5 pb-24 max-[500px]:pb-32 */}
                     <Toaster
                       position="top-center"
                       richColors

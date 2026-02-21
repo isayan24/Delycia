@@ -44,6 +44,7 @@ export const Route = createFileRoute('/api/imagekit')({
             // Hash fragments aren't sent to server, so won't affect ImageKit
             const urlWithFileId = `${uploadResponse.url}#${uploadResponse.fileId}`
 
+            console.log(urlWithFileId, 'urlWithFileId \n\n')
             return new Response(
               JSON.stringify({
                 success: true,

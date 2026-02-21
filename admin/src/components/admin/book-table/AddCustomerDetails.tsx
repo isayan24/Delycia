@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -10,10 +10,7 @@ import {
   MessageSquare,
   Plus,
   Tag,
-  ChevronLeft,
   Receipt,
-  MapPin,
-  UtensilsCrossed,
   X,
 } from 'lucide-react'
 import { useTableStore } from '@/store/useTableStore'
@@ -26,9 +23,10 @@ import { generateUsername } from '@/helpers/user/generateUsername'
 import ThermalBill from '@/components/billing/ThermalBill'
 import type { BillData } from '@/components/billing'
 import { handleShareToMobile } from '@/components/billing'
-import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
 import { formatDateTime } from '@/utils/dateUtils'
+import { motion, AnimatePresence } from 'motion/react'
+import { useScrollHide } from '@/hooks/use-scroll-hide'
 
 interface CustomerDetails {
   name: string
@@ -48,6 +46,7 @@ export default function AddCustomerDetails() {
   const [specialInstructions, setSpecialInstructions] = useState('')
   const [showSearchResults, setShowSearchResults] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
+  const isHidden = useScrollHide()
 
   // Thermal Bill Popup state
   const [showThermalBill, setShowThermalBill] = useState(false)
@@ -65,7 +64,6 @@ export default function AddCustomerDetails() {
 
   const { showError, showSuccess } = useToast()
   const { user } = useAuth()
-  const { selectedRestaurant } = useRestaurantSelector()
 
   // Use custom search hook
   const { searchResults, isSearching, searchError, clearResults } =
@@ -244,40 +242,6 @@ export default function AddCustomerDetails() {
           onShareToMobile={handleShareToMobile}
         />
       )}
-
-      {/* Sticky Header */}
-      <div className="shrink-0 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-4 py-3">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => changeState(2)}
-              className="p-1.5 -ml-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            >
-              <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-            </button>
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-primary/10 rounded-lg">
-                <User className="w-4 h-4 text-primary" />
-              </div>
-              <h1 className="text-base font-bold text-gray-900 dark:text-white">
-                Customer Details
-              </h1>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 text-right">
-            <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 dark:bg-gray-800 px-2.5 py-1.5 rounded-lg">
-              <MapPin className="h-3.5 w-3.5 text-primary" />
-              <span className="font-medium">
-                T-{table?.table_number || '#'}
-              </span>
-            </div>
-            <div className="text-base font-black text-gray-900 dark:text-white tracking-tight">
-              ₹{finalAmount.toFixed(2)}
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto no-scrollbar">
         <div className="max-w-2xl mx-auto p-4 space-y-4 pb-6">
@@ -505,29 +469,43 @@ export default function AddCustomerDetails() {
         </div>
       </div>
 
-      {/* Sticky Footer */}
-      <div className="shrink-0 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-        <div className="max-w-2xl mx-auto">
-          <Button
-            type="submit"
-            form="customer-details-form"
-            disabled={isSubmitting}
-            className="w-full rounded-xl h-12 text-base font-bold shadow-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20 transition-all hover:shadow-emerald-600/30 hover:translate-y-[-1px] active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+      {/* Fixed Footer — hides/shows with MobileDock on scroll */}
+      <AnimatePresence>
+        {!isHidden && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{
+              type: 'spring',
+              damping: 25,
+              stiffness: 150,
+              mass: 1.5,
+              opacity: { duration: 0.2 },
+            }}
+            className="fixed bottom-[110px] max-[540px]:bottom-[75px] min-[900px]:bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-[500px] z-50"
           >
-            {isSubmitting ? (
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Processing...
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Check className="h-5 w-5" />
-                Complete Order
-              </div>
-            )}
-          </Button>
-        </div>
-      </div>
+            <Button
+              type="submit"
+              form="customer-details-form"
+              disabled={isSubmitting}
+              className="w-full rounded-2xl h-12 text-base font-bold shadow-[0_8px_32px_rgba(0,0,0,0.12)] bg-emerald-600 hover:bg-emerald-700 text-white transition-all active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Processing...
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Check className="h-5 w-5" />
+                  Complete Order
+                </div>
+              )}
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

@@ -1,11 +1,20 @@
-Priority Fix:
-  ☐ Fix variant deletion not working on a existing item
+Priority Fix:  
+  ☐ i want you to make another login system in #client side
+    - this will be my backup system for user login
+    - the feature will be
+      - suppose a user scans qr code -> opened teh menu -> select item -> while placing order -> there will be a phone number field(text will be like, the number is needed for parsing the order) , and a name input field (text will be like, the name is needed for taking the order to the person).
+      - and after succcessfully ordered with the phn number and name -> the user will be logged in with that details automatically
+      - this system is for when my whatsapp otp will be ended i'll start this service
+      - so build a shortcut in the codebase for #client, like if i comment the whatsapp magic link login and uncomment the no otp/magic link login -> the service will start working immidiately, else no code changing needed for running the service...
+    ____________________________________________________ 
+    first analyze my app architecture, see how the data is flowing, and storing to the database you have to analyze my app full structure in these codebases #client #server
+    _________________________________________________
+    then implement the system as a senior developer youre, and follow the production ready approach #tanstack
   
-  ☐ Don't show all delivered ordered in the orders, use pagination
-  ☐ in the orders history page, the timing showing its wrong!!
-  ☐ Apply GST on orders for admin
-  ☐ Facility to edit tables
 
+  ☐ Fix variant deletion not working on a existing item
+  ☐ in the orders history page, the timing showing its wrong!!
+   
 
 Todo: 
   Cart:
@@ -14,9 +23,6 @@ Todo:
  
 
   Client-Side:
-    ☐ current route delycia.com/?rid=123 = for fetching restaurant data, and the rid stored in the cookie
-       - So instead of direct rid.. can the domain will be like calcutta-retro.delycia.com??
-       - So in this way it looks more special for the restaurant itself
     ☐ Add preparation time for order if not exist
     ☐ Fixed the scanner issue, means if there is no table stored in the cookie.. then a scanner can be oppened after clicking on the scanner btn
 
@@ -36,12 +42,3 @@ Features:
     ☐ This will increase the user engagement 
     ☐ Include search functionality for searching delycia restaurant or specific location name
     
-
-
-orderDate: new Date().toLocaleString('en-IN', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        }),

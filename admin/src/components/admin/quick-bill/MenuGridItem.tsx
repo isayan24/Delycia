@@ -156,7 +156,7 @@ const MenuGridItem = memo(function MenuGridItem({
   const { data: variants = [] } = useInventoryVariantsQuery(item.id)
 
   const hasVariants = variants.length > 0
-  const isDesktop = useMediaQuery('(min-width: 768px)')
+  const isDesktop = useMediaQuery('(min-width: 500px)')
 
   const isOutOfStock =
     item.stock !== undefined && item.stock !== null && item.stock <= 0

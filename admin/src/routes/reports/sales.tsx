@@ -80,7 +80,7 @@ function SalesReportPage() {
 
   return (
     <FeatureGuard feature="reports">
-      <div className="bg-slate-50/30 dark:bg-background-dark/30 min-h-screen p-4 md:p-6 transition-colors">
+      <div className="bg-slate-50/30 dark:bg-background-dark/30 p-4 md:p-6 transition-colors">
         <div className="flex items-center justify-between gap-4 px-1 mb-4">
           <div>
             <h2 className="text-[10px] lg:text-xs font-[600] uppercase tracking-[0.1rem] text-[#a16b45] opacity-80 mb-1">

@@ -58,11 +58,12 @@ export function QuickRestockButton({
   }
 
   const handleSliderChange = (value: number[]) => {
-    setStockValue(value[0])
+    const newVal = Math.min(200, Math.max(10, value[0]))
+    setStockValue(newVal)
   }
 
   const adjustStock = (amount: number) => {
-    setStockValue((prev) => Math.max(0, prev + amount))
+    setStockValue((prev) => Math.min(200, Math.max(10, prev + amount)))
   }
 
   return (
@@ -91,6 +92,7 @@ export function QuickRestockButton({
               <Slider
                 defaultValue={[currentStock]}
                 value={[stockValue]}
+                min={10}
                 max={200} // Reasonable default max, could be dynamic
                 step={1}
                 onValueChange={handleSliderChange}
@@ -100,8 +102,13 @@ export function QuickRestockButton({
             <Input
               type="number"
               value={stockValue}
-              onChange={(e) => setStockValue(Number(e.target.value))}
+              onChange={(e) => {
+                const val = Number(e.target.value)
+                setStockValue(Math.min(200, Math.max(10, val)))
+              }}
               className="w-20 h-8"
+              min={10}
+              max={200}
             />
           </div>
 
@@ -118,7 +125,7 @@ export function QuickRestockButton({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setStockValue(0)}
+              onClick={() => setStockValue(10)}
             >
               Clear
             </Button>

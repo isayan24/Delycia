@@ -9,6 +9,8 @@ import OrderHeader from './OrderHeader'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import InventoryItemRow from './InventoryItemRow'
 import { Category, Item, Variant } from '@/types/menu.types'
+import { motion, AnimatePresence } from 'motion/react'
+import { useScrollHide } from '@/hooks/use-scroll-hide'
 
 export default function SelectOrder() {
   const {
@@ -25,6 +27,7 @@ export default function SelectOrder() {
   } = useTableStore()
 
   const { selectedRid } = useRestaurantSelector()
+  const isHidden = useScrollHide()
 
   const { data: categoriesData } = useCategoriesQuery(selectedRid)
 
@@ -168,7 +171,7 @@ export default function SelectOrder() {
   }
 
   return (
-    <div className="flex flex-col h-full overflow-hidden relative max-w-4xl mx-auto bg-[#fcfcfd] dark:bg-gray-950">
+    <div className="flex flex-col h-fulls overflow-hidden relative max-w-4xl mx-auto bg-[#fcfcfd] dark:bg-gray-950">
       <header className="py-4 px-4 border-b border-gray-100 dark:border-gray-800 flex-none bg-white dark:bg-gray-900">
         <OrderHeader />
       </header>
@@ -223,38 +226,52 @@ export default function SelectOrder() {
         ))}
       </Tabs>
 
-      {/* Order Summary and Add to Order Button */}
-      {orderItems.length > 0 && (
-        <div className="flex-none w-full bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 p-4 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-          <div className="max-w-4xl mx-auto">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <h3 className="font-bold text-base text-gray-900 dark:text-white">
-                  Order Summary
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  {orderItems.length} item{orderItems.length > 1 ? 's' : ''}{' '}
-                  selected
-                </p>
+      {/* Fixed Footer — hides/shows with MobileDock on scroll */}
+      <AnimatePresence>
+        {orderItems.length > 0 && !isHidden && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{
+              type: 'spring',
+              damping: 25,
+              stiffness: 150,
+              mass: 1.5,
+              opacity: { duration: 0.2 },
+            }}
+            className="fixed bottom-[110px] max-[540px]:bottom-[75px] min-[900px]:bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-[500px] z-50"
+          >
+            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h3 className="font-bold text-base text-gray-900 dark:text-white">
+                    Order Summary
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    {orderItems.length} item{orderItems.length > 1 ? 's' : ''}{' '}
+                    selected
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-black max-[500px]:text-lg text-gray-900 dark:text-white tracking-tight">
+                    ₹{totalAmount}
+                  </p>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="text-2xl font-black max-[500px]:text-lg text-gray-900 dark:text-white tracking-tight">
-                  ₹{totalAmount}
-                </p>
-              </div>
-            </div>
 
-            <Button
-              className="w-full rounded-xl h-12 text-base font-bold shadow-lg"
-              size="lg"
-              onClick={handleSubmitOrder}
-            >
-              <ShoppingCart className="mr-2 h-5 w-5" />
-              Add to Order ({orderItems.length} items)
-            </Button>
-          </div>
-        </div>
-      )}
+              <Button
+                className="w-full rounded-xl h-12 text-base font-bold shadow-lg"
+                size="lg"
+                onClick={handleSubmitOrder}
+              >
+                <ShoppingCart className="mr-2 h-5 w-5" />
+                Add to Order ({orderItems.length} items)
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
