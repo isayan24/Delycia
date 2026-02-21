@@ -1,8 +1,16 @@
 import { body, param, query, validationResult } from "express-validator";
-import validator from "validator";
 
 /**
- * Sanitize a value to prevent XSS, SQL injection, and NoSQL injection attacks
+ * Sanitize a value to prevent XSS and injection attacks.
+ * 
+ * IMPORTANT: This middleware does NOT use validator.escape() (HTML entity encoding)
+ * because our backend stores data in MySQL with parameterized queries, which already
+ * prevents SQL injection. HTML entity encoding corrupts legitimate data like URLs,
+ * JSON strings, and any text containing quotes or slashes.
+ * 
+ * Instead, we use targeted stripping of dangerous HTML tags, event handlers,
+ * and protocol handlers to prevent stored XSS.
+ * 
  * @param {*} value - The value to sanitize
  * @returns {*} - The sanitized value
  */
@@ -15,11 +23,22 @@ const sanitizeValue = (value) => {
   // Trim whitespace
   let sanitized = value.trim();
 
-  // XSS Protection: Escape HTML characters
-  sanitized = validator.escape(sanitized);
+  // ── XSS Protection ─────────────────────────────────────────────────────
+  // Strip dangerous HTML tags (script, iframe, object, embed, etc.)
+  // This prevents stored XSS without corrupting URLs or data
+  sanitized = sanitized.replace(
+    /<\s*\/?\s*(script|iframe|object|embed|form|input|textarea|button|select|style|link|meta|base|applet|svg|math)[^>]*>/gi,
+    ''
+  );
 
-  // NoSQL Injection Protection: Remove MongoDB operators
-  // These patterns are commonly used in NoSQL injection attacks
+  // Remove javascript: and data: protocol handlers in href/src contexts
+  sanitized = sanitized.replace(/\b(javascript|vbscript)\s*:/gi, '');
+
+  // Remove on* event handler attributes (onclick, onerror, onload, etc.)
+  sanitized = sanitized.replace(/\bon[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '');
+
+  // ── NoSQL Injection Protection ──────────────────────────────────────────
+  // Remove MongoDB operators commonly used in NoSQL injection attacks
   const noSqlPatterns = [
     /\$where/gi,
     /\$ne/gi,
@@ -47,17 +66,11 @@ const sanitizeValue = (value) => {
     sanitized = sanitized.replace(pattern, '');
   });
 
-  // SQL Injection Protection: Remove common SQL injection patterns
-  // Note: Parameterized queries are the primary defense, this is additional protection
-  const sqlPatterns = [
-    /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE|UNION|DECLARE)\b)/gi,
-    /(--|;|\/\*|\*\/|xp_|sp_)/gi,
-    /('|(\\')|(\\")|(\\\\))/gi
-  ];
-
-  sqlPatterns.forEach(pattern => {
-    sanitized = sanitized.replace(pattern, '');
-  });
+  // NOTE: SQL injection protection is handled by parameterized queries.
+  // We intentionally do NOT strip SQL keywords here because:
+  // 1. Parameterized queries already prevent SQL injection
+  // 2. Stripping common words like "SELECT", "UPDATE" corrupts legitimate
+  //    user content (e.g., descriptions containing these words)
 
   return sanitized;
 };
@@ -71,11 +84,11 @@ const deepSanitize = (obj) => {
   if (typeof obj === 'string') {
     return sanitizeValue(obj);
   }
-  
+
   if (Array.isArray(obj)) {
     return obj.map(item => deepSanitize(item));
   }
-  
+
   if (obj !== null && typeof obj === 'object') {
     const sanitized = {};
     for (const key in obj) {
@@ -87,7 +100,7 @@ const deepSanitize = (obj) => {
     }
     return sanitized;
   }
-  
+
   return obj;
 };
 
@@ -115,10 +128,10 @@ const sanitizeInput = [
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         status: false,
         error: 'Validation failed',
-        details: errors.array() 
+        details: errors.array()
       });
     }
 

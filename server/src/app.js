@@ -47,6 +47,7 @@ import adminCrmRoutes from "./routes/v1/admin/crm.routes.js";
 import adminInventoryStatsRoutes from "./routes/v1/admin/inventory-stats.routes.js";
 import adminStaffReportsRoutes from "./routes/v1/admin/staff-reports.routes.js";
 import adminSubscriptionsRoutes from "./routes/v1/admin/subscriptions.routes.js";
+import adminFeaturesRoutes from "./routes/v1/admin/features.routes.js";
 // System routes
 import systemDataRoutes from "./routes/v1/system/data.routes.js";
 
@@ -217,6 +218,7 @@ app.use("/api/v1/admin/addons", adminAddonsRoutes);
 app.use("/api/v1/admin/crm", adminCrmRoutes);
 app.use("/api/v1/admin/staff-reports", adminStaffReportsRoutes);
 app.use("/api/v1/admin/subscriptions", adminSubscriptionsRoutes);
+app.use("/api/v1/admin/features", adminFeaturesRoutes);
 app.use("/api/v1/admin/notifications", notificationRoutes);
 
 // Superadmin APIs

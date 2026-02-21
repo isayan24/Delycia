@@ -13,11 +13,11 @@ const getItems = async (req) => {
         "SELECT id FROM restaurants WHERE username = ?",
         [username]
       );
-      
+
       if (restaurants.length === 0) {
         return apiResponse.error(404, "Restaurant not found");
       }
-      
+
       rid = restaurants[0].id;
     }
 

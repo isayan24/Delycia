@@ -3,6 +3,7 @@ import apiResponse from "../../../utils/apiResponse.js";
 import userValidations from "../../../validations/user.validations.js";
 import others from "../../../utils/others.js";
 import embeddingModel from "./embedding.model.js";
+import { isTodayScheduled, getTodayIST } from "../../../helpers/restaurant-status.helper.js";
 
 const TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d:[0-5]\d$/;
 
@@ -152,6 +153,20 @@ const update_restaurant = async (req) => {
       if (val !== 0 && val !== 1)
         return apiResponse.error(400, "is_active must be 0 or 1.");
       params.is_active = val;
+
+      if (val === 1) {
+        // Check if today is a scheduled day — if not, set manual override
+        const [[currentRow]] = await pool.query(
+          "SELECT active_days FROM restaurants WHERE id = ?",
+          [id]
+        );
+        if (currentRow && !isTodayScheduled(currentRow.active_days)) {
+          params.manual_override_date = getTodayIST();
+        }
+      } else {
+        // Turning off — closed for today only, schedule resumes tomorrow
+        params.manual_override_date = getTodayIST();
+      }
     }
 
     // is_veg_only: must be 0 or 1
@@ -196,11 +211,11 @@ const get_restaurant = async (req, admin = true) => {
         "SELECT id FROM restaurants WHERE username = ?",
         [username]
       );
-      
+
       if (!restaurant) {
         return apiResponse.error(404, "Restaurant not found");
       }
-      
+
       rid = restaurant.id;
     }
 
@@ -237,7 +252,7 @@ const get_restaurant = async (req, admin = true) => {
     let q, params;
 
     if (admin) {
-      q = "SELECT * FROM restaurants WHERE id = ?";
+      q = "SELECT * FROM restaurant_status WHERE id = ?";
       params = [rid];
     } else {
       if (rid) {
