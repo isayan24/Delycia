@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from '../../ui/button'
 import { Heart, Loader2, Minus, Plus, Triangle } from 'lucide-react'
 import { useItemStore } from '@/store/order-store'
@@ -6,8 +6,8 @@ import HoverInfo from '../../smallComponents/HoverInfo'
 import { Drawer } from '@/components/ui/drawer'
 import FoodItemInfo from './FoodItemInfo'
 import { ImageCarousel } from '@/hooks/useImageCarousel'
-import axiosInstance from '@/lib/axios'
-import axios from 'axios'
+import { useItemVariantsQuery } from '@/hooks/queries/useItemVariantsQuery'
+import { useItemAddonsQuery } from '@/hooks/queries/useItemAddonsQuery'
 
 interface FoodItemCardProps {
   id: string
@@ -45,40 +45,14 @@ export default function FoodItemCard({
 
   const [isPending, setIsPending] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [variants, setVariants] = useState<any[]>([])
 
-  useEffect(() => {
-    // Basic validation
-    if (!id) return
+  // TanStack Query: cached & deduplicated — no manual useEffect needed
+  const { data: variantsData } = useItemVariantsQuery(id)
+  const variants = variantsData?.variants ?? []
 
-    const controller = new AbortController()
+  const { data: addonsData } = useItemAddonsQuery(id)
 
-    async function fetchVariants() {
-      try {
-        const res = await axiosInstance.get(`/variants?inventory_id=${id}`, {
-          signal: controller.signal,
-        })
-
-        if (res?.data?.variants) {
-          setVariants(res.data.variants)
-        }
-      } catch (error: any) {
-        if (axios.isCancel(error) || error.name === 'CanceledError') {
-          // Request canceled, do nothing
-          return
-        }
-        console.error('Failed to fetch variants from db', error)
-      }
-    }
-
-    fetchVariants()
-
-    return () => {
-      controller.abort()
-    }
-  }, [id])
-
-  const handleCartClick = async (
+  const handleCartClick = (
     id: string,
     itemName: string = name,
     itemPrice: number = price,
@@ -89,16 +63,8 @@ export default function FoodItemCard({
   ) => {
     setIsPending(true)
 
-    // Check if item has addons
-    let hasAddons = false
-    try {
-      const res = await axiosInstance.get(`/addons?inventory_id=${id}`)
-      if (res.data?.addons?.length > 0) {
-        hasAddons = true
-      }
-    } catch (error) {
-      console.error('Failed to check addons', error)
-    }
+    // Addons data is already cached by TanStack Query — no network call needed
+    const hasAddons = (addonsData?.addons?.length ?? 0) > 0
 
     if ((variants.length > 0 || hasAddons) && !dialogOpen) {
       setDialogOpen(true)

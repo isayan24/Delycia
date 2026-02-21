@@ -65,7 +65,6 @@ export default function Checkout() {
     rid,
     table,
   )
-
   const { user, isLoading } = useAuthQuery()
 
   // Name collection hook - production-ready approach
@@ -90,14 +89,14 @@ export default function Checkout() {
 
   // Initialize Order Type based on table and restaurant settings
   useEffect(() => {
-    if (table) {
+    if (tableDetails) {
       setOrderType('dine_in')
     } else if (restaurant?.online_orders === 1) {
       setOrderType('takeaway')
     } else {
       setOrderType('dine_in') // Will be blocked by UI if no table
     }
-  }, [table, restaurant?.online_orders])
+  }, [tableDetails, restaurant?.online_orders])
 
   useEffect(() => {
     // No longer needed - useNameCollection handles name checking
@@ -139,14 +138,13 @@ export default function Checkout() {
 
       // Determine table_id based on order type
       // If takeaway, table_id should be null/undefined even if cookie exists
-      const finalTableId =
-        orderType === 'dine_in' ? tableDetails?.id : undefined
-      const finalTable = orderType === 'dine_in' ? table : null
+      const finalTableId = orderType === 'dine_in' ? tableDetails?.id : null
+      // const finalTable = orderType === 'dine_in' ? table : null
 
       await checkoutMutation.mutateAsync({
         rid,
-        table: finalTable,
-        table_id: finalTableId,
+        table: finalTableId,
+        // table_id: finalTableId,
         paymentMethod: values.paymentMethod,
         special_instruction: values.special_instruction,
         orderItems: filteredCartItems,
@@ -300,7 +298,7 @@ export default function Checkout() {
                 </div>
 
                 <div className="flex flex-col gap-3 w-[40%] max-[750px]:w-full">
-                  {table ? (
+                  {tableDetails ? (
                     <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden group hover:border-orange-200 transition-colors duration-300">
                       <div className="p-4 flex items-center gap-4">
                         <div
@@ -321,7 +319,7 @@ export default function Checkout() {
                           <div className="flex items-center gap-2">
                             <span className="text-base font-black text-gray-900 leading-none">
                               {orderType === 'dine_in'
-                                ? `Table ${tableDetails?.table_number || table}`
+                                ? `Table ${tableDetails?.table_number}`
                                 : 'Takeaway'}
                             </span>
                             {orderType === 'dine_in' && tableDetails?.zone && (

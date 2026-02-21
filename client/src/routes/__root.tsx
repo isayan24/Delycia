@@ -87,7 +87,7 @@ function RootComponent() {
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
             <StoreProvider>
-              <InitialLoader />
+              {/* <InitialLoader /> */}
               <HeaderWrapper />
               <div className="relative min-h-screen flex flex-col">
                 <Toaster position="top-center" />

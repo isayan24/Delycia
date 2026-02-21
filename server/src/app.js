@@ -10,10 +10,15 @@ import rateLimit from "express-rate-limit";
 //Internal imports
 import setupSocketNamespaces from "./sockets/index.js";
 import sanitizeInput from "./middlewares/sanitizeInputs.middleware.js";
+import redisService from "./services/redis.service.js";
+import tokenCacheService from "./services/tokenCache.service.js";
+import sessionService from "./services/session.service.js";
+import rateLimiterService from "./services/rateLimiter.service.js";
 
 //User routes
 import userRoutes from "./routes/v1/web/user.routes.js";
 import authRoutes from "./routes/v1/web/auth.routes.js";
+import sessionRoutes from "./routes/v1/web/session.routes.js";
 import categoriesRoutes from "./routes/v1/web/categories.routes.js";
 import orderRouters from "./routes/v1/web/orders.routes.js";
 import userInventoryRoutes from "./routes/v1/web/inventory.routes.js";
@@ -137,11 +142,52 @@ app.get("/", (req, res) => {
   res.send("v29");
 });
 
+// Health check endpoints
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", message: "Server is running" });
+});
+
+app.get("/health/redis", async (req, res) => {
+  const health = await redisService.healthCheck();
+  const statusCode = health.status === "healthy" ? 200 : 503;
+  res.status(statusCode).json(health);
+});
+
+// Cache statistics endpoint (for monitoring)
+app.get("/health/cache", async (req, res) => {
+  const stats = tokenCacheService.getStats();
+  res.status(200).json({
+    service: "Token Cache",
+    ...stats,
+  });
+});
+
+// Session statistics endpoint (for monitoring)
+app.get("/health/sessions", async (req, res) => {
+  const stats = await sessionService.getStats();
+  res.status(200).json({
+    service: "Session Management",
+    ...stats,
+  });
+});
+
+// Rate limiter statistics endpoint (for monitoring)
+app.get("/health/ratelimit", async (req, res) => {
+  const stats = rateLimiterService.getStats();
+  const config = rateLimiterService.getConfig();
+  res.status(200).json({
+    service: "Rate Limiter",
+    stats,
+    config,
+  });
+});
+
 setupSocketNamespaces(io);
 
 // v1 user APIs
 app.use("/api/v1/users", sanitizeInput, userRoutes);
 app.use("/api/v1/users/auth", sanitizeInput, authRoutes);
+app.use("/api/v1/sessions", sessionRoutes);
 app.use("/api/v1/", categoriesRoutes);
 app.use("/api/v1/inventory", userInventoryRoutes);
 app.use("/api/v1/variants", userVariantsRoutes);

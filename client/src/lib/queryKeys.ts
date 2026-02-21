@@ -45,7 +45,8 @@ export const queryKeys = {
   categories: {
     all: ['categories'] as const,
     byRid: (rid: string | null) => ['categories', { rid }] as const,
-    byUsername: (username: string | null) => ['categories', { username }] as const,
+    byUsername: (username: string | null) =>
+      ['categories', { username }] as const,
   },
 
   // Restaurant queries
@@ -68,6 +69,12 @@ export const queryKeys = {
   addons: {
     byItem: (itemId: string | number | undefined) =>
       ['addons', { itemId }] as const,
+  },
+
+  // Variants queries
+  variants: {
+    byItem: (itemId: string | number | undefined) =>
+      ['variants', { itemId }] as const,
   },
 } as const
 

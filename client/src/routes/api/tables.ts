@@ -10,7 +10,7 @@ export const Route = createFileRoute('/api/tables')({
           request,
           async (accessToken) => {
             try {
-              const url = new URL(req.url)
+              const url = new URL(request.url)
               const rid = url.searchParams.get('rid')
               const type = url.searchParams.get('type')
               const tableId = url.searchParams.get('tableId')

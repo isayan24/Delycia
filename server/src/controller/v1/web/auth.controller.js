@@ -2,12 +2,27 @@ import auth from "../../../models/v1/web/auth.model.js";
 import authUtil from "../../../utils/auth.js";
 import jwt from "jsonwebtoken";
 import pool from "../../../config/db.connection.js";
+import tokenCacheService from "../../../services/tokenCache.service.js";
+import sessionService from "../../../services/session.service.js";
 
 const handleAuth = async (req, res) => {
   const response = await auth.handleAuth(req);
   if (response.statusCode === 200) {
     authUtil.setCookies(res, "access_token", response.data.access_token, 7);
     authUtil.setCookies(res, "refresh_token", response.data.refresh_token, 30);
+
+    // ✅ Create session in Redis
+    const session = await sessionService.createSession(
+      response.data.id,
+      response.data.refresh_token,
+      req
+    );
+
+    if (session) {
+      console.log(`[handleAuth] ✅ Session created: ${session.sessionId}`);
+      // Add session ID to response (optional, for client tracking)
+      response.data.sessionId = session.sessionId;
+    }
   }
   return res.status(response.statusCode).json(response);
 };
@@ -15,18 +30,41 @@ const handleAuth = async (req, res) => {
 const refresh = async (req, res) => {
   // Get refresh token from Authorization header or cookies
   let refresh_token = req.headers?.authorization?.split(" ")[1] || req.cookies?.refresh_token;
-  
+
   if (!refresh_token) {
-    return res.status(401).json({ 
-      status: false, 
-      error: "Refresh token not provided" 
+    return res.status(401).json({
+      status: false,
+      error: "Refresh token not provided"
     });
   }
 
   try {
+    // ✅ STEP 1: Check Redis cache FIRST (before any DB queries)
+    const cachedToken = await tokenCacheService.getCachedToken(refresh_token);
+
+    if (cachedToken) {
+      // Cache hit! Update session activity and return cached token
+      const session = await sessionService.getSessionByRefreshToken(refresh_token);
+      if (session) {
+        await sessionService.updateSessionRefresh(session.sessionId);
+      }
+
+      authUtil.setCookies(res, "access_token", cachedToken, 7);
+
+      return res.status(200).json({
+        status: true,
+        message: "Token refreshed successfully (cached)",
+        access_token: cachedToken,
+        refresh_token: refresh_token,
+        cached: true,
+      });
+    }
+
+    // Cache miss - proceed with normal token generation
+
     // Verify the refresh token
     const decoded = jwt.verify(refresh_token, process.env.REFRESH_SECRET);
-    
+
     // Get user data
     const [userResult] = await pool.query(
       "SELECT id, uid, role, name, username, email, phone_number, profile_pic FROM users WHERE uid = ?",
@@ -34,9 +72,9 @@ const refresh = async (req, res) => {
     );
 
     if (!userResult.length) {
-      return res.status(401).json({ 
-        status: false, 
-        error: "User not found" 
+      return res.status(401).json({
+        status: false,
+        error: "User not found"
       });
     }
 
@@ -54,11 +92,11 @@ const refresh = async (req, res) => {
         "SELECT refresh_token FROM users WHERE id = ? AND refresh_token = ?",
         [userData.id, refresh_token]
       );
-      
+
       if (!legacyCheck.length) {
-        return res.status(401).json({ 
-          status: false, 
-          error: "Invalid refresh token" 
+        return res.status(401).json({
+          status: false,
+          error: "Invalid refresh token"
         });
       }
     }
@@ -80,21 +118,31 @@ const refresh = async (req, res) => {
       );
     }
 
+    // ✅ Update session activity in Redis
+    const session = await sessionService.getSessionByRefreshToken(refresh_token);
+    if (session) {
+      await sessionService.updateSessionRefresh(session.sessionId);
+    }
+
+    // ✅ STEP 2: Cache the new token (5 second TTL)
+    await tokenCacheService.cacheToken(refresh_token, newAccessToken, 5);
+
     // Set new access token in httpOnly cookie (keep refresh token unchanged)
     authUtil.setCookies(res, "access_token", newAccessToken, 7);
 
     // Return success response with new access token
-    res.status(200).json({ 
-      status: true, 
+    res.status(200).json({
+      status: true,
       message: "Token refreshed successfully",
       access_token: newAccessToken,
-      refresh_token: refresh_token // Return same refresh token
+      refresh_token: refresh_token, // Return same refresh token
+      cached: false,
     });
   } catch (error) {
     console.error("[refresh] Token refresh error:", error.message);
-    res.status(401).json({ 
-      status: false, 
-      error: "Invalid refresh token" 
+    res.status(401).json({
+      status: false,
+      error: "Invalid refresh token"
     });
   }
 };
@@ -115,6 +163,18 @@ const verifyMagicLink = async (req, res) => {
   if (response.statusCode === 200 && response.data) {
     authUtil.setCookies(res, "access_token", response.data.access_token, 7);
     authUtil.setCookies(res, "refresh_token", response.data.refresh_token, 30);
+
+    // ✅ Create session in Redis
+    const session = await sessionService.createSession(
+      response.data.user.id,
+      response.data.refresh_token,
+      req
+    );
+
+    if (session) {
+      console.log(`[verifyMagicLink] ✅ Session created: ${session.sessionId}`);
+      response.data.sessionId = session.sessionId;
+    }
   }
   return res.status(response.statusCode).json(response);
 };
@@ -141,17 +201,17 @@ const create_guest_customer = async (req, res) => {
 
 const logout = async (req, res) => {
   const refresh_token = req.cookies?.refresh_token || req.headers?.authorization?.split(" ")[1];
-  
+
   console.log('[logout] Logout request received');
-  
+
   if (!refresh_token) {
     console.log('[logout] No refresh token provided');
     // Clear cookies anyway
     authUtil.setCookies(res, "access_token", "", -1);
     authUtil.setCookies(res, "refresh_token", "", -1);
-    return res.status(200).json({ 
-      status: true, 
-      message: "Logged out successfully" 
+    return res.status(200).json({
+      status: true,
+      message: "Logged out successfully"
     });
   }
 
@@ -159,33 +219,42 @@ const logout = async (req, res) => {
     // Verify the refresh token to get user info
     const decoded = jwt.verify(refresh_token, process.env.REFRESH_SECRET);
     console.log('[logout] Logging out user:', decoded.uid);
-    
+
+    // ✅ Delete session from Redis
+    const session = await sessionService.getSessionByRefreshToken(refresh_token);
+    if (session) {
+      await sessionService.deleteSession(session.sessionId);
+    }
+
+    // ✅ Invalidate cached token
+    await tokenCacheService.invalidateToken(refresh_token);
+
     // Delete this specific session from user_sessions
     const [deleteResult] = await pool.query(
       "DELETE FROM user_sessions WHERE refresh_token = ?",
       [refresh_token]
     );
-    
+
     console.log('[logout] Deleted session, affected rows:', deleteResult.affectedRows);
-    
+
     // Clear cookies
     authUtil.setCookies(res, "access_token", "", -1);
     authUtil.setCookies(res, "refresh_token", "", -1);
-    
+
     console.log('[logout] ✅ Logout successful for user:', decoded.uid);
-    
-    res.status(200).json({ 
-      status: true, 
-      message: "Logged out successfully" 
+
+    res.status(200).json({
+      status: true,
+      message: "Logged out successfully"
     });
   } catch (error) {
     console.error("[logout] Logout error:", error.message);
     // Clear cookies anyway
     authUtil.setCookies(res, "access_token", "", -1);
     authUtil.setCookies(res, "refresh_token", "", -1);
-    res.status(200).json({ 
-      status: true, 
-      message: "Logged out successfully" 
+    res.status(200).json({
+      status: true,
+      message: "Logged out successfully"
     });
   }
 };

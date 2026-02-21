@@ -2,8 +2,14 @@ import app from "./app.js";
 import "dotenv/config";
 import pool from "./config/db.connection.js";
 import { initScheduler, shutdownScheduler } from "./jobs/scheduler.js";
+import redisService from "./services/redis.service.js";
 
 const port = process.env.PORT || 3000;
+
+// Initialize Redis connection (non-blocking)
+redisService.connect().catch(err => {
+  console.warn('⚠️  Redis connection failed during startup:', err.message);
+});
 
 // Start server
 app.server.listen(port, () => {
@@ -19,6 +25,9 @@ app.server.listen(port, () => {
 const gracefulShutdown = async (signal) => {
 
   shutdownScheduler();
+  
+  // Disconnect Redis
+  await redisService.disconnect();
 
   app.server.close(() => {
 

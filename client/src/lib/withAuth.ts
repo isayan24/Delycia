@@ -166,7 +166,6 @@ export async function withAuth(
     }
 
     try {
-      console.log(`[withAuth] Retrying request with refreshed token`)
       // Use the pre-cloned request from the beginning of the function
       return await fn(refreshResult.accessToken, refreshHeaders, clonedRequest)
     } catch (retryError: any) {

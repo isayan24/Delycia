@@ -143,7 +143,6 @@ export const useRestaurantByUsername = (username?: string) => {
       const data = await fetchRestaurantByUsername(username)
 
       // Populate ID-based cache entry if we have the data (dual-key caching)
-      console.log(data, 'data')
       if (data?.id) {
         queryClient.setQueryData(queryKeys.restaurants.detail(data.id), data)
       }
