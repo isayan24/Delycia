@@ -52,8 +52,10 @@ export function RestaurantDropdown() {
   // Restaurant active status from settings query
   const rid = currentRestaurant?.id?.toString()
   const { data: settingsData } = useRestaurantSettingsQuery(rid)
-  const isActive = settingsData?.restaurant_info?.is_active === 1
-  const restaurantId = settingsData?.restaurant_info?.id
+  const restaurant = settingsData?.restaurant_info
+  const isActive = restaurant?.is_active === 1
+  const isOpenNow = restaurant?.is_open_now === 1
+  const restaurantId = restaurant?.id
 
   const toggleMutation = useUpdateRestaurantMutation()
 
@@ -159,7 +161,11 @@ export function RestaurantDropdown() {
                     <span className="text-[.6rem] text-zinc-500 truncate flex items-center gap-1">
                       <span
                         className={`inline-block w-1.5 h-1.5 rounded-full ${
-                          isActive ? 'bg-green-500' : 'bg-red-400'
+                          isOpenNow
+                            ? 'bg-green-500'
+                            : isActive
+                              ? 'bg-amber-400'
+                              : 'bg-red-400'
                         }`}
                       />
                       {currentRestaurant?.address ||
@@ -179,7 +185,7 @@ export function RestaurantDropdown() {
             {restaurantId && (
               <div className="flex items-center justify-between px-2 py-2 border-b mb-1">
                 <span className="text-xs font-medium text-gray-600">
-                  {isActive ? 'Active' : 'Inactive'}
+                  {isOpenNow ? 'Open Now' : isActive ? 'Scheduled' : 'Closed'}
                 </span>
                 <Switch
                   checked={isActive}

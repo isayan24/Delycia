@@ -344,7 +344,12 @@ function RestaurantSettingsPage() {
           {/* Sidebar Column */}
           <div className="lg:col-span-4 space-y-8">
             <OperationsSection
-              formData={formData}
+              formData={{
+                ...formData,
+                is_open_now: restaurant?.is_open_now,
+                status_message: restaurant?.status_message,
+                manual_override_date: restaurant?.manual_override_date,
+              }}
               handleSwitchChange={handleSwitchChange}
             />
 

@@ -37,6 +37,9 @@ export interface RestaurantInfo {
   open_time: string | null // HH:MM:SS
   close_time: string | null // HH:MM:SS
   active_days: number // bitmask 0–127
+  manual_override_date: string | null // YYYY-MM-DD or null
+  is_open_now: number // computed: 0 or 1
+  status_message: string // computed: 'Open Now', 'Opens at HH:MM', etc.
   created_at: string
 }
 

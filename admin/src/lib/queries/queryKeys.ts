@@ -57,6 +57,12 @@ export const queryKeys = {
       [...queryKeys.restaurant.all, 'hours', rid] as const,
   },
 
+  // Feature Flags
+  features: {
+    all: ['features'] as const,
+    byRid: (rid: string) => [...queryKeys.features.all, rid] as const,
+  },
+
   // Dashboard
   dashboard: {
     all: ['dashboard'] as const,

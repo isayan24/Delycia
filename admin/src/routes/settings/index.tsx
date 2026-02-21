@@ -1,6 +1,12 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { requireAuth } from '@/middleware/auth'
-import { ChevronRight, CreditCard, Building2, User } from 'lucide-react'
+import {
+  ChevronRight,
+  CreditCard,
+  Building2,
+  User,
+  SlidersHorizontal,
+} from 'lucide-react'
 
 export const Route = createFileRoute('/settings/')({
   beforeLoad: requireAuth,
@@ -134,6 +140,49 @@ function SettingsPage() {
             {/* Bottom action area */}
             <div className="relative w-full flex justify-center h-6 sm:h-8 opacity-75">
               <span className="flex gap-1 items-center text-[10px] sm:text-sm text-teal-700">
+                <span className="hidden sm:inline">View Details</span>
+                <span className="sm:hidden">View</span>
+                <ChevronRight
+                  className="w-3 h-3 sm:w-4 sm:h-4"
+                  strokeWidth={3}
+                />
+                <ChevronRight
+                  className="w-3 h-3 sm:w-4 sm:h-4 -ml-2 sm:-ml-3"
+                  strokeWidth={3}
+                />
+              </span>
+            </div>
+          </div>
+        </Link>
+
+        {/* Feature Toggles Card */}
+        <Link to="/settings/features" className="flex-1 sm:min-w-[18rem]">
+          <div className="relative rounded-lg sm:rounded-xl border-2 h-[8rem] sm:h-[13rem] border-orange-600 overflow-hidden bg-orange-200 flex flex-col group hover:shadow-lg transition-shadow">
+            {/* Upper white section */}
+            <div className="h-full bg-white rounded-lg sm:rounded-xl flex flex-col items-center justify-center">
+              <div className="flex flex-col items-center space-y-1 sm:space-y-2 rounded-xl">
+                {/* Icon */}
+                <div className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-full bg-orange-100 group-hover:bg-orange-200 transition-colors">
+                  <SlidersHorizontal
+                    className="w-5 h-5 sm:w-8 sm:h-8 text-orange-600"
+                    strokeWidth={2}
+                  />
+                </div>
+                {/* Label */}
+                <div className="text-center px-1">
+                  <p className="text-xs sm:text-lg font-medium text-gray-700">
+                    Features
+                  </p>
+                  <p className="text-[8px] sm:text-sm text-gray-500 mt-0.5 sm:mt-1 hidden sm:block">
+                    Toggle features on or off
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom action area */}
+            <div className="relative w-full flex justify-center h-6 sm:h-8 opacity-75">
+              <span className="flex gap-1 items-center text-[10px] sm:text-sm text-orange-700">
                 <span className="hidden sm:inline">View Details</span>
                 <span className="sm:hidden">View</span>
                 <ChevronRight

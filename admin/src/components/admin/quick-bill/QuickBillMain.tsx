@@ -1,19 +1,10 @@
 import { useState } from 'react'
 import MenuSection from './MenuSection'
 import { useMediaQuery } from '@/hooks/use-media-query'
-import {
-  Drawer,
-  DrawerContent,
-  DrawerTrigger,
-  DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer'
 import QuickBillSidebar from './QuickBillSidebar'
-import { Button } from '@/components/ui/button'
+import BillingSheet from './BillingSheet'
 import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
-import { useCartStore, selectCartTotalItems } from '@/store/useCartStore'
-import { motion, AnimatePresence } from 'motion/react'
-import { useScrollHide } from '@/hooks/use-scroll-hide'
+import { useCartStore } from '@/store/useCartStore'
 import { cn } from '@/lib/utils'
 
 export interface Customer {
@@ -25,10 +16,7 @@ export interface Customer {
 }
 
 export default function QuickBillMain() {
-  const isHiddenOnScroll = useScrollHide()
   const { cart, addToCart, updateQuantity, clearCart } = useCartStore()
-  const totalItems = useCartStore(selectCartTotalItems)
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null,
@@ -57,7 +45,7 @@ export default function QuickBillMain() {
       <div
         className={cn(
           isDesktop
-            ? 'w-[320px] @xl:w-[380px] shrink-0 sticky top-[3.5rem] self-start'
+            ? 'w-[320px] @xl:w-[380px] shrink-0 sticky top-14 self-start'
             : 'hidden',
         )}
       >
@@ -76,73 +64,21 @@ export default function QuickBillMain() {
         />
       </div>
 
+      {/* Tablet & Mobile: Sheet / Drawer */}
       {!isDesktop && (
-        /* Mobile Sticky Bar & Drawer */
-        <Drawer
-          open={isDrawerOpen}
-          onOpenChange={setIsDrawerOpen}
-          repositionInputs={false} // CRITICAL: Prevents the sheet from jumping "way too up"
-        >
-          <AnimatePresence>
-            {!isDrawerOpen && totalItems > 0 && !isHiddenOnScroll && (
-              <motion.div
-                initial={{ y: 100, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: 100, opacity: 0 }}
-                transition={{
-                  type: 'spring',
-                  damping: 25, // Increased from 20 for more control
-                  stiffness: 150, // Reduced from 250 for slower movement
-                  mass: 1.5, // Increased from 0.5 for heavier feel
-                  opacity: { duration: 0.2 },
-                }}
-                className="fixed bottom-[110px]  max-[500px]:bottom-[75px] left-1/2 -translate-x-1/2 w-[92%] max-w-[450px] z-50"
-              >
-                <DrawerTrigger asChild>
-                  <Button
-                    className="w-full h-12 flex justify-between rounded-full items-center text-lg active:scale-95 transition-transform"
-                    size="lg"
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="bg-primary-foreground/20 px-2 py-0.5 rounded text-sm font-bold">
-                        {totalItems}
-                      </div>
-                      <span className="text-sm font-normal">View Bill</span>
-                    </div>
-                    <div className="font-bold">₹{grandTotal.toFixed(2)}</div>
-                  </Button>
-                </DrawerTrigger>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <DrawerContent className="h-[90vh]">
-            <div className="mx-auto w-12 h-1.5 shrink-0 rounded-full bg-slate-200 my-4" />
-            <DrawerHeader className="pt-0">
-              <DrawerTitle className="text-center text-xl">
-                Confirm Order
-              </DrawerTitle>
-            </DrawerHeader>
-            <div className="flex-1 overflow-y-auto px-4 pb-6">
-              <QuickBillSidebar
-                selectedCustomer={selectedCustomer}
-                setSelectedCustomer={setSelectedCustomer}
-                cart={cart}
-                updateQuantity={updateQuantity}
-                onOrderComplete={() => {
-                  clearCart()
-                  setIsDrawerOpen(false)
-                }}
-                discount={discount}
-                setDiscount={setDiscount}
-                subtotal={subtotal}
-                taxAmount={taxAmount}
-                taxPercent={taxPercent}
-                grandTotal={grandTotal}
-              />
-            </div>
-          </DrawerContent>
-        </Drawer>
+        <BillingSheet
+          selectedCustomer={selectedCustomer}
+          setSelectedCustomer={setSelectedCustomer}
+          cart={cart}
+          updateQuantity={updateQuantity}
+          clearCart={clearCart}
+          discount={discount}
+          setDiscount={setDiscount}
+          subtotal={subtotal}
+          taxAmount={taxAmount}
+          taxPercent={taxPercent}
+          grandTotal={grandTotal}
+        />
       )}
     </div>
   )

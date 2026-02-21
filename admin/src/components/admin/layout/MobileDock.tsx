@@ -23,6 +23,11 @@ import { useMediaQuery } from '@/hooks/use-media-query'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { cn } from '@/lib/utils'
 import { useCartStore, selectCartTotalItems } from '@/store/useCartStore'
+import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
+import {
+  useFeatureFlagsQuery,
+  getHiddenNavItems,
+} from '@/hooks/queries/useFeatureFlagsQuery'
 
 const dockItems = [
   {
@@ -43,6 +48,8 @@ const dockItems = [
     icon: Calendar,
     color: 'text-emerald-500',
     tabletOnly: true,
+    /** Hidden when table_management feature is off */
+    hiddenNavTitle: 'Book Table',
   },
   {
     title: 'Live',
@@ -68,6 +75,8 @@ const dockItems = [
     url: '/staff',
     icon: Users,
     color: 'text-purple-500',
+    /** Hidden when staff_management feature is off */
+    hiddenNavTitle: 'Staff Management',
   },
   {
     title: 'Sales',
@@ -75,6 +84,8 @@ const dockItems = [
     icon: BarChart3,
     color: 'text-cyan-500',
     tabletOnly: true,
+    /** Hidden when reports feature is off */
+    hiddenNavTitle: 'Reports',
   },
 ]
 
@@ -84,14 +95,24 @@ export function MobileDock() {
   const path = useRouterState({ select: (s) => s.location.pathname })
   const cartCount = useCartStore(selectCartTotalItems)
   const isHidden = useScrollHide()
+  const { selectedRid } = useRestaurantSelector()
+  const { data: featureFlags } = useFeatureFlagsQuery(selectedRid)
+
+  // Get hidden nav items from feature flags
+  const hiddenItems = React.useMemo(
+    () => getHiddenNavItems(featureFlags),
+    [featureFlags],
+  )
 
   // Only show the dock on mobile/tablet (below 900px)
   if (!isMobile) return null
 
-  // Filter items: Show all on tablet, but hide tabletOnly items on phone
-  const visibleItems = isSmallScreen
-    ? dockItems.filter((item) => !item.tabletOnly)
-    : dockItems
+  // Filter items: by screen size AND by feature flags
+  const visibleItems = dockItems
+    .filter((item) => !isSmallScreen || !item.tabletOnly)
+    .filter(
+      (item) => !item.hiddenNavTitle || !hiddenItems.has(item.hiddenNavTitle),
+    )
 
   // Improved Active Link Logic: Find the most specific match (longest URL)
   const activeItem = visibleItems

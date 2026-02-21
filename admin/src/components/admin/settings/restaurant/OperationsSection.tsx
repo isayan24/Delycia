@@ -1,5 +1,5 @@
 import React from 'react'
-import { Power } from 'lucide-react'
+import { Power, CalendarClock } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
@@ -13,6 +13,10 @@ export const OperationsSection: React.FC<OperationsSectionProps> = ({
   formData,
   handleSwitchChange,
 }) => {
+  const isOpenNow = formData.is_open_now === 1
+  const statusMessage = formData.status_message || ''
+  const hasOverride = !!formData.manual_override_date
+
   return (
     <section className="space-y-4">
       <div className="flex items-center gap-2 px-1">
@@ -29,8 +33,20 @@ export const OperationsSection: React.FC<OperationsSectionProps> = ({
                 Accepting Orders
               </Label>
               <p className="text-[11px] text-slate-500">
-                Global toggle for store
+                {formData.is_active === 1
+                  ? isOpenNow
+                    ? statusMessage || 'Currently accepting orders'
+                    : statusMessage || 'Waiting for scheduled time'
+                  : 'Store is manually closed'}
               </p>
+              {hasOverride && formData.is_active === 1 && (
+                <div className="flex items-center gap-1 mt-1">
+                  <CalendarClock className="size-3 text-amber-500" />
+                  <span className="text-[10px] font-medium text-amber-600">
+                    Manual override active (today only)
+                  </span>
+                </div>
+              )}
             </div>
             <Switch
               checked={formData.is_active === 1}

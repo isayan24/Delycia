@@ -27,6 +27,11 @@ import {
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { RestaurantDropdown } from '@/components/admin/header/RestaurantDropdown'
 import { NetworkStatusIcon } from '@/components/common/NetworkStatusIcon'
+import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
+import {
+  useFeatureFlagsQuery,
+  getHiddenNavItems,
+} from '@/hooks/queries/useFeatureFlagsQuery'
 
 // Delycia Navigation Data
 const navMain = [
@@ -130,24 +135,51 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAdminAuthQuery()
   const { isMobile, setOpenMobile } = useSidebar()
   const { pathname } = useRouterState({ select: (s) => s.location })
+  const { selectedRid } = useRestaurantSelector()
+  const { data: featureFlags } = useFeatureFlagsQuery(selectedRid)
 
-  // Compute dynamic navigation items
+  // Get set of nav item titles that should be hidden
+  const hiddenItems = React.useMemo(
+    () => getHiddenNavItems(featureFlags),
+    [featureFlags],
+  )
+
+  // Compute dynamic navigation items with feature filtering
   const dynamicNavMain = React.useMemo(() => {
-    return navMain.map((item) => {
-      // Check if any sub-item is active
-      const isSubItemActive = item.items?.some(
-        (sub) => pathname === sub.url || pathname.startsWith(sub.url + '/'),
-      )
-      // Check if the parent item itself is active
-      const isParentActive =
-        pathname === item.url || pathname.startsWith(item.url + '/')
+    return (
+      navMain
+        .filter((item) => !hiddenItems.has(item.title))
+        .map((item) => {
+          // Filter sub-items too
+          const filteredSubItems = item.items?.filter(
+            (sub) => !hiddenItems.has(sub.title),
+          )
 
-      return {
-        ...item,
-        isActive: isSubItemActive || isParentActive,
-      }
-    })
-  }, [pathname])
+          // Check if any sub-item is active
+          const isSubItemActive = filteredSubItems?.some(
+            (sub) => pathname === sub.url || pathname.startsWith(sub.url + '/'),
+          )
+          // Check if the parent item itself is active
+          const isParentActive =
+            pathname === item.url || pathname.startsWith(item.url + '/')
+
+          return {
+            ...item,
+            items: filteredSubItems,
+            isActive: isSubItemActive || isParentActive,
+          }
+        })
+        // Remove parent if all sub-items were filtered out (and it has no direct page)
+        .filter((item) => {
+          if (item.items && item.items.length === 0) {
+            // Keep parent only if it has its own direct URL that's not just a container
+            // e.g. /reports has sub-items, so if all are hidden, hide the parent
+            return false
+          }
+          return true
+        })
+    )
+  }, [pathname, hiddenItems])
 
   // Automatically close sidebar on mobile when pathname changes
   React.useEffect(() => {

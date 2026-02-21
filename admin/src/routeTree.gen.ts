@@ -28,6 +28,7 @@ import { Route as InventoryIndexRouteImport } from './routes/inventory/index'
 import { Route as BillingIndexRouteImport } from './routes/billing/index'
 import { Route as SettingsSubscriptionRouteImport } from './routes/settings/subscription'
 import { Route as SettingsRestaurantRouteImport } from './routes/settings/restaurant'
+import { Route as SettingsFeaturesRouteImport } from './routes/settings/features'
 import { Route as SettingsAccountRouteImport } from './routes/settings/account'
 import { Route as ReportsSalesRouteImport } from './routes/reports/sales'
 import { Route as ReportsCrmRouteImport } from './routes/reports/crm'
@@ -53,6 +54,7 @@ import { Route as ApiInventoryStatsRouteImport } from './routes/api/inventory-st
 import { Route as ApiInventoryRouteImport } from './routes/api/inventory'
 import { Route as ApiImagekitRouteImport } from './routes/api/imagekit'
 import { Route as ApiGuestCustomerRouteImport } from './routes/api/guest-customer'
+import { Route as ApiFeatureFlagsRouteImport } from './routes/api/feature-flags'
 import { Route as ApiDashboardRouteImport } from './routes/api/dashboard'
 import { Route as ApiCrmRouteImport } from './routes/api/crm'
 import { Route as ApiCategoryRouteImport } from './routes/api/category'
@@ -184,6 +186,11 @@ const SettingsRestaurantRoute = SettingsRestaurantRouteImport.update({
   path: '/restaurant',
   getParentRoute: () => SettingsRoute,
 } as any)
+const SettingsFeaturesRoute = SettingsFeaturesRouteImport.update({
+  id: '/features',
+  path: '/features',
+  getParentRoute: () => SettingsRoute,
+} as any)
 const SettingsAccountRoute = SettingsAccountRouteImport.update({
   id: '/account',
   path: '/account',
@@ -307,6 +314,11 @@ const ApiImagekitRoute = ApiImagekitRouteImport.update({
 const ApiGuestCustomerRoute = ApiGuestCustomerRouteImport.update({
   id: '/api/guest-customer',
   path: '/api/guest-customer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFeatureFlagsRoute = ApiFeatureFlagsRouteImport.update({
+  id: '/api/feature-flags',
+  path: '/api/feature-flags',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiDashboardRoute = ApiDashboardRouteImport.update({
@@ -504,6 +516,7 @@ export interface FileRoutesByFullPath {
   '/api/category': typeof ApiCategoryRouteWithChildren
   '/api/crm': typeof ApiCrmRouteWithChildren
   '/api/dashboard': typeof ApiDashboardRoute
+  '/api/feature-flags': typeof ApiFeatureFlagsRoute
   '/api/guest-customer': typeof ApiGuestCustomerRoute
   '/api/imagekit': typeof ApiImagekitRoute
   '/api/inventory': typeof ApiInventoryRouteWithChildren
@@ -529,6 +542,7 @@ export interface FileRoutesByFullPath {
   '/reports/crm': typeof ReportsCrmRoute
   '/reports/sales': typeof ReportsSalesRoute
   '/settings/account': typeof SettingsAccountRoute
+  '/settings/features': typeof SettingsFeaturesRoute
   '/settings/restaurant': typeof SettingsRestaurantRoute
   '/settings/subscription': typeof SettingsSubscriptionRoute
   '/billing/': typeof BillingIndexRoute
@@ -579,6 +593,7 @@ export interface FileRoutesByTo {
   '/api/category': typeof ApiCategoryRouteWithChildren
   '/api/crm': typeof ApiCrmRouteWithChildren
   '/api/dashboard': typeof ApiDashboardRoute
+  '/api/feature-flags': typeof ApiFeatureFlagsRoute
   '/api/guest-customer': typeof ApiGuestCustomerRoute
   '/api/imagekit': typeof ApiImagekitRoute
   '/api/inventory': typeof ApiInventoryRouteWithChildren
@@ -604,6 +619,7 @@ export interface FileRoutesByTo {
   '/reports/crm': typeof ReportsCrmRoute
   '/reports/sales': typeof ReportsSalesRoute
   '/settings/account': typeof SettingsAccountRoute
+  '/settings/features': typeof SettingsFeaturesRoute
   '/settings/restaurant': typeof SettingsRestaurantRoute
   '/settings/subscription': typeof SettingsSubscriptionRoute
   '/billing': typeof BillingIndexRoute
@@ -661,6 +677,7 @@ export interface FileRoutesById {
   '/api/category': typeof ApiCategoryRouteWithChildren
   '/api/crm': typeof ApiCrmRouteWithChildren
   '/api/dashboard': typeof ApiDashboardRoute
+  '/api/feature-flags': typeof ApiFeatureFlagsRoute
   '/api/guest-customer': typeof ApiGuestCustomerRoute
   '/api/imagekit': typeof ApiImagekitRoute
   '/api/inventory': typeof ApiInventoryRouteWithChildren
@@ -686,6 +703,7 @@ export interface FileRoutesById {
   '/reports/crm': typeof ReportsCrmRoute
   '/reports/sales': typeof ReportsSalesRoute
   '/settings/account': typeof SettingsAccountRoute
+  '/settings/features': typeof SettingsFeaturesRoute
   '/settings/restaurant': typeof SettingsRestaurantRoute
   '/settings/subscription': typeof SettingsSubscriptionRoute
   '/billing/': typeof BillingIndexRoute
@@ -744,6 +762,7 @@ export interface FileRouteTypes {
     | '/api/category'
     | '/api/crm'
     | '/api/dashboard'
+    | '/api/feature-flags'
     | '/api/guest-customer'
     | '/api/imagekit'
     | '/api/inventory'
@@ -769,6 +788,7 @@ export interface FileRouteTypes {
     | '/reports/crm'
     | '/reports/sales'
     | '/settings/account'
+    | '/settings/features'
     | '/settings/restaurant'
     | '/settings/subscription'
     | '/billing/'
@@ -819,6 +839,7 @@ export interface FileRouteTypes {
     | '/api/category'
     | '/api/crm'
     | '/api/dashboard'
+    | '/api/feature-flags'
     | '/api/guest-customer'
     | '/api/imagekit'
     | '/api/inventory'
@@ -844,6 +865,7 @@ export interface FileRouteTypes {
     | '/reports/crm'
     | '/reports/sales'
     | '/settings/account'
+    | '/settings/features'
     | '/settings/restaurant'
     | '/settings/subscription'
     | '/billing'
@@ -900,6 +922,7 @@ export interface FileRouteTypes {
     | '/api/category'
     | '/api/crm'
     | '/api/dashboard'
+    | '/api/feature-flags'
     | '/api/guest-customer'
     | '/api/imagekit'
     | '/api/inventory'
@@ -925,6 +948,7 @@ export interface FileRouteTypes {
     | '/reports/crm'
     | '/reports/sales'
     | '/settings/account'
+    | '/settings/features'
     | '/settings/restaurant'
     | '/settings/subscription'
     | '/billing/'
@@ -982,6 +1006,7 @@ export interface RootRouteChildren {
   ApiCategoryRoute: typeof ApiCategoryRouteWithChildren
   ApiCrmRoute: typeof ApiCrmRouteWithChildren
   ApiDashboardRoute: typeof ApiDashboardRoute
+  ApiFeatureFlagsRoute: typeof ApiFeatureFlagsRoute
   ApiGuestCustomerRoute: typeof ApiGuestCustomerRoute
   ApiImagekitRoute: typeof ApiImagekitRoute
   ApiInventoryRoute: typeof ApiInventoryRouteWithChildren
@@ -1146,6 +1171,13 @@ declare module '@tanstack/react-router' {
       path: '/restaurant'
       fullPath: '/settings/restaurant'
       preLoaderRoute: typeof SettingsRestaurantRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/features': {
+      id: '/settings/features'
+      path: '/features'
+      fullPath: '/settings/features'
+      preLoaderRoute: typeof SettingsFeaturesRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/account': {
@@ -1321,6 +1353,13 @@ declare module '@tanstack/react-router' {
       path: '/api/guest-customer'
       fullPath: '/api/guest-customer'
       preLoaderRoute: typeof ApiGuestCustomerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/feature-flags': {
+      id: '/api/feature-flags'
+      path: '/api/feature-flags'
+      fullPath: '/api/feature-flags'
+      preLoaderRoute: typeof ApiFeatureFlagsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/dashboard': {
@@ -1642,6 +1681,7 @@ const ReportsRouteWithChildren =
 
 interface SettingsRouteChildren {
   SettingsAccountRoute: typeof SettingsAccountRoute
+  SettingsFeaturesRoute: typeof SettingsFeaturesRoute
   SettingsRestaurantRoute: typeof SettingsRestaurantRoute
   SettingsSubscriptionRoute: typeof SettingsSubscriptionRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
@@ -1649,6 +1689,7 @@ interface SettingsRouteChildren {
 
 const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsAccountRoute: SettingsAccountRoute,
+  SettingsFeaturesRoute: SettingsFeaturesRoute,
   SettingsRestaurantRoute: SettingsRestaurantRoute,
   SettingsSubscriptionRoute: SettingsSubscriptionRoute,
   SettingsIndexRoute: SettingsIndexRoute,
@@ -1790,6 +1831,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCategoryRoute: ApiCategoryRouteWithChildren,
   ApiCrmRoute: ApiCrmRouteWithChildren,
   ApiDashboardRoute: ApiDashboardRoute,
+  ApiFeatureFlagsRoute: ApiFeatureFlagsRoute,
   ApiGuestCustomerRoute: ApiGuestCustomerRoute,
   ApiImagekitRoute: ApiImagekitRoute,
   ApiInventoryRoute: ApiInventoryRouteWithChildren,

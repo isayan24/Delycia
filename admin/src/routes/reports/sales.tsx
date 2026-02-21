@@ -22,6 +22,7 @@ import { useMemo } from 'react'
 import DateFilterComponent from '@/components/admin/dashboard/DateFilterComponent'
 import MiniStats from '@/components/admin/dashboard/MiniStats'
 import { requireAuth } from '@/middleware/auth'
+import { FeatureGuard } from '@/components/common/FeatureGuard'
 
 import { z } from 'zod'
 
@@ -78,112 +79,118 @@ function SalesReportPage() {
   }
 
   return (
-    <div className="bg-slate-50/30 dark:bg-background-dark/30 min-h-screen p-4 md:p-6 transition-colors">
-      <div className="flex items-center justify-between gap-4 px-1 mb-4">
-        <div>
-          <h2 className="text-[10px] lg:text-xs font-[600] uppercase tracking-[0.1rem] text-[#a16b45] opacity-80 mb-1">
-            Sales Analytics
-          </h2>
-          <div className="h-0.5 w-12 bg-emerald-500 rounded-full" />
+    <FeatureGuard feature="reports">
+      <div className="bg-slate-50/30 dark:bg-background-dark/30 min-h-screen p-4 md:p-6 transition-colors">
+        <div className="flex items-center justify-between gap-4 px-1 mb-4">
+          <div>
+            <h2 className="text-[10px] lg:text-xs font-[600] uppercase tracking-[0.1rem] text-[#a16b45] opacity-80 mb-1">
+              Sales Analytics
+            </h2>
+            <div className="h-0.5 w-12 bg-emerald-500 rounded-full" />
+          </div>
         </div>
-      </div>
-      {/* Date Information Bar */}
-      <div className="bg-white dark:bg-[#2d1e14] rounded-2xl border border-[#ead9cd] dark:border-primary/10 p-2 md:p-3 mb-8 shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-6 md:gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
-        <div className="flex-1 w-full overflow-visible">
-          <MiniStats
-            stats={statsQuery.data || null}
-            loading={statsQuery.isLoading}
-          />
+        {/* Date Information Bar */}
+        <div className="bg-white dark:bg-[#2d1e14] rounded-2xl border border-[#ead9cd] dark:border-primary/10 p-2 md:p-3 mb-8 shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-6 md:gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="flex-1 w-full overflow-visible">
+            <MiniStats
+              stats={statsQuery.data || null}
+              loading={statsQuery.isLoading}
+            />
+          </div>
+          <div className="flex items-center gap-3 shrink-0 px-2 pb-2 xl:pb-0 xl:px-0">
+            <DateFilterComponent className="w-full sm:w-[200px]" />
+          </div>
         </div>
-        <div className="flex items-center gap-3 shrink-0 px-2 pb-2 xl:pb-0 xl:px-0">
-          <DateFilterComponent className="w-full sm:w-[200px]" />
-        </div>
-      </div>
 
-      <div className="space-y-6">
-        {/* Overview Tab */}
-        {tab === 'overview' && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              <div className="lg:col-span-8">
-                <SalesTrendChart
-                  data={salesTrendQuery.data || null}
-                  loading={salesTrendQuery.isLoading}
+        <div className="space-y-6">
+          {/* Overview Tab */}
+          {tab === 'overview' && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div className="lg:col-span-8">
+                  <SalesTrendChart
+                    data={salesTrendQuery.data || null}
+                    loading={salesTrendQuery.isLoading}
+                    error={
+                      salesTrendQuery.error
+                        ? 'Failed to load sales trend'
+                        : null
+                    }
+                    onRetry={handleRefresh}
+                  />
+                </div>
+
+                <div className="lg:col-span-4">
+                  <OrderStatusChart
+                    data={orderStatusQuery.data || null}
+                    loading={orderStatusQuery.isLoading}
+                    error={
+                      orderStatusQuery.error
+                        ? 'Failed to load order status'
+                        : null
+                    }
+                    onRetry={handleRefresh}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Items Tab */}
+          {tab === 'items' && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+              <div className="lg:col-span-7">
+                <TopSellingItems
+                  data={topItemsQuery.data || null}
+                  loading={topItemsQuery.isLoading}
                   error={
-                    salesTrendQuery.error ? 'Failed to load sales trend' : null
+                    topItemsQuery.error ? 'Failed to load top items' : null
                   }
                   onRetry={handleRefresh}
                 />
               </div>
 
-              <div className="lg:col-span-4">
-                <OrderStatusChart
-                  data={orderStatusQuery.data || null}
-                  loading={orderStatusQuery.isLoading}
+              <div className="lg:col-span-5">
+                <RevenueByCategoryChart
+                  data={categoryRevenueQuery.data || null}
+                  loading={categoryRevenueQuery.isLoading}
                   error={
-                    orderStatusQuery.error
-                      ? 'Failed to load order status'
+                    categoryRevenueQuery.error
+                      ? 'Failed to load category revenue'
                       : null
                   }
                   onRetry={handleRefresh}
                 />
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Items Tab */}
-        {tab === 'items' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <div className="lg:col-span-7">
-              <TopSellingItems
-                data={topItemsQuery.data || null}
-                loading={topItemsQuery.isLoading}
-                error={topItemsQuery.error ? 'Failed to load top items' : null}
-                onRetry={handleRefresh}
-              />
+          {/* Customers Tab */}
+          {tab === 'customers' && (
+            <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+              <CustomerActivityTable rid={rid} />
             </div>
+          )}
 
-            <div className="lg:col-span-5">
-              <RevenueByCategoryChart
-                data={categoryRevenueQuery.data || null}
-                loading={categoryRevenueQuery.isLoading}
-                error={
-                  categoryRevenueQuery.error
-                    ? 'Failed to load category revenue'
-                    : null
-                }
-                onRetry={handleRefresh}
-              />
+          {/* Delivery Tab */}
+          {tab === 'delivery' && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+              <div className="lg:col-span-8 mx-auto w-full">
+                <DeliveryTypeChart
+                  data={deliveryTypesQuery.data || null}
+                  loading={deliveryTypesQuery.isLoading}
+                  error={
+                    deliveryTypesQuery.error
+                      ? 'Failed to load delivery types'
+                      : null
+                  }
+                  onRetry={handleRefresh}
+                />
+              </div>
             </div>
-          </div>
-        )}
-
-        {/* Customers Tab */}
-        {tab === 'customers' && (
-          <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <CustomerActivityTable rid={rid} />
-          </div>
-        )}
-
-        {/* Delivery Tab */}
-        {tab === 'delivery' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <div className="lg:col-span-8 mx-auto w-full">
-              <DeliveryTypeChart
-                data={deliveryTypesQuery.data || null}
-                loading={deliveryTypesQuery.isLoading}
-                error={
-                  deliveryTypesQuery.error
-                    ? 'Failed to load delivery types'
-                    : null
-                }
-                onRetry={handleRefresh}
-              />
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </FeatureGuard>
   )
 }
