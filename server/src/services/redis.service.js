@@ -24,8 +24,8 @@ class RedisService {
    */
   async connect() {
     try {
-      const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-      
+      const redisUrl = process.env.REDIS_URL
+
       console.log('🔄 Connecting to Redis...');
       console.log('   URL:', redisUrl.replace(/:[^:@]+@/, ':****@')); // Hide password in logs
 
@@ -74,11 +74,11 @@ class RedisService {
 
       // Connect
       await this.client.connect();
-      
+
       // Test connection
       await this.client.ping();
       console.log('✅ Redis: Connection successful!');
-      
+
       return true;
     } catch (err) {
       console.error('❌ Redis: Connection failed:', err.message);
@@ -153,7 +153,7 @@ class RedisService {
     try {
       const keys = await this.client.keys(pattern);
       if (keys.length === 0) return 0;
-      
+
       await this.client.del(keys);
       return keys.length;
     } catch (err) {
@@ -270,7 +270,7 @@ class RedisService {
       const start = Date.now();
       await this.client.ping();
       const latency = Date.now() - start;
-      
+
       return {
         status: 'healthy',
         latency: `${latency}ms`,
