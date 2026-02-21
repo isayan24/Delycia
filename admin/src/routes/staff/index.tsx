@@ -10,20 +10,20 @@ export const Route = createFileRoute('/staff/')({
 
 function StaffManagementPage() {
   return (
-    <div className="bg-slate-50/50 font-sans px-4 py-4 md:py-8 max-w-7xl mx-auto space-y-6 min-h-screen">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="bg-white dark:bg-[#0f0a07] font-sans px-4 py-6 max-w-7xl mx-auto space-y-6 min-h-screen">
+      <div className="flex items-center justify-between gap-4 border-b border-slate-100 dark:border-primary/5 pb-4">
         <div>
-          <h2 className="text-[10px] lg:text-xs font-black uppercase tracking-[0.2em] text-[#a16b45] opacity-80 mb-1">
-            Access Control & Roles
-          </h2>
-          <div className="h-0.5 w-12 bg-orange-500 rounded-full" />
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+            Staff Management
+          </h1>
+          <p className="text-[10px] text-slate-500 font-medium uppercase tracking-widest mt-0.5">
+            Manage team access levels
+          </p>
         </div>
-        <div className="shrink-0">
-          <CreateStaffDialog />
-        </div>
+        <CreateStaffDialog />
       </div>
 
-      <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <div className="animate-in fade-in slide-in-from-bottom-1 duration-400">
         <StaffList />
       </div>
     </div>

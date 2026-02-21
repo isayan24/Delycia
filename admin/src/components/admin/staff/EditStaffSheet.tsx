@@ -95,169 +95,169 @@ export function EditStaffSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="p-0 border-l-[#ead9cd] dark:border-l-primary/10 overflow-hidden flex flex-col sm:max-w-md">
-        <SheetHeader className="p-6 bg-white dark:bg-[#2d1e14] border-b border-[#ead9cd] dark:border-primary/5 space-y-3">
-          <SheetTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
-            Refine Profile
-          </SheetTitle>
-          <SheetDescription className="text-[10px] font-bold text-[#a16b45] uppercase tracking-widest opacity-60 leading-relaxed">
-            Modify credentials and access roles for{' '}
-            <span className="text-orange-600">{staff?.name}</span>. Click save
-            to sync changes.
-          </SheetDescription>
-        </SheetHeader>
+      <SheetContent className="p-0 border-l-slate-100 dark:border-l-primary/5 overflow-hidden flex flex-col sm:max-w-md">
+        <div className="p-6 border-b border-slate-100 dark:border-primary/5">
+          <SheetHeader className="space-y-1">
+            <SheetTitle className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+              Edit Staff Profile
+            </SheetTitle>
+            <SheetDescription className="text-xs text-slate-500 font-medium leading-relaxed">
+              Update credentials and roles for{' '}
+              <span className="font-bold text-slate-700 dark:text-slate-300">
+                {staff?.name}
+              </span>
+              .
+            </SheetDescription>
+          </SheetHeader>
+        </div>
+
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="flex-1 overflow-y-auto p-6 space-y-6"
+            className="flex-1 overflow-y-auto p-6 space-y-4"
           >
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#a16b45] opacity-60">
-                    Full Name
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="e.g. John Doe"
-                      className="rounded-xl border-[#ead9cd] dark:border-primary/5 focus-visible:ring-orange-500"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage className="text-[10px] uppercase font-bold" />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="username"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#a16b45] opacity-60">
-                    Username
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="e.g. john_d"
-                      className="rounded-xl border-[#ead9cd] dark:border-primary/5 focus-visible:ring-orange-500"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage className="text-[10px] uppercase font-bold" />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="phone_number"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#a16b45] opacity-60">
-                    Phone Number (Optional)
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="e.g. 1234567890"
-                      className="rounded-xl border-[#ead9cd] dark:border-primary/5 focus-visible:ring-orange-500"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage className="text-[10px] uppercase font-bold" />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#a16b45] opacity-60">
-                    New Password (Optional)
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="Leave blank to keep current"
-                      className="rounded-xl border-[#ead9cd] dark:border-primary/5 focus-visible:ring-orange-500"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage className="text-[10px] uppercase font-bold" />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="role"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[#a16b45] opacity-60">
-                    Role
-                  </FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+            <div className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Full Name
+                    </FormLabel>
                     <FormControl>
-                      <SelectTrigger className="rounded-xl border-[#ead9cd] dark:border-primary/5 focus:ring-orange-500">
-                        <SelectValue placeholder="Select a role" />
-                      </SelectTrigger>
+                      <Input
+                        placeholder="John Doe"
+                        className="h-10 rounded-lg bg-white dark:bg-[#1a110a] border-slate-200 dark:border-primary/5 focus-visible:ring-slate-400 font-medium"
+                        {...field}
+                      />
                     </FormControl>
-                    <SelectContent className="rounded-xl border-[#ead9cd] dark:border-primary/10">
-                      <SelectItem
-                        value="2"
-                        className="text-xs font-bold uppercase tracking-tight focus:bg-orange-50"
-                      >
-                        Admin
-                      </SelectItem>
-                      <SelectItem
-                        value="3"
-                        className="text-xs font-bold uppercase tracking-tight focus:bg-orange-50"
-                      >
-                        Restaurant Owner
-                      </SelectItem>
-                      <SelectItem
-                        value="4"
-                        className="text-xs font-bold uppercase tracking-tight focus:bg-orange-50"
-                      >
-                        Restaurant Manager
-                      </SelectItem>
-                      <SelectItem
-                        value="5"
-                        className="text-xs font-bold uppercase tracking-tight focus:bg-orange-50"
-                      >
-                        Waiter
-                      </SelectItem>
-                      <SelectItem
-                        value="6"
-                        className="text-xs font-bold uppercase tracking-tight focus:bg-orange-50"
-                      >
-                        Kitchen Staff
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage className="text-[10px] uppercase font-bold" />
-                </FormItem>
-              )}
-            />
-            <div className="flex flex-col gap-3 pt-4">
-              <Button
-                type="submit"
-                disabled={updateMutation.isPending}
-                className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-orange-500/10"
-              >
-                {updateMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  'Sync Changes'
+                    <FormMessage className="text-[10px]" />
+                  </FormItem>
                 )}
-              </Button>
+              />
+
+              <div className="grid grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1">
+                      <FormLabel className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        Username
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="j.doe"
+                          className="h-10 rounded-lg bg-white dark:bg-[#1a110a] border-slate-200 dark:border-primary/5 focus-visible:ring-slate-400 font-medium"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage className="text-[10px]" />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="phone_number"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1">
+                      <FormLabel className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        Phone (Optional)
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="1234567890"
+                          className="h-10 rounded-lg bg-white dark:bg-[#1a110a] border-slate-200 dark:border-primary/5 focus-visible:ring-slate-400 font-medium"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage className="text-[10px]" />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      New Password (Optional)
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="Leave blank to keep current"
+                        className="h-10 rounded-lg bg-white dark:bg-[#1a110a] border-slate-200 dark:border-primary/5 focus-visible:ring-slate-400 font-medium"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage className="text-[10px]" />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem className="space-y-1">
+                    <FormLabel className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Assigned Role
+                    </FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="h-10 rounded-lg bg-white dark:bg-[#1a110a] border-slate-200 dark:border-primary/5 focus:ring-slate-400 font-medium">
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="rounded-lg border-slate-200 dark:border-primary/10 shadow-lg">
+                        {[
+                          { val: '2', label: 'Admin' },
+                          { val: '3', label: 'Owner' },
+                          { val: '4', label: 'Manager' },
+                          { val: '5', label: 'Waiter' },
+                          { val: '6', label: 'Kitchen' },
+                        ].map((role) => (
+                          <SelectItem
+                            key={role.val}
+                            value={role.val}
+                            className="rounded-md focus:bg-slate-100 dark:focus:bg-primary/5 transition-colors"
+                          >
+                            <span className="text-xs font-medium uppercase tracking-tight">
+                              {role.label}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage className="text-[10px]" />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="flex gap-2 pt-6 sticky bottom-0 bg-white dark:bg-[#0f0a07] mt-auto">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => onOpenChange(false)}
-                className="w-full h-12 rounded-xl text-[10px] font-black uppercase tracking-widest text-[#a16b45] opacity-60 hover:opacity-100"
+                className="flex-1 h-10 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-primary/5"
               >
                 Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={updateMutation.isPending}
+                className="flex-1 h-10 bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 rounded-lg text-xs font-bold shadow-sm"
+              >
+                {updateMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  'Save Changes'
+                )}
               </Button>
             </div>
           </form>

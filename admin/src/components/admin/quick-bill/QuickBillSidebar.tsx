@@ -31,9 +31,7 @@ export default function QuickBillSidebar({
   grandTotal,
 }: QuickBillSidebarProps) {
   return (
-    <Card className="flex flex-col p-3 gap-3 sidebar:h-[calc(100vh-6rem)] sidebar:overflow-hidden border-none shadow-none @md:border @md:shadow-sm sticky">
-      <h2 className="text-lg font-bold hidden @md:block">Quick Bill</h2>
-
+    <Card className="flex flex-col gap-3 sidebar:h-[calc(100vh-100px)] sidebar:overflow-hidden border-none shadow-none @md:border @md:shadow-sm sticky">
       <CustomerSearch
         selectedCustomer={selectedCustomer}
         onSelectCustomer={setSelectedCustomer}

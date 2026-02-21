@@ -96,6 +96,25 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
   const [selectedOrderForBill, setSelectedOrderForBill] = useState<any>(null)
   const [showScrollTop, setShowScrollTop] = useState(false)
 
+  // Local state for debounced search
+  const [localSearch, setLocalSearch] = useState(search)
+
+  // Sync local state when external search changes (e.g., clear filters)
+  useEffect(() => {
+    setLocalSearch(search)
+  }, [search])
+
+  // Debounce the actual search callback
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearch !== search) {
+        onSearchChange(localSearch)
+      }
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [localSearch, search, onSearchChange])
+
   // Progressive rendering with useLoadMore - natural page scroll
   const { visibleItems, hasMore, sentinelRef } = useLoadMore(orders, 10)
 
@@ -226,15 +245,27 @@ const MobileOrderHistory = memo(function MobileOrderHistory({
               className="w-full border-none bg-transparent focus:outline-none focus:border-0 px-2 text-sm font-normal text-slate-900 dark:text-white placeholder:text-[#a16b45]/50"
               placeholder="Search..."
               type="text"
-              value={search}
-              onChange={(e) => onSearchChange(e.target.value)}
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
             />
+            {localSearch && (
+              <button
+                onClick={() => {
+                  setLocalSearch('')
+                  onSearchChange('')
+                }}
+                className="absolute right-36 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                aria-label="Clear search"
+              >
+                <XCircle className="size-4" />
+              </button>
+            )}
           </div>
 
           <OrderHistoryDateFilter
             onFilterChange={handleApplyFilters}
             compact={true}
-            className="flex-1 min-w-[110px]"
+            // className="flex-1s min-w-[110px]"
           />
         </div>
       </section>

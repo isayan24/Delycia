@@ -16,7 +16,8 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar'
-import { Link } from '@tanstack/react-router'
+import { Link, useRouterState } from '@tanstack/react-router'
+import React from 'react'
 
 export function NavMain({
   items,
@@ -33,6 +34,23 @@ export function NavMain({
     }[]
   }[]
 }) {
+  const { pathname } = useRouterState({ select: (s) => s.location })
+
+  // Find the most specific match across all items and sub-items
+  const bestMatchUrl = React.useMemo(() => {
+    const allUrls = items.flatMap((item) => [
+      item.url,
+      ...(item.items?.map((sub) => sub.url) || []),
+    ])
+    const matches = allUrls.filter(
+      (url) => pathname === url || pathname.startsWith(url + '/'),
+    )
+    return matches.reduce(
+      (prev, curr) => (curr.length > prev.length ? curr : prev),
+      '',
+    )
+  }, [items, pathname])
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
@@ -40,14 +58,12 @@ export function NavMain({
         {items.map((item) => (
           <Collapsible key={item.title} asChild defaultOpen={item.isActive}>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip={item.title}>
-                <Link
-                  to={item.url}
-                  activeProps={{
-                    'data-active': true,
-                  }}
-                  activeOptions={{ exact: true }}
-                >
+              <SidebarMenuButton
+                asChild
+                tooltip={item.title}
+                isActive={item.url === bestMatchUrl}
+              >
+                <Link to={item.url}>
                   <item.icon className={item.color} />
                   <span>{item.title}</span>
                 </Link>
@@ -64,14 +80,11 @@ export function NavMain({
                     <SidebarMenuSub>
                       {item.items?.map((subItem) => (
                         <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton asChild>
-                            <Link
-                              to={subItem.url}
-                              activeProps={{
-                                'data-active': true,
-                              }}
-                              activeOptions={{ exact: true }}
-                            >
+                          <SidebarMenuSubButton
+                            asChild
+                            isActive={subItem.url === bestMatchUrl}
+                          >
+                            <Link to={subItem.url}>
                               <span>{subItem.title}</span>
                             </Link>
                           </SidebarMenuSubButton>

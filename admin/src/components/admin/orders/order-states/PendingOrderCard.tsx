@@ -1,25 +1,35 @@
 import { useState, useMemo, memo } from 'react'
 import {
-  Clock,
   ChevronDown,
+  Phone,
   Printer,
-  Timer,
   Calendar,
   Layers,
   User2,
+  Table as TableIcon,
+  ShoppingBag,
   ScrollText,
   Utensils,
+  Beef,
+  Coffee,
+  Pizza,
+  Carrot,
+  UtensilsCrossed,
+  Timer,
 } from 'lucide-react'
 import { ProcessedOrder } from '@/types/WebSocketOrder'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { PrepTimeSelector } from '../order-ui-card/PrepTimeSelector'
-import { CountdownDisplay } from '../countdown'
-import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
-import { formatDateTime, formatDateTimeIST } from '@/utils/dateUtils'
 import ThermalBill from '@/components/billing/ThermalBill'
 import { orderToBillData, handleShareToMobile } from '@/components/billing'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
+import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
+import { formatDateTimeIST } from '@/utils/dateUtils'
+import { cn } from '@/lib/utils'
+import { motion, AnimatePresence } from 'motion/react'
+import { useSidebar } from '@/components/ui/sidebar'
+import { PrepTimeSelector } from '../order-ui-card/PrepTimeSelector'
+import { CountdownDisplay } from '../countdown'
 
 interface PendingOrderCardProps {
   order: ProcessedOrder
@@ -29,6 +39,18 @@ interface PendingOrderCardProps {
   isRejectingOrder: boolean
 }
 
+const getItemIcon = (name: string) => {
+  const n = name.toLowerCase()
+  if (n.includes('burger') || n.includes('fastfood'))
+    return <Carrot className="w-4 h-4" />
+  if (n.includes('pizza')) return <Pizza className="w-4 h-4" />
+  if (n.includes('coffee') || n.includes('latte') || n.includes('macchiato'))
+    return <Coffee className="w-4 h-4" />
+  if (n.includes('meat') || n.includes('beef') || n.includes('steak'))
+    return <Beef className="w-4 h-4" />
+  return <UtensilsCrossed className="w-4 h-4" />
+}
+
 const OrderHeader = memo(
   ({
     order,
@@ -36,98 +58,145 @@ const OrderHeader = memo(
     finalGrandTotal,
     isExpanded,
     onToggleExpand,
-    onPrint,
+    onPrintBill,
   }: {
     order: ProcessedOrder
     totalItems: number
     finalGrandTotal: number
     isExpanded: boolean
     onToggleExpand: () => void
-    onPrint: () => void
+    onPrintBill: () => void
   }) => {
+    const { state } = useSidebar()
+    const isSidebarCollapsed = state === 'collapsed'
+
     return (
       <div
-        className="p-4 max-[500px]:p-2 cursor-pointer select-none transition-colors"
+        className={cn(
+          'p-4 cursor-pointer transition-all duration-200 px-6 select-none group/header relative',
+          isExpanded
+            ? 'bg-slate-50/80 dark:bg-slate-800/60'
+            : 'hover:bg-slate-50 dark:hover:bg-slate-800/20',
+        )}
         onClick={onToggleExpand}
       >
-        <div className="flex flex-col lg:flex-row gap-6 max-[500px]:gap-2 items-start lg:items-center">
-          {/* Status Icon */}
-          <div className="max-[1024px]:hidden! size-14 rounded-xl flex items-center justify-center shrink-0 bg-amber-50 text-amber-600 dark:bg-amber-900/20">
-            <Clock className="w-6 h-6 animate-pulse" />
-          </div>
-
-          {/* Order Brief Info */}
-          <div className="flex-1 space-y-2">
-            <div className="flex items-center gap-3">
-              {/* <h3 className="text-md font-medium text-slate-900 dark:text-white">
-                #{order.id || 'Order'}
-              </h3> */}
-              <Badge className="bg-amber-50 text-amber-600 border-none px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider pointer-events-none">
-                Pending
-              </Badge>
-              {order.unique_table_numbers?.length > 0 ? (
-                <Badge className="bg-emerald-50 text-emerald-600 border-none px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 pointer-events-none">
-                  <Utensils className="w-3 h-3" strokeWidth={3} />
-                  {order.table_zone} Table:{' '}
-                  {order.unique_table_numbers.join(', ')}
+        <div className="flex flex-col gap-4">
+          {/* Left: ID & Status */}
+          <div className="flex items-center min-w-32">
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <Badge className="bg-amber-50 text-amber-600 border-none px-1.5 py-0 text-[13px] font-bold uppercase tracking-tight">
+                  Pending
                 </Badge>
-              ) : (
-                <Badge className="bg-orange-50 text-[#a16b45] border-none px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider pointer-events-none">
-                  {order.is_delivery ? 'Delivery' : 'Takeaway'}
-                </Badge>
+                {order.unique_table_numbers?.length > 0 ? (
+                  <Badge className="bg-emerald-50 text-emerald-600 border-none px-1.5 py-0 text-[13px] font-bold uppercase tracking-tight flex items-center gap-1">
+                    <Utensils className="w-3 h-3" />
+                    {order.table_zone} Table:{' '}
+                    {order.unique_table_numbers.join(', ')}
+                  </Badge>
+                ) : (
+                  <Badge className="bg-orange-50 text-[#a16b45] border-none px-1.5 py-0 text-[13px] font-bold uppercase tracking-tight">
+                    {order.is_delivery ? 'DELIVERY' : 'TAKEAWAY'}
+                  </Badge>
+                )}
+              </div>
+              {order.id && (
+                <h3 className="text-base font-bold text-slate-900 dark:text-white leading-none">
+                  #{order.id}
+                </h3>
               )}
             </div>
-
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-[#a16b45]">
-              <span className="flex items-center gap-1.5 font-medium">
-                <User2 className="w-4 h-4" /> {order.customer_name || 'Guest'}
-              </span>
-              <span className="flex items-center gap-1.5 font-medium">
-                <Layers className="w-4 h-4" /> {totalItems} Items
-              </span>
-              <span className="flex items-center gap-1.5 font-medium">
-                <Calendar className="w-4 h-4" />{' '}
-                {formatDateTimeIST(order.created_at)}
-              </span>
-            </div>
           </div>
 
-          {/* Total & Actions */}
-          <div className="flex max-[1024px]:w-full items-center max-[1024px]:justify-between! gap-3 divide-x max-[500px]:divide-none divide-[#ead9cd] dark:divide-primary/10">
-            <div className="pr-4 flex gap-2 items-center">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onPrint()
-                }}
-                className="h-10 w-10 p-0 max-[500px]:h-4 max-[500px]:w-4 rounded-xl border-none dark:border-primary/10 text-slate-700 dark:text-slate-200 font-bold hover:bg-none dark:hover:bg-slate-800 transition-all flex items-center justify-center"
-              >
-                <Printer className="w-4 h-4 text-[#a16b45]" />
-              </Button>
-              <div className="text-right">
-                <p className="text-sm text-[#a16b45] font-medium mb-1 flex items-center gap-2">
-                  Est. Total{' '}
-                  <span className="text-xl max-[500px]:text-[#a16b45] font-bold text-primary max-[500px]:text-[14px]!">
-                    ₹
-                    {finalGrandTotal.toLocaleString('en-IN', {
-                      minimumFractionDigits: 2,
-                    })}
-                  </span>
+          {/* Main Context Area: Brief, Timeline & Actions */}
+          <div className="flex flex-row gap-6 items-start">
+            {/* Center Grid: Brief & Timeline */}
+            <div
+              className={cn(
+                'flex-1 grid grid-cols-2 gap-6',
+                isSidebarCollapsed
+                  ? 'max-[768px]:grid-cols-1'
+                  : 'max-[1024px]:grid-cols-1',
+              )}
+            >
+              <div className="space-y-1 min-w-0">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  Brief
+                </p>
+                <div className="flex flex-col gap-1">
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate flex items-center gap-1.5">
+                    <User2 className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                    {order.customer_name || 'Guest'}
+                  </p>
+                  <p className="text-[11px] font-medium text-amber-700 flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 shrink-0" /> {totalItems}{' '}
+                    Items
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-1 min-w-0">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  Timeline
+                </p>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 whitespace-nowrap flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  {formatDateTimeIST(order.created_at)}
                 </p>
               </div>
             </div>
 
-            <div className="pl-6 flex items-center gap-6">
-              <div
-                className={`p-2 text-[10px] font-bold text-[#a16b45] flex items-center uppercase rounded-full transition-colors tracking-widest`}
-              >
-                {' '}
-                details
-                <ChevronDown
-                  className={`w-5 h-5 text-[#a16b45] transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
-                />
+            {/* Right Group: Actions & Total */}
+            <div
+              className={cn(
+                'flex flex-row-reverse items-end justify-center gap-3 min-w-max',
+                isSidebarCollapsed
+                  ? 'max-[768px]:flex-col'
+                  : 'max-[1024px]:flex-col',
+              )}
+            >
+              {/* Actions Group */}
+              <div className="flex items-center gap-1.5 order-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onPrintBill()
+                  }}
+                  className="h-9 w-9 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  <Printer className="w-4 h-4 text-slate-400" />
+                </Button>
+
+                <div
+                  className={cn(
+                    'h-9 w-9 flex items-center justify-center rounded-lg transition-all duration-200',
+                    isExpanded
+                      ? 'bg-slate-100 dark:bg-slate-800'
+                      : 'bg-transparent',
+                  )}
+                >
+                  <ChevronDown
+                    className={cn(
+                      'w-4 h-4 text-slate-400 transition-transform duration-300',
+                      isExpanded && 'rotate-180',
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Price Group */}
+              <div className="text-right order-2">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
+                  EST. TOTAL
+                </p>
+                <p className="text-xl font-bold text-slate-900 dark:text-white tabular-nums leading-none">
+                  ₹
+                  {finalGrandTotal.toLocaleString('en-IN', {
+                    minimumFractionDigits: 2,
+                  })}
+                </p>
               </div>
             </div>
           </div>
@@ -136,89 +205,179 @@ const OrderHeader = memo(
     )
   },
 )
+OrderHeader.displayName = 'OrderHeader'
 
-const OrderItemsDetail = memo(
+const ItemDetailsTable = memo(({ items }: { items: any[] }) => (
+  <div className="space-y-4">
+    <div className="flex items-center justify-between px-2">
+      <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+        Items Summary
+      </h4>
+      <span className="text-[10px] font-bold text-slate-300">
+        {items.length} Entries
+      </span>
+    </div>
+
+    <div className="bg-slate-50/50 dark:bg-slate-800/10 rounded-2xl border border-slate-100 dark:border-slate-800/50 overflow-hidden">
+      <table className="w-full text-left text-sm">
+        <thead>
+          <tr className="bg-slate-50 dark:bg-slate-800/30 text-slate-400 text-[9px] font-bold uppercase tracking-wider">
+            <th className="py-3 pl-6 pr-4">Description</th>
+            <th className="py-3 px-4 text-center">Qty</th>
+            <th className="py-3 pl-4 pr-6 text-right">Total</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+          {items.map((item, idx) => (
+            <tr
+              key={idx}
+              className="hover:bg-white dark:hover:bg-slate-800/30 transition-colors"
+            >
+              <td className="py-4 pl-6 pr-4">
+                <div className="flex items-start gap-4">
+                  <div className="mt-1 shrink-0 text-amber-600/60">
+                    {getItemIcon(item.display_name)}
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="font-semibold text-[15px] text-slate-700 dark:text-slate-200">
+                      {item.display_name}
+                    </p>
+                    {item.addons && item.addons.length > 0 && (
+                      <p className="text-[11px] text-slate-400">
+                        {item.addons
+                          .map((a: any) => `+ ${a.quantity}x ${a.name}`)
+                          .join(', ')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </td>
+              <td className="py-4 px-4 text-center">
+                <span className="text-[13px] font-bold text-slate-600 dark:text-slate-300">
+                  {item.quantity}
+                </span>
+              </td>
+              <td className="py-4 pl-4 pr-6 text-right tabular-nums font-bold text-slate-700 dark:text-slate-200">
+                ₹
+                {item.total_amount.toLocaleString('en-IN', {
+                  minimumFractionDigits: 2,
+                })}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+))
+ItemDetailsTable.displayName = 'ItemDetailsTable'
+
+const UnifiedDetails = memo(
   ({
-    items,
     order,
     taxAmount,
     grandTotal,
   }: {
-    items: any[]
     order: ProcessedOrder
     taxAmount: number
     grandTotal: number
   }) => (
-    <div className="space-y-3">
-      <div className="bg-white dark:bg-[#2d1e14] rounded-xl border border-[#ead9cd] dark:border-primary/10 overflow-hidden shadow-sm">
-        <div className=" divide-[#ead9cd] dark:divide-primary/10">
-          {items.map((item, idx) => (
-            <div
-              key={idx}
-              className="py-2 max-[500px]:py-1 px-4 hover:bg-slate-50/50 transition-colors flex items-center justify-between"
-            >
-              <div className="flex items-center gap-3">
-                {/* <div className="size-9 rounded-lg bg-orange-50 dark:bg-[#3a291d] flex items-center justify-center text-primary">
-                  {getItemIcon()}
-                </div> */}
-                <div className="flex flex-col">
-                  <div className="text-slate-900 dark:text-white">
-                    <span className="font-black text-orange-900/50 dark:text-orange-400 text-sm">
-                      x{item.quantity}
-                    </span>{' '}
-                    <span className="font-medium text-[15px] max-[500px]:text-[12px]">
-                      {item.display_name}
-                    </span>
-                  </div>
-                  {item.addons && (
-                    <span className="text-[10px] text-[#a16b45] italic font-medium leading-tight">
-                      {item.addons
-                        .map((a: any) => `+ ${a.quantity}x ${a.name}`)
-                        .join(', ')}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-[13px] max-[500px]:text-[11px] font-semibold text-[#a16b45]">
-                  ₹{item.total_amount.toFixed(2)}
-                </p>
-              </div>
-            </div>
-          ))}
+    <div className="space-y-6">
+      {/* Customer Info */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="size-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-slate-600 dark:text-slate-300">
+            {(order.customer_name || 'G').charAt(0).toUpperCase()}
+          </div>
+          <div className="space-y-0.5">
+            <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-none">
+              {order.customer_name || 'Guest User'}
+            </h4>
+            <p className="text-[10px] text-slate-400 font-medium">
+              ID: #{order.customer_id}
+            </p>
+          </div>
         </div>
 
-        {/* Totals Section inside the same card */}
-        <div className="bg-slate-50/50 dark:bg-white/5 p-4 space-y-2.5 border-t border-[#ead9cd] dark:border-primary/10">
-          <div className="flex justify-between text-xs font-bold text-[#a16b45]">
-            <span>Subtotal</span>
-            <span className="text-slate-900 dark:text-white">
-              ₹{order.total_amount.toFixed(2)}
+        <div className="grid grid-cols-1 gap-2.5 pl-1">
+          <div className="flex items-center gap-3 text-[12px] text-slate-500">
+            <Phone className="w-3.5 h-3.5 opacity-40 shrink-0" />
+            <span className="font-medium">{order.customer_phone}</span>
+          </div>
+          <div className="flex items-center gap-3 text-[12px] text-slate-500">
+            <TableIcon className="w-3.5 h-3.5 opacity-40 shrink-0" />
+            <span className="font-medium">
+              {order.unique_table_numbers?.length > 0
+                ? `Table ${order.unique_table_numbers.join(', ')}`
+                : 'Takeaway'}
             </span>
           </div>
+          <div className="flex items-center gap-3 text-[12px] text-slate-500">
+            <ShoppingBag className="w-3.5 h-3.5 opacity-40 shrink-0" />
+            <span className="font-medium">
+              {order.is_delivery ? 'Home Delivery' : 'On-Premise'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Financial Section */}
+      <div className="p-5 rounded-2xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-800/50 space-y-4">
+        <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-slate-800/50">
+          <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+            Est. Bill Summary
+          </h4>
+          <span className="text-[10px] font-bold text-slate-500 uppercase">
+            {order.payment_method || 'CASH'}
+          </span>
+        </div>
+
+        <div className="space-y-2.5 tabular-nums">
+          <div className="flex justify-between text-xs font-semibold text-slate-500/80">
+            <span>Sub-total</span>
+            <span>
+              ₹
+              {order.total_amount.toLocaleString('en-IN', {
+                minimumFractionDigits: 2,
+              })}
+            </span>
+          </div>
+
           {(order.discount_amount || 0) > 0 && (
-            <div className="flex justify-between text-xs font-bold text-emerald-600">
-              <span>Discount</span>
+            <div className="flex justify-between text-xs font-semibold text-emerald-600">
+              <span>Benefits</span>
               <span>
-                -₹{parseFloat(String(order.discount_amount)).toFixed(2)}
+                -₹
+                {parseFloat(String(order.discount_amount)).toLocaleString(
+                  'en-IN',
+                  { minimumFractionDigits: 2 },
+                )}
               </span>
             </div>
           )}
-          <div className="flex justify-between text-xs font-bold text-[#a16b45]">
-            <span>GST (5%)</span>
-            <span className="text-slate-900 dark:text-white">
-              ₹{taxAmount.toFixed(2)}
+
+          <div className="flex justify-between text-xs font-semibold text-slate-500/80">
+            <span>Tax (5%)</span>
+            <span>
+              ₹{taxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </span>
           </div>
-          <div className="flex justify-between text-base font-black border-t border-[#ead9cd] dark:border-primary/20 pt-2.5 text-primary">
-            <span>Grand Total</span>
-            <span>₹{grandTotal.toFixed(2)}</span>
+
+          <div className="flex justify-between items-center pt-3 border-t border-slate-200 dark:border-slate-700">
+            <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-tight">
+              Est. Total
+            </span>
+            <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+              ₹
+              {grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            </span>
           </div>
         </div>
       </div>
     </div>
   ),
 )
+UnifiedDetails.displayName = 'UnifiedDetails'
 
 export function PendingOrderCard({
   order,
@@ -254,7 +413,7 @@ export function PendingOrderCard({
   }, [order.items])
 
   return (
-    <div className="group bg-white dark:bg-[#2d1e14] rounded-xl border border-[#ead9cd] dark:border-primary/10 shadow-2xl! shadow-orange-500/15 transition-all overflow-hidden mb-6">
+    <div className="group bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800/50 hover:border-slate-200 dark:hover:border-slate-700 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-lg hover:shadow-amber-200/50 dark:hover:shadow-none mb-6">
       {showThermalBill && (
         <ThermalBill
           isOpen={showThermalBill}
@@ -266,97 +425,117 @@ export function PendingOrderCard({
           onShareToMobile={handleShareToMobile}
         />
       )}
+
       <OrderHeader
         order={order}
         totalItems={totalItems}
         finalGrandTotal={isTaxLoading ? order.total_amount : grandTotal}
         isExpanded={isExpanded}
         onToggleExpand={() => setIsExpanded(!isExpanded)}
-        onPrint={() => setShowThermalBill(true)}
+        onPrintBill={() => setShowThermalBill(true)}
       />
 
-      {isExpanded && (
-        <div className="border-t border-[#ead9cd] dark:border-primary/10 p-3 bg-background-light/50 dark:bg-background-dark/30 animate-in fade-in slide-in-from-top-2 duration-300">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-[500px]:gap-2">
-            <div className="lg:col-span-1 space-y-6 max-[500px]:space-y-2">
-              {globalNote && (
-                <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/30 p-4 rounded-xl space-y-2 animate-in fade-in slide-in-from-left-2 duration-500">
-                  <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400 font-black text-[10px] uppercase tracking-widest">
-                    <ScrollText className="w-3.5 h-3.5" strokeWidth={3} />
-                    Kitchen Note
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.4, ease: [0.33, 1, 0.68, 1] }}
+          >
+            <div className="border-t border-slate-100 dark:border-slate-800/50 p-6 pt-6 pb-8 bg-white dark:bg-slate-900/10">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                {/* Main Content Column */}
+                <div className="lg:col-span-8 space-y-8">
+                  {globalNote && (
+                    <div className="bg-orange-50/50 dark:bg-orange-950/10 border border-orange-100 dark:border-orange-900/20 p-4 rounded-2xl space-y-2">
+                      <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400 font-bold text-[10px] uppercase tracking-widest">
+                        <ScrollText className="w-3.5 h-3.5" />
+                        Kitchen Note
+                      </div>
+                      <p className="text-sm font-semibold text-orange-900/80 dark:text-orange-200/80 italic leading-relaxed">
+                        "{globalNote}"
+                      </p>
+                    </div>
+                  )}
+
+                  <ItemDetailsTable items={order.items} />
+
+                  {/* Pending Specific Actions */}
+                  <div className="space-y-4">
+                    <div className="bg-slate-50/50 dark:bg-slate-800/30 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/50 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3 text-[10px] font-bold text-amber-600 uppercase tracking-widest shrink-0">
+                        <Timer className="w-4 h-4" />
+                        Prep Time
+                      </div>
+                      <div className="flex-1 max-w-[240px]">
+                        <PrepTimeSelector
+                          prepTime={prepTime}
+                          onPrepTimeChange={(val) =>
+                            setPrepTime(Math.max(5, val))
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex gap-4">
+                      <Button
+                        variant="outline"
+                        onClick={() => onReject(order)}
+                        disabled={isRejectingOrder || isAcceptingOrder}
+                        className="flex-1 h-12 rounded-xl border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 font-bold hover:bg-rose-50 dark:hover:bg-rose-900/10 hover:text-rose-500 hover:border-rose-100 transition-all"
+                      >
+                        Reject Order
+                      </Button>
+                      <Button
+                        onClick={() => onAccept(order, prepTime)}
+                        disabled={isAcceptingOrder || isRejectingOrder}
+                        className="flex-2 h-12 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl shadow-sm shadow-orange-300 dark:shadow-none transition-all"
+                      >
+                        <CountdownDisplay
+                          orderTime={order.created_at}
+                          onExpired={() => onReject(order)}
+                          renderAs="button"
+                          buttonText="Accept Order"
+                          className="text-sm font-bold uppercase tracking-wider"
+                        />
+                      </Button>
+                    </div>
                   </div>
-                  <p className="text-sm font-bold text-orange-900 dark:text-orange-200 leading-relaxed">
-                    {globalNote}
-                  </p>
                 </div>
-              )}
 
-              <OrderItemsDetail
-                items={order.items}
-                order={order}
-                taxAmount={taxAmount}
-                grandTotal={grandTotal}
-              />
-            </div>
-
-            <div className="space-y-6 max-[500px]:space-y-2">
-              <div className="bg-white dark:bg-[#2d1e14] p-5 max-[500px]:py-2 rounded-xl border border-[#ead9cd] dark:border-primary/10 shadow-sm space-y-4">
-                <div className="flex items-center gap-3 text-sm max-[500px]:text-xs font-bold text-[#a16b45] uppercase tracking-wider">
-                  <Timer className="w-4 h-4" />
-                  Preparation Time
-                </div>
-                <PrepTimeSelector
-                  prepTime={prepTime}
-                  onPrepTimeChange={(val) => setPrepTime(Math.max(5, val))}
-                />
-              </div>
-
-              <div className="flex gap-4">
-                <Button
-                  variant="outline"
-                  onClick={() => onReject(order)}
-                  disabled={isRejectingOrder || isAcceptingOrder}
-                  className="flex-1 h-12 max-[500px]:h-10 max-[500px]:text-xs rounded-xl border-[#ead9cd] dark:border-primary/10 text-slate-700 dark:text-slate-200 font-bold hover:bg-rose-50 dark:hover:bg-rose-900/10 hover:text-rose-500 transition-all"
-                >
-                  Reject Order
-                </Button>
-                <Button
-                  onClick={() => onAccept(order, prepTime)}
-                  disabled={isAcceptingOrder || isRejectingOrder}
-                  className="flex-2 h-12 max-[500px]:h-10 max-[500px]:text-xs! bg-primary hover:bg-primary/90 text-white font-bold rounded-xl shadow-sm shadow-orange-300 dark:shadow-none transition-all"
-                >
-                  <CountdownDisplay
-                    orderTime={order.created_at}
-                    onExpired={() => onReject(order)}
-                    renderAs="button"
-                    buttonText="Accept Order"
-                    className="text-sm max-[500px]:text-xs font-bold uppercase tracking-wider"
+                {/* Context Sidebar */}
+                <div className="lg:col-span-4">
+                  <UnifiedDetails
+                    order={order}
+                    taxAmount={taxAmount}
+                    grandTotal={grandTotal}
                   />
-                </Button>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Quick Status Bar for collapsed state */}
       {!isExpanded && (
-        <div className="px-4 py-2 bg-orange-50/50 dark:bg-[#3a291d]/50 border-t border-[#ead9cd]/50 dark:border-primary/5 flex items-center justify-between">
+        <div className="px-6 py-3 bg-amber-50/30 dark:bg-amber-900/5 border-t border-slate-100 dark:border-slate-800/50 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <span className="text-[10px] font-bold text-[#a16b45] uppercase tracking-widest flex items-center gap-1.5">
-              <Timer className="w-3 h-3" /> Auto-reject in:
+            <span className="text-[10px] font-bold text-amber-600 dark:text-amber-500 uppercase tracking-widest flex items-center gap-1.5">
+              <Timer className="w-3.5 h-3.5" /> Auto-reject in:
             </span>
             <CountdownDisplay
               orderTime={order.created_at}
               onExpired={() => onReject(order)}
-              className="text-xs font-bold text-primary"
+              className="text-xs font-bold text-amber-700 dark:text-amber-400 tabular-nums"
             />
           </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setIsExpanded(true)}
-            className="text-[10px] font-bold text-primary p-0 h-auto hover:bg-transparent"
+            className="text-[10px] font-bold text-primary p-0 h-auto hover:bg-transparent tracking-widest"
           >
             QUICK ACCEPT →
           </Button>

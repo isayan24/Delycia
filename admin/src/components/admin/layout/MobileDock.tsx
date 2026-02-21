@@ -14,6 +14,9 @@ import {
   ShoppingBag,
   Utensils,
   Users,
+  BarChart3,
+  History,
+  Calendar,
 } from 'lucide-react'
 import { Link, useRouterState } from '@tanstack/react-router'
 import { useMediaQuery } from '@/hooks/use-media-query'
@@ -23,22 +26,36 @@ import { useCartStore, selectCartTotalItems } from '@/store/useCartStore'
 
 const dockItems = [
   {
-    title: 'Dashboard',
+    title: 'Home',
     url: '/dashboard',
     icon: LayoutDashboard,
     color: 'text-sky-500',
   },
   {
-    title: 'Quick Bill',
+    title: 'Bill',
     url: '/billing/quick-bill',
     icon: ReceiptIndianRupee,
     color: 'text-indigo-500',
   },
   {
-    title: 'Orders',
+    title: 'Book',
+    url: '/billing/book-table',
+    icon: Calendar,
+    color: 'text-emerald-500',
+    tabletOnly: true,
+  },
+  {
+    title: 'Live',
     url: '/orders',
     icon: ShoppingBag,
     color: 'text-amber-500',
+  },
+  {
+    title: 'History',
+    url: '/orders/history',
+    icon: History,
+    color: 'text-orange-500',
+    tabletOnly: true,
   },
   {
     title: 'Menu',
@@ -52,17 +69,37 @@ const dockItems = [
     icon: Users,
     color: 'text-purple-500',
   },
+  {
+    title: 'Sales',
+    url: '/reports/sales',
+    icon: BarChart3,
+    color: 'text-cyan-500',
+    tabletOnly: true,
+  },
 ]
 
 export function MobileDock() {
   const isMobile = useIsMobile()
-  const isSmallScreen = useMediaQuery('(max-width: 500px)')
+  const isSmallScreen = useMediaQuery('(max-width: 540px)')
   const path = useRouterState({ select: (s) => s.location.pathname })
   const cartCount = useCartStore(selectCartTotalItems)
   const isHidden = useScrollHide()
 
   // Only show the dock on mobile/tablet (below 900px)
   if (!isMobile) return null
+
+  // Filter items: Show all on tablet, but hide tabletOnly items on phone
+  const visibleItems = isSmallScreen
+    ? dockItems.filter((item) => !item.tabletOnly)
+    : dockItems
+
+  // Improved Active Link Logic: Find the most specific match (longest URL)
+  const activeItem = visibleItems
+    .filter((item) => path === item.url || path.startsWith(item.url + '/'))
+    .reduce(
+      (prev, curr) => (curr.url.length > (prev?.url.length || 0) ? curr : prev),
+      null as any,
+    )
 
   return (
     <AnimatePresence>
@@ -85,19 +122,19 @@ export function MobileDock() {
           'fixed z-50 transition-all duration-300',
           isSmallScreen
             ? 'bottom-0 left-0 right-0 w-full max-w-none'
-            : 'bottom-6 left-1/2 w-[92%] max-w-[450px]',
+            : 'bottom-6 left-1/2 w-[95%] max-w-[700px]',
         )}
       >
         <div
           className={cn(
-            'flex items-center justify-between gap-1 overflow-hidden transition-all duration-300',
+            'flex items-center justify-between gap-1 overflow-visible transition-all duration-300',
             isSmallScreen
               ? 'bg-white dark:bg-[#1d130c] border-t border-[#ead9cd] dark:border-primary/10 rounded-t-2xl p-1.5 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.08)]'
-              : 'bg-white/70 dark:bg-[#1d130c]/80 backdrop-blur-2xl border border-[#ead9cd] dark:border-primary/10 rounded-4xl p-2 shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)]',
+              : 'bg-white/80 dark:bg-[#1d130c]/90 backdrop-blur-2xl border border-[#ead9cd] dark:border-primary/10 rounded-4xl p-2 shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)]',
           )}
         >
-          {dockItems.map((item) => {
-            const isActive = path.startsWith(item.url)
+          {visibleItems.map((item) => {
+            const isActive = activeItem?.url === item.url
             const Icon = item.icon
 
             const isQuickBill = item.url === '/billing/quick-bill'
@@ -106,11 +143,11 @@ export function MobileDock() {
               <Link
                 key={item.url}
                 to={item.url}
-                className="relative flex-1 group"
+                className="relative flex-1 group min-w-0"
               >
                 <div
                   className={cn(
-                    'flex flex-col items-center justify-center py-2.5 rounded-2xl transition-all duration-300 gap-1',
+                    'flex flex-col items-center justify-center py-2 md:py-3 rounded-2xl transition-all duration-300 gap-1',
                     isActive
                       ? 'bg-slate-100 dark:bg-primary/10'
                       : 'hover:bg-slate-50 dark:hover:bg-primary/5',
@@ -125,14 +162,14 @@ export function MobileDock() {
                   >
                     <Icon
                       className={cn(
-                        'w-5 h-5 transition-colors',
+                        'size-5 md:size-5.5 transition-colors',
                         isActive
                           ? item.color
                           : 'text-[#a16b45] opacity-60 group-hover:opacity-100',
                       )}
                     />
 
-                    {/* Cart Badge - Option 2 */}
+                    {/* Cart Badge */}
                     {isQuickBill && cartCount > 0 && (
                       <motion.div
                         initial={{ scale: 0 }}
@@ -145,9 +182,8 @@ export function MobileDock() {
                   </motion.div>
 
                   <span
-                    // ... rest of link content ...
                     className={cn(
-                      'text-[10px] font-bold tracking-tight transition-colors truncate w-full text-center px-1',
+                      'text-[9px] md:text-[10px] font-bold tracking-tight transition-colors truncate w-full text-center px-1',
                       isActive
                         ? 'text-slate-900 dark:text-white'
                         : 'text-[#a16b45] opacity-40 group-hover:opacity-80',
@@ -155,18 +191,6 @@ export function MobileDock() {
                   >
                     {item.title}
                   </span>
-
-                  {/* {isActive && (
-                    <motion.div
-                      layoutId="dock-indicator"
-                      className="absolute -bottom-1 w-1.5 h-1.5 bg-primary rounded-full"
-                      transition={{
-                        type: 'spring',
-                        damping: 12,
-                        stiffness: 120,
-                      }}
-                    />
-                  )} */}
                 </div>
               </Link>
             )

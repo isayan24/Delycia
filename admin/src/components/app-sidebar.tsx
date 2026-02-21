@@ -41,7 +41,6 @@ const navMain = [
     url: '/billing',
     icon: ShoppingCart,
     color: 'text-indigo-500',
-    isActive: true,
     items: [
       {
         title: 'Quick Bill',
@@ -58,7 +57,6 @@ const navMain = [
     url: '/orders/overview',
     icon: ShoppingBag,
     color: 'text-amber-500',
-    isActive: true,
     items: [
       {
         title: 'Orders',
@@ -133,6 +131,24 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { isMobile, setOpenMobile } = useSidebar()
   const { pathname } = useRouterState({ select: (s) => s.location })
 
+  // Compute dynamic navigation items
+  const dynamicNavMain = React.useMemo(() => {
+    return navMain.map((item) => {
+      // Check if any sub-item is active
+      const isSubItemActive = item.items?.some(
+        (sub) => pathname === sub.url || pathname.startsWith(sub.url + '/'),
+      )
+      // Check if the parent item itself is active
+      const isParentActive =
+        pathname === item.url || pathname.startsWith(item.url + '/')
+
+      return {
+        ...item,
+        isActive: isSubItemActive || isParentActive,
+      }
+    })
+  }, [pathname])
+
   // Automatically close sidebar on mobile when pathname changes
   React.useEffect(() => {
     if (isMobile) {
@@ -160,7 +176,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navMain} />
+        <NavMain items={dynamicNavMain} />
         <NavSecondary items={navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

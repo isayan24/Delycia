@@ -168,7 +168,7 @@ export const OrderHistoryDateFilter: React.FC<OrderHistoryDateFilterProps> = ({
               'bg-white dark:bg-transparent border-[#ead9cd] dark:border-primary/10 rounded-xl font-medium tracking-wider text-slate-600 dark:text-slate-300 focus:ring-2 focus:ring-primary/20 transition-all',
               compact
                 ? 'h-9 px-3 text-xs w-full sm:w-auto'
-                : 'h-11 px-4 text-sm w-full md:w-[200px]',
+                : 'h-11 px-4 text-sm w-full',
             )}
           >
             <div className="flex items-center gap-2 overflow-hidden">
@@ -183,16 +183,22 @@ export const OrderHistoryDateFilter: React.FC<OrderHistoryDateFilterProps> = ({
               </SelectValue>
             </div>
           </SelectTrigger>
-          <SelectContent className="rounded-xl border-[#ead9cd] dark:border-primary/10 p-1 min-w-[220px]">
+          <SelectContent
+            position="popper"
+            side="bottom"
+            align="end"
+            sideOffset={4}
+            className="rounded-xl border-[#ead9cd] dark:border-primary/10 p-1 min-w-[220px] max-w-[90vw]"
+          >
             {dateFilterOptions.map((option) => (
               <SelectItem
                 key={option.value}
                 value={option.value}
-                className="text-[13px] font-medium tracking-wide rounded-lg focus:bg-orange-50 dark:focus:bg-[#3a291d] focus:text-orange-600 cursor-pointer py-2.5"
+                className="text-[13px] tracking-wide rounded-lg focus:bg-orange-50 dark:focus:bg-[#3a291d] focus:text-orange-600 cursor-pointer py-2.5"
               >
                 <div className="flex flex-col gap-0.5">
-                  <span className="font-bold">{option.label}</span>
-                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal uppercase tracking-widest">
+                  <span className="font-[550]">{option.label}</span>
+                  <span className="text-[11px] text-slate-400 dark:text-slate-500 font-normal tracking-widest">
                     {option.description}
                   </span>
                 </div>

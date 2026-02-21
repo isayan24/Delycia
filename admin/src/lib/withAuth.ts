@@ -55,7 +55,11 @@ interface WithAuthOptions {
  */
 export async function withAuth(
   request: Request,
-  fn: (accessToken: string, headers: Headers, request: Request) => Promise<Response>,
+  fn: (
+    accessToken: string,
+    headers: Headers,
+    request: Request,
+  ) => Promise<Response>,
   options: WithAuthOptions = {},
 ): Promise<Response> {
   const { requireAuth = true, _isRetry = false } = options
@@ -68,7 +72,7 @@ export async function withAuth(
   const cookieHeader = request.headers.get('cookie')
   const cookies = parseCookies(cookieHeader)
   const refreshToken = cookies['admin_refresh_token']
-  
+
   let accessToken = getAccessTokenFromCookie(request)
 
   if (!accessToken) {
@@ -106,12 +110,16 @@ export async function withAuth(
 
     // Check if refresh failed
     if (!refreshResult || (refreshResult && 'failed' in refreshResult)) {
-      const failureReason = refreshResult && 'failed' in refreshResult ? refreshResult.reason : RefreshFailureReason.BACKEND_ERROR
-      
+      const failureReason =
+        refreshResult && 'failed' in refreshResult
+          ? refreshResult.reason
+          : RefreshFailureReason.BACKEND_ERROR
+
       // Only trigger sessionExpired logout if backend rejected the refresh
       // Don't trigger logout if this request just didn't have cookies (SSR race condition)
-      const shouldTriggerLogout = failureReason !== RefreshFailureReason.NO_COOKIES
-      
+      const shouldTriggerLogout =
+        failureReason !== RefreshFailureReason.NO_COOKIES
+
       // Clear expired cookies
       const clearCookieHeaders = new Headers()
       clearCookieHeaders.append(
@@ -135,7 +143,11 @@ export async function withAuth(
     }
 
     // At this point, refreshResult is guaranteed to be a success object
-    const successResult = refreshResult as { accessToken: string; refreshToken: string; setCookieHeaders: string[] }
+    const successResult = refreshResult as {
+      accessToken: string
+      refreshToken: string
+      setCookieHeaders: string[]
+    }
 
     // Retry with new token and set cookies
     const refreshHeaders = new Headers()
@@ -152,7 +164,7 @@ export async function withAuth(
     return result
   } catch (error: any) {
     console.error(`[withAuth] Request failed:`, error?.message || error)
-    
+
     // Check if this is a timeout error
     if (error?.code === 'ECONNABORTED' || error?.code === 'ETIMEDOUT') {
       console.error('[withAuth] Request timed out - backend not responding')
@@ -165,16 +177,12 @@ export async function withAuth(
         { status: 504, headers: { 'Content-Type': 'application/json' } },
       )
     }
-    
-    // Check if this is a token expiration error (401 or 403 with "Token expired")
+
+    // Check if this is a token expiration error (401 or 403)
+    // The backend's auth middleware returns 403 for ALL jwt.verify() failures,
+    // so any 403 from a protected endpoint is a token issue.
     const status = error?.response?.status
-    const errorMessage =
-      error?.response?.data?.error || error?.response?.data?.message || ''
-    const isTokenExpired =
-      status === 401 ||
-      (status === 403 &&
-        typeof errorMessage === 'string' &&
-        errorMessage.includes('Token expired'))
+    const isTokenExpired = status === 401 || status === 403
 
     if (!isTokenExpired) {
       // Not an auth error — rethrow
@@ -214,11 +222,15 @@ export async function withAuth(
 
     // Check if refresh failed
     if (!refreshResult || (refreshResult && 'failed' in refreshResult)) {
-      const failureReason = refreshResult && 'failed' in refreshResult ? refreshResult.reason : RefreshFailureReason.BACKEND_ERROR
-      
+      const failureReason =
+        refreshResult && 'failed' in refreshResult
+          ? refreshResult.reason
+          : RefreshFailureReason.BACKEND_ERROR
+
       // Only trigger sessionExpired logout if backend rejected the refresh
-      const shouldTriggerLogout = failureReason !== RefreshFailureReason.NO_COOKIES
-      
+      const shouldTriggerLogout =
+        failureReason !== RefreshFailureReason.NO_COOKIES
+
       // Clear expired cookies
       const clearCookieHeaders = new Headers({
         'Content-Type': 'application/json',
@@ -245,7 +257,11 @@ export async function withAuth(
 
     // At this point, refreshResult is guaranteed to be a success object
     // Type assertion to help TypeScript
-    const successResult = refreshResult as { accessToken: string; refreshToken: string; setCookieHeaders: string[] }
+    const successResult = refreshResult as {
+      accessToken: string
+      refreshToken: string
+      setCookieHeaders: string[]
+    }
 
     // Retry with new token and set cookies
     const refreshHeaders = new Headers()
@@ -255,13 +271,23 @@ export async function withAuth(
 
     try {
       // Use the pre-cloned request from the beginning of the function
-      const retryResult = await fn(successResult.accessToken, refreshHeaders, clonedRequest)
+      const retryResult = await fn(
+        successResult.accessToken,
+        refreshHeaders,
+        clonedRequest,
+      )
       return retryResult
     } catch (retryError: any) {
-      console.error(`[withAuth] Retry failed:`, retryError?.message || retryError)
-      
+      console.error(
+        `[withAuth] Retry failed:`,
+        retryError?.message || retryError,
+      )
+
       // Check if this is a timeout error
-      if (retryError?.code === 'ECONNABORTED' || retryError?.code === 'ETIMEDOUT') {
+      if (
+        retryError?.code === 'ECONNABORTED' ||
+        retryError?.code === 'ETIMEDOUT'
+      ) {
         console.error('[withAuth] Retry timed out - backend not responding')
         return new Response(
           JSON.stringify({
@@ -272,7 +298,7 @@ export async function withAuth(
           { status: 504, headers: { 'Content-Type': 'application/json' } },
         )
       }
-      
+
       // If retry also fails with auth error, give up and force logout
       const retryStatus = retryError?.response?.status
       if (retryStatus === 401 || retryStatus === 403) {

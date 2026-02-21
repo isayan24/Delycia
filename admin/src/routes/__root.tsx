@@ -27,6 +27,7 @@ import WaiterHeader from '@/components/admin/header/WaiterHeader'
 import { SubscriptionGuard } from '@/components/admin/settings/SubscriptionGuard'
 import { NotificationToastManager } from '@/components/common/NotificationToastManager'
 import { MobileDock } from '@/components/admin/layout/MobileDock'
+import { SessionExpiryWarning } from '@/components/SessionExpiryWarning'
 
 // Note: We don't define beforeLoad here because we get auth from component
 // and pass it via router instantiation in the app setup
@@ -123,6 +124,8 @@ function RootComponent() {
         <SoundProvider>
           <NetworkOfflineNotification />
           <SessionExpiredNotification />
+          {/* <SessionExpiryWarning/> */}
+          {/* TODO: Re-enable after fixing BFF route issues */}
 
           {/* Waiter Header fallback when Sidebar is not active but Header is requested (and not 'none') */}
           {!useSidebarLayout && showHeader && getHeaderType === 'minimal' && (

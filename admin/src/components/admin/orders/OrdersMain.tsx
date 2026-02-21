@@ -278,7 +278,7 @@ export default function OrdersMain() {
         <UseAdminSoundWrapper pendingOrdersCount={pendingOrders.length} />
       )}
 
-      <div className="px-6 pb-6 pt-2 max-[700px]:p-3 space-y-8 bg-slate-50/30 dark:bg-background-dark/30 min-h-screen transition-colors">
+      <div className="px-6 pb-6 pt-2 max-[700px]:p-3 space-y-8 bg-slate-50/30 dark:bg-background-dark/30  transition-colors">
         <div className="animate-in fade-in slide-in-from-top-4 duration-500">
           <OrderTabs
             activeTab={activeTab}

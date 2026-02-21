@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useState, useEffect } from 'react'
 import { useSearch } from '@tanstack/react-router'
 import { Search, X, Layers, Merge } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -37,9 +37,33 @@ export const LargeOrderFilters = memo(
     const urlSearch = useSearch({ strict: false }) as any
     const hasActiveFilters = !!(urlSearch?.filter_type || search)
 
+    // Local state for debounced search
+    const [localSearch, setLocalSearch] = useState(search)
+
+    // Sync local state when external search changes (e.g., clear filters)
+    useEffect(() => {
+      setLocalSearch(search)
+    }, [search])
+
+    // Debounce the actual search callback
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        if (localSearch !== search) {
+          onSearchChange(localSearch)
+        }
+      }, 500)
+
+      return () => clearTimeout(timer)
+    }, [localSearch, search, onSearchChange])
+
     // Clear all filters
     const handleClearAll = () => {
       onClearFilters()
+    }
+
+    const handleClearSearch = () => {
+      setLocalSearch('')
+      onSearchChange('')
     }
 
     return (
@@ -76,7 +100,6 @@ export const LargeOrderFilters = memo(
               <OrderHistoryDateFilter
                 onFilterChange={onDateRangeChange}
                 compact={true}
-                className="w-64"
               />
 
               {hasActiveFilters && !isSelectionMode && (
@@ -96,14 +119,14 @@ export const LargeOrderFilters = memo(
                 <Search className="w-4 h-4" />
               </div>
               <Input
-                value={search}
-                onChange={(e) => onSearchChange(e.target.value)}
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
                 className="w-full h-11 pl-12 pr-10 bg-white dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 rounded-xl focus-visible:ring-primary/50 text-sm shadow-sm"
                 placeholder="Filter by Customer Name or items..."
               />
-              {search && (
+              {localSearch && (
                 <button
-                  onClick={() => onSearchChange('')}
+                  onClick={handleClearSearch}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                 >
                   <X className="w-3.5 h-3.5" />

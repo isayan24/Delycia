@@ -9,7 +9,7 @@ export const Route = createFileRoute('/billing/quick-bill')({
 
 function QuickBillPage() {
   return (
-    <div className="min-h-screen">
+    <div className="">
       <QuickBillMain />
     </div>
   )

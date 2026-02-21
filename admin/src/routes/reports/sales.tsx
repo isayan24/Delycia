@@ -88,15 +88,15 @@ function SalesReportPage() {
         </div>
       </div>
       {/* Date Information Bar */}
-      <div className="bg-white dark:bg-[#2d1e14] rounded-xl border border-[#ead9cd] dark:border-primary/10 p-2 md:p-3 mb-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
-        <div className="flex-1 flex items-center overflow-hidden">
+      <div className="bg-white dark:bg-[#2d1e14] rounded-2xl border border-[#ead9cd] dark:border-primary/10 p-2 md:p-3 mb-8 shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-6 md:gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="flex-1 w-full overflow-visible">
           <MiniStats
             stats={statsQuery.data || null}
             loading={statsQuery.isLoading}
           />
         </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <DateFilterComponent className="w-full sm:w-[180px]" />
+        <div className="flex items-center gap-3 shrink-0 px-2 pb-2 xl:pb-0 xl:px-0">
+          <DateFilterComponent className="w-full sm:w-[200px]" />
         </div>
       </div>
 
@@ -104,8 +104,6 @@ function SalesReportPage() {
         {/* Overview Tab */}
         {tab === 'overview' && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            
-
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               <div className="lg:col-span-8">
                 <SalesTrendChart

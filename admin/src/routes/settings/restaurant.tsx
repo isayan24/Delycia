@@ -7,35 +7,15 @@ import {
 } from '@/hooks/queries/useRestaurantSettingsQueries'
 import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
-import {
-  ArrowLeft,
-  Loader2,
-  Save,
-  MapPin,
-  Building2,
-  Percent,
-  Power,
-  Leaf,
-  Globe,
-  Clock,
-  CalendarDays,
-} from 'lucide-react'
-import { Switch } from '@/components/ui/switch'
-import { Input } from '@/components/ui/input'
+import { ArrowLeft, Loader2, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card'
-import AddImage from '@/components/smallComponents/AddImage'
 import { extractFileIdFromUrl } from '@/helpers/image/imagekitHelpers'
 import { useAuth } from '@/hooks/useAuth'
 import useToast from '@/hooks/UseToast'
+import { IdentitySection } from '@/components/admin/settings/restaurant/IdentitySection'
+import { LogisticsSection } from '@/components/admin/settings/restaurant/LogisticsSection'
+import { OperationsSection } from '@/components/admin/settings/restaurant/OperationsSection'
+import { ScheduleSection } from '@/components/admin/settings/restaurant/ScheduleSection'
 
 export const Route = createFileRoute('/settings/restaurant')({
   beforeLoad: requireAuth,
@@ -309,512 +289,67 @@ function RestaurantSettingsPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto pb-12">
-      {/* Header */}
-      <div className="mb-6 flex items-center gap-4">
-        <Link
-          to="/settings"
-          className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5 text-gray-600" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">
-            Restaurant Settings
-          </h1>
-          <p className="text-gray-500 text-sm">
-            Manage your restaurant's operational settings
-          </p>
+    <div className="max-w-[58rem] mx-auto pb-12">
+      <div className="mb-10 flex items-center justify-between">
+        <div className="flex items-center gap-5">
+          <Link
+            to="/settings"
+            className="group flex items-center justify-center size-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-sm"
+          >
+            <ArrowLeft className="w-5 h-5 text-slate-600 dark:text-slate-400 group-hover:-translate-x-0.5 transition-transform" />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+              Restaurant Settings
+            </h1>
+            <p className="text-slate-500 text-sm font-medium">
+              Configure your restaurant's digital storefront and operations
+            </p>
+          </div>
         </div>
+
+        <Button
+          onClick={handleSubmit}
+          disabled={mutation.isPending || isSubmitting}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 dark:shadow-none transition-all px-6 rounded-xl"
+        >
+          {mutation.isPending || isSubmitting ? (
+            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+          ) : (
+            <Save className="w-4 h-4 mr-2" />
+          )}
+          Save Settings
+        </Button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Status & Type Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Active Status Card */}
-          <Card className="border-2 border-green-200 hover:border-green-400 transition-colors">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Power className="w-5 h-5 text-green-600" />
-                Restaurant Status
-              </CardTitle>
-              <CardDescription>
-                {formData.is_active === 1
-                  ? 'Your restaurant is currently accepting orders.'
-                  : 'Your restaurant is currently closed for orders.'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <Label
-                  htmlFor="is_active"
-                  className={`font-semibold ${formData.is_active === 1 ? 'text-green-700' : 'text-gray-500'}`}
-                >
-                  {formData.is_active === 1 ? 'Active' : 'Inactive'}
-                </Label>
-                <Switch
-                  id="is_active"
-                  checked={formData.is_active === 1}
-                  onCheckedChange={(checked) =>
-                    handleSwitchChange('is_active', checked)
-                  }
-                  className="data-[state=checked]:bg-green-500"
-                />
-              </div>
-            </CardContent>
-          </Card>
+      <form onSubmit={handleSubmit} className="space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Main Content Column */}
+          <div className="lg:col-span-8 space-y-8">
+            <IdentitySection
+              formData={formData}
+              handleInputChange={handleInputChange}
+              handleLogoUpload={handleLogoUpload}
+              handleBannerUpload={handleBannerUpload}
+            />
 
-          {/* Veg/Non-Veg Card */}
-          <Card className="border-2 border-emerald-200 hover:border-emerald-400 transition-colors">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Leaf className="w-5 h-5 text-emerald-600" />
-                Restaurant Type
-              </CardTitle>
-              <CardDescription>
-                This will be shown to customers in the user app.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <Label
-                  htmlFor="is_veg_only"
-                  className={`font-semibold ${formData.is_veg_only === 1 ? 'text-emerald-700' : 'text-orange-600'}`}
-                >
-                  {formData.is_veg_only === 1 ? 'Pure Veg' : 'Veg & Non-Veg'}
-                </Label>
-                <Switch
-                  id="is_veg_only"
-                  checked={formData.is_veg_only === 1}
-                  onCheckedChange={(checked) =>
-                    handleSwitchChange('is_veg_only', checked)
-                  }
-                  className="data-[state=checked]:bg-emerald-500"
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            <LogisticsSection
+              formData={formData}
+              handleInputChange={handleInputChange}
+              handleGetLocation={handleGetLocation}
+              isLocationLoading={isLocationLoading}
+            />
+          </div>
 
-        {/* Online Orders + Operating Hours Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Online Orders Card */}
-          <Card className="border-2 border-sky-200 hover:border-sky-400 transition-colors">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Globe className="w-5 h-5 text-sky-600" />
-                Online Orders
-              </CardTitle>
-              <CardDescription>
-                {formData.online_orders === 1
-                  ? 'Customers can place orders online.'
-                  : 'Only QR/table ordering is available.'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <Label
-                  htmlFor="online_orders"
-                  className={`font-semibold ${formData.online_orders === 1 ? 'text-sky-700' : 'text-gray-500'}`}
-                >
-                  {formData.online_orders === 1 ? 'Enabled' : 'Disabled'}
-                </Label>
-                <Switch
-                  id="online_orders"
-                  checked={formData.online_orders === 1}
-                  onCheckedChange={(checked) =>
-                    handleSwitchChange('online_orders', checked)
-                  }
-                  className="data-[state=checked]:bg-sky-500"
-                />
-              </div>
-            </CardContent>
-          </Card>
+          {/* Sidebar Column */}
+          <div className="lg:col-span-4 space-y-8">
+            <OperationsSection
+              formData={formData}
+              handleSwitchChange={handleSwitchChange}
+            />
 
-          {/* Operating Hours Card */}
-          <Card className="border-2 border-orange-200 hover:border-orange-400 transition-colors">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Clock className="w-5 h-5 text-orange-600" />
-                Operating Hours
-              </CardTitle>
-              <CardDescription>
-                Set when your restaurant opens and closes each day.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="open_time" className="text-sm">
-                    Opening Time
-                  </Label>
-                  <Input
-                    id="open_time"
-                    name="open_time"
-                    type="time"
-                    value={
-                      formData.open_time
-                        ? formData.open_time.substring(0, 5)
-                        : '10:00'
-                    }
-                    onChange={(e) => {
-                      const val = e.target.value
-                      if (!val) return
-                      // Normalize to HH:MM:SS — browser returns HH:MM
-                      const normalized =
-                        val.length === 5 ? `${val}:00` : val.substring(0, 8)
-                      setFormData((prev) => ({
-                        ...prev,
-                        open_time: normalized,
-                      }))
-                    }}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="close_time" className="text-sm">
-                    Closing Time
-                  </Label>
-                  <Input
-                    id="close_time"
-                    name="close_time"
-                    type="time"
-                    value={
-                      formData.close_time
-                        ? formData.close_time.substring(0, 5)
-                        : '22:00'
-                    }
-                    onChange={(e) => {
-                      const val = e.target.value
-                      if (!val) return
-                      // Normalize to HH:MM:SS — browser returns HH:MM
-                      const normalized =
-                        val.length === 5 ? `${val}:00` : val.substring(0, 8)
-                      setFormData((prev) => ({
-                        ...prev,
-                        close_time: normalized,
-                      }))
-                    }}
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Active Days Card */}
-        <Card className="border-2 border-indigo-200 hover:border-indigo-400 transition-colors">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <CalendarDays className="w-5 h-5 text-indigo-600" />
-              Active Days
-            </CardTitle>
-            <CardDescription>
-              Select the days your restaurant is open. The restaurant will
-              automatically show as closed on unselected days.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {[
-                { label: 'Sun', bit: 1 },
-                { label: 'Mon', bit: 2 },
-                { label: 'Tue', bit: 4 },
-                { label: 'Wed', bit: 8 },
-                { label: 'Thu', bit: 16 },
-                { label: 'Fri', bit: 32 },
-                { label: 'Sat', bit: 64 },
-              ].map((day) => {
-                const isSelected =
-                  ((formData.active_days ?? 127) & day.bit) !== 0
-                return (
-                  <button
-                    key={day.label}
-                    type="button"
-                    onClick={() => {
-                      setFormData((prev) => ({
-                        ...prev,
-                        active_days: isSelected
-                          ? (prev.active_days ?? 127) & ~day.bit
-                          : (prev.active_days ?? 127) | day.bit,
-                      }))
-                    }}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium border-2 transition-all ${
-                      isSelected
-                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                        : 'bg-white text-gray-500 border-gray-200 hover:border-indigo-300 hover:text-indigo-600'
-                    }`}
-                  >
-                    {day.label}
-                  </button>
-                )
-              })}
-            </div>
-            <p className="text-xs text-muted-foreground mt-3">
-              {(() => {
-                const days = [
-                  { label: 'Sun', bit: 1 },
-                  { label: 'Mon', bit: 2 },
-                  { label: 'Tue', bit: 4 },
-                  { label: 'Wed', bit: 8 },
-                  { label: 'Thu', bit: 16 },
-                  { label: 'Fri', bit: 32 },
-                  { label: 'Sat', bit: 64 },
-                ]
-                const activeDays = days
-                  .filter((d) => ((formData.active_days ?? 127) & d.bit) !== 0)
-                  .map((d) => d.label)
-                if (activeDays.length === 7) return 'Open all days of the week.'
-                if (activeDays.length === 0)
-                  return 'No days selected — restaurant will always show as closed.'
-                return `Open on: ${activeDays.join(', ')}`
-              })()}
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Tax Card */}
-        <Card className="border-2 border-amber-200 hover:border-amber-400 transition-colors">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Percent className="w-5 h-5 text-amber-600" />
-              Tax Settings
-            </CardTitle>
-            <CardDescription>
-              GST or applicable tax percentage applied to orders.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-4">
-              <Label htmlFor="tax_percent" className="w-28 shrink-0">
-                Tax Percentage
-              </Label>
-              <div className="relative flex-1 max-w-xs">
-                <Input
-                  id="tax_percent"
-                  name="tax_percent"
-                  type="number"
-                  min={0}
-                  max={100}
-                  step={0.01}
-                  value={formData.tax_percent ?? ''}
-                  onChange={handleInputChange}
-                  className="pr-8"
-                  placeholder="e.g., 5.00"
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                  %
-                </span>
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground mt-2 ml-32">
-              Enter the GST/tax rate (0-100). This will be applied to all new
-              orders. Example: 5.00 for 5% GST.
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Basic Details Card */}
-        <Card className="border-2 border-blue-200 hover:border-blue-400 transition-colors">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Building2 className="w-5 h-5 text-blue-600" />
-              Basic Details
-            </CardTitle>
-            <CardDescription>
-              Update your restaurant's public information.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="name">Restaurant Name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  value={formData.name ?? ''}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div>
-                <Label htmlFor="phone_number">Phone Number</Label>
-                <Input
-                  id="phone_number"
-                  name="phone_number"
-                  value={formData.phone_number ?? ''}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email ?? ''}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                name="description"
-                rows={3}
-                value={formData.description ?? ''}
-                onChange={handleInputChange}
-                placeholder="Tell customers about your restaurant..."
-              />
-            </div>
-
-            {/* Logo and Banner with AddImage */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-              <div>
-                <Label className="mb-2 block text-sm font-medium">
-                  Restaurant Logo
-                </Label>
-                <AddImage
-                  inputId="restaurantLogo"
-                  OldImage={formData.logo || null}
-                  onImageUpload={handleLogoUpload}
-                  required={false}
-                />
-              </div>
-              <div>
-                <Label className="mb-2 block text-sm font-medium">
-                  Restaurant Banner
-                </Label>
-                <AddImage
-                  inputId="restaurantBanner"
-                  OldImage={formData.banner || null}
-                  onImageUpload={handleBannerUpload}
-                  required={false}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="address">Address</Label>
-                <Input
-                  id="address"
-                  name="address"
-                  value={formData.address ?? ''}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div>
-                <Label htmlFor="city">City</Label>
-                <Input
-                  id="city"
-                  name="city"
-                  value={formData.city ?? ''}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div>
-                <Label htmlFor="state">State</Label>
-                <Input
-                  id="state"
-                  name="state"
-                  value={formData.state ?? ''}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="pincode">Pincode</Label>
-                <Input
-                  id="pincode"
-                  name="pincode"
-                  value={formData.pincode ?? ''}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div>
-                <Label htmlFor="fssai_license">FSSAI License</Label>
-                <Input
-                  id="fssai_license"
-                  name="fssai_license"
-                  value={formData.fssai_license ?? ''}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Location Card */}
-        <Card className="border-2 border-violet-200 hover:border-violet-400 transition-colors">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <MapPin className="w-5 h-5 text-violet-600" />
-              Location
-            </CardTitle>
-            <CardDescription>
-              Your restaurant's coordinates for map display.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="latitude">Latitude</Label>
-                <Input
-                  id="latitude"
-                  name="latitude"
-                  value={formData.latitude ?? ''}
-                  onChange={handleInputChange}
-                  readOnly
-                  className="bg-gray-50"
-                />
-              </div>
-              <div>
-                <Label htmlFor="longitude">Longitude</Label>
-                <Input
-                  id="longitude"
-                  name="longitude"
-                  value={formData.longitude ?? ''}
-                  onChange={handleInputChange}
-                  readOnly
-                  className="bg-gray-50"
-                />
-              </div>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleGetLocation}
-              disabled={isLocationLoading}
-              className="border-violet-400 text-violet-700 hover:bg-violet-50"
-            >
-              {isLocationLoading ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <MapPin className="w-4 h-4 mr-2" />
-              )}
-              Get Current Location
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Submit Button */}
-        <div className="flex justify-end pt-4">
-          <Button
-            type="submit"
-            disabled={mutation.isPending || isSubmitting}
-            size="lg"
-            className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white px-8"
-          >
-            {mutation.isPending || isSubmitting ? (
-              <Loader2 className="w-5 h-5 animate-spin mr-2" />
-            ) : (
-              <Save className="w-5 h-5 mr-2" />
-            )}
-            Save Changes
-          </Button>
+            <ScheduleSection formData={formData} setFormData={setFormData} />
+          </div>
         </div>
       </form>
     </div>

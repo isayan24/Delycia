@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { parseCookies } from './server-cookies'
+import { createCircuitBreaker, CircuitBreaker } from './circuitBreaker'
 
 /**
  * Result of a successful token refresh
@@ -17,12 +18,25 @@ export enum RefreshFailureReason {
   NO_COOKIES = 'NO_COOKIES', // This request had no cookies (SSR race condition)
   BACKEND_ERROR = 'BACKEND_ERROR', // Backend rejected the refresh (true session expiry)
   NETWORK_ERROR = 'NETWORK_ERROR', // Network error during refresh
+  RATE_LIMITED = 'RATE_LIMITED', // Rate limit exceeded (429)
+  CIRCUIT_OPEN = 'CIRCUIT_OPEN', // Circuit breaker is open
 }
 
 /**
  * Extended result that includes failure reason
  */
-export type RefreshResultOrFailure = RefreshResult | { failed: true; reason: RefreshFailureReason }
+export type RefreshResultOrFailure =
+  | RefreshResult
+  | { failed: true; reason: RefreshFailureReason }
+
+/**
+ * Retry configuration
+ */
+interface RetryConfig {
+  maxAttempts: number
+  baseDelay: number // Base delay in ms (will be exponentially increased)
+  maxDelay: number // Maximum delay in ms
+}
 
 /**
  * Centralized token refresh coordinator for server-side BFF routes.
@@ -33,6 +47,8 @@ export type RefreshResultOrFailure = RefreshResult | { failed: true; reason: Ref
  * Key features:
  * - Deduplicates concurrent refresh attempts
  * - Enforces minimum time between refreshes (5 seconds)
+ * - Retry with exponential backoff (1s, 2s, 4s)
+ * - Circuit breaker pattern (opens after 5 failures)
  * - Provides structured logging for debugging
  * - Thread-safe Promise-based coordination
  *
@@ -55,14 +71,32 @@ class RefreshCoordinator {
   // Last successful refresh timestamp
   private lastRefreshTime: number = 0
 
+  // Cached last successful refresh result
+  private lastRefreshResult: RefreshResult | null = null
+
   // Minimum time between refreshes (5 seconds)
   private readonly MIN_REFRESH_INTERVAL = 5000
 
   // Request counter for logging
   private requestCounter = 0
 
+  // Circuit breaker for refresh endpoint
+  private circuitBreaker: CircuitBreaker
+
+  // Retry configuration
+  private retryConfig: RetryConfig = {
+    maxAttempts: 3,
+    baseDelay: 1000, // 1 second
+    maxDelay: 8000, // 8 seconds max
+  }
+
   private constructor() {
-    // RefreshCoordinator initialized
+    // Initialize circuit breaker
+    this.circuitBreaker = createCircuitBreaker('RefreshCoordinator', {
+      failureThreshold: 5, // Open after 5 consecutive failures
+      successThreshold: 2, // Close after 2 consecutive successes
+      timeout: 30000, // Try again after 30 seconds
+    })
   }
 
   /**
@@ -87,7 +121,9 @@ class RefreshCoordinator {
    * @param request - The incoming Request object (for extracting cookies)
    * @returns RefreshResult with new tokens, or failure object with reason
    */
-  async refreshTokens(request: Request): Promise<RefreshResultOrFailure | null> {
+  async refreshTokens(
+    request: Request,
+  ): Promise<RefreshResultOrFailure | null> {
     const requestId = `req_${++this.requestCounter}`
 
     // Case 1: Refresh already in progress → wait for it
@@ -95,14 +131,21 @@ class RefreshCoordinator {
       return this.refreshPromise
     }
 
-    // Case 2: Refreshed recently → skip refresh
-    if (this.shouldSkipRefresh()) {
-      // Return null to indicate no refresh needed - withAuth will use existing token
-      return null
+    // Case 2: Refreshed recently → return cached result
+    if (this.shouldSkipRefresh() && this.lastRefreshResult) {
+      return this.lastRefreshResult
     }
 
-    // Case 3: Perform new refresh
-    this.refreshPromise = this.performRefresh(request, requestId)
+    // Case 3: Check circuit breaker
+    if (this.circuitBreaker.isOpen()) {
+      console.warn(
+        `[RefreshCoordinator:${requestId}] Circuit breaker is OPEN - blocking refresh attempt`,
+      )
+      return { failed: true, reason: RefreshFailureReason.CIRCUIT_OPEN }
+    }
+
+    // Case 4: Perform new refresh with retry logic
+    this.refreshPromise = this.performRefreshWithRetry(request, requestId)
 
     try {
       const result = await this.refreshPromise
@@ -123,14 +166,100 @@ class RefreshCoordinator {
   }
 
   /**
+   * Perform refresh with retry logic and exponential backoff
+   */
+  private async performRefreshWithRetry(
+    request: Request,
+    requestId: string,
+  ): Promise<RefreshResultOrFailure | null> {
+    let lastError: any = null
+
+    for (let attempt = 1; attempt <= this.retryConfig.maxAttempts; attempt++) {
+      try {
+        // Execute through circuit breaker
+        const result = await this.circuitBreaker.execute(() =>
+          this.performRefresh(request, requestId, attempt),
+        )
+
+        // Success!
+        if (result && 'accessToken' in result) {
+          if (attempt > 1) {
+            console.log(
+              `[RefreshCoordinator:${requestId}] ✅ Succeeded on attempt ${attempt}`,
+            )
+          }
+          // Cache the successful result for concurrent callers
+          this.lastRefreshResult = result as RefreshResult
+          return result
+        }
+
+        // Failed with specific reason (don't retry)
+        if (result && 'failed' in result) {
+          // Don't retry on these errors
+          if (
+            result.reason === RefreshFailureReason.NO_COOKIES ||
+            result.reason === RefreshFailureReason.BACKEND_ERROR ||
+            result.reason === RefreshFailureReason.RATE_LIMITED
+          ) {
+            return result
+          }
+          lastError = result
+        }
+      } catch (error: any) {
+        lastError = error
+        console.warn(
+          `[RefreshCoordinator:${requestId}] Attempt ${attempt}/${this.retryConfig.maxAttempts} failed:`,
+          error.message,
+        )
+
+        // Don't retry on non-network errors
+        if (error.message?.includes('Circuit breaker')) {
+          return { failed: true, reason: RefreshFailureReason.CIRCUIT_OPEN }
+        }
+      }
+
+      // If not last attempt, wait before retrying
+      if (attempt < this.retryConfig.maxAttempts) {
+        const delay = this.calculateBackoff(attempt)
+        console.log(
+          `[RefreshCoordinator:${requestId}] Retrying in ${delay}ms...`,
+        )
+        await this.sleep(delay)
+      }
+    }
+
+    // All attempts failed
+    console.error(
+      `[RefreshCoordinator:${requestId}] ❌ All ${this.retryConfig.maxAttempts} attempts failed`,
+    )
+    return { failed: true, reason: RefreshFailureReason.NETWORK_ERROR }
+  }
+
+  /**
+   * Calculate exponential backoff delay
+   */
+  private calculateBackoff(attempt: number): number {
+    const delay = this.retryConfig.baseDelay * Math.pow(2, attempt - 1)
+    return Math.min(delay, this.retryConfig.maxDelay)
+  }
+
+  /**
+   * Sleep for specified milliseconds
+   */
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms))
+  }
+
+  /**
    * Perform the actual refresh call to BFF
    */
   private async performRefresh(
     request: Request,
     requestId: string,
+    attempt: number = 1,
   ): Promise<RefreshResultOrFailure | null> {
     const isServer = typeof window === 'undefined'
-    
+
     try {
       // Extract refresh token from httpOnly cookie
       const cookieHeader = request.headers.get('cookie')
@@ -143,14 +272,16 @@ class RefreshCoordinator {
           return { failed: true, reason: RefreshFailureReason.NO_COOKIES }
         } else {
           // Client context - user needs to login
-          console.error(`[RefreshCoordinator] No refresh token in browser - user needs to login`)
+          console.error(
+            `[RefreshCoordinator] No refresh token in browser - user needs to login`,
+          )
           return { failed: true, reason: RefreshFailureReason.BACKEND_ERROR }
         }
       }
 
       // Build URL - use full URL in SSR, relative in browser
-      const baseUrl = isServer 
-        ? (process.env.VITE_APP_URL || 'http://localhost:4500')
+      const baseUrl = isServer
+        ? process.env.VITE_APP_URL || 'http://localhost:4500'
         : ''
       const url = `${baseUrl}/api/auth/refresh`
 
@@ -195,32 +326,46 @@ class RefreshCoordinator {
         setCookieHeaders,
       }
     } catch (error: any) {
-      console.error(
-        `[RefreshCoordinator:${requestId}] ❌ Refresh failed:`,
-        error?.response?.data || error?.message || error,
-      )
-      
+      // Check if this is a rate limit error (429)
+      if (error?.response?.status === 429) {
+        const retryAfter = error?.response?.headers?.['retry-after'] || 60
+        console.warn(
+          `[RefreshCoordinator:${requestId}] ⚠️  Rate limited - retry after ${retryAfter}s`,
+        )
+        return { failed: true, reason: RefreshFailureReason.RATE_LIMITED }
+      }
+
       // Check if this is a timeout error
       if (error?.code === 'ECONNABORTED' || error?.code === 'ETIMEDOUT') {
-        console.error(`[RefreshCoordinator:${requestId}] Request timed out - backend not responding`)
-        return { failed: true, reason: RefreshFailureReason.NETWORK_ERROR }
+        console.error(
+          `[RefreshCoordinator:${requestId}] Request timed out - backend not responding`,
+        )
+        throw new Error('Network timeout')
       }
-      
+
       // Check if this is a backend 401 (session truly expired)
       if (error?.response?.status === 401) {
         return { failed: true, reason: RefreshFailureReason.BACKEND_ERROR }
       }
-      
-      // Otherwise it's a network error
-      return { failed: true, reason: RefreshFailureReason.NETWORK_ERROR }
+
+      // Otherwise it's a network error - throw to trigger retry
+      console.error(
+        `[RefreshCoordinator:${requestId}] Network error:`,
+        error?.message,
+      )
+      throw new Error('Network error')
     }
-  }  /**
+  }
+
+  /**
    * Reset coordinator state (useful for testing)
    */
   reset(): void {
     this.refreshPromise = null
     this.lastRefreshTime = 0
+    this.lastRefreshResult = null
     this.requestCounter = 0
+    this.circuitBreaker.reset()
   }
 
   /**
@@ -230,12 +375,14 @@ class RefreshCoordinator {
     isRefreshing: boolean
     lastRefreshTime: number
     timeSinceLastRefresh: number
+    circuitBreaker: any
   } {
     return {
       isRefreshing: this.refreshPromise !== null,
       lastRefreshTime: this.lastRefreshTime,
       timeSinceLastRefresh:
         this.lastRefreshTime > 0 ? Date.now() - this.lastRefreshTime : -1,
+      circuitBreaker: this.circuitBreaker.getStats(),
     }
   }
 }

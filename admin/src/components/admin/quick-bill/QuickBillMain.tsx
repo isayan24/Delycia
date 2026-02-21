@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button'
 import { useOrderTaxCalculation } from '@/hooks/useOrderTaxCalculation'
 import { useCartStore, selectCartTotalItems } from '@/store/useCartStore'
 import { motion, AnimatePresence } from 'motion/react'
-import { useMobileViewport } from '@/hooks/use-mobile-viewport'
 import { useScrollHide } from '@/hooks/use-scroll-hide'
 import { cn } from '@/lib/utils'
 
@@ -26,7 +25,6 @@ export interface Customer {
 }
 
 export default function QuickBillMain() {
-  useMobileViewport()
   const isHiddenOnScroll = useScrollHide()
   const { cart, addToCart, updateQuantity, clearCart } = useCartStore()
   const totalItems = useCartStore(selectCartTotalItems)
@@ -49,9 +47,9 @@ export default function QuickBillMain() {
   })
 
   return (
-    <div className="flex flex-col @container min-[900px]:flex-row gap-4 text-black relative">
+    <div className="flex flex-col @container sidebar:flex-row gap-4 text-black sidebar:h-[calc(100vh-150px)]">
       {/* Left Side: Menu Selection */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 sidebar:h-[calc(100vh-100px)]">
         <MenuSection addToCart={addToCart} cart={cart} />
       </div>
 

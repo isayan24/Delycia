@@ -14,10 +14,13 @@ import {
   IndianRupee,
   Calendar,
   Loader2,
+  Phone,
 } from 'lucide-react'
 import { requireAuth } from '@/middleware/auth'
 import { format } from 'date-fns'
 import { parseOrderItems } from '@/components/admin/order-history/utils/orderHistoryUtils'
+import { cn } from '@/lib/utils'
+import { useSidebar } from '@/components/ui/sidebar'
 
 export const Route = createFileRoute('/reports/staff/$staffId')({
   beforeLoad: requireAuth,
@@ -80,75 +83,32 @@ function StaffOrdersPage() {
     fetchNextPage,
   ])
 
+  const { state } = useSidebar()
+  const isSidebarCollapsed = state === 'collapsed'
+
   if (isLoading && !infiniteData) {
     return (
-      <div className="space-y-4">
-        {/* Header Skeleton */}
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div className="flex items-center gap-4">
-              <Skeleton className="h-16 w-16 rounded-full" />
-              <div className="space-y-2">
-                <Skeleton className="h-6 w-48" />
-                <Skeleton className="h-4 w-32" />
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Skeleton className="h-10 w-32" />
-              <Skeleton className="h-10 w-24" />
-            </div>
-          </div>
-        </div>
-
-        <Skeleton className="h-8 w-64" />
-
+      <div className="space-y-6 px-4 py-4 md:py-8 max-w-7xl mx-auto font-sans bg-slate-50/50 min-h-screen">
         {/* KPI Cards Skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-3 md:gap-6">
           {[1, 2, 3].map((i) => (
-            <Card key={i} className="p-4">
-              <div className="flex items-center gap-3">
-                <Skeleton className="h-10 w-10 rounded-lg" />
-                <div className="space-y-2">
-                  <Skeleton className="h-3 w-20" />
-                  <Skeleton className="h-5 w-16" />
-                </div>
-              </div>
-            </Card>
+            <div
+              key={i}
+              className="h-28 sm:h-36 bg-white dark:bg-slate-900 rounded-3xl animate-pulse border border-slate-100 dark:border-slate-800/50"
+            ></div>
           ))}
         </div>
 
         {/* Orders Table Skeleton */}
-        <Card className="p-6">
-          <Skeleton className="h-6 w-32 mb-4" />
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="border rounded-lg p-4">
-                <div className="flex justify-between items-start mb-3">
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-40" />
-                  </div>
-                  <div className="space-y-2 text-right">
-                    <Skeleton className="h-5 w-16" />
-                    <Skeleton className="h-3 w-20" />
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 mb-3 pb-3 border-b">
-                  <Skeleton className="h-8 w-8 rounded-full" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-3 w-24" />
-                    <Skeleton className="h-3 w-28" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Skeleton className="h-3 w-full" />
-                  <Skeleton className="h-3 w-full" />
-                  <Skeleton className="h-3 w-3/4" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
+        <div className="space-y-4">
+          <Skeleton className="h-4 w-48 mb-2" />
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div
+              key={i}
+              className="h-28 sm:h-32 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800/50 animate-pulse"
+            ></div>
+          ))}
+        </div>
       </div>
     )
   }
@@ -224,15 +184,17 @@ function StaffOrdersPage() {
       </div>
 
       {/* Orders Table */}
-      <div className="flex-1 flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-[10px] lg:text-xs font-black uppercase tracking-[0.2em] text-[#a16b45] opacity-80">
-            Past orders by {staff?.name}
+      <div className="flex-1 flex flex-col gap-6">
+        <div className="px-1">
+          <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+            Order Activity Timeline
           </h2>
-          <div className="h-px bg-[#ead9cd] dark:bg-primary/10 flex-1 ml-4" />
+          <p className="text-[14px] text-slate-500 font-medium mt-1">
+            Historical transaction records processed by {staff?.name}
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4">
+        <div className="flex flex-col gap-4">
           {visibleItems && visibleItems.length > 0 ? (
             visibleItems.map((order) => {
               const orderTotal = (
@@ -243,94 +205,138 @@ function StaffOrdersPage() {
               return (
                 <div
                   key={order.cart_id}
-                  className="bg-white dark:bg-[#2d1e14] border border-[#ead9cd] dark:border-primary/10 rounded-2xl p-3 sm:p-5 shadow-sm hover:shadow-orange-500/5 transition-all group flex flex-col"
+                  className="group bg-white dark:bg-slate-900 rounded-2xl md:rounded-3xl border border-slate-100 dark:border-slate-800/50 hover:border-slate-200 dark:hover:border-slate-700 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-lg hover:shadow-slate-200/50 dark:hover:shadow-none p-5 md:p-6"
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-[12px] lg:text-[15px] font-[500] text-slate-900 dark:text-slate-500 uppercase">
-                        #{order.cart_id.slice(-8)}
-                      </span>
-                      <div className="flex items-center gap-1.5 text-[11px] sm:text-[13px] font-bold text-zinc-600 uppercase opacity-70">
-                        <Calendar className="w-3.5 h-3.5" />
-                        {format(new Date(order.created_at), 'MMM dd, hh:mm a')}
+                  <div
+                    className={cn(
+                      'grid grid-cols-12 gap-6 md:gap-8 lg:gap-4 items-center',
+                      isSidebarCollapsed
+                        ? 'max-[1024px]:block max-[1024px]:grid-cols-1'
+                        : 'max-[1200px]:grid-cols-1 max-[1200px]:block',
+                    )}
+                  >
+                    {/* Left Column: Order Meta */}
+                    <div
+                      className={cn(
+                        'col-span-3 flex flex-col gap-1',
+                        isSidebarCollapsed ? '' : 'max-[1200px]:mb-4',
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-[13px] md:text-[14px] font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                          #{order.cart_id.slice(-8)}
+                        </span>
+                        <div
+                          className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-tight border ${
+                            order.order_status === 'settled'
+                              ? 'bg-emerald-50 dark:bg-emerald-900/10 text-emerald-600 border-emerald-100 dark:border-emerald-900/20'
+                              : 'bg-orange-50 dark:bg-orange-900/10 text-orange-600 border-orange-100 dark:border-orange-900/20'
+                          }`}
+                        >
+                          {order.order_status === 'settled'
+                            ? 'COMPLETED'
+                            : order.order_status}
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <span className="text-[14px] sm:text-lg lg:text-xl font-black text-slate-900 dark:text-white">
-                        ₹{orderTotal}
-                      </span>
-                      <span
-                        className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-tight border ${
-                          order.order_status === 'settled'
-                            ? 'bg-emerald-50 dark:bg-emerald-900/10 text-emerald-600 border-emerald-100 dark:border-emerald-900/20'
-                            : 'bg-orange-50 dark:bg-orange-900/10 text-orange-600 border-orange-100 dark:border-orange-900/20'
-                        }`}
-                      >
-                        {order.order_status === 'settled'
-                          ? 'COMPLETED'
-                          : order.order_status}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 py-3 border-y border-slate-50 dark:border-primary/5">
-                    <Avatar className="h-10 w-10 border-2 border-white dark:border-[#3a291d] shadow-sm">
-                      <AvatarImage
-                        src={order.customer_profile_pic || undefined}
-                      />
-                      <AvatarFallback className="bg-slate-50 dark:bg-[#3a291d] text-[#a16b45] font-black text-[10px]">
-                        {order.customer_name.substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0">
-                      <p className="text-sm sm:text-base md:text-[19px] font-[500] text-slate-900 dark:text-white truncate tracking-tight">
-                        {order.customer_name}
-                      </p>
-                      <p className="text-xs text-[#a16b45] font-bold truncate opacity-60">
-                        {order.customer_phone}
-                      </p>
-                    </div>
-                    {order.total_discount > 0 && (
-                      <div className="ml-auto px-2 py-1 bg-emerald-50 dark:bg-emerald-950/20 rounded-lg border border-emerald-100 dark:border-emerald-900/20">
-                        <span className="text-[9px] sm:text-xs font-black text-emerald-600 uppercase">
-                          -₹{order.total_discount}
+                      <div className="flex items-center gap-2 text-[12px] md:text-[13px] font-medium text-slate-500">
+                        <Calendar className="size-3.5 opacity-40 shrink-0" />
+                        <span>
+                          {format(new Date(order.created_at), 'MMM dd, yyyy')}
+                        </span>
+                        <span className="opacity-30">•</span>
+                        <span>
+                          {format(new Date(order.created_at), 'hh:mm a')}
                         </span>
                       </div>
-                    )}
-                  </div>
+                    </div>
 
-                  <div className="mt-3 sm:mt-4 space-y-1.5 sm:space-y-2">
-                    {parseOrderItems(order.items).map(
-                      (item: any, idx: number) => (
-                        <div
-                          key={idx}
-                          className="flex justify-between items-center gap-2"
-                        >
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="font-[450] text-[12px] md:text-[16px] text-zinc-500 dark:text-slate-300">
-                              {item.quantity}×
+                    {/* Center Column: Customer */}
+                    <div
+                      className={cn(
+                        'col-span-3 flex items-center gap-4',
+                        isSidebarCollapsed
+                          ? 'max-[1024px]:my-3 max-[1024px]:border-y max-[1024px]:py-3 max-[1024px]:border-slate-100 dark:max-[1024px]:border-slate-800'
+                          : 'max-[1200px]:col-span-1 max-[1200px]:my-3 max-[1200px]:border-y max-[1200px]:py-3 max-[1200px]:border-slate-100 dark:max-[1200px]:border-slate-800',
+                      )}
+                    >
+                      <Avatar className="size-11 md:size-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center border border-slate-100 dark:border-slate-700/50 shrink-0 group-hover:scale-105 transition-transform duration-300">
+                        <AvatarImage
+                          src={order.customer_profile_pic || undefined}
+                        />
+                        <AvatarFallback className="bg-slate-50 dark:bg-slate-800 text-slate-400 font-bold text-sm">
+                          {order.customer_name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col min-w-0">
+                        <h4 className="font-bold text-slate-900 dark:text-white text-[15px] md:text-[16px] leading-tight truncate">
+                          {order.customer_name}
+                        </h4>
+                        <p className="text-[12px] md:text-[13px] font-medium text-slate-500 flex items-center gap-2 mt-0.5">
+                          <Phone className="size-3 lg:size-3.5 opacity-40 shrink-0" />
+                          <span className="truncate">
+                            {order.customer_phone}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Right Column: Items & Financials */}
+                    <div
+                      className={cn(
+                        'md:col-span-2 lg:col-span-6 flex flex-wrap sm:flex-nowrap items-center justify-end gap-6 xl:gap-8 dark:border-slate-800/50 pt-5 lg:pt-0 lg:pl-6 xl:pl-8',
+                        isSidebarCollapsed
+                          ? 'max-[1024px]:justify-between'
+                          : 'max-[1200px]:justify-between ',
+                      )}
+                    >
+                      <div className="flex-1 min-w-[150px] lg:min-w-[200px] border-dotted md:border-l border-slate-300 dark:border-slate-800 md:pl-6">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
+                          Items Summary
+                        </span>
+                        <div className="flex flex-wrap gap-x-3 gap-y-1">
+                          {parseOrderItems(order.items).map(
+                            (item: any, idx: number) => (
+                              <div
+                                key={idx}
+                                className="flex items-center gap-1.5 "
+                              >
+                                <span className="text-[12px] font-black text-slate-900 dark:text-slate-200">
+                                  {item.quantity}×
+                                </span>
+                                <span className="text-[13px] font-medium text-slate-600 dark:text-slate-400 truncate max-w-[100px]">
+                                  {item.item_name}
+                                </span>
+                              </div>
+                            ),
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-1 text-right min-w-[100px]">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">
+                          Total Value
+                        </span>
+                        <div className="flex items-center justify-end gap-2">
+                          {order.total_discount > 0 && (
+                            <span className="text-[11px] font-bold text-emerald-600 line-through opacity-50">
+                              ₹{order.order_total}
                             </span>
-                            <span className="font-[450] text-[12px] md:text-[16px] text-zinc-500 dark:text-slate-300 truncate text-xs leading-tight">
-                              {item.item_name}
-                            </span>
-                          </div>
-                          <span className="font-[450] text-[12px] md:text-[16px] text-zinc-500 dark:text-slate-300 text-xs shrink-0">
-                            ₹{item.price}
+                          )}
+                          <span className="font-black text-slate-900 dark:text-white text-lg md:text-xl">
+                            ₹{orderTotal}
                           </span>
                         </div>
-                      ),
-                    )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               )
             })
           ) : (
-            <div className="col-span-full flex flex-col items-center justify-center py-20 text-center bg-white dark:bg-[#2d1e14] rounded-2xl border border-[#ead9cd] dark:border-primary/10 shadow-sm">
-              <div className="p-4 bg-orange-50 dark:bg-orange-950/20 rounded-full mb-4">
-                <ShoppingCart className="w-10 h-10 text-orange-600" />
-              </div>
-              <p className="text-[10px] font-black text-[#a16b45] uppercase tracking-[0.2em]">
-                No orders identified
+            <div className="bg-slate-50/50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800 p-20 text-center">
+              <ShoppingCart className="size-12 text-slate-300 mx-auto mb-4" />
+              <p className="text-slate-500 font-bold">
+                No orders identified for this period
               </p>
             </div>
           )}
