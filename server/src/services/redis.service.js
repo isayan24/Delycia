@@ -24,7 +24,7 @@ class RedisService {
    */
   async connect() {
     try {
-      const redisUrl = process.env.REDIS_URL
+      const redisUrl = process.env.REDIS_URL || 'redis://default:redis@sayan12345@delycia-redis-htlgfe:6379'
 
       console.log('🔄 Connecting to Redis...');
       console.log('   URL:', redisUrl.replace(/:[^:@]+@/, ':****@')); // Hide password in logs
