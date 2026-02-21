@@ -41,6 +41,8 @@ export interface Order {
     price: number
     quantity: number
   }[]
+  payment_method?: string
+  delivery_type?: string
 }
 
 /**

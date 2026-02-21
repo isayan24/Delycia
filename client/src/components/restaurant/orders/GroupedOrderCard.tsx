@@ -6,12 +6,21 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import CustomizedSteppers from './OrderStepper'
-import { CookingPot, CheckCircle2, XCircle, Clock, Package } from 'lucide-react'
+import {
+  CookingPot,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Package,
+  Receipt,
+} from 'lucide-react'
 import { GroupedUserOrder, Order } from '@/types/Order'
 import UseOptimizeImage from '@/hooks/UseOptimizeImage'
 import { parseImageString } from '@/helpers/imageParser'
 import { safeJsonParse } from '@/helpers/jsonParser'
-import { formatDateTimeIST, formatISTDateTime } from '@/utils/dateUtils'
+import { formatDateTimeIST } from '@/utils/dateUtils'
+import { useRestaurantQuery } from '@/hooks/queries/useRestaurantsQuery'
+import { calculateTax } from '@/lib/tax/taxCalculator'
 
 interface GroupedOrderCardProps {
   group: GroupedUserOrder
@@ -85,13 +94,19 @@ const getStatusDisplay = (status: string) => {
   }
 }
 
-// Get the first valid image from all orders in the group
-const getGroupImage = (orders: Order[]): string | null => {
-  for (const order of orders) {
+// Get all unique images from all orders in the group
+const getGroupImages = (orders: Order[]): string[] => {
+  const allImages: string[] = []
+  orders.forEach((order) => {
     const images = parseImageString(order.foodDetails?.img)
-    if (images.length > 0) return images[0]
-  }
-  return null
+    if (images.length > 0) {
+      // Add each image if it's not already in the list
+      images.forEach((img) => {
+        if (!allImages.includes(img)) allImages.push(img)
+      })
+    }
+  })
+  return allImages
 }
 
 // Calculate max preparation time from all items
@@ -105,16 +120,22 @@ export default function GroupedOrderCard({ group }: GroupedOrderCardProps) {
   const {
     text: statusText,
     statusNumber,
-    statusDescription,
     statusColor,
     bgColor,
     textColor,
     icon: statusIcon,
   } = getStatusDisplay(aggregatedStatus)
 
-  const displayImage = getGroupImage(orders)
+  const groupImages = getGroupImages(orders)
   const maxPrepTime = getMaxPrepTime(orders)
   const firstOrder = orders[0]
+
+  // 1. Fetch restaurant for tax calculation
+  const { restaurant } = useRestaurantQuery(firstOrder?.rid)
+
+  // 2. Calculate tax based on restaurant settings
+  const taxResult = calculateTax(totalAmount, restaurant?.tax_percent ?? 0)
+  const { taxPercent, taxAmount, grandTotal } = taxResult
 
   // Format cart ID for display (uppercase, truncate if needed)
   const displayCartId = cart_id.startsWith('single-')
@@ -122,190 +143,267 @@ export default function GroupedOrderCard({ group }: GroupedOrderCardProps) {
     : cart_id.toUpperCase()
 
   return (
-    <Accordion type="single" collapsible className="">
-      <div className="flex gap-5 items-center justify-between">
-        <div className="flex items-center gap-2 ml-2">
-          <Package className="h-3.5 w-3.5 text-gray-400" />
-          <span className="text-xs text-gray-500">
-            {orderCount} {orderCount === 1 ? 'item' : 'items'}
-          </span>
-          {maxPrepTime > 0 && (
-            <span className="text-xs text-gray-500">
-              • Prep time: {maxPrepTime} min
-            </span>
-          )}
-        </div>
-        <p className="text-xs text-gray-500 mr-2">
-          Ordered: {formatDateTimeIST(firstOrder?.created_at)}
-        </p>
-      </div>
+    <Accordion type="single" collapsible className="w-full">
+      <AccordionItem value="item-1" className="border-none mb-4">
+        <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+          <main className="p-4 md:p-6">
+            {/* Top Header: Order ID & Time */}
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-3">
+                <div className="bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 mr-1.5">
+                    OrderID
+                  </span>
+                  <span className="text-xs font-bold text-gray-700">
+                    {displayCartId}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 text-gray-400">
+                  <Clock className="h-3 w-3" />
+                  <span className="text-[11px] font-medium">
+                    {formatDateTimeIST(firstOrder?.created_at)}
+                  </span>
+                </div>
+              </div>
 
-      <AccordionItem
-        value="item-1"
-        className={`rounded-xl shadow-sm ${bgColor}`}
-        style={{ border: `1px solid ${statusColor}` }}
-      >
-        <main className="flex gap-5 max-[600px]:gap-2 justify-between rounded-xl p-2">
-          <section className="flex gap-5 max-[600px]:gap-2">
-            {/* Group image thumbnail */}
-            <div className="rounded-xl overflow-hidden h-[5rem] w-[5rem] border shrink-0 max-[350px]:w-[4rem] max-[350px]:h-[4rem] bg-gray-100 flex items-center justify-center">
-              {displayImage ? (
-                <UseOptimizeImage
-                  src={displayImage}
-                  alt="Order items"
-                  width={100}
-                  height={100}
-                  className="object-cover w-full h-full"
-                  loading="lazy"
-                />
-              ) : (
-                <Package className="h-8 w-8 text-gray-300" />
-              )}
-            </div>
-
-            {/* Items preview - show first item + more count */}
-            <div className="mt-1 max-[350px]:mt-0 flex-1">
-              {/* First item only */}
-              {firstOrder && (
-                <div>
-                  <div className="flex items-center gap-1">
-                    <span className="max-[600px]:text-[.9rem] font-medium">
-                      {firstOrder.foodDetails?.name ||
-                        `Item #${firstOrder.item_id}`}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      x{firstOrder.quantity}
+              <div className="flex items-center gap-2">
+                {maxPrepTime > 0 && (
+                  <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 text-orange-600 rounded-full border border-orange-100">
+                    <Clock className="h-3 w-3" />
+                    <span className="text-[11px] font-bold uppercase tracking-tight">
+                      {maxPrepTime} min
                     </span>
                   </div>
-
-                  {/* Addons for first item */}
-                  {(() => {
-                    const addons = safeJsonParse(firstOrder.addons, [])
-                    return (
-                      addons &&
-                      addons.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-0.5">
-                          {addons.map((addon: any, aidx: number) => (
-                            <span
-                              key={aidx}
-                              className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded"
-                            >
-                              +{addon.quantity > 1 ? `${addon.quantity}×` : ''}
-                              {addon.name}
-                            </span>
-                          ))}
-                        </div>
-                      )
-                    )
-                  })()}
-                </div>
-              )}
-
-              {/* Show "+ X more" if there are additional items */}
-              {orderCount > 1 && (
-                <p className="text-xs text-gray-500 mt-1">
-                  + {orderCount - 1} more{' '}
-                  {orderCount - 1 === 1 ? 'item' : 'items'}
-                </p>
-              )}
-
-              {/* Total amount for mobile */}
-              <h1 className="text-sm min-[800px]:hidden mt-2 font-semibold">
-                ₹{totalAmount}
-              </h1>
-            </div>
-          </section>
-
-          <section className="flex gap-10 pt-2 max-[600px]:gap-2 max-[350px]:pt-0 max-[400px]:w-[8rem]">
-            {/* Price section - desktop */}
-            <div className="max-[800px]:hidden min-[800px]:w-[6rem]">
-              <h1 className="font-semibold">₹{totalAmount}</h1>
-              <p className="text-xs text-gray-500">
-                Payment: {firstOrder?.payment_status || 'N/A'}
-              </p>
-            </div>
-
-            {/* Status display section */}
-            <div className="min-[800px]:w-[13rem]">
-              <div className="flex gap-1 items-center">
-                <span
-                  style={{ backgroundColor: statusColor }}
-                  className="flex w-2 h-2 rounded-full"
-                ></span>
-                <h1
-                  style={{ border: `1px solid ${statusColor}` }}
-                  className={`${bgColor} ${textColor} rounded-2xl p-1 px-3 max-[600px]:text-[.9rem] flex items-center gap-1`}
+                )}
+                <div
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-colors ${bgColor} ${textColor}`}
+                  style={{ borderColor: statusColor }}
                 >
-                  {statusText}
-                  <span className="ml-1">{statusIcon}</span>
-                </h1>
-              </div>
-              <p className="text-xs text-gray-500 ml-3 max-[600px]:text-[0.6rem]">
-                {statusDescription}
-              </p>
-              <div className="text-xs max-[600px]:text-[.6rem] text-gray-700 ml-3 mt-2 font-[500]">
-                Order ID: {displayCartId}
+                  <span className="text-[11px] font-bold uppercase tracking-wider">
+                    {statusText}
+                  </span>
+                  {statusIcon}
+                </div>
               </div>
             </div>
-            <AccordionTrigger className="max-[800px]:hidden"></AccordionTrigger>
-          </section>
-        </main>
 
-        <AccordionContent className="p-5 border-t">
-          <div>
-            <CustomizedSteppers
-              activeStep={statusNumber}
-              status={aggregatedStatus}
-            />
-          </div>
-
-          {/* Individual order details within the group */}
-          {orderCount > 1 && (
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">
-                Order Items Detail
-              </h4>
-              <div className="space-y-2">
-                {orders.map((order) => {
-                  const addons = safeJsonParse(order.addons, [])
-                  const orderStatus = getStatusDisplay(order.order_status)
-
-                  return (
+            <div className="flex flex-col md:flex-row gap-6 md:items-center">
+              {/* Image Gallery Stack */}
+              <div className="flex items-center">
+                <div className="flex -space-x-4">
+                  {groupImages.slice(0, 3).map((img, idx) => (
                     <div
-                      key={order.id}
-                      className="flex justify-between items-center p-2 bg-gray-50 rounded-lg"
+                      key={idx}
+                      className="relative w-20 h-20 rounded-2xl overflow-hidden border-4 border-white shadow-sm bg-gray-50 shrink-0"
                     >
-                      <div>
-                        <span className="text-sm">
-                          {order.foodDetails?.name || `Item #${order.item_id}`}
-                        </span>
-                        <span className="text-xs text-gray-500 ml-2">
-                          x{order.quantity}
-                        </span>
-                        {addons.length > 0 && (
-                          <div className="text-xs text-gray-400">
-                            + {addons.map((a: any) => a.name).join(', ')}
+                      <UseOptimizeImage
+                        src={img}
+                        alt={`Item ${idx + 1}`}
+                        width={100}
+                        height={100}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                  ))}
+                  {groupImages.length > 3 && (
+                    <div className="relative w-20 h-20 rounded-2xl bg-gray-800 border-4 border-white shadow-sm flex items-center justify-center text-white text-sm font-bold shrink-0">
+                      +{groupImages.length - 3}
+                    </div>
+                  )}
+                  {groupImages.length === 0 && (
+                    <div className="w-20 h-20 rounded-2xl bg-gray-100 border border-gray-100 flex items-center justify-center text-gray-300">
+                      <Package className="h-8 w-8" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Items Preview */}
+              <div className="flex-1 space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-lg font-bold text-gray-900 line-clamp-1">
+                    {firstOrder?.foodDetails?.name || 'Loading item...'}
+                    {firstOrder && (
+                      <span className="ml-2 text-gray-400 font-medium text-sm">
+                        x{firstOrder.quantity}
+                      </span>
+                    )}
+                  </h3>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                  <div className="flex items-center gap-1.5 text-gray-500">
+                    <Package className="h-3.5 w-3.5" />
+                    <span className="text-xs font-medium">
+                      {orderCount} {orderCount === 1 ? 'item' : 'items'} total
+                    </span>
+                  </div>
+                  {orderCount > 1 && (
+                    <p className="text-xs text-gray-400 italic">
+                      Including{' '}
+                      {orders
+                        .slice(1)
+                        .map((o) => o.foodDetails?.name)
+                        .join(', ')}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Pricing & Trigger */}
+              <div className="flex md:flex-col items-end justify-between md:justify-center gap-3">
+                <div className="flex flex-col items-end">
+                  <span className="text-[10px] uppercase tracking-[0.2em] font-black text-gray-300 mb-1 leading-none">
+                    Total Pay
+                  </span>
+                  <span className="text-2xl font-black text-gray-900 tracking-tight">
+                    ₹{grandTotal.toFixed(2)}
+                  </span>
+                </div>
+                <AccordionTrigger className="w-full md:w-auto p-0 hover:no-underline [&[data-state=open]>svg]:rotate-180">
+                  <div className="bg-gray-50 hover:bg-gray-100 px-4 py-2 rounded-xl border border-gray-100 transition-colors flex items-center gap-2 text-xs font-bold text-gray-600">
+                    Details
+                  </div>
+                </AccordionTrigger>
+              </div>
+            </div>
+          </main>
+
+          <AccordionContent className="bg-gray-50/50 border-t border-gray-50 p-6 md:p-8">
+            <div className="mb-10">
+              <CustomizedSteppers
+                activeStep={statusNumber}
+                status={aggregatedStatus}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Individual Items List */}
+              <div className="space-y-4">
+                <h4 className="text-[10px] uppercase tracking-[0.2em] font-black text-gray-400 mb-4 px-1">
+                  Order Details
+                </h4>
+                <div className="space-y-3">
+                  {orders.map((order) => {
+                    const addons = safeJsonParse(order.addons, [])
+                    const orderStatus = getStatusDisplay(order.order_status)
+
+                    return (
+                      <div
+                        key={order.id}
+                        className="flex justify-between items-start p-4 bg-white rounded-2xl border border-gray-100 shadow-sm"
+                      >
+                        <div className="flex gap-4">
+                          <div className="flex flex-col">
+                            <span className="font-bold text-gray-800 text-sm">
+                              {order.foodDetails?.name ||
+                                `Item #${order.item_id}`}
+                            </span>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-lg font-bold">
+                                x{order.quantity}
+                              </span>
+                              <span className="text-xs text-gray-400">
+                                ₹{order.total_amount}
+                              </span>
+                            </div>
+                            {addons.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {addons.map((a: any, i: number) => (
+                                  <span
+                                    key={i}
+                                    className="text-[10px] bg-orange-50 text-orange-600 border border-orange-100 px-2 py-0.5 rounded-md font-medium"
+                                  >
+                                    + {a.name}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">
-                          ₹{order.total_amount}
-                        </span>
-                        <span
-                          className={`text-xs px-2 py-0.5 rounded-full ${orderStatus.bgColor} ${orderStatus.textColor}`}
+                        </div>
+                        <div
+                          className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border ${orderStatus.bgColor} ${orderStatus.textColor}`}
+                          style={{ borderColor: orderStatus.statusColor }}
                         >
                           {orderStatus.text}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Bill Summary */}
+              <div className="flex flex-col gap-6">
+                <div>
+                  <h4 className="text-[10px] uppercase tracking-[0.2em] font-black text-gray-400 mb-4 px-1">
+                    Bill Summary
+                  </h4>
+                  <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-500">
+                        Subtotal
+                      </span>
+                      <span className="text-sm font-bold text-gray-700">
+                        ₹{totalAmount.toFixed(2)}
+                      </span>
+                    </div>
+
+                    {taxPercent > 0 && (
+                      <div className="flex justify-between items-center">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-gray-500">
+                            GST ({taxPercent}%)
+                          </span>
+                          <span className="text-[10px] text-gray-400 italic font-medium">
+                            Inclusive of all taxes
+                          </span>
+                        </div>
+                        <span className="text-sm font-bold text-gray-700">
+                          + ₹{taxAmount.toFixed(2)}
                         </span>
                       </div>
+                    )}
+
+                    <div className="pt-4 border-t border-dashed border-gray-100 flex justify-between items-center">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-black text-gray-900">
+                          Total Paid
+                        </span>
+                        <span className="text-[10px] text-green-500 font-bold uppercase tracking-tight">
+                          Payment {firstOrder?.payment_status}
+                        </span>
+                      </div>
+                      <span className="text-xl font-black text-gray-900">
+                        ₹{grandTotal.toFixed(2)}
+                      </span>
                     </div>
-                  )
-                })}
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="flex-1 bg-gray-100/50 rounded-2xl p-4 border border-gray-100">
+                    <span className="text-[9px] uppercase tracking-wider font-black text-gray-400 block mb-1">
+                      Payment Method
+                    </span>
+                    <span className="text-xs font-bold text-gray-700 uppercase">
+                      {firstOrder?.payment_method?.replace(/([A-Z])/g, ' $1') ||
+                        'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex-1 bg-gray-100/50 rounded-2xl p-4 border border-gray-100">
+                    <span className="text-[9px] uppercase tracking-wider font-black text-gray-400 block mb-1">
+                      Order Type
+                    </span>
+                    <span className="text-xs font-bold text-gray-700 uppercase">
+                      {firstOrder?.delivery_type || 'Dine-In'}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
-          )}
-        </AccordionContent>
-        <AccordionTrigger className="mx-auto p-0 min-[800px]:hidden my-2"></AccordionTrigger>
+          </AccordionContent>
+        </div>
       </AccordionItem>
     </Accordion>
   )

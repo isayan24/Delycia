@@ -52,7 +52,7 @@ const createCategory = async (req) => {
 
 const getCategories = async (req) => {
   try {
-    let { id, rid, username } = req.query;
+    let { id, rid, username, hasItemsOnly } = req.query;
 
     // If username is provided, resolve it to rid
     if (username && !rid) {
@@ -60,11 +60,11 @@ const getCategories = async (req) => {
         "SELECT id FROM restaurants WHERE username = ?",
         [username]
       );
-      
+
       if (restaurants.length === 0) {
         return apiResponse.error(404, "Restaurant not found");
       }
-      
+
       rid = restaurants[0].id;
     }
 
@@ -85,6 +85,7 @@ const getCategories = async (req) => {
         FROM categories c
         LEFT JOIN category_templates ct ON ct.id = c.template_id
         WHERE c.rid = ?
+        ${hasItemsOnly === 'true' ? 'HAVING item_count > 0' : ''}
         ORDER BY c.display_order ASC, c.name ASC
       `;
       params = [rid];

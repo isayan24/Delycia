@@ -64,38 +64,37 @@ export default function MobileNav() {
   // Don't render anything on server-side
   if (!mounted) return null
 
+  const isOrdersActive = pathname.startsWith('/orders')
+  const isDelyciasActive = pathname.startsWith('/delycias')
+  const isProfileActive = pathname.startsWith('/user/p')
+  const isAuthActive = pathname.startsWith('/auth')
+  const isHomeActive =
+    !isOrdersActive && !isDelyciasActive && !isProfileActive && !isAuthActive
+
   const links = [
     {
       href: '/',
       icon: Home,
       outlinedIcon: HomeOutlined,
       label: 'Home',
-      active: pathname === '/',
+      active: isHomeActive,
     },
     {
       href: '/delycias',
       icon: AlternateEmail,
       outlinedIcon: AlternateEmailOutlined,
       label: 'All Delycias',
-      active: pathname === '/delycias',
+      active: isDelyciasActive,
     },
-    // {
-    //   href: "/category",
-    //   icon: Fastfood,
-    //   outlinedIcon: FastfoodOutlined,
-    //   label: "Categories",
-    //   active: pathname === "/category",
-    // },
     {
       href: '/orders',
       icon: DeliveryDining,
       outlinedIcon: DeliveryDiningOutlined,
       label: 'Orders',
-      active: pathname === '/orders',
+      active: isOrdersActive,
     },
   ]
 
-  const userPath = pathname.startsWith('/user/p')
   const onProfileClick = (e: any) => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
     if (!user) {
@@ -137,7 +136,7 @@ export default function MobileNav() {
           to={user ? '/user/p' : '/'}
           key={'/user/p'}
           onClick={onProfileClick}
-          className={`${pathname === '/user/p' ? 'border-b-4 border-[#ff8800] rounded-[5px]' : 'border-b-4 border-transparent'} flex max-[450px]:flex-col items-center justify-center gap-1 w-24 h-12`}
+          className={`${isProfileActive ? 'border-b-4 border-[#ff8800] rounded-[5px]' : 'border-b-4 border-transparent'} flex max-[450px]:flex-col items-center justify-center gap-1 w-24 h-12`}
         >
           {userData?.profile_pic ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -149,11 +148,11 @@ export default function MobileNav() {
             />
           ) : (
             <AccountCircleOutlined
-              className={`w-7 h-7 ${userPath ? 'text-[#ff8800]' : 'text-zinc-600'}`}
+              className={`w-7 h-7 ${isProfileActive ? 'text-[#ff8800]' : 'text-zinc-600'}`}
             />
           )}
           <p
-            className={`text-xs ${userPath ? 'text-[#ff8800]' : 'text-zinc-600'}`}
+            className={`text-xs ${isProfileActive ? 'text-[#ff8800]' : 'text-zinc-600'}`}
           >
             Profile
           </p>

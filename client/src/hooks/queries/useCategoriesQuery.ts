@@ -20,7 +20,7 @@ export const useCategoriesQuery = () => {
       }
 
       // Use local API route which proxies to backend
-      const url = `/api/categories?username=${username}`
+      const url = `/api/categories?username=${username}&hasItemsOnly=true`
       console.log('[useCategoriesQuery] Fetching categories for:', username)
       const response = await axios.get(url)
       return response.data.categories || []

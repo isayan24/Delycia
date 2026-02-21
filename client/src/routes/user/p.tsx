@@ -35,9 +35,8 @@ function UserProfileLayout() {
   // Update Name
   const onNameSubmit = async (values: z.infer<typeof updateNameSchema>) => {
     setIsNameSubmit(true)
-    console.log(user, 'user')
     try {
-      const uid = user?.uid
+      const uid = user?._id
       if (!uid) throw new Error('User not found')
 
       await updateUserMutation.mutateAsync({

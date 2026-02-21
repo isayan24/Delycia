@@ -1,7 +1,7 @@
 'use client'
 
 export interface UserData {
-  uid: string
+  _id: string
   id: number | string
   country_code: string
   phone_number: string

@@ -10,7 +10,7 @@ import "dotenv/config";
 const MSG91_AUTH_KEY = process.env.MSG91_AUTH_KEY;
 const MSG91_INTEGRATED_NUMBER = process.env.MSG91_INTEGRATED_NUMBER || "916295725623";
 const MSG91_TEMPLATE_NAMESPACE = process.env.MSG91_TEMPLATE_NAMESPACE || "2fb39566_9358_442b_b4b4_6ac16392a472";
-const MSG91_TEMPLATE_NAME = process.env.MSG91_TEMPLATE_NAME || "delycia_login_link";
+const MSG91_TEMPLATE_NAME = process.env.MSG91_TEMPLATE_NAME || "delycia_whatsapp_link";
 
 /**
  * Send a login magic link via WhatsApp

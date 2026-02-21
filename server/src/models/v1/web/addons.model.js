@@ -76,7 +76,6 @@ const getAddons = async (req) => {
 
 // GET ADDONS FOR INVENTORY ITEM
 const getAddonsForItem = async (inventory_id) => {
-  console.log(inventory_id, 'inventory_id \n\n\n')
   try {
     if (!inventory_id) {
       return apiResponse.error(400, "inventory_id is required");

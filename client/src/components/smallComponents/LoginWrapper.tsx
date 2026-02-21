@@ -1,21 +1,15 @@
 'use client'
-import React from 'react'
 import LoginUse from '../number-login/LoginUse'
+import DirectLoginUse from '../number-login/DirectLoginUse'
+import { isDirectAuth } from '@/lib/authConfig'
 
 /**
  * LoginWrapper Component
  *
  * This component acts as a container for the login functionality.
- * It renders the LoginUse component which handles the login dialog state
- * through the useLoginDialogStore.
- *
- * The automatic triggering of the login dialog has been removed to improve UX.
- * Authentication is now explicitly triggered by the user or required checkout steps.
+ * It renders either the magic link flow (LoginUse) or the direct
+ * phone+name flow (DirectLoginUse) based on the AUTH_MODE config.
  */
 export default function LoginWrapper() {
-  return (
-    <div>
-      <LoginUse />
-    </div>
-  )
+  return <div>{isDirectAuth() ? <DirectLoginUse /> : <LoginUse />}</div>
 }
