@@ -37,7 +37,7 @@ export const userSchema = z.object({
     .number()
     .int()
     .min(0, 'Role must be a non-negative integer')
-    .max(1000, 'Invalid role value')
+    .max(999, 'Role must be less than 1000')
     .optional()
     .default(0)
     .or(z.string().transform((val) => parseInt(val, 10))),

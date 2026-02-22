@@ -1,4 +1,4 @@
-import { createServerFn } from '@tanstack/start'
+import { createServerFn } from '@tanstack/react-start'
 import { withAuth } from '@/lib/withAuth'
 
 export interface MenuItem {
@@ -28,11 +28,11 @@ export interface MenuFilters {
 }
 
 export const getMenus = createServerFn({ method: 'GET' })
-  .validator((data: { data: MenuFilters }) => data)
+  .inputValidator((data: { data: MenuFilters }) => data)
   .handler(async ({ data }) => {
     return withAuth(async (axios) => {
       const params = new URLSearchParams()
-      
+
       if (data.page) params.append('page', data.page.toString())
       if (data.limit) params.append('limit', data.limit.toString())
       if (data.search) params.append('search', data.search)
@@ -47,7 +47,7 @@ export const getMenus = createServerFn({ method: 'GET' })
   })
 
 export const updateMenuItem = createServerFn({ method: 'POST' })
-  .validator((data: { id: number; updates: any }) => data)
+  .inputValidator((data: { id: number; updates: any }) => data)
   .handler(async ({ data }) => {
     return withAuth(async (axios) => {
       return axios.patch(`/superadmin/menus/items/${data.id}`, data.updates)
@@ -55,7 +55,7 @@ export const updateMenuItem = createServerFn({ method: 'POST' })
   })
 
 export const deleteMenuItem = createServerFn({ method: 'POST' })
-  .validator((data: { id: number }) => data)
+  .inputValidator((data: { id: number }) => data)
   .handler(async ({ data }) => {
     return withAuth(async (axios) => {
       return axios.delete(`/superadmin/menus/items/${data.id}`)
@@ -63,7 +63,7 @@ export const deleteMenuItem = createServerFn({ method: 'POST' })
   })
 
 export const createMenuCategory = createServerFn({ method: 'POST' })
-  .validator((data: any) => data)
+  .inputValidator((data: any) => data)
   .handler(async ({ data }) => {
     return withAuth(async (axios) => {
       return axios.post('/superadmin/menus/categories', data)
@@ -71,7 +71,7 @@ export const createMenuCategory = createServerFn({ method: 'POST' })
   })
 
 export const bulkUpdateMenuItems = createServerFn({ method: 'POST' })
-  .validator((data: { items: any[] }) => data)
+  .inputValidator((data: { items: any[] }) => data)
   .handler(async ({ data }) => {
     return withAuth(async (axios) => {
       return axios.patch('/superadmin/menus/bulk', data)

@@ -3,43 +3,42 @@ import {
   getSubscriptionPlans,
   getPlanStats,
   type SubscriptionPlan,
-  type PlanStats,
 } from '@/lib/api/subscriptions'
 
 export interface SubscriptionPlansResponse {
-  status: boolean
   statusCode: number
   message: string
   data: SubscriptionPlan[]
 }
 
 export interface PlanStatsResponse {
-  status: boolean
   statusCode: number
   message: string
-  data: PlanStats
+  data: SubscriptionPlan & {
+    active_subscriptions: number
+    total_restaurants: number
+    monthly_revenue: number
+  }
 }
 
 // Re-export types for convenience
-export type { SubscriptionPlan, PlanStats }
+export type { SubscriptionPlan }
 
 async function fetchSubscriptionPlans(): Promise<SubscriptionPlansResponse> {
   const response = await getSubscriptionPlans()
-  const data = await response.json()
-  return data
+  return await response.json()
 }
 
 async function fetchPlanStats(planId: number): Promise<PlanStatsResponse> {
   const response = await getPlanStats({ data: { id: planId } })
-  const data = await response.json()
-  return data
+  return await response.json()
 }
 
 export function useSubscriptionPlansQuery() {
   return useQuery({
     queryKey: ['superadmin', 'subscription-plans'],
     queryFn: () => fetchSubscriptionPlans(),
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 5 * 60 * 1000,
   })
 }
 
@@ -48,6 +47,6 @@ export function usePlanStatsQuery(planId: number) {
     queryKey: ['superadmin', 'subscription-plans', planId, 'stats'],
     queryFn: () => fetchPlanStats(planId),
     enabled: !!planId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   })
 }

@@ -48,7 +48,7 @@ const baseRestaurantFields = {
     .max(100, 'Country must be less than 100 characters')
     .optional()
     .or(z.literal('')),
-  postal_code: z
+  pincode: z
     .string()
     .max(20, 'Postal code must be less than 20 characters')
     .optional()

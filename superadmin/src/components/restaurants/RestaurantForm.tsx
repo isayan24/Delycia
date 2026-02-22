@@ -1,7 +1,11 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2, Save, X } from 'lucide-react'
-import { restaurantSchema, type RestaurantFormData } from '@/schemas/restaurantSchema'
+import {
+  restaurantSchema,
+  type RestaurantFormData,
+} from '@/schemas/restaurantSchema'
+import type { Restaurant } from '@/lib/api/restaurants'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -10,11 +14,12 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 
 interface RestaurantFormProps {
-  restaurant?: RestaurantFormData & { id?: number }
+  restaurant?: Restaurant | null
   onSubmit: (data: RestaurantFormData) => Promise<void>
   onCancel: () => void
   isSubmitting?: boolean
@@ -28,8 +33,6 @@ export function RestaurantForm({
 }: RestaurantFormProps) {
   const isEditMode = !!restaurant?.id
 
-  // Note: zodResolver type compatibility warning is a known issue with Zod v3
-  // The form works correctly at runtime
   const form = useForm<RestaurantFormData>({
     resolver: zodResolver(restaurantSchema),
     mode: 'onBlur',
@@ -42,25 +45,24 @@ export function RestaurantForm({
       city: restaurant?.city || '',
       state: restaurant?.state || '',
       country: restaurant?.country || '',
-      postal_code: restaurant?.postal_code || '',
+      pincode: restaurant?.pincode || '',
     },
   })
 
   const handleSubmit = async (data: RestaurantFormData) => {
-    try {
-      await onSubmit(data)
-    } catch (error) {
-      console.error('Form submission error:', error)
-    }
+    await onSubmit(data)
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        {/* Basic Information Section */}
+        {/* Basic Information */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Basic Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+            Basic Information
+          </h3>
+
+          <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="name"
@@ -68,10 +70,7 @@ export function RestaurantForm({
                 <FormItem>
                   <FormLabel>Restaurant Name *</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Enter restaurant name"
-                      {...field}
-                    />
+                    <Input placeholder="e.g. Delycia Cafe" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -85,11 +84,9 @@ export function RestaurantForm({
                 <FormItem>
                   <FormLabel>Username *</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Enter username"
-                      {...field}
-                    />
+                    <Input placeholder="e.g. delycia_cafe" {...field} />
                   </FormControl>
+                  <FormDescription>Unique identifier</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -97,10 +94,13 @@ export function RestaurantForm({
           </div>
         </div>
 
-        {/* Contact Information Section */}
+        {/* Contact Information */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Contact Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+            Contact Information
+          </h3>
+
+          <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="email"
@@ -126,11 +126,7 @@ export function RestaurantForm({
                 <FormItem>
                   <FormLabel>Phone Number</FormLabel>
                   <FormControl>
-                    <Input
-                      type="tel"
-                      placeholder="+1234567890"
-                      {...field}
-                    />
+                    <Input type="tel" placeholder="+1234567890" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -139,100 +135,86 @@ export function RestaurantForm({
           </div>
         </div>
 
-        {/* Address Information Section */}
+        {/* Address Information */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Address Information</h3>
-          <div className="space-y-4">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+            Address Information
+          </h3>
+
+          <FormField
+            control={form.control}
+            name="address"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Street Address</FormLabel>
+                <FormControl>
+                  <Input placeholder="123 Main Street" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="grid grid-cols-3 gap-4">
             <FormField
               control={form.control}
-              name="address"
+              name="city"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Street Address</FormLabel>
+                  <FormLabel>City</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="123 Main Street"
-                      {...field}
-                    />
+                    <Input placeholder="City" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="city"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>City</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="City"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="state"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>State/Province</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="State"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="postal_code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Postal Code</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="12345"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="state"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>State/Province</FormLabel>
+                  <FormControl>
+                    <Input placeholder="State" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}
-              name="country"
+              name="pincode"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Country</FormLabel>
+                  <FormLabel>Postal Code</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Country"
-                      {...field}
-                    />
+                    <Input placeholder="12345" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
+
+          <FormField
+            control={form.control}
+            name="country"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Country</FormLabel>
+                <FormControl>
+                  <Input placeholder="Country" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
-        {/* Form Actions */}
+        {/* Actions */}
         <div className="flex items-center justify-end gap-3 pt-4 border-t">
           <Button
             type="button"
@@ -240,21 +222,18 @@ export function RestaurantForm({
             onClick={onCancel}
             disabled={isSubmitting}
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4 mr-1" />
             Cancel
           </Button>
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-          >
+          <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin mr-1" />
                 {isEditMode ? 'Updating...' : 'Creating...'}
               </>
             ) : (
               <>
-                <Save className="h-4 w-4" />
+                <Save className="h-4 w-4 mr-1" />
                 {isEditMode ? 'Update Restaurant' : 'Create Restaurant'}
               </>
             )}

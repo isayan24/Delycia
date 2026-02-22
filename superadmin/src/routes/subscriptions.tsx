@@ -1,21 +1,26 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { ProtectedLayout } from '@/components/protected-layout'
+import {
+  createFileRoute,
+  Outlet,
+  Navigate,
+  useLocation,
+} from '@tanstack/react-router'
 import { requireAuth } from '@/middleware/auth'
 
 export const Route = createFileRoute('/subscriptions')({
   beforeLoad: async ({ context, location }) => {
     await requireAuth({ context, location })
   },
-  component: SubscriptionsPage,
+  component: SubscriptionsLayout,
 })
 
-function SubscriptionsPage() {
-  return (
-    <ProtectedLayout>
-      <div className="flex flex-1 flex-col gap-4">
-        <h2 className="text-2xl font-bold">Subscriptions</h2>
-        <p className="text-muted-foreground">Subscription management coming soon...</p>
-      </div>
-    </ProtectedLayout>
-  )
+function SubscriptionsLayout() {
+  const location = useLocation()
+
+  // If user navigates to exact /subscriptions, redirect to /subscriptions/plans
+  if (location.pathname === '/subscriptions') {
+    return <Navigate to="/subscriptions/plans" />
+  }
+
+  // Render child routes via Outlet
+  return <Outlet />
 }

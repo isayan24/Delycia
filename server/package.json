@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon index.js",
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "migrate:superadmin-role": "node migrations/001_fix_superadmin_role.js"
   },
   "keywords": [],
   "author": "",

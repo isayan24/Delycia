@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { ProtectedLayout } from '@/components/protected-layout'
 import { requireAuth } from '@/middleware/auth'
 import { RestaurantList } from '@/components/restaurants/RestaurantList'
+import { useRestaurantsQuery } from '@/hooks/queries/useRestaurantsQuery'
 
 export const Route = createFileRoute('/restaurants')({
   beforeLoad: async ({ context, location }) => {
@@ -11,6 +12,14 @@ export const Route = createFileRoute('/restaurants')({
 })
 
 function RestaurantsPage() {
+  const { data, isLoading, isError, error } = useRestaurantsQuery({
+    page: 1,
+    limit: 10,
+    search: '',
+    status: '',
+  })
+
+  console.log(data, isLoading, 'data i have')
   return (
     <ProtectedLayout>
       <div className="flex flex-1 flex-col gap-4">

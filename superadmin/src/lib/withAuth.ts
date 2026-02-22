@@ -1,5 +1,5 @@
+import { getAccessTokenFromCookie } from './server-cookies'
 import axiosInstance from './axios'
-import { parseCookies, getAccessTokenFromCookie } from './server-cookies'
 
 /**
  * Server-side (BFF) auth helper for superadmin that handles token refresh transparently.
@@ -44,32 +44,28 @@ interface WithAuthOptions {
  * @returns Response from your handler, or a 401 Response if auth fails
  */
 export async function withAuth(
-  request: Request,
-  fn: (accessToken: string, headers: Headers) => Promise<Response>,
+  fn: (axios: typeof axiosInstance, headers: Headers) => Promise<any>,
   options: WithAuthOptions = {},
-): Promise<Response> {
+): Promise<any> {
   const { requireAuth = true } = options
 
-  const accessToken = getAccessTokenFromCookie(request)
+  const accessToken = await getAccessTokenFromCookie()
 
   if (!accessToken) {
     if (requireAuth) {
-      return new Response(
-        JSON.stringify({
-          status: 401,
-          message: 'Not authenticated',
-          error: true,
-        }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } },
-      )
+      throw new Error('Not authenticated')
     }
     // If auth is not required, call fn with empty token
-    return fn('', new Headers())
+    return fn(axiosInstance, new Headers())
   }
 
   try {
+    // Inject token into axios header for this request
+    const instance = axiosInstance
+    instance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`
+
     // First attempt with current access token
-    return await fn(accessToken, new Headers())
+    return await fn(instance, new Headers())
   } catch (error: any) {
     // Check if this is a token expiration error (401 or 403 with "Token expired")
     const status = error?.response?.status
@@ -87,18 +83,11 @@ export async function withAuth(
     }
 
     // Attempt token refresh
-    const refreshResult = await refreshTokensServerSide(request)
+    const refreshResult = await refreshTokensServerSide()
 
     if (!refreshResult) {
       // Refresh failed — return 401
-      return new Response(
-        JSON.stringify({
-          status: 401,
-          message: 'Session expired. Please log in again.',
-          error: true,
-        }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } },
-      )
+      throw new Error('Session expired. Please log in again.')
     }
 
     // Retry the original request with the new access token
@@ -108,7 +97,11 @@ export async function withAuth(
       refreshHeaders.append('Set-Cookie', cookie)
     }
 
-    return await fn(refreshResult.accessToken, refreshHeaders)
+    const retryInstance = axiosInstance
+    retryInstance.defaults.headers.common['Authorization'] =
+      `Bearer ${refreshResult.accessToken}`
+
+    return await fn(retryInstance, refreshHeaders)
   }
 }
 
@@ -125,13 +118,10 @@ interface RefreshResult {
  * Refresh tokens by calling the backend directly from the server side.
  * This bypasses the BFF refresh route and talks to the backend refresh endpoint.
  */
-async function refreshTokensServerSide(
-  request: Request,
-): Promise<RefreshResult | null> {
+async function refreshTokensServerSide(): Promise<RefreshResult | null> {
   try {
-    const cookieHeader = request.headers.get('cookie')
-    const cookies = parseCookies(cookieHeader)
-    const refreshToken = cookies['superadmin_refresh_token']
+    const { getCookie } = await import('@tanstack/react-start/server')
+    const refreshToken = getCookie('superadmin_refresh_token')
 
     if (!refreshToken) {
       console.error('[withAuth] No refresh token found in cookies')

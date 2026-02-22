@@ -1,4 +1,4 @@
-import { createServerFn } from '@tanstack/start'
+import { createServerFn } from '@tanstack/react-start'
 import { withAuth } from '@/lib/withAuth'
 
 export interface StaffMember {
@@ -25,11 +25,11 @@ export interface StaffFilters {
 }
 
 export const getStaff = createServerFn({ method: 'GET' })
-  .validator((data: { data: StaffFilters }) => data)
+  .inputValidator((data: { data: StaffFilters }) => data)
   .handler(async ({ data }) => {
     return withAuth(async (axios) => {
       const params = new URLSearchParams()
-      
+
       if (data.page) params.append('page', data.page.toString())
       if (data.limit) params.append('limit', data.limit.toString())
       if (data.search) params.append('search', data.search)
@@ -42,7 +42,7 @@ export const getStaff = createServerFn({ method: 'GET' })
   })
 
 export const getStaffMember = createServerFn({ method: 'GET' })
-  .validator((data: { id: string }) => data)
+  .inputValidator((data: { id: string }) => data)
   .handler(async ({ data }) => {
     return withAuth(async (axios) => {
       return axios.get(`/superadmin/staff/${data.id}`)
@@ -50,7 +50,7 @@ export const getStaffMember = createServerFn({ method: 'GET' })
   })
 
 export const createStaff = createServerFn({ method: 'POST' })
-  .validator((data: any) => data)
+  .inputValidator((data: any) => data)
   .handler(async ({ data }) => {
     return withAuth(async (axios) => {
       return axios.post('/superadmin/staff', data)
@@ -58,7 +58,7 @@ export const createStaff = createServerFn({ method: 'POST' })
   })
 
 export const updateStaff = createServerFn({ method: 'POST' })
-  .validator((data: { id: number; updates: any }) => data)
+  .inputValidator((data: { id: number; updates: any }) => data)
   .handler(async ({ data }) => {
     return withAuth(async (axios) => {
       return axios.patch(`/superadmin/staff/${data.id}`, data.updates)
@@ -66,7 +66,7 @@ export const updateStaff = createServerFn({ method: 'POST' })
   })
 
 export const deactivateStaff = createServerFn({ method: 'POST' })
-  .validator((data: { id: number }) => data)
+  .inputValidator((data: { id: number }) => data)
   .handler(async ({ data }) => {
     return withAuth(async (axios) => {
       return axios.delete(`/superadmin/staff/${data.id}`)
@@ -74,13 +74,15 @@ export const deactivateStaff = createServerFn({ method: 'POST' })
   })
 
 export const getStaffActivity = createServerFn({ method: 'GET' })
-  .validator((data: { id: string; page?: number; limit?: number }) => data)
+  .inputValidator((data: { id: string; page?: number; limit?: number }) => data)
   .handler(async ({ data }) => {
     return withAuth(async (axios) => {
       const params = new URLSearchParams()
       if (data.page) params.append('page', data.page.toString())
       if (data.limit) params.append('limit', data.limit.toString())
-      
-      return axios.get(`/superadmin/staff/${data.id}/activity?${params.toString()}`)
+
+      return axios.get(
+        `/superadmin/staff/${data.id}/activity?${params.toString()}`,
+      )
     })
   })

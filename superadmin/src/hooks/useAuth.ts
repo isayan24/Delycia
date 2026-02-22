@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import sessionService from '@/services/sessionService'
 import type { SuperadminUserData } from '@/services/sessionService'
 import tokenService from '@/services/tokenService'
-import axiosInstance from '@/lib/axios'
+import { loginServer, logoutServer } from '@/lib/api/auth'
 
 export interface LoginCredentials {
   email?: string
@@ -30,17 +30,23 @@ export function useAuth(): UseAuthReturn {
     isAuthenticated: false,
   })
 
-  // Initialize auth state from server
+  // Initialize auth state from localStorage (set during login)
   const initializeAuth = useCallback(async () => {
     try {
-      // For now, skip session check and just set to not authenticated
-      // This allows the app to load and redirect to login
-      // TODO: Implement proper session validation when BFF routes are ready
-      setAuthState({
-        user: null,
-        isLoading: false,
-        isAuthenticated: false,
-      })
+      const user = sessionService.getUserData()
+      if (user && user.role === 1) {
+        setAuthState({
+          user,
+          isLoading: false,
+          isAuthenticated: true,
+        })
+      } else {
+        setAuthState({
+          user: null,
+          isLoading: false,
+          isAuthenticated: false,
+        })
+      }
     } catch (error) {
       console.error('Failed to initialize auth:', error)
       setAuthState({
@@ -51,103 +57,98 @@ export function useAuth(): UseAuthReturn {
     }
   }, [])
 
-  // Login function
+  /**
+   * Login via BFF server function.
+   *
+   * The BFF proxies credentials to the backend, intercepts the Set-Cookie
+   * headers from backend's response, and re-issues the tokens as httpOnly
+   * cookies on the BFF origin (port 5000). This ensures:
+   *   - subsequent server functions can read the cookies via getRequest()
+   *   - tokens are never exposed in JS / localStorage
+   */
   const login = useCallback(
     async (credentials: LoginCredentials): Promise<boolean> => {
       try {
         setAuthState((prev) => ({ ...prev, isLoading: true }))
 
-        // Call backend API directly (temporary until BFF routes are implemented)
-        // The axios instance will automatically handle CSRF tokens
-         
-        const response = await axiosInstance.post(
-          `/superadmin/auth/login`,
-          credentials,
-          {
-            withCredentials: true, // Important: enables httpOnly cookies
-          }
-        )
+        // Call the BFF login server function
+        const result = await loginServer({
+          data: {
+            email: credentials.email,
+            username: credentials.username,
+            password: credentials.password,
+            rememberMe: credentials.rememberMe,
+          },
+        })
 
-        if (response.status === 200) {
-          const data = response.data
+        // loginServer returns a Response — deserialize it
+        const responseBody = result as unknown as Response
+        let data: any
 
-          if (
-            data.statusCode === 200 &&
-            data.data &&
-            data.data.role === 1000 // Verify superadmin role
-          ) {
-            const userData = data.data
-
-            // Store user data in session service
-            sessionService.setUserData(userData)
-
-            // Update auth state
-            setAuthState({
-              user: userData,
-              isLoading: false,
-              isAuthenticated: true,
-            })
-
-            return true
-          } else {
-            // Not superadmin
-            setAuthState((prev) => ({ ...prev, isLoading: false }))
-            return false
-          }
+        if (responseBody && typeof responseBody.json === 'function') {
+          data = await responseBody.json()
+        } else {
+          data = result
         }
 
+        if (data?.statusCode === 200 && data?.data && data.data.role === 1) {
+          const userData = data.data as SuperadminUserData
+
+          // Persist non-sensitive user profile in localStorage
+          sessionService.setUserData(userData)
+
+          setAuthState({
+            user: userData,
+            isLoading: false,
+            isAuthenticated: true,
+          })
+
+          return true
+        }
+
+        // Role check failed or bad credentials
         setAuthState((prev) => ({ ...prev, isLoading: false }))
         return false
       } catch (error: any) {
-        console.error('Login failed:', error.message)
+        console.error('Login failed:', error?.message || error)
         setAuthState((prev) => ({ ...prev, isLoading: false }))
-        // Re-throw the error so the login page can handle it
         throw error
       }
     },
     [],
   )
 
-  // Logout function
+  /**
+   * Logout via BFF server function.
+   * Clears backend DB tokens and BFF-origin httpOnly cookies.
+   */
   const logout = useCallback(async () => {
     try {
-      // Call server route to clear httpOnly cookies
-      await axiosInstance.post(
-        '/api/auth/logout',
-        {},
-        {
-          withCredentials: true,
-        },
-      )
-
-      // Clear client-side session data
+      await logoutServer({ data: undefined })
+    } catch (error) {
+      console.error('Logout BFF call failed (non-critical):', error)
+    } finally {
+      // Always clear local session state regardless of server errors
       sessionService.clearSession()
 
-      // Update auth state
       setAuthState({
         user: null,
         isLoading: false,
         isAuthenticated: false,
       })
 
-      // Redirect to login page only if not already there
       if (!window.location.pathname.includes('/login')) {
         window.location.href = '/login'
       }
-    } catch (error) {
-      console.error('Logout failed:', error)
     }
   }, [])
 
-  // Refresh session function
+  // Refresh session — re-validate from localStorage
   const refreshSession = useCallback(async () => {
     try {
-      // For now, just logout since we don't have session validation yet
-      // TODO: Implement proper session refresh when BFF routes are ready
       await logout()
     } catch (error) {
       console.error('Session refresh failed:', error)
-      // Only logout if not on public route to avoid loops
       if (!window.location.pathname.includes('/login')) {
         await logout()
       }
@@ -156,7 +157,6 @@ export function useAuth(): UseAuthReturn {
 
   // Initialize auth on mount (skip on public routes)
   useEffect(() => {
-    // Don't initialize auth on public routes like login page
     const publicRoutes = ['/login']
     const currentPath = window.location.pathname
 
@@ -176,7 +176,6 @@ export function useAuth(): UseAuthReturn {
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'superadmin_user_data') {
-        // User data changed, re-validate session
         initializeAuth()
       }
     }

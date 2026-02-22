@@ -5,9 +5,17 @@ import {
   flexRender,
   type ColumnDef,
 } from '@tanstack/react-table'
-import { Search, Eye, Edit, Ban } from 'lucide-react'
+import { Search, Eye, Edit, Ban, Plus } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
-import { useRestaurantsQuery, type Restaurant } from '@/hooks/queries/useRestaurantsQuery'
+import {
+  useRestaurantsQuery,
+  type Restaurant,
+} from '@/hooks/queries/useRestaurantsQuery'
+import { useCreateRestaurantMutation } from '@/hooks/mutations/useCreateRestaurantMutation'
+import { useUpdateRestaurantMutation } from '@/hooks/mutations/useUpdateRestaurantMutation'
+import { useDeactivateRestaurantMutation } from '@/hooks/mutations/useDeactivateRestaurantMutation'
+import { RestaurantForm } from './RestaurantForm'
+import type { RestaurantFormData } from '@/schemas/restaurantSchema'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,6 +26,23 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from '@/components/ui/sheet'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
   Table,
   TableBody,
   TableCell,
@@ -27,21 +52,96 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useToast } from '@/hooks/use-toast'
 
 export function RestaurantList() {
   const navigate = useNavigate()
+  const { toast } = useToast()
+  
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const [editingRestaurant, setEditingRestaurant] = useState<Restaurant | null>(null)
+  const [deactivateTarget, setDeactivateTarget] = useState<Restaurant | null>(null)
 
   const { data, isLoading, isError, error } = useRestaurantsQuery({
     page,
     limit,
     search,
-    status: statusFilter,
+    status: statusFilter === 'all' ? '' : statusFilter,
   })
 
+  const createRestaurant = useCreateRestaurantMutation()
+  const updateRestaurant = useUpdateRestaurantMutation()
+  const deactivateRestaurant = useDeactivateRestaurantMutation()
+
+  // ── Handlers ────────────────────────────────────────────
+  const handleCreate = () => {
+    setEditingRestaurant(null)
+    setSheetOpen(true)
+  }
+
+  const handleEdit = (restaurant: Restaurant) => {
+    setEditingRestaurant(restaurant)
+    setSheetOpen(true)
+  }
+
+  const handleFormSubmit = async (formData: RestaurantFormData) => {
+    try {
+      if (editingRestaurant) {
+        await updateRestaurant.mutateAsync({ 
+          id: editingRestaurant.id, 
+          ...formData 
+        })
+        toast({
+          title: 'Restaurant updated',
+          description: `"${formData.name}" has been updated successfully.`,
+        })
+      } else {
+        await createRestaurant.mutateAsync(formData)
+        toast({
+          title: 'Restaurant created',
+          description: `"${formData.name}" has been created successfully.`,
+        })
+      }
+      setSheetOpen(false)
+      setEditingRestaurant(null)
+    } catch (err: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: err?.message || 'Something went wrong',
+      })
+    }
+  }
+
+  const handleView = (id: number) => {
+    navigate({ to: '/restaurants/$id', params: { id: id.toString() } })
+  }
+
+  const handleDeactivateConfirm = async () => {
+    if (!deactivateTarget) return
+    try {
+      await deactivateRestaurant.mutateAsync(deactivateTarget.id)
+      toast({
+        title: 'Restaurant deactivated',
+        description: `"${deactivateTarget.name}" has been deactivated.`,
+      })
+    } catch (err: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: err?.message || 'Failed to deactivate restaurant',
+      })
+    } finally {
+      setDeactivateTarget(null)
+    }
+  }
+
+  // ── Column Definitions ──────────────────────────────────
   const columns: ColumnDef<Restaurant>[] = [
     {
       accessorKey: 'name',
@@ -62,10 +162,16 @@ export function RestaurantList() {
     {
       accessorKey: 'email',
       header: 'Email',
+      cell: ({ row }: any) => (
+        <div className="text-sm">{row.getValue('email') || '-'}</div>
+      ),
     },
     {
       accessorKey: 'phone_number',
       header: 'Phone',
+      cell: ({ row }: any) => (
+        <div className="text-sm">{row.getValue('phone_number') || '-'}</div>
+      ),
     },
     {
       accessorKey: 'is_active',
@@ -73,7 +179,7 @@ export function RestaurantList() {
       cell: ({ row }: any) => {
         const isActive = row.getValue('is_active') as number
         return (
-          <Badge variant={isActive ? 'success' : 'destructive'}>
+          <Badge variant={isActive ? 'default' : 'secondary'}>
             {isActive ? 'Active' : 'Inactive'}
           </Badge>
         )
@@ -97,29 +203,32 @@ export function RestaurantList() {
     },
     {
       id: 'actions',
-      header: 'Actions',
+      header: '',
       cell: ({ row }: any) => {
         const restaurant = row.original
         return (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
+              className="h-8 w-8"
               onClick={() => handleView(restaurant.id)}
             >
               <Eye className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
-              size="sm"
-              onClick={() => handleEdit(restaurant.id)}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => handleEdit(restaurant)}
             >
               <Edit className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
-              size="sm"
-              onClick={() => handleDeactivate(restaurant.id)}
+              size="icon"
+              className="h-8 w-8 text-destructive hover:text-destructive"
+              onClick={() => setDeactivateTarget(restaurant)}
               disabled={!restaurant.is_active}
             >
               <Ban className="h-4 w-4" />
@@ -131,25 +240,12 @@ export function RestaurantList() {
   ]
 
   const table = useReactTable({
-    data: data?.data.data || [],
+    data: data?.data || [],
     columns,
     getCoreRowModel: getCoreRowModel(),
   })
 
-  const handleView = (id: number) => {
-    navigate({ to: '/restaurants/$id', params: { id: id.toString() } })
-  }
-
-  const handleEdit = (id: number) => {
-    // TODO: Navigate to restaurant edit page or open edit modal
-    console.log('Edit restaurant:', id)
-  }
-
-  const handleDeactivate = (id: number) => {
-    // TODO: Implement deactivate mutation
-    console.log('Deactivate restaurant:', id)
-  }
-
+  // ── Error State ─────────────────────────────────────────
   if (isError) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -164,148 +260,215 @@ export function RestaurantList() {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Filters */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search by name, email, or phone..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value)
-              setPage(1) // Reset to first page on search
-            }}
-            className="pl-9"
-          />
-        </div>
-        <Select
-          value={statusFilter}
-          onValueChange={(value: string) => {
-            setStatusFilter(value)
-            setPage(1)
-          }}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">All Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select
-          value={limit.toString()}
-          onValueChange={(value: string) => {
-            setLimit(Number(value))
-            setPage(1)
-          }}
-        >
-          <SelectTrigger className="w-[120px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="10">10 / page</SelectItem>
-            <SelectItem value="25">25 / page</SelectItem>
-            <SelectItem value="50">50 / page</SelectItem>
-            <SelectItem value="100">100 / page</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Table */}
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup: any) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header: any) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              // Loading skeleton
-              Array.from({ length: limit }).map((_, index) => (
-                <TableRow key={index}>
-                  {columns.map((_, colIndex) => (
-                    <TableCell key={colIndex}>
-                      <Skeleton className="h-4 w-full" />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row: any) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                >
-                  {row.getVisibleCells().map((cell: any) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No restaurants found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Pagination */}
-      {data?.data.pagination && (
+    <>
+      <div className="space-y-4">
+        {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            Showing {((page - 1) * limit) + 1} to{' '}
-            {Math.min(page * limit, data.data.pagination.total)} of{' '}
-            {data.data.pagination.total} restaurants
+          <div>
+            <h2 className="text-2xl font-bold">Restaurants</h2>
+            <p className="text-sm text-muted-foreground">
+              Manage all restaurants on the platform
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-            >
-              Previous
-            </Button>
-            <div className="text-sm">
-              Page {page} of {data.data.pagination.totalPages}
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => p + 1)}
-              disabled={page >= data.data.pagination.totalPages}
-            >
-              Next
-            </Button>
-          </div>
+          <Button onClick={handleCreate}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Restaurant
+          </Button>
         </div>
-      )}
-    </div>
+
+        {/* Filters */}
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search by name, email, or phone..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value)
+                setPage(1)
+              }}
+              className="pl-9"
+            />
+          </div>
+          <Select
+            value={statusFilter}
+            onValueChange={(value: string) => {
+              setStatusFilter(value)
+              setPage(1)
+            }}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select
+            value={limit.toString()}
+            onValueChange={(value: string) => {
+              setLimit(Number(value))
+              setPage(1)
+            }}
+          >
+            <SelectTrigger className="w-[120px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10 / page</SelectItem>
+              <SelectItem value="25">25 / page</SelectItem>
+              <SelectItem value="50">50 / page</SelectItem>
+              <SelectItem value="100">100 / page</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Table */}
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup: any) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header: any) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                Array.from({ length: limit }).map((_, index) => (
+                  <TableRow key={index}>
+                    {columns.map((_, colIndex) => (
+                      <TableCell key={colIndex}>
+                        <Skeleton className="h-4 w-full" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row: any) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && 'selected'}
+                  >
+                    {row.getVisibleCells().map((cell: any) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No restaurants found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Pagination */}
+        {data?.pagination && (
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Showing {(page - 1) * limit + 1} to{' '}
+              {Math.min(page * limit, data.pagination.total)} of{' '}
+              {data.pagination.total} restaurants
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+              >
+                Previous
+              </Button>
+              <div className="text-sm">
+                Page {page} of {data.pagination.totalPages}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => p + 1)}
+                disabled={page >= data.pagination.totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Create / Edit Sheet */}
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent className="sm:max-w-lg overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>
+              {editingRestaurant ? 'Edit Restaurant' : 'Create Restaurant'}
+            </SheetTitle>
+            <SheetDescription>
+              {editingRestaurant
+                ? `Editing "${editingRestaurant.name}"`
+                : 'Add a new restaurant to the platform'}
+            </SheetDescription>
+          </SheetHeader>
+          <div className="mt-6">
+            <RestaurantForm
+              restaurant={editingRestaurant}
+              onSubmit={handleFormSubmit}
+              onCancel={() => {
+                setSheetOpen(false)
+                setEditingRestaurant(null)
+              }}
+              isSubmitting={createRestaurant.isPending || updateRestaurant.isPending}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Deactivate Confirm */}
+      <AlertDialog
+        open={!!deactivateTarget}
+        onOpenChange={(open) => !open && setDeactivateTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deactivate Restaurant</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to deactivate "{deactivateTarget?.name}"?
+              This will prevent the restaurant from accessing the platform.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeactivateConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deactivateRestaurant.isPending ? 'Deactivating...' : 'Deactivate'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }

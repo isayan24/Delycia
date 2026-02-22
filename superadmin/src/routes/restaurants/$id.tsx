@@ -1,23 +1,32 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { ProtectedLayout } from '@/components/protected-layout'
 import { requireAuth } from '@/middleware/auth'
-import { useRestaurantQuery } from '@/hooks/queries/useRestaurantQuery'
+import {
+  useRestaurantQuery,
+  type RestaurantDetail,
+} from '@/hooks/queries/useRestaurantQuery'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { 
-  ArrowLeft, 
-  Edit, 
-  Ban, 
-  Mail, 
-  Phone, 
-  MapPin, 
+import {
+  ArrowLeft,
+  Edit,
+  Ban,
+  Mail,
+  Phone,
+  MapPin,
   Calendar,
   CreditCard,
   Users,
   UtensilsCrossed,
-  ShoppingCart
+  ShoppingCart,
 } from 'lucide-react'
 
 export const Route = createFileRoute('/restaurants/$id')({
@@ -49,8 +58,8 @@ function RestaurantDetailPage() {
           <div className="flex items-center justify-center p-8">
             <div className="text-center">
               <p className="text-destructive text-lg font-semibold">
-                {error instanceof Error && error.message.includes('404') 
-                  ? 'Restaurant not found' 
+                {error instanceof Error && error.message.includes('404')
+                  ? 'Restaurant not found'
                   : 'Error loading restaurant'}
               </p>
               <p className="text-sm text-muted-foreground mt-2">
@@ -71,7 +80,7 @@ function RestaurantDetailPage() {
     )
   }
 
-  const restaurant = data?.data
+  const restaurant: RestaurantDetail | undefined = data?.data
 
   return (
     <ProtectedLayout>
@@ -102,13 +111,10 @@ function RestaurantDetailPage() {
               )}
             </div>
           </div>
-          
+
           {!isLoading && restaurant && (
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={handleEdit}
-              >
+              <Button variant="outline" onClick={handleEdit}>
                 <Edit className="h-4 w-4" />
                 Edit
               </Button>
@@ -138,7 +144,9 @@ function RestaurantDetailPage() {
           <Card>
             <CardHeader>
               <CardTitle>Basic Information</CardTitle>
-              <CardDescription>Restaurant details and contact information</CardDescription>
+              <CardDescription>
+                Restaurant details and contact information
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {isLoading ? (
@@ -156,7 +164,7 @@ function RestaurantDetailPage() {
                     </div>
                     <div className="flex-1">{restaurant.name}</div>
                   </div>
-                  
+
                   {restaurant.username && (
                     <div className="flex items-start gap-3">
                       <div className="text-muted-foreground mt-0.5">
@@ -170,7 +178,7 @@ function RestaurantDetailPage() {
                     <div className="flex items-start gap-3">
                       <Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
                       <div className="flex-1">
-                        <a 
+                        <a
                           href={`mailto:${restaurant.email}`}
                           className="text-primary hover:underline"
                         >
@@ -184,7 +192,7 @@ function RestaurantDetailPage() {
                     <div className="flex items-start gap-3">
                       <Phone className="h-4 w-4 text-muted-foreground mt-0.5" />
                       <div className="flex-1">
-                        <a 
+                        <a
                           href={`tel:${restaurant.phone_number}`}
                           className="text-primary hover:underline"
                         >
@@ -198,10 +206,12 @@ function RestaurantDetailPage() {
                     <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
                     <div className="flex-1">
                       <div className="text-sm">
-                        <strong>Created:</strong> {new Date(restaurant.created_at).toLocaleDateString()}
+                        <strong>Created:</strong>{' '}
+                        {new Date(restaurant.created_at).toLocaleDateString()}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        Last updated: {new Date(restaurant.updated_at).toLocaleDateString()}
+                        Last updated:{' '}
+                        {new Date(restaurant.updated_at).toLocaleDateString()}
                       </div>
                     </div>
                   </div>
@@ -242,7 +252,9 @@ function RestaurantDetailPage() {
           <Card>
             <CardHeader>
               <CardTitle>Subscription</CardTitle>
-              <CardDescription>Current subscription plan and status</CardDescription>
+              <CardDescription>
+                Current subscription plan and status
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {isLoading ? (
@@ -257,15 +269,23 @@ function RestaurantDetailPage() {
                     <div className="flex-1">
                       {restaurant.subscription_plan_name ? (
                         <>
-                          <div className="font-medium">{restaurant.subscription_plan_name}</div>
-                          {restaurant.subscription_price && restaurant.subscription_billing_period && (
-                            <div className="text-sm text-muted-foreground">
-                              ${restaurant.subscription_price} / {restaurant.subscription_billing_period}
-                            </div>
-                          )}
+                          <div className="font-medium">
+                            {restaurant.subscription_plan_name}
+                          </div>
+                          {restaurant.subscription_price &&
+                            restaurant.subscription_billing_period && (
+                              <div className="text-sm text-muted-foreground">
+                                ${restaurant.subscription_price} /{' '}
+                                {restaurant.subscription_billing_period}
+                              </div>
+                            )}
                           {restaurant.subscription_status && (
-                            <Badge 
-                              variant={restaurant.subscription_status === 'active' ? 'success' : 'secondary'}
+                            <Badge
+                              variant={
+                                restaurant.subscription_status === 'active'
+                                  ? 'success'
+                                  : 'secondary'
+                              }
                               className="mt-1"
                             >
                               {restaurant.subscription_status}
@@ -273,19 +293,30 @@ function RestaurantDetailPage() {
                           )}
                           {restaurant.subscription_start_date && (
                             <div className="text-xs text-muted-foreground mt-2">
-                              Started: {new Date(restaurant.subscription_start_date).toLocaleDateString()}
+                              Started:{' '}
+                              {new Date(
+                                restaurant.subscription_start_date,
+                              ).toLocaleDateString()}
                               {restaurant.subscription_end_date && (
-                                <> • Ends: {new Date(restaurant.subscription_end_date).toLocaleDateString()}</>
+                                <>
+                                  {' '}
+                                  • Ends:{' '}
+                                  {new Date(
+                                    restaurant.subscription_end_date,
+                                  ).toLocaleDateString()}
+                                </>
                               )}
                             </div>
                           )}
                         </>
                       ) : (
-                        <div className="text-muted-foreground">No active subscription</div>
+                        <div className="text-muted-foreground">
+                          No active subscription
+                        </div>
                       )}
                     </div>
                   </div>
-                  
+
                   {restaurant.subscription_plan_name && (
                     <div>
                       <Link
@@ -306,7 +337,9 @@ function RestaurantDetailPage() {
           <Card>
             <CardHeader>
               <CardTitle>Metrics</CardTitle>
-              <CardDescription>Restaurant statistics and activity</CardDescription>
+              <CardDescription>
+                Restaurant statistics and activity
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {isLoading ? (
@@ -323,7 +356,9 @@ function RestaurantDetailPage() {
                         <UtensilsCrossed className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm">Menu Items</span>
                       </div>
-                      <span className="font-semibold">{restaurant.menu_item_count}</span>
+                      <span className="font-semibold">
+                        {restaurant.menu_item_count}
+                      </span>
                     </div>
                   )}
 
@@ -333,7 +368,9 @@ function RestaurantDetailPage() {
                         <Users className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm">Users</span>
                       </div>
-                      <span className="font-semibold">{restaurant.user_count}</span>
+                      <span className="font-semibold">
+                        {restaurant.user_count}
+                      </span>
                     </div>
                   )}
 
@@ -343,17 +380,19 @@ function RestaurantDetailPage() {
                         <ShoppingCart className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm">Orders Today</span>
                       </div>
-                      <span className="font-semibold">{restaurant.orders_today}</span>
+                      <span className="font-semibold">
+                        {restaurant.orders_today}
+                      </span>
                     </div>
                   )}
 
-                  {!restaurant.menu_item_count && 
-                   !restaurant.user_count && 
-                   !restaurant.orders_today && (
-                    <div className="text-sm text-muted-foreground">
-                      No metrics available
-                    </div>
-                  )}
+                  {!restaurant.menu_item_count &&
+                    !restaurant.user_count &&
+                    !restaurant.orders_today && (
+                      <div className="text-sm text-muted-foreground">
+                        No metrics available
+                      </div>
+                    )}
                 </>
               ) : null}
             </CardContent>

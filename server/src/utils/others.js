@@ -10,10 +10,23 @@ const convertToMin = (str) => {
 
 const getUser = (req) => {
   let access_token = req.headers?.authorization?.split(" ")[1];
-  if (!access_token && req.cookies && req.cookies.access_token) {
-    access_token = req.cookies.access_token;
+
+  if (!access_token && req.cookies) {
+    // Check both standard and superadmin cookie names
+    access_token = req.cookies.superadmin_access_token || req.cookies.access_token;
   }
-  return jwt.verify(access_token, process.env.ACCESS_SECRET);
+
+  if (!access_token || access_token === "undefined" || access_token === "null") {
+    console.log("getUser: missing or invalid access_token. Auth header:", req.headers?.authorization);
+    return null;
+  }
+
+  try {
+    return jwt.verify(access_token, process.env.ACCESS_SECRET);
+  } catch (error) {
+    console.error("getUser: JWT verification failed:", error.message);
+    return null;
+  }
 };
 
 const getGreeting = () => {

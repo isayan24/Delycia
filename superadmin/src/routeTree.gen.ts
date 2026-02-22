@@ -21,10 +21,8 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UsersIndexRouteImport } from './routes/users/index'
 import { Route as StaffIndexRouteImport } from './routes/staff/index'
-import { Route as RestaurantsIndexRouteImport } from './routes/restaurants/index'
 import { Route as MenusIndexRouteImport } from './routes/menus/index'
 import { Route as UsersIdRouteImport } from './routes/users/$id'
-import { Route as SubscriptionsPlansRouteImport } from './routes/subscriptions.plans'
 import { Route as SubscriptionsAssignmentsRouteImport } from './routes/subscriptions.assignments'
 import { Route as StaffIdRouteImport } from './routes/staff/$id'
 import { Route as RestaurantsIdRouteImport } from './routes/restaurants/$id'
@@ -90,11 +88,6 @@ const StaffIndexRoute = StaffIndexRouteImport.update({
   path: '/',
   getParentRoute: () => StaffRoute,
 } as any)
-const RestaurantsIndexRoute = RestaurantsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => RestaurantsRoute,
-} as any)
 const MenusIndexRoute = MenusIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -104,11 +97,6 @@ const UsersIdRoute = UsersIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => UsersRoute,
-} as any)
-const SubscriptionsPlansRoute = SubscriptionsPlansRouteImport.update({
-  id: '/plans',
-  path: '/plans',
-  getParentRoute: () => SubscriptionsRoute,
 } as any)
 const SubscriptionsAssignmentsRoute =
   SubscriptionsAssignmentsRouteImport.update({
@@ -127,9 +115,9 @@ const RestaurantsIdRoute = RestaurantsIdRouteImport.update({
   getParentRoute: () => RestaurantsRoute,
 } as any)
 const SubscriptionsPlansIndexRoute = SubscriptionsPlansIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => SubscriptionsPlansRoute,
+  id: '/plans/',
+  path: '/plans/',
+  getParentRoute: () => SubscriptionsRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -146,10 +134,8 @@ export interface FileRoutesByFullPath {
   '/restaurants/$id': typeof RestaurantsIdRoute
   '/staff/$id': typeof StaffIdRoute
   '/subscriptions/assignments': typeof SubscriptionsAssignmentsRoute
-  '/subscriptions/plans': typeof SubscriptionsPlansRouteWithChildren
   '/users/$id': typeof UsersIdRoute
   '/menus/': typeof MenusIndexRoute
-  '/restaurants/': typeof RestaurantsIndexRoute
   '/staff/': typeof StaffIndexRoute
   '/users/': typeof UsersIndexRoute
   '/subscriptions/plans/': typeof SubscriptionsPlansIndexRoute
@@ -158,6 +144,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/restaurants': typeof RestaurantsRouteWithChildren
   '/settings': typeof SettingsRoute
   '/subscriptions': typeof SubscriptionsRouteWithChildren
   '/support': typeof SupportRoute
@@ -166,7 +153,6 @@ export interface FileRoutesByTo {
   '/subscriptions/assignments': typeof SubscriptionsAssignmentsRoute
   '/users/$id': typeof UsersIdRoute
   '/menus': typeof MenusIndexRoute
-  '/restaurants': typeof RestaurantsIndexRoute
   '/staff': typeof StaffIndexRoute
   '/users': typeof UsersIndexRoute
   '/subscriptions/plans': typeof SubscriptionsPlansIndexRoute
@@ -186,10 +172,8 @@ export interface FileRoutesById {
   '/restaurants/$id': typeof RestaurantsIdRoute
   '/staff/$id': typeof StaffIdRoute
   '/subscriptions/assignments': typeof SubscriptionsAssignmentsRoute
-  '/subscriptions/plans': typeof SubscriptionsPlansRouteWithChildren
   '/users/$id': typeof UsersIdRoute
   '/menus/': typeof MenusIndexRoute
-  '/restaurants/': typeof RestaurantsIndexRoute
   '/staff/': typeof StaffIndexRoute
   '/users/': typeof UsersIndexRoute
   '/subscriptions/plans/': typeof SubscriptionsPlansIndexRoute
@@ -210,10 +194,8 @@ export interface FileRouteTypes {
     | '/restaurants/$id'
     | '/staff/$id'
     | '/subscriptions/assignments'
-    | '/subscriptions/plans'
     | '/users/$id'
     | '/menus/'
-    | '/restaurants/'
     | '/staff/'
     | '/users/'
     | '/subscriptions/plans/'
@@ -222,6 +204,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/login'
+    | '/restaurants'
     | '/settings'
     | '/subscriptions'
     | '/support'
@@ -230,7 +213,6 @@ export interface FileRouteTypes {
     | '/subscriptions/assignments'
     | '/users/$id'
     | '/menus'
-    | '/restaurants'
     | '/staff'
     | '/users'
     | '/subscriptions/plans'
@@ -249,10 +231,8 @@ export interface FileRouteTypes {
     | '/restaurants/$id'
     | '/staff/$id'
     | '/subscriptions/assignments'
-    | '/subscriptions/plans'
     | '/users/$id'
     | '/menus/'
-    | '/restaurants/'
     | '/staff/'
     | '/users/'
     | '/subscriptions/plans/'
@@ -357,13 +337,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffIndexRouteImport
       parentRoute: typeof StaffRoute
     }
-    '/restaurants/': {
-      id: '/restaurants/'
-      path: '/'
-      fullPath: '/restaurants/'
-      preLoaderRoute: typeof RestaurantsIndexRouteImport
-      parentRoute: typeof RestaurantsRoute
-    }
     '/menus/': {
       id: '/menus/'
       path: '/'
@@ -377,13 +350,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/users/$id'
       preLoaderRoute: typeof UsersIdRouteImport
       parentRoute: typeof UsersRoute
-    }
-    '/subscriptions/plans': {
-      id: '/subscriptions/plans'
-      path: '/plans'
-      fullPath: '/subscriptions/plans'
-      preLoaderRoute: typeof SubscriptionsPlansRouteImport
-      parentRoute: typeof SubscriptionsRoute
     }
     '/subscriptions/assignments': {
       id: '/subscriptions/assignments'
@@ -408,10 +374,10 @@ declare module '@tanstack/react-router' {
     }
     '/subscriptions/plans/': {
       id: '/subscriptions/plans/'
-      path: '/'
+      path: '/plans'
       fullPath: '/subscriptions/plans/'
       preLoaderRoute: typeof SubscriptionsPlansIndexRouteImport
-      parentRoute: typeof SubscriptionsPlansRoute
+      parentRoute: typeof SubscriptionsRoute
     }
   }
 }
@@ -428,12 +394,10 @@ const MenusRouteWithChildren = MenusRoute._addFileChildren(MenusRouteChildren)
 
 interface RestaurantsRouteChildren {
   RestaurantsIdRoute: typeof RestaurantsIdRoute
-  RestaurantsIndexRoute: typeof RestaurantsIndexRoute
 }
 
 const RestaurantsRouteChildren: RestaurantsRouteChildren = {
   RestaurantsIdRoute: RestaurantsIdRoute,
-  RestaurantsIndexRoute: RestaurantsIndexRoute,
 }
 
 const RestaurantsRouteWithChildren = RestaurantsRoute._addFileChildren(
@@ -452,25 +416,14 @@ const StaffRouteChildren: StaffRouteChildren = {
 
 const StaffRouteWithChildren = StaffRoute._addFileChildren(StaffRouteChildren)
 
-interface SubscriptionsPlansRouteChildren {
-  SubscriptionsPlansIndexRoute: typeof SubscriptionsPlansIndexRoute
-}
-
-const SubscriptionsPlansRouteChildren: SubscriptionsPlansRouteChildren = {
-  SubscriptionsPlansIndexRoute: SubscriptionsPlansIndexRoute,
-}
-
-const SubscriptionsPlansRouteWithChildren =
-  SubscriptionsPlansRoute._addFileChildren(SubscriptionsPlansRouteChildren)
-
 interface SubscriptionsRouteChildren {
   SubscriptionsAssignmentsRoute: typeof SubscriptionsAssignmentsRoute
-  SubscriptionsPlansRoute: typeof SubscriptionsPlansRouteWithChildren
+  SubscriptionsPlansIndexRoute: typeof SubscriptionsPlansIndexRoute
 }
 
 const SubscriptionsRouteChildren: SubscriptionsRouteChildren = {
   SubscriptionsAssignmentsRoute: SubscriptionsAssignmentsRoute,
-  SubscriptionsPlansRoute: SubscriptionsPlansRouteWithChildren,
+  SubscriptionsPlansIndexRoute: SubscriptionsPlansIndexRoute,
 }
 
 const SubscriptionsRouteWithChildren = SubscriptionsRoute._addFileChildren(

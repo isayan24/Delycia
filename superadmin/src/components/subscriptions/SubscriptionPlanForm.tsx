@@ -1,7 +1,12 @@
+import { useState, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2, Save, X } from 'lucide-react'
-import { subscriptionPlanSchema, type SubscriptionPlanFormData } from '@/schemas/subscriptionSchema'
+import { Loader2, Save, X, Plus, Trash2 } from 'lucide-react'
+import {
+  subscriptionPlanSchema,
+  type SubscriptionPlanFormData,
+} from '@/schemas/subscriptionSchema'
+import type { SubscriptionPlan } from '@/lib/api/subscriptions'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -20,13 +25,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
+import { Switch } from '@/components/ui/switch'
 
 interface SubscriptionPlanFormProps {
-  plan?: SubscriptionPlanFormData & { id?: number }
+  plan?: SubscriptionPlan | null
   onSubmit: (data: SubscriptionPlanFormData) => Promise<void>
   onCancel: () => void
   isSubmitting?: boolean
+}
+
+/** Billing period → default billing_days mapping */
+const BILLING_DAYS_MAP: Record<string, number> = {
+  month: 30,
+  year: 365,
+  trial: 14,
 }
 
 export function SubscriptionPlanForm({
@@ -37,42 +49,84 @@ export function SubscriptionPlanForm({
 }: SubscriptionPlanFormProps) {
   const isEditMode = !!plan?.id
 
-  // @ts-expect-error - zodResolver type compatibility warning is a known issue with Zod v3
-  // The form works correctly at runtime
+  // Parse existing features from JSON string
+  const existingFeatures: string[] = plan?.features
+    ? (() => {
+        try {
+          const parsed =
+            typeof plan.features === 'string'
+              ? JSON.parse(plan.features)
+              : plan.features
+          return Array.isArray(parsed) ? parsed : []
+        } catch {
+          return []
+        }
+      })()
+    : ['']
+
+  // @ts-expect-error - zodResolver type compatibility
   const form = useForm<SubscriptionPlanFormData>({
     resolver: zodResolver(subscriptionPlanSchema),
     mode: 'onBlur',
     defaultValues: {
+      plan_code: plan?.plan_code || '',
       plan_name: plan?.plan_name || '',
-      description: plan?.description || '',
       price: plan?.price || 0,
-      billing_period: plan?.billing_period || 'monthly',
-      max_menu_items: plan?.max_menu_items || 0,
-      max_staff: plan?.max_staff || 0,
-      max_monthly_orders: plan?.max_monthly_orders || 0,
-      custom_branding: plan?.custom_branding ?? false,
-      analytics_access: plan?.analytics_access ?? false,
-      api_access: plan?.api_access ?? false,
-      priority_support: plan?.priority_support ?? false,
-      is_active: plan?.is_active ?? true,
+      currency: plan?.currency || 'INR',
+      billing_period: plan?.billing_period || 'month',
+      billing_days: plan?.billing_days || 30,
+      savings: plan?.savings || 0,
+      is_popular: !!plan?.is_popular,
+      is_active: plan ? !!plan.is_active : true,
+      display_order: plan?.display_order || 0,
+      features: existingFeatures.length > 0 ? existingFeatures : [''],
+      max_restaurants: plan?.max_restaurants || 1,
     },
   })
 
+  const features = form.watch('features')
+
+  const addFeature = useCallback(() => {
+    const current = form.getValues('features')
+    form.setValue('features', [...current, ''])
+  }, [form])
+
+  const removeFeature = useCallback(
+    (index: number) => {
+      const current = form.getValues('features')
+      if (current.length <= 1) return
+      form.setValue(
+        'features',
+        current.filter((_, i) => i !== index),
+      )
+    },
+    [form],
+  )
+
+  const handleBillingPeriodChange = (value: string) => {
+    form.setValue('billing_period', value as 'month' | 'year' | 'trial')
+    form.setValue('billing_days', BILLING_DAYS_MAP[value] || 30)
+  }
+
   const handleSubmit = async (data: SubscriptionPlanFormData) => {
-    try {
-      await onSubmit(data)
-    } catch (error) {
-      console.error('Form submission error:', error)
+    // Filter out empty feature strings
+    const cleanedData = {
+      ...data,
+      features: data.features.filter((f) => f.trim()),
     }
+    await onSubmit(cleanedData)
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        {/* Basic Information Section */}
+        {/* Basic Information */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Basic Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+            Basic Information
+          </h3>
+
+          <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="plan_name"
@@ -80,9 +134,46 @@ export function SubscriptionPlanForm({
                 <FormItem>
                   <FormLabel>Plan Name *</FormLabel>
                   <FormControl>
+                    <Input placeholder="e.g. Monthly Pro" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="plan_code"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Plan Code *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. monthly_pro" {...field} />
+                  </FormControl>
+                  <FormDescription>Unique identifier</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <FormField
+              control={form.control}
+              name="price"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Price (₹) *</FormLabel>
+                  <FormControl>
                     <Input
-                      placeholder="Enter plan name"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="499.00"
                       {...field}
+                      onChange={(e) =>
+                        field.onChange(parseFloat(e.target.value) || 0)
+                      }
                     />
                   </FormControl>
                   <FormMessage />
@@ -97,90 +188,67 @@ export function SubscriptionPlanForm({
                 <FormItem>
                   <FormLabel>Billing Period *</FormLabel>
                   <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    onValueChange={handleBillingPeriodChange}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select billing period" />
+                        <SelectValue placeholder="Select period" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                      <SelectItem value="quarterly">Quarterly</SelectItem>
-                      <SelectItem value="annual">Annual</SelectItem>
+                      <SelectItem value="month">Monthly</SelectItem>
+                      <SelectItem value="year">Yearly</SelectItem>
+                      <SelectItem value="trial">Trial</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="billing_days"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Billing Days *</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min="1"
+                      {...field}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value, 10) || 30)
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
 
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Description</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter plan description"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="price"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Price *</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0.00"
-                    {...field}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                  />
-                </FormControl>
-                <FormDescription>
-                  Price in USD per billing period
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        {/* Feature Limits Section */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Feature Limits</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <FormField
               control={form.control}
-              name="max_menu_items"
+              name="savings"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Max Menu Items</FormLabel>
+                  <FormLabel>Savings (₹)</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
+                      step="0.01"
                       min="0"
-                      placeholder="0"
+                      placeholder="0.00"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseFloat(e.target.value) || 0)
+                      }
                     />
                   </FormControl>
-                  <FormDescription>
-                    0 for unlimited
-                  </FormDescription>
+                  <FormDescription>vs monthly</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -188,22 +256,20 @@ export function SubscriptionPlanForm({
 
             <FormField
               control={form.control}
-              name="max_staff"
+              name="max_restaurants"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Max Staff</FormLabel>
+                  <FormLabel>Max Restaurants</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
-                      min="0"
-                      placeholder="0"
+                      min="1"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value, 10) || 1)
+                      }
                     />
                   </FormControl>
-                  <FormDescription>
-                    0 for unlimited
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -211,22 +277,20 @@ export function SubscriptionPlanForm({
 
             <FormField
               control={form.control}
-              name="max_monthly_orders"
+              name="display_order"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Max Monthly Orders</FormLabel>
+                  <FormLabel>Display Order</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
                       min="0"
-                      placeholder="0"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value, 10) || 0)
+                      }
                     />
                   </FormControl>
-                  <FormDescription>
-                    0 for unlimited
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -234,128 +298,105 @@ export function SubscriptionPlanForm({
           </div>
         </div>
 
-        {/* Additional Features Section */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Additional Features</h3>
-          <div className="space-y-3">
-            <FormField
-              control={form.control}
-              name="custom_branding"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      Custom Branding
-                    </FormLabel>
-                    <FormDescription>
-                      Allow restaurant to use custom branding and logo
-                    </FormDescription>
-                  </div>
-                </FormItem>
-              )}
-            />
+        {/* Features */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              Features *
+            </h3>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addFeature}
+            >
+              <Plus className="h-3.5 w-3.5 mr-1" />
+              Add
+            </Button>
+          </div>
+          <div className="space-y-2">
+            {features?.map((_: string, index: number) => (
+              <FormField
+                key={index}
+                control={form.control}
+                name={`features.${index}`}
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center gap-2">
+                      <FormControl>
+                        <Input
+                          placeholder={`Feature ${index + 1}`}
+                          {...field}
+                        />
+                      </FormControl>
+                      {features.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="shrink-0 h-9 w-9 text-destructive hover:text-destructive"
+                          onClick={() => removeFeature(index)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ))}
+          </div>
+        </div>
 
-            <FormField
-              control={form.control}
-              name="analytics_access"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      Analytics Access
-                    </FormLabel>
-                    <FormDescription>
-                      Provide access to advanced analytics and reporting
-                    </FormDescription>
-                  </div>
-                </FormItem>
-              )}
-            />
+        {/* Toggles */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+            Options
+          </h3>
 
+          <div className="flex items-center justify-between rounded-lg border p-3">
+            <div className="space-y-0.5">
+              <label className="text-sm font-medium">Popular Badge</label>
+              <p className="text-xs text-muted-foreground">
+                Highlights this plan on the pricing page
+              </p>
+            </div>
             <FormField
               control={form.control}
-              name="api_access"
+              name="is_popular"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      API Access
-                    </FormLabel>
-                    <FormDescription>
-                      Enable API access for third-party integrations
-                    </FormDescription>
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="priority_support"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      Priority Support
-                    </FormLabel>
-                    <FormDescription>
-                      Provide priority customer support with faster response times
-                    </FormDescription>
-                  </div>
-                </FormItem>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
               )}
             />
           </div>
 
-          <FormField
-            control={form.control}
-            name="is_active"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                <FormControl>
-                  <Checkbox
+          {isEditMode && (
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div className="space-y-0.5">
+                <label className="text-sm font-medium">Active</label>
+                <p className="text-xs text-muted-foreground">
+                  Inactive plans can't be assigned
+                </p>
+              </div>
+              <FormField
+                control={form.control}
+                name="is_active"
+                render={({ field }) => (
+                  <Switch
                     checked={field.value}
                     onCheckedChange={field.onChange}
                   />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>
-                    Active Plan
-                  </FormLabel>
-                  <FormDescription>
-                    Inactive plans cannot be assigned to new restaurants
-                  </FormDescription>
-                </div>
-              </FormItem>
-            )}
-          />
+                )}
+              />
+            </div>
+          )}
         </div>
 
-        {/* Form Actions */}
+        {/* Actions */}
         <div className="flex items-center justify-end gap-3 pt-4 border-t">
           <Button
             type="button"
@@ -363,21 +404,18 @@ export function SubscriptionPlanForm({
             onClick={onCancel}
             disabled={isSubmitting}
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4 mr-1" />
             Cancel
           </Button>
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-          >
+          <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin mr-1" />
                 {isEditMode ? 'Updating...' : 'Creating...'}
               </>
             ) : (
               <>
-                <Save className="h-4 w-4" />
+                <Save className="h-4 w-4 mr-1" />
                 {isEditMode ? 'Update Plan' : 'Create Plan'}
               </>
             )}

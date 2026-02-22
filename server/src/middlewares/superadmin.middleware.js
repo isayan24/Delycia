@@ -1,8 +1,8 @@
 import pool from "../config/db.connection.js";
 import others from "../utils/others.js";
 
-// Superadmin role constant - as defined in the design document
-const SUPERADMIN_ROLE = 1000;
+// Superadmin role constant - matches database schema definition
+const SUPERADMIN_ROLE = 1;
 
 /**
  * Middleware to verify that the authenticated user has superadmin role

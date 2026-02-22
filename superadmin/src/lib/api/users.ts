@@ -1,4 +1,4 @@
-import { createServerFn } from '@tanstack/start'
+import { createServerFn } from '@tanstack/react-start'
 import { withAuth } from '@/lib/withAuth'
 
 export interface User {
@@ -29,11 +29,11 @@ export interface UserFilters {
 }
 
 export const getUsers = createServerFn({ method: 'GET' })
-  .validator((data: { data: UserFilters }) => data)
+  .inputValidator((data: { data: UserFilters }) => data)
   .handler(async ({ data }) => {
     return withAuth(async (axios) => {
       const params = new URLSearchParams()
-      
+
       if (data.page) params.append('page', data.page.toString())
       if (data.limit) params.append('limit', data.limit.toString())
       if (data.search) params.append('search', data.search)
@@ -48,7 +48,7 @@ export const getUsers = createServerFn({ method: 'GET' })
   })
 
 export const createUser = createServerFn({ method: 'POST' })
-  .validator((data: any) => data)
+  .inputValidator((data: any) => data)
   .handler(async ({ data }) => {
     return withAuth(async (axios) => {
       return axios.post('/superadmin/users', data)
@@ -56,7 +56,7 @@ export const createUser = createServerFn({ method: 'POST' })
   })
 
 export const updateUser = createServerFn({ method: 'POST' })
-  .validator((data: { id: number; updates: any }) => data)
+  .inputValidator((data: { id: number; updates: any }) => data)
   .handler(async ({ data }) => {
     return withAuth(async (axios) => {
       return axios.patch(`/superadmin/users/${data.id}`, data.updates)
@@ -64,7 +64,7 @@ export const updateUser = createServerFn({ method: 'POST' })
   })
 
 export const deactivateUser = createServerFn({ method: 'POST' })
-  .validator((data: { id: number }) => data)
+  .inputValidator((data: { id: number }) => data)
   .handler(async ({ data }) => {
     return withAuth(async (axios) => {
       return axios.delete(`/superadmin/users/${data.id}`)
@@ -72,7 +72,7 @@ export const deactivateUser = createServerFn({ method: 'POST' })
   })
 
 export const resetUserPassword = createServerFn({ method: 'POST' })
-  .validator((data: { id: number }) => data)
+  .inputValidator((data: { id: number }) => data)
   .handler(async ({ data }) => {
     return withAuth(async (axios) => {
       return axios.post(`/superadmin/users/${data.id}/reset-password`)
@@ -80,7 +80,7 @@ export const resetUserPassword = createServerFn({ method: 'POST' })
   })
 
 export const getUser = createServerFn({ method: 'GET' })
-  .validator((data: { id: string }) => data)
+  .inputValidator((data: { id: string }) => data)
   .handler(async ({ data }) => {
     return withAuth(async (axios) => {
       return axios.get(`/superadmin/users/${data.id}`)
@@ -88,13 +88,15 @@ export const getUser = createServerFn({ method: 'GET' })
   })
 
 export const getUserActivity = createServerFn({ method: 'GET' })
-  .validator((data: { id: string; page?: number; limit?: number }) => data)
+  .inputValidator((data: { id: string; page?: number; limit?: number }) => data)
   .handler(async ({ data }) => {
     return withAuth(async (axios) => {
       const params = new URLSearchParams()
       if (data.page) params.append('page', data.page.toString())
       if (data.limit) params.append('limit', data.limit.toString())
-      
-      return axios.get(`/superadmin/users/${data.id}/activity?${params.toString()}`)
+
+      return axios.get(
+        `/superadmin/users/${data.id}/activity?${params.toString()}`,
+      )
     })
   })

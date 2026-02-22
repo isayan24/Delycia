@@ -5,17 +5,26 @@ export function parseCookies(
   if (!cookieHeader) return {}
   return cookieHeader.split(';').reduce(
     (cookies, cookie) => {
-      const [name, value] = cookie.trim().split('=')
-      cookies[name] = value
+      const parts = cookie.trim().split('=')
+      const name = parts[0]
+      const value = parts.slice(1).join('=')
+      if (name) cookies[name] = value
       return cookies
     },
     {} as Record<string, string>,
   )
-}
-
-// Helper to get access token from httpOnly cookie
-export function getAccessTokenFromCookie(request: Request): string | null {
-  const cookieHeader = request.headers.get('cookie')
-  const cookies = parseCookies(cookieHeader)
-  return cookies['superadmin_access_token'] || null
+} // Helper to get access token from httpOnly cookie
+export async function getAccessTokenFromCookie(): Promise<string | null> {
+  try {
+    const { getCookie } = await import('@tanstack/react-start/server')
+    const token = getCookie('superadmin_access_token')
+    console.log(
+      '[server-cookies] getAccessTokenFromCookie:',
+      token ? '<token present>' : 'null',
+    )
+    return token || null
+  } catch (error) {
+    console.error('[server-cookies] Error getting cookie:', error)
+    return null
+  }
 }

@@ -1,10 +1,21 @@
+import { useState } from 'react'
 import {
   useReactTable,
   getCoreRowModel,
   flexRender,
   type ColumnDef,
 } from '@tanstack/react-table'
-import { useSubscriptionPlansQuery, type SubscriptionPlan } from '@/hooks/queries/useSubscriptionPlansQuery'
+import {
+  useSubscriptionPlansQuery,
+  type SubscriptionPlan,
+} from '@/hooks/queries/useSubscriptionPlansQuery'
+import {
+  useCreatePlanMutation,
+  useUpdatePlanMutation,
+  useDeactivatePlanMutation,
+} from '@/hooks/mutations/useSubscriptionMutations'
+import { SubscriptionPlanForm } from './SubscriptionPlanForm'
+import type { SubscriptionPlanFormData } from '@/schemas/subscriptionSchema'
 import {
   Table,
   TableBody,
@@ -13,50 +24,153 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from '@/components/ui/sheet'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { BarChart3, Edit, Power } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
+import { Edit, Power, Plus, Star, Crown } from 'lucide-react'
+
+/** Parse the JSON `features` column into an array */
+function parseFeatures(raw: string | string[]): string[] {
+  if (Array.isArray(raw)) return raw
+  try {
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+const BILLING_LABEL: Record<string, string> = {
+  month: 'Monthly',
+  year: 'Yearly',
+  trial: 'Trial',
+}
 
 export function SubscriptionPlanList() {
   const { data, isLoading, isError, error } = useSubscriptionPlansQuery()
+  const createPlan = useCreatePlanMutation()
+  const updatePlan = useUpdatePlanMutation()
+  const deactivatePlan = useDeactivatePlanMutation()
+  const { toast } = useToast()
 
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null)
+  const [deactivateTarget, setDeactivateTarget] =
+    useState<SubscriptionPlan | null>(null)
+
+  // ── Handlers ────────────────────────────────────────────
+  const handleCreate = () => {
+    setEditingPlan(null)
+    setSheetOpen(true)
+  }
+
+  const handleEdit = (plan: SubscriptionPlan) => {
+    setEditingPlan(plan)
+    setSheetOpen(true)
+  }
+
+  const handleFormSubmit = async (formData: SubscriptionPlanFormData) => {
+    try {
+      if (editingPlan) {
+        await updatePlan.mutateAsync({ id: editingPlan.id, ...formData })
+        toast({
+          title: 'Plan updated',
+          description: `"${formData.plan_name}" has been updated.`,
+        })
+      } else {
+        await createPlan.mutateAsync(formData)
+        toast({
+          title: 'Plan created',
+          description: `"${formData.plan_name}" has been created.`,
+        })
+      }
+      setSheetOpen(false)
+      setEditingPlan(null)
+    } catch (err: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: err?.message || 'Something went wrong',
+      })
+    }
+  }
+
+  const handleDeactivateConfirm = async () => {
+    if (!deactivateTarget) return
+    try {
+      await deactivatePlan.mutateAsync(deactivateTarget.id)
+      toast({
+        title: 'Plan deactivated',
+        description: `"${deactivateTarget.plan_name}" has been deactivated.`,
+      })
+    } catch (err: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: err?.message || 'Failed to deactivate plan',
+      })
+    } finally {
+      setDeactivateTarget(null)
+    }
+  }
+
+  // ── Column Definitions ──────────────────────────────────
   const columns: ColumnDef<SubscriptionPlan>[] = [
     {
-      accessorKey: 'name',
-      header: 'Name',
-      cell: ({ row }: any) => <div className="font-medium">{row.getValue('name')}</div>,
-    },
-    {
-      accessorKey: 'description',
-      header: 'Description',
-      cell: ({ row }: any) => (
-        <div className="max-w-[300px] truncate text-muted-foreground">
-          {row.getValue('description') || 'No description'}
-        </div>
-      ),
+      accessorKey: 'plan_name',
+      header: 'Plan',
+      cell: ({ row }: any) => {
+        const plan = row.original as SubscriptionPlan
+        return (
+          <div className="flex items-center gap-2">
+            <div>
+              <div className="font-medium flex items-center gap-1.5">
+                {plan.plan_name}
+                {!!plan.is_popular && (
+                  <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                )}
+              </div>
+              <div className="text-xs text-muted-foreground font-mono">
+                {plan.plan_code}
+              </div>
+            </div>
+          </div>
+        )
+      },
     },
     {
       accessorKey: 'price',
       header: 'Price',
       cell: ({ row }: any) => {
-        const price = parseFloat(row.getValue('price'))
-        const formatted = new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: 'USD',
-        }).format(price)
-        return <div className="font-medium">{formatted}</div>
-      },
-    },
-    {
-      accessorKey: 'billing_cycle',
-      header: 'Billing Period',
-      cell: ({ row }: any) => {
-        const cycle = row.getValue('billing_cycle') as string
+        const plan = row.original as SubscriptionPlan
         return (
-          <Badge variant="outline" className="capitalize">
-            {cycle}
-          </Badge>
+          <div>
+            <div className="font-semibold">
+              ₹{Number(plan.price).toLocaleString('en-IN')}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              /{BILLING_LABEL[plan.billing_period] || plan.billing_period} (
+              {plan.billing_days}d)
+            </div>
+          </div>
         )
       },
     },
@@ -64,38 +178,54 @@ export function SubscriptionPlanList() {
       id: 'features',
       header: 'Features',
       cell: ({ row }: any) => {
-        const plan = row.original
+        const plan = row.original as SubscriptionPlan
+        const features = parseFeatures(plan.features)
+        const display = features.slice(0, 3)
+        const remaining = features.length - 3
         return (
-          <div className="text-sm space-y-1">
-            <div>Menu Items: {plan.max_menu_items}</div>
-            <div>Staff: {plan.max_staff_count}</div>
-            <div>Orders/mo: {plan.max_monthly_orders}</div>
+          <div className="flex flex-wrap gap-1 max-w-[300px]">
+            {display.map((f) => (
+              <Badge
+                key={f}
+                variant="secondary"
+                className="text-xs font-normal"
+              >
+                {f}
+              </Badge>
+            ))}
+            {remaining > 0 && (
+              <Badge variant="outline" className="text-xs">
+                +{remaining} more
+              </Badge>
+            )}
           </div>
         )
       },
     },
     {
-      id: 'additional_features',
-      header: 'Additional',
+      id: 'usage',
+      header: 'Usage',
       cell: ({ row }: any) => {
-        const plan = row.original
-        const features = []
-        if (plan.custom_branding) features.push('Branding')
-        if (plan.analytics_access) features.push('Analytics')
-        if (plan.api_access) features.push('API')
-        if (plan.priority_support) features.push('Support')
-        
+        const plan = row.original as SubscriptionPlan
         return (
-          <div className="flex flex-wrap gap-1">
-            {features.length > 0 ? (
-              features.map((feature) => (
-                <Badge key={feature} variant="secondary" className="text-xs">
-                  {feature}
-                </Badge>
-              ))
-            ) : (
-              <span className="text-muted-foreground text-xs">None</span>
-            )}
+          <div className="text-sm">
+            <div>{plan.active_subscriptions || 0} active</div>
+            <div className="text-xs text-muted-foreground">
+              {plan.total_restaurants || 0} restaurants
+            </div>
+          </div>
+        )
+      },
+    },
+    {
+      accessorKey: 'max_restaurants',
+      header: 'Max Rest.',
+      cell: ({ row }: any) => {
+        const val = row.original.max_restaurants
+        return (
+          <div className="flex items-center gap-1">
+            <Crown className="h-3.5 w-3.5 text-muted-foreground" />
+            {val >= 999 ? '∞' : val}
           </div>
         )
       },
@@ -104,39 +234,34 @@ export function SubscriptionPlanList() {
       accessorKey: 'is_active',
       header: 'Status',
       cell: ({ row }: any) => {
-        const isActive = row.getValue('is_active')
+        const active = !!row.original.is_active
         return (
-          <Badge variant={isActive ? 'default' : 'secondary'}>
-            {isActive ? 'Active' : 'Inactive'}
+          <Badge variant={active ? 'default' : 'secondary'}>
+            {active ? 'Active' : 'Inactive'}
           </Badge>
         )
       },
     },
     {
       id: 'actions',
-      header: 'Actions',
+      header: '',
       cell: ({ row }: any) => {
-        const plan = row.original
+        const plan = row.original as SubscriptionPlan
         return (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <Button
               variant="ghost"
-              size="sm"
-              onClick={() => handleViewStats(plan.id)}
-            >
-              <BarChart3 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleEdit(plan.id)}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => handleEdit(plan)}
             >
               <Edit className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
-              size="sm"
-              onClick={() => handleDeactivate(plan.id)}
+              size="icon"
+              className="h-8 w-8 text-destructive hover:text-destructive"
+              onClick={() => setDeactivateTarget(plan)}
               disabled={!plan.is_active}
             >
               <Power className="h-4 w-4" />
@@ -153,21 +278,7 @@ export function SubscriptionPlanList() {
     getCoreRowModel: getCoreRowModel(),
   })
 
-  const handleViewStats = (id: number) => {
-    // TODO: Implement view stats
-    console.log('View stats for plan:', id)
-  }
-
-  const handleEdit = (id: number) => {
-    // TODO: Implement edit
-    console.log('Edit plan:', id)
-  }
-
-  const handleDeactivate = (id: number) => {
-    // TODO: Implement deactivate
-    console.log('Deactivate plan:', id)
-  }
-
+  // ── Error State ─────────────────────────────────────────
   if (isError) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -182,67 +293,130 @@ export function SubscriptionPlanList() {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Table */}
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup: any) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header: any) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
+    <>
+      <div className="space-y-4">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Subscription Plans</h2>
+            <p className="text-sm text-muted-foreground">
+              Manage pricing plans for restaurants
+            </p>
+          </div>
+          <Button onClick={handleCreate}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Plan
+          </Button>
+        </div>
+
+        {/* Table */}
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup: any) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header: any) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <TableRow key={i}>
+                    {columns.map((_, ci) => (
+                      <TableCell key={ci}>
+                        <Skeleton className="h-4 w-full" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row: any) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell: any) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
                         )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              // Loading skeleton
-              Array.from({ length: 5 }).map((_, index) => (
-                <TableRow key={index}>
-                  {columns.map((_, colIndex) => (
-                    <TableCell key={colIndex}>
-                      <Skeleton className="h-4 w-full" />
-                    </TableCell>
-                  ))}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No subscription plans found.
+                  </TableCell>
                 </TableRow>
-              ))
-            ) : table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row: any) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                >
-                  {row.getVisibleCells().map((cell: any) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No subscription plans found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
-    </div>
+
+      {/* Create / Edit Sheet */}
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent className="sm:max-w-lg overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>{editingPlan ? 'Edit Plan' : 'Create Plan'}</SheetTitle>
+            <SheetDescription>
+              {editingPlan
+                ? `Editing "${editingPlan.plan_name}"`
+                : 'Add a new subscription plan'}
+            </SheetDescription>
+          </SheetHeader>
+          <div className="mt-6">
+            <SubscriptionPlanForm
+              plan={editingPlan}
+              onSubmit={handleFormSubmit}
+              onCancel={() => {
+                setSheetOpen(false)
+                setEditingPlan(null)
+              }}
+              isSubmitting={createPlan.isPending || updatePlan.isPending}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Deactivate Confirm */}
+      <AlertDialog
+        open={!!deactivateTarget}
+        onOpenChange={(open) => !open && setDeactivateTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deactivate Plan</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to deactivate "{deactivateTarget?.plan_name}
+              "? Existing subscriptions will continue until their end date, but
+              no new assignments can be made.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeactivateConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deactivatePlan.isPending ? 'Deactivating...' : 'Deactivate'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }

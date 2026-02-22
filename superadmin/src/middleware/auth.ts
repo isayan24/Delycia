@@ -1,7 +1,6 @@
 import { redirect } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
-import { getRequest } from '@tanstack/react-start/server'
-import { getAccessTokenFromCookie, parseCookies } from '@/lib/server-cookies'
+import { getAccessTokenFromCookie } from '@/lib/server-cookies'
 
 /**
  * Router context interface for type-safe auth state
@@ -22,13 +21,8 @@ export interface RouterContext {
 export const checkAuthServer = createServerFn({ method: 'GET' }).handler(
   async () => {
     try {
-      const request = getRequest()
-      if (!request) {
-        return { isAuthenticated: false, user: null }
-      }
-
       // Check for access token in httpOnly cookie
-      const accessToken = getAccessTokenFromCookie(request)
+      const accessToken = await getAccessTokenFromCookie()
 
       if (accessToken) {
         // Access token exists — consider authenticated
@@ -38,9 +32,10 @@ export const checkAuthServer = createServerFn({ method: 'GET' }).handler(
 
       // No access token — check if refresh token exists
       // If it does, the user's session can be recovered
-      const cookieHeader = request.headers.get('cookie')
-      const cookies = parseCookies(cookieHeader)
-      const refreshToken = cookies['superadmin_refresh_token']
+      // No access token — check if refresh token exists
+      // If it does, the user's session can be recovered
+      const { getCookie } = await import('@tanstack/react-start/server')
+      const refreshToken = getCookie('superadmin_refresh_token')
 
       if (refreshToken) {
         // Refresh token exists — the session endpoint will auto-refresh
@@ -65,16 +60,9 @@ export const checkAuthServer = createServerFn({ method: 'GET' }).handler(
 export const checkHasTokensServer = createServerFn({ method: 'GET' }).handler(
   async () => {
     try {
-      const request = getRequest()
-      if (!request) {
-        return { hasTokens: false }
-      }
-
-      const cookieHeader = request.headers.get('cookie')
-      const cookies = parseCookies(cookieHeader)
-
-      const hasAccessToken = !!cookies['superadmin_access_token']
-      const hasRefreshToken = !!cookies['superadmin_refresh_token']
+      const { getCookie } = await import('@tanstack/react-start/server')
+      const hasAccessToken = !!getCookie('superadmin_access_token')
+      const hasRefreshToken = !!getCookie('superadmin_refresh_token')
 
       return { hasTokens: hasAccessToken || hasRefreshToken }
     } catch (error) {
@@ -87,7 +75,7 @@ export const checkHasTokensServer = createServerFn({ method: 'GET' }).handler(
 /**
  * Middleware function to require authentication.
  * Works on both server (SSR) and client.
- * Verifies superadmin role (role === 1000).
+ * Verifies superadmin role (role === 1).
  */
 export async function requireAuth({
   location,
@@ -139,7 +127,7 @@ export async function requireAuth({
   const { default: sessionService } = await import('@/services/sessionService')
   const user = sessionService.getUserData()
 
-  if (!user || user.role !== 1000) {
+  if (!user || user.role !== 1) {
     // No user data or not superadmin — check if we might have tokens
     try {
       const hasTokens = await checkHasTokensServer()

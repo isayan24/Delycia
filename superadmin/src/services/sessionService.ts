@@ -9,7 +9,7 @@ export interface SuperadminUserData {
   email?: string
   phone_number?: string
   profile_pic?: string
-  role: number // Should be 1000 for superadmin
+  role: number // Should be 1 for superadmin
 }
 
 class SessionService {
@@ -95,7 +95,7 @@ class SessionService {
   async isSessionValid(): Promise<boolean> {
     try {
       const userData = this.getUserData()
-      return userData !== null && userData.role === 1000
+      return userData !== null && userData.role === 1
     } catch (error) {
       console.error('Session validation failed:', error)
       return false
@@ -107,7 +107,7 @@ class SessionService {
    */
   isSuperadmin(): boolean {
     const userData = this.getUserData()
-    return userData?.role === 1000
+    return userData?.role === 1
   }
 }
 

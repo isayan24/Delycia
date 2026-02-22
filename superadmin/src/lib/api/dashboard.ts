@@ -1,5 +1,6 @@
- 
-import axiosInstance from '@/lib/axios'
+import { createServerFn } from '@tanstack/react-start'
+import { withAuth, jsonResponse } from '@/lib/withAuth'
+import { z } from 'zod'
 
 export interface DashboardStats {
   total_restaurants: number
@@ -27,38 +28,75 @@ export interface DashboardFilters {
   restaurant_id?: string
 }
 
-export const getDashboardStats = async (filters?: DashboardFilters) => {
-  const params = new URLSearchParams()
-  
-  if (filters?.start_date) params.append('start_date', filters.start_date)
-  if (filters?.end_date) params.append('end_date', filters.end_date)
-  if (filters?.restaurant_id) params.append('restaurant_id', filters.restaurant_id)
+const dashboardFiltersSchema = z.object({
+  start_date: z.string().optional(),
+  end_date: z.string().optional(),
+  restaurant_id: z.string().optional(),
+})
 
-  const response = await axiosInstance.get(`/superadmin/dashboard/stats?${params.toString()}`)
-  return response.data
-}
+export const getDashboardStats = createServerFn({ method: 'GET' })
+  .inputValidator((data: DashboardFilters) =>
+    dashboardFiltersSchema.parse(data),
+  )
+  .handler(async ({ data }) => {
+    return withAuth(async (axios, headers) => {
+      const params = new URLSearchParams()
+      if (data.start_date) params.append('start_date', data.start_date)
+      if (data.end_date) params.append('end_date', data.end_date)
+      if (data.restaurant_id) params.append('restaurant_id', data.restaurant_id)
 
-export const getDashboardActivity = async (page?: number, limit?: number) => {
-  const params = new URLSearchParams()
-  
-  if (page) params.append('page', page.toString())
-  if (limit) params.append('limit', limit.toString())
+      const response = await axios.get(
+        `/superadmin/dashboard/stats?${params.toString()}`,
+      )
+      return jsonResponse(response.data, 200, headers)
+    })
+  })
 
-  const response = await axiosInstance.get(`/superadmin/dashboard/activity?${params.toString()}`)
-  return response.data
-}
+export const getDashboardActivity = createServerFn({ method: 'GET' })
+  .inputValidator((data: { page?: number; limit?: number }) =>
+    z
+      .object({ page: z.number().optional(), limit: z.number().optional() })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    return withAuth(async (axios, headers) => {
+      const params = new URLSearchParams()
+      if (data.page) params.append('page', data.page.toString())
+      if (data.limit) params.append('limit', data.limit.toString())
 
-export const getDashboardAnalytics = async (filters?: DashboardFilters) => {
-  const params = new URLSearchParams()
-  
-  if (filters?.start_date) params.append('start_date', filters.start_date)
-  if (filters?.end_date) params.append('end_date', filters.end_date)
+      const response = await axios.get(
+        `/superadmin/dashboard/activity?${params.toString()}`,
+      )
+      return jsonResponse(response.data, 200, headers)
+    })
+  })
 
-  const response = await axiosInstance.get(`/superadmin/dashboard/analytics?${params.toString()}`)
-  return response.data
-}
+export const getDashboardAnalytics = createServerFn({ method: 'GET' })
+  .inputValidator((data: DashboardFilters) =>
+    dashboardFiltersSchema.parse(data),
+  )
+  .handler(async ({ data }) => {
+    return withAuth(async (axios, headers) => {
+      const params = new URLSearchParams()
+      if (data.start_date) params.append('start_date', data.start_date)
+      if (data.end_date) params.append('end_date', data.end_date)
 
-export const getRestaurantMetrics = async (id: string) => {
-  const response = await axiosInstance.get(`/superadmin/dashboard/restaurants/${id}/metrics`)
-  return response.data
-}
+      const response = await axios.get(
+        `/superadmin/dashboard/analytics?${params.toString()}`,
+      )
+      return jsonResponse(response.data, 200, headers)
+    })
+  })
+
+export const getRestaurantMetrics = createServerFn({ method: 'GET' })
+  .inputValidator((data: { id: string }) =>
+    z.object({ id: z.string() }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    return withAuth(async (axios, headers) => {
+      const response = await axios.get(
+        `/superadmin/dashboard/restaurants/${data.id}/metrics`,
+      )
+      return jsonResponse(response.data, 200, headers)
+    })
+  })
