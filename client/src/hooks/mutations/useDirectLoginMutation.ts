@@ -34,10 +34,12 @@ export function useDirectLoginMutation() {
       }
 
       const user = loginResponse.data.data.user
+
+      // todo generate a username for the user that has been created
       // 2. Update name immediately
       try {
-        await axios.patch('/api/user/update', {
-          id: user.id || user.uid,
+        await axios.post('/api/user/update', {
+          uid: user._id,
           name: name,
         })
 

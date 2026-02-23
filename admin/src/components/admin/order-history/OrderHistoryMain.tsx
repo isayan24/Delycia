@@ -99,7 +99,7 @@ export default function OrderHistoryMain() {
           {/* Main Content Area */}
           <div className="space-y-4">
             {/* Desktop Table View */}
-            <div className="hidden md:block rounded-2xl border border-gray-100 bg-white shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)]">
+            <div className="hidden min-[501px]:block rounded-2xl border border-gray-100 bg-white shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)]">
               <OrderHistoryTablePaginated
                 items={orderHistory}
                 loading={loading}
@@ -124,7 +124,7 @@ export default function OrderHistoryMain() {
             </div>
 
             {/* Mobile View */}
-            <div className="block md:hidden">
+            <div className="block min-[501px]:hidden">
               <MobileOrderHistory
                 orders={orderHistory}
                 loading={loading}

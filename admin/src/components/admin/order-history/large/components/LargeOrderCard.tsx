@@ -1,17 +1,14 @@
 import React, { useState, useMemo, memo } from 'react'
 import {
   Beef,
-  Calendar,
   ChevronDown,
   Coffee,
   History,
   Pizza,
   Printer,
   UtensilsCrossed,
-  Layers,
   Phone,
   Pin,
-  CreditCard,
   Table as TableIcon,
   Carrot,
   CheckCircle2,
@@ -30,7 +27,6 @@ import { formatDateTime } from '@/utils/dateUtils'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'motion/react'
-import { useSidebar } from '@/components/ui/sidebar'
 
 interface LargeOrderCardProps {
   order: TransformedOrder
@@ -100,7 +96,6 @@ const OrderHeader = memo(
     order,
     statusInfo,
     formattedDate,
-    totalItems,
     finalGrandTotal,
     isExpanded,
     onToggleExpand,
@@ -113,7 +108,6 @@ const OrderHeader = memo(
     order: TransformedOrder
     statusInfo: any
     formattedDate: string
-    totalItems: number
     finalGrandTotal: number
     isExpanded: boolean
     onToggleExpand: () => void
@@ -123,17 +117,12 @@ const OrderHeader = memo(
     onSelect?: () => void
     isMergeable: boolean
   }) => {
-    const { state } = useSidebar()
-    const isSidebarCollapsed = state === 'collapsed'
-
     return (
-      <div
+      <tr
         className={cn(
-          'p-4 cursor-pointer transition-all duration-200 px-6 select-none group/header relative',
-          isExpanded
-            ? 'bg-slate-50/80 dark:bg-slate-800/60'
-            : 'hover:bg-slate-50 dark:hover:bg-slate-800/20',
-          isSelectionMode && isSelected && 'bg-rose-50/40 dark:bg-rose-900/10',
+          'cursor-pointer transition-colors duration-200 group/header relative bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800/50',
+          isExpanded ? 'bg-slate-50' : 'hover:bg-slate-50/50 border-b',
+          isSelectionMode && isSelected && 'bg-rose-50/40',
           isSelectionMode && !isMergeable && 'opacity-50 cursor-not-allowed',
         )}
         onClick={() => {
@@ -144,23 +133,9 @@ const OrderHeader = memo(
           }
         }}
       >
-        <div
-          className={cn(
-            'flex flex-col justify-between gap-[4%] max-[1200px]:gap-2',
-            isSidebarCollapsed
-              ? 'md:flex-row md:items-center'
-              : 'min-[1200px]:flex-row min-[1200px]:items-center',
-          )}
-        >
-          {/* Left: ID & Status */}
-          <div
-            className={cn(
-              'flex items-center min-w-[8rem]',
-              isSidebarCollapsed
-                ? 'max-[768px]:pr-32 transition-spacing'
-                : 'max-[1024px]:pr-32 transition-spacing',
-            )}
-          >
+        {/* 1. Selection & ID */}
+        <td className="py-4 pl-6 pr-4 align-middle">
+          <div className="flex items-center gap-3">
             {isSelectionMode && (
               <div onClick={(e) => e.stopPropagation()}>
                 <Checkbox
@@ -171,122 +146,102 @@ const OrderHeader = memo(
                 />
               </div>
             )}
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <Badge
-                  className={cn(
-                    'px-1.5 py-0 border-none text-[9px] font-bold uppercase tracking-tight',
-                    statusInfo.badge,
-                  )}
-                >
-                  {statusInfo.label}
-                </Badge>
-                {order.paymentStatus === 'refunded' && (
-                  <Badge className="bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400 border-none text-[9px] font-bold uppercase">
-                    Paid
-                  </Badge>
-                )}
-              </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white leading-none">
-                #{order.orderId}
-              </h3>
-            </div>
+            <span className="font-bold text-slate-900 text-sm">
+              #{order.orderId}
+            </span>
           </div>
+        </td>
 
-          {/* Center: Customer & Time */}
-          <div
-            className={cn(
-              'flex-1 grid grid-cols-2 gap-6',
-              !isSidebarCollapsed && 'max-[1200px]:grid-cols-1',
+        {/* 2. Customer Name */}
+        <td className="py-4 px-4 align-middle">
+          <div className="flex items-center gap-2 text-sm text-slate-600">
+            <User2 className="w-4 h-4 text-slate-400 shrink-0" />
+            <span className="truncate max-w-[120px] font-medium">
+              {order.customerName || 'Guest'}
+            </span>
+          </div>
+        </td>
+
+        {/* 3. Features (Order Items as Badges) */}
+        <td className="py-4 px-4 align-middle">
+          <div className="flex items-center gap-1.5 flex-wrap min-w-[200px]">
+            {order.items.slice(0, 2).map((item, idx) => (
+              <Badge
+                key={idx}
+                variant="secondary"
+                className="bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-medium border-none px-2 py-0.5 rounded-full whitespace-nowrap"
+              >
+                {item.name}
+              </Badge>
+            ))}
+            {order.items.length > 2 && (
+              <Badge
+                variant="secondary"
+                className="bg-primary/10 text-primary text-[11px] font-bold border-none px-2 py-0.5 rounded-full"
+              >
+                +{order.items.length - 2} more
+              </Badge>
             )}
-          >
-            <div
+          </div>
+        </td>
+
+        {/* 4. Order Time */}
+        <td className="py-4 px-4 align-middle text-slate-500">
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-slate-400 shrink-0" />
+            <span className="whitespace-nowrap text-[13px]">
+              {formattedDate}
+            </span>
+          </div>
+        </td>
+
+        {/* 5. Price */}
+        <td className="py-4 px-4 align-middle text-right font-bold text-slate-900 tabular-nums text-sm">
+          ₹
+          {finalGrandTotal.toLocaleString('en-IN', {
+            minimumFractionDigits: 2,
+          })}
+        </td>
+
+        {/* 6. Actions */}
+        <td className="py-4 pl-4 pr-6 align-middle text-right">
+          <div className="flex items-center justify-end gap-2">
+            <Badge
               className={cn(
-                'space-y-1 pl:6 min-w-0',
-                isSidebarCollapsed ? 'max-[1200px]:pl-6' : 'max-[1200px]:pl-0',
+                'px-2 py-0.5 border-none text-[10px] font-bold uppercase tracking-tight',
+                statusInfo.badge,
               )}
             >
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                Brief
-              </p>
-              <div className="flex flex-col gap-1">
-                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate flex items-center gap-1.5">
-                  <User2 className="w-3.5 h-3.5 text-[#a16b45] shrink-0" />{' '}
-                  {order.customerName || 'Guest'}
-                </p>
-                <p className="text-[11px] font-medium text-[#a16b45] flex items-center gap-1.5">
-                  <Layers className="w-3.5 h-3.5 shrink-0" /> {totalItems} Items
-                </p>
-              </div>
-            </div>
+              {statusInfo.label}
+            </Badge>
 
-            <div className="space-y-1 min-w-0">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                Timeline
-              </p>
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 whitespace-nowrap flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-[#a16b45] shrink-0" />{' '}
-                {formattedDate}
-              </p>
-            </div>
-          </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation()
+                onPrintBill(order)
+              }}
+              className="h-8 w-8 rounded-lg hover:bg-white border border-transparent hover:border-slate-200 transition-all"
+            >
+              <Printer className="w-4 h-4 text-slate-400" />
+            </Button>
 
-          {/* Right: Total & Actions */}
-          <div
-            className={cn(
-              'flex items-center gap-6 justify-end',
-              isSidebarCollapsed
-                ? 'absolute top-4 right-6 md:static md:pl-6 md:min-w-[200px]'
-                : 'absolute top-4 right-6 min-[1200px]:static lg:pl-6 lg:min-w-[200px]',
-            )}
-          >
-            <div className="text-right">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
-                Final Total
-              </p>
-              <p className="text-xl font-bold text-slate-900 dark:text-white tabular-nums leading-none">
-                ₹
-                {finalGrandTotal.toLocaleString('en-IN', {
-                  minimumFractionDigits: 2,
-                })}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onPrintBill(order)
-                }}
-                className="h-9 w-9 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
-              >
-                <Printer className="w-4 h-4 text-slate-400" />
-              </Button>
-
-              <div
-                className={cn(
-                  'h-9 w-9 flex items-center justify-center rounded-lg transition-all duration-200',
-                  isExpanded
-                    ? 'bg-slate-100 dark:bg-slate-800'
-                    : 'bg-transparent',
-                )}
-              >
-                <ChevronDown
-                  className={cn(
-                    'w-4 h-4 text-slate-400 transition-transform duration-300',
-                    isExpanded && 'rotate-180',
-                  )}
-                />
-              </div>
+            <div
+              className={cn(
+                'h-8 w-8 flex items-center justify-center rounded-lg transition-transform duration-300',
+                isExpanded && 'rotate-180',
+              )}
+            >
+              <ChevronDown className="w-4 h-4 text-slate-400" />
             </div>
           </div>
-        </div>
-      </div>
+        </td>
+      </tr>
     )
   },
 )
+
 OrderHeader.displayName = 'OrderHeader'
 
 const ItemDetailsTable = memo(({ items }: { items: any[] }) => (
@@ -627,15 +582,6 @@ const LargeOrderCard = React.memo(
       [order.status, order],
     )
 
-    const totalItems = useMemo(
-      () =>
-        order.items.reduce(
-          (sum: number, item: any) => sum + (item.quantity || 1),
-          0,
-        ),
-      [order.items],
-    )
-
     const formattedDate = useMemo(
       () => formatDateTime(order.createdAt),
       [order.createdAt],
@@ -675,12 +621,11 @@ const LargeOrderCard = React.memo(
     }, [order.status, isExpanded])
 
     return (
-      <div className="group bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800/50 hover:border-slate-200 dark:hover:border-slate-700 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-lg hover:shadow-slate-200/50 dark:hover:shadow-none">
+      <>
         <OrderHeader
           order={order}
           statusInfo={statusInfo}
           formattedDate={formattedDate}
-          totalItems={totalItems}
           finalGrandTotal={finalGrandTotal}
           isExpanded={isExpanded}
           onToggleExpand={() => setIsExpanded(!isExpanded)}
@@ -693,24 +638,28 @@ const LargeOrderCard = React.memo(
 
         <AnimatePresence>
           {isExpanded && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.4, ease: [0.33, 1, 0.68, 1] }}
-            >
-              <ExpandedContent
-                order={order}
-                taxInfo={taxInfo}
-                finalGrandTotal={finalGrandTotal}
-                deliveryTimeMsg={deliveryTimeMsg}
-                timeline={timeline}
-                timelineColorClass={timelineColorClass}
-              />
-            </motion.div>
+            <tr className="bg-slate-50/30 overflow-hidden border-b border-slate-100 dark:border-slate-800/50">
+              <td colSpan={6} className="p-0">
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.4, ease: [0.33, 1, 0.68, 1] }}
+                >
+                  <ExpandedContent
+                    order={order}
+                    taxInfo={taxInfo}
+                    finalGrandTotal={finalGrandTotal}
+                    deliveryTimeMsg={deliveryTimeMsg}
+                    timeline={timeline}
+                    timelineColorClass={timelineColorClass}
+                  />
+                </motion.div>
+              </td>
+            </tr>
           )}
         </AnimatePresence>
-      </div>
+      </>
     )
   },
 )

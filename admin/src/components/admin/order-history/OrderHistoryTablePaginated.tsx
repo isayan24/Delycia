@@ -152,6 +152,45 @@ export default function OrderHistoryTablePaginated({
 
       {/* Orders List - Progressive rendering with natural page scroll */}
       <div className="px-4 lg:px-10 space-y-6 pb-8">
+        {/* Table Header & Body */}
+        {items.length > 0 && (
+          <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-x-auto overflow-y-hidden">
+            <table className="w-full text-left border-collapse min-w-[800px]">
+              <thead>
+                <tr className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50/50 border-b border-slate-100">
+                  <th className="py-3 pl-6 pr-4 font-bold max-w-[120px]">
+                    Order ID
+                  </th>
+                  <th className="py-3 px-4 font-bold">Customer</th>
+                  <th className="py-3 px-4 font-bold">Features (Items)</th>
+                  <th className="py-3 px-4 font-bold">Time</th>
+                  <th className="py-3 px-4 font-bold text-right">Price</th>
+                  <th className="py-3 pl-4 pr-6 font-bold text-right">
+                    Status & Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {visibleItems.map((order) => (
+                  <LargeOrderCard
+                    key={order.id}
+                    order={order}
+                    onPrintBill={handlePrintBill}
+                    isSelectionMode={isSelectionMode}
+                    isSelected={selectedCartIds.has(order.id)}
+                    onSelect={() => toggleSelection(order.id)}
+                    isSelectionDisabled={
+                      activeCustomerId !== null &&
+                      activeCustomerId !==
+                        (order.customerId || order.customer_id)
+                    }
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
         {loading && items.length === 0 ? (
           <div className="space-y-6">
             {Array.from({ length: 5 }).map((_, index) => (
@@ -166,21 +205,6 @@ export default function OrderHistoryTablePaginated({
           </div>
         ) : (
           <>
-            {visibleItems.map((order) => (
-              <LargeOrderCard
-                key={order.id}
-                order={order}
-                onPrintBill={handlePrintBill}
-                isSelectionMode={isSelectionMode}
-                isSelected={selectedCartIds.has(order.id)}
-                onSelect={() => toggleSelection(order.id)}
-                isSelectionDisabled={
-                  activeCustomerId !== null &&
-                  activeCustomerId !== (order.customerId || order.customer_id)
-                }
-              />
-            ))}
-
             {/* Intersection Observer Sentinel for Progressive Loading */}
             {(hasNextPage || hasMore) && (
               <div

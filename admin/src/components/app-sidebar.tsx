@@ -46,6 +46,7 @@ const navMain = [
     url: '/billing',
     icon: ShoppingCart,
     color: 'text-indigo-500',
+    isActive: true,
     items: [
       {
         title: 'Quick Bill',
