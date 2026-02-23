@@ -265,7 +265,7 @@ const get_restaurant = async (req, admin = true) => {
         q = `SELECT id,name,username,phone_number,email,address,city,state,pincode,
               is_veg_only,description,logo,banner,tax_percent,latitude,longitude,is_active,
               online_orders,open_time,close_time,active_days
-              FROM restaurants`;
+              FROM restaurants WHERE is_demo = 0`;
         params = [];
       }
     }

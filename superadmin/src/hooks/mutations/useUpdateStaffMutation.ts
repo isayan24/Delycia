@@ -9,6 +9,7 @@ interface UpdateStaffData {
   phone_number?: string
   role?: number
   password?: string
+  restaurant_id?: number
 }
 
 interface UpdateStaffResponse {
@@ -18,11 +19,12 @@ interface UpdateStaffResponse {
   data: any
 }
 
-async function updateStaffFn(data: UpdateStaffData): Promise<UpdateStaffResponse> {
+async function updateStaffFn(
+  data: UpdateStaffData,
+): Promise<UpdateStaffResponse> {
   const { id, ...updates } = data
   const response = await updateStaff({ data: { id, updates } })
-  const result = await response.json()
-  return result
+  return response as unknown as UpdateStaffResponse
 }
 
 export function useUpdateStaffMutation() {
@@ -32,13 +34,13 @@ export function useUpdateStaffMutation() {
     mutationFn: updateStaffFn,
     onMutate: async (updatedStaff: UpdateStaffData) => {
       // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ 
-        queryKey: ['superadmin', 'staff'] 
+      await queryClient.cancelQueries({
+        queryKey: ['superadmin', 'staff'],
       })
 
       // Snapshot the previous value
-      const previousStaff = queryClient.getQueriesData<StaffResponse>({ 
-        queryKey: ['superadmin', 'staff'] 
+      const previousStaff = queryClient.getQueriesData<StaffResponse>({
+        queryKey: ['superadmin', 'staff'],
       })
 
       // Optimistically update all staff queries
@@ -53,15 +55,15 @@ export function useUpdateStaffMutation() {
               ...old.data,
               data: old.data.data.map((staff: any) =>
                 staff.id === updatedStaff.id
-                  ? { 
-                      ...staff, 
+                  ? {
+                      ...staff,
                       ...updatedStaff,
                     }
-                  : staff
+                  : staff,
               ),
             },
           }
-        }
+        },
       )
 
       return { previousStaff }
@@ -77,8 +79,8 @@ export function useUpdateStaffMutation() {
     },
     onSettled: () => {
       // Always refetch after error or success
-      queryClient.invalidateQueries({ 
-        queryKey: ['superadmin', 'staff'] 
+      queryClient.invalidateQueries({
+        queryKey: ['superadmin', 'staff'],
       })
     },
   })

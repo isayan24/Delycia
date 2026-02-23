@@ -46,7 +46,8 @@ export default function AddCustomerDetails() {
   const [specialInstructions, setSpecialInstructions] = useState('')
   const [showSearchResults, setShowSearchResults] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
-  const isHidden = useScrollHide()
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const isHidden = useScrollHide(10, 50, scrollRef)
 
   // Thermal Bill Popup state
   const [showThermalBill, setShowThermalBill] = useState(false)
@@ -229,7 +230,7 @@ export default function AddCustomerDetails() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-[#fcfcfd] dark:bg-gray-950">
+    <div className="h-full flex flex-col bg-[#fcfcfd] dark:bg-gray-950 relative">
       {/* Thermal Bill Popup */}
       {billData && (
         <ThermalBill
@@ -243,7 +244,7 @@ export default function AddCustomerDetails() {
         />
       )}
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto no-scrollbar">
+      <div className="flex-1 overflow-y-auto no-scrollbar" ref={scrollRef}>
         <div className="max-w-2xl mx-auto p-4 space-y-4 pb-6">
           <form
             id="customer-details-form"
@@ -483,7 +484,7 @@ export default function AddCustomerDetails() {
               mass: 1.5,
               opacity: { duration: 0.2 },
             }}
-            className="fixed bottom-[110px] max-[540px]:bottom-[75px] min-[900px]:bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-[500px] z-50"
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-[500px] z-50"
           >
             <Button
               type="submit"

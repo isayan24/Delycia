@@ -15,14 +15,20 @@ export const Route = createFileRoute('/settings/')({
 
 function SettingsPage() {
   return (
-    <div className="max-w-[60rem] p-2">
-      <div className="mb-4 sm:mb-8">
-        <h1 className="text-lg sm:text-2xl font-bold text-gray-800 mb-1 sm:mb-2">
-          Settings
-        </h1>
-        <p className="text-xs sm:text-base text-gray-600">
-          Manage your subscription, restaurant settings, and account preferences
-        </p>
+    <div className="max-w-[60rem]s p-2">
+      <div className="flex gap-3 items-center">
+        <div>
+          <h1 className="text-lg sm:text-xl font-[700] tracking-[0.08rem] text-[#000000] pl-0.5">
+            Settings
+          </h1>
+          <div className="px-1 mb-4">
+            <h2 className="text-[12px] lg:text-[15px] font-[500] tracking-[0.07rem] text-[#000000] opacity-80 mb-1">
+              Manage your subscription, restaurant settings, and account
+              preferences
+            </h2>
+            <div className="h-[2px] w-12 bg-emerald-500 rounded-full" />
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 sm:flex gap-3 sm:gap-6 sm:flex-wrap">

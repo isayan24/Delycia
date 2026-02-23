@@ -1,22 +1,22 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { deactivateStaff } from '@/lib/api/staff'
+import { deleteStaff } from '@/lib/api/staff'
 
-interface DeactivateStaffResponse {
+interface DeleteStaffResponse {
   status: boolean
   statusCode: number
   message: string
 }
 
-async function deactivateStaffFn(id: number): Promise<DeactivateStaffResponse> {
-  const response = await deactivateStaff({ data: { id } })
-  return response as unknown as DeactivateStaffResponse
+async function deleteStaffFn(id: number): Promise<DeleteStaffResponse> {
+  const response = await deleteStaff({ data: { id } })
+  return response as unknown as DeleteStaffResponse
 }
 
-export function useDeactivateStaffMutation() {
+export function useDeleteStaffMutation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: deactivateStaffFn,
+    mutationFn: deleteStaffFn,
     onSuccess: () => {
       // Invalidate all staff queries to refetch
       queryClient.invalidateQueries({
@@ -27,7 +27,7 @@ export function useDeactivateStaffMutation() {
       })
     },
     onError: (error: any) => {
-      console.error('Failed to deactivate staff:', error)
+      console.error('Failed to delete staff:', error)
     },
   })
 }

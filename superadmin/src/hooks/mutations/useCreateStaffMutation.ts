@@ -18,10 +18,12 @@ interface CreateStaffResponse {
   }
 }
 
-async function createStaffFn(data: StaffFormData): Promise<CreateStaffResponse> {
+async function createStaffFn(
+  data: StaffFormData,
+): Promise<CreateStaffResponse> {
   const response = await createStaff({ data })
-  const result = await response.json()
-  return result
+  console.log(response, 'staff has been created \n\n\n')
+  return response as unknown as CreateStaffResponse
 }
 
 export function useCreateStaffMutation() {
@@ -31,8 +33,8 @@ export function useCreateStaffMutation() {
     mutationFn: createStaffFn,
     onSuccess: (response) => {
       // Invalidate all staff queries to refetch with the new staff member
-      queryClient.invalidateQueries({ 
-        queryKey: ['superadmin', 'staff'] 
+      queryClient.invalidateQueries({
+        queryKey: ['superadmin', 'staff'],
       })
     },
     onError: (error: any) => {

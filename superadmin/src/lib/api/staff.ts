@@ -37,7 +37,8 @@ export const getStaff = createServerFn({ method: 'GET' })
       if (data.role) params.append('role', data.role)
       if (data.status) params.append('status', data.status)
 
-      return axios.get(`/superadmin/staff?${params.toString()}`)
+      const response = await axios.get(`/superadmin/staff?${params.toString()}`)
+      return response.data
     })
   })
 
@@ -45,7 +46,8 @@ export const getStaffMember = createServerFn({ method: 'GET' })
   .inputValidator((data: { id: string }) => data)
   .handler(async ({ data }) => {
     return withAuth(async (axios) => {
-      return axios.get(`/superadmin/staff/${data.id}`)
+      const response = await axios.get(`/superadmin/staff/${data.id}`)
+      return response.data
     })
   })
 
@@ -53,7 +55,9 @@ export const createStaff = createServerFn({ method: 'POST' })
   .inputValidator((data: any) => data)
   .handler(async ({ data }) => {
     return withAuth(async (axios) => {
-      return axios.post('/superadmin/staff', data)
+      console.log(data, 'staff creating \n\n\n\n\n')
+      const response = await axios.post('/superadmin/staff', data)
+      return response.data
     })
   })
 
@@ -61,7 +65,11 @@ export const updateStaff = createServerFn({ method: 'POST' })
   .inputValidator((data: { id: number; updates: any }) => data)
   .handler(async ({ data }) => {
     return withAuth(async (axios) => {
-      return axios.patch(`/superadmin/staff/${data.id}`, data.updates)
+      const response = await axios.patch(
+        `/superadmin/staff/${data.id}`,
+        data.updates,
+      )
+      return response.data
     })
   })
 
@@ -69,7 +77,17 @@ export const deactivateStaff = createServerFn({ method: 'POST' })
   .inputValidator((data: { id: number }) => data)
   .handler(async ({ data }) => {
     return withAuth(async (axios) => {
-      return axios.delete(`/superadmin/staff/${data.id}`)
+      const response = await axios.delete(`/superadmin/staff/${data.id}`)
+      return response.data
+    })
+  })
+
+export const deleteStaff = createServerFn({ method: 'POST' }) // use POST for tanstack createServer mutations calling delete
+  .inputValidator((data: { id: number }) => data)
+  .handler(async ({ data }) => {
+    return withAuth(async (axios) => {
+      const response = await axios.delete(`/superadmin/staff/${data.id}/hard`)
+      return response.data
     })
   })
 
@@ -81,8 +99,9 @@ export const getStaffActivity = createServerFn({ method: 'GET' })
       if (data.page) params.append('page', data.page.toString())
       if (data.limit) params.append('limit', data.limit.toString())
 
-      return axios.get(
+      const response = await axios.get(
         `/superadmin/staff/${data.id}/activity?${params.toString()}`,
       )
+      return response.data
     })
   })

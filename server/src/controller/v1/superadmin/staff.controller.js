@@ -46,6 +46,14 @@ const deactivateStaff = async (req, res) => {
 };
 
 /**
+ * Hard delete staff member (permanently remove)
+ */
+const deleteStaff = async (req, res) => {
+  const response = await staffModel.deleteStaff(req);
+  res.status(response.statusCode).json(response);
+};
+
+/**
  * Get staff activity logs
  */
 const getStaffActivity = async (req, res) => {
@@ -59,5 +67,6 @@ export default {
   createStaff,
   updateStaff,
   deactivateStaff,
+  deleteStaff,
   getStaffActivity,
 };

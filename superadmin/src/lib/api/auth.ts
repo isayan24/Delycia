@@ -2,7 +2,15 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import axios from 'axios'
 
-const SERVER_URL = process.env.VITE_SERVER_URL || 'http://localhost:8020/api'
+let SERVER_URL = process.env.VITE_SERVER_URL || 'http://localhost:8020/api'
+
+// If running inside docker, localhost points to the container itself.
+// We use an internal URL override so the server can reach the host machine.
+const isDocker = process.env.IS_DOCKER === 'true'
+if (process.env.VITE_INTERNAL_SERVER_URL && isDocker) {
+  SERVER_URL = process.env.VITE_INTERNAL_SERVER_URL
+}
+
 const authAxios = axios.create({ baseURL: SERVER_URL })
 import { getAccessTokenFromCookie } from '../server-cookies'
 

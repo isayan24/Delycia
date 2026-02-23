@@ -61,12 +61,12 @@ const getUserByName = async (name, rid = null) => {
       // Filter by users who have visited this restaurant
       q = `SELECT DISTINCT u.* FROM users u
            INNER JOIN user_restaurant_visits urv ON u.id = urv.user_id
-           WHERE u.name LIKE ? AND u.role = 0 AND urv.restaurant_id = ?
+           WHERE u.name LIKE ? AND u.name != 'Guest' AND u.role = 0 AND urv.restaurant_id = ?
            ORDER BY urv.last_visit_at DESC`;
       [result] = await pool.query(q, [`${name}%`, rid]);
     } else {
       // Fallback: return all customers (original behavior)
-      q = "SELECT * FROM users WHERE name LIKE ? AND role = 0";
+      q = "SELECT * FROM users WHERE name LIKE ? AND name != 'Guest' AND role = 0";
       [result] = await pool.query(q, [`${name}%`]);
     }
 
@@ -93,7 +93,7 @@ const getUserByName = async (name, rid = null) => {
 // Update user Info
 const updateUser = async (data) => {
   try {
-    const { uid, ...params } = data; 
+    const { uid, ...params } = data;
 
     // Remove undefined/null values from params
     Object.keys(params).forEach(key =>

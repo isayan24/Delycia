@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import type { RefObject } from 'react'
 import { useScroll, useMotionValueEvent } from 'motion/react'
 
 /**
@@ -8,8 +9,13 @@ import { useScroll, useMotionValueEvent } from 'motion/react'
  * @param threshold - Minimum scroll distance before triggering a change.
  * @param offset - Initial scroll offset before hiding is allowed (e.g., don't hide at the very top).
  */
-export function useScrollHide(threshold = 10, offset = 50) {
-  const { scrollY } = useScroll()
+export function useScrollHide(
+  threshold = 10,
+  offset = 50,
+  containerRef?: RefObject<HTMLElement | null>,
+) {
+  const scrollConfig = containerRef ? { container: containerRef } : {}
+  const { scrollY } = useScroll(scrollConfig)
   const [isHidden, setIsHidden] = useState(false)
   const lastScrollY = useRef(0)
 

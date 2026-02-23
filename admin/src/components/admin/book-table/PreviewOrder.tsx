@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Receipt, MapPin, CheckCircle, UtensilsCrossed } from 'lucide-react'
@@ -12,7 +12,8 @@ export default function PreviewOrder() {
     useTableStore()
 
   const [showPartySizeError, setShowPartySizeError] = useState(false)
-  const isHidden = useScrollHide()
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const isHidden = useScrollHide(10, 50, scrollRef)
 
   const onConfirmOrder = () => {
     if (partySize === 0) {
@@ -26,9 +27,9 @@ export default function PreviewOrder() {
   const totalAmount = getTotalAmount()
 
   return (
-    <div className="h-full flex flex-col bg-[#fcfcfd] dark:bg-gray-950">
+    <div className="h-full flex flex-col bg-[#fcfcfd] dark:bg-gray-950 relative">
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto no-scrollbar">
+      <div className="flex-1 overflow-y-auto no-scrollbar" ref={scrollRef}>
         <div className="max-w-4xl mx-auto p-4 space-y-4 pb-6">
           {/* Table Information Card */}
           <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden shadow-sm">
@@ -137,7 +138,7 @@ export default function PreviewOrder() {
               mass: 1.5,
               opacity: { duration: 0.2 },
             }}
-            className="fixed bottom-[110px] max-[540px]:bottom-[75px] min-[900px]:bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-[500px] z-50"
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-[500px] z-50"
           >
             <Button
               className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl h-12 text-base font-bold shadow-[0_8px_32px_rgba(0,0,0,0.12)] transition-all active:translate-y-0"

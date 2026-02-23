@@ -10,6 +10,7 @@ router.post("/", csrfProtection, superadminMiddleware, staffController.createSta
 router.get("/:id", superadminMiddleware, staffController.getStaffById);
 router.patch("/:id", csrfProtection, superadminMiddleware, staffController.updateStaff);
 router.delete("/:id", csrfProtection, superadminMiddleware, staffController.deactivateStaff);
+router.delete("/:id/hard", csrfProtection, superadminMiddleware, staffController.deleteStaff);
 router.get("/:id/activity", superadminMiddleware, staffController.getStaffActivity);
 
 export default router;

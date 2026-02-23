@@ -21,8 +21,22 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
+export const STAFF_ROLES = [
+  { id: 2, name: 'Admin' },
+  { id: 3, name: 'Restaurant owner' },
+  { id: 4, name: 'Restaurant manager' },
+  { id: 5, name: 'Waiter' },
+  { id: 6, name: 'Kitchen Staff' },
+  { id: 7, name: 'Delivery' },
+] as const
+
+export const getRoleName = (roleValue: number) => {
+  const role = STAFF_ROLES.find((r) => r.id === roleValue)
+  return role ? role.name : `Role ${roleValue}`
+}
+
 interface StaffFormProps {
-  staff?: StaffFormData & { id?: number }
+  staff?: StaffFormData & { id?: number; restaurant_ids?: number[] }
   onSubmit: (data: StaffFormData) => Promise<void>
   onCancel: () => void
   isSubmitting?: boolean
@@ -39,39 +53,31 @@ export function StaffForm({
   const isEditMode = !!staff?.id
 
   const form = useForm<StaffFormData>({
-    resolver: zodResolver(staffSchema),
+    resolver: zodResolver(staffSchema) as any,
     mode: 'onBlur',
     defaultValues: {
       name: staff?.name || '',
-      email: staff?.email || '',
       phone_number: staff?.phone_number || '',
-      role: staff?.role || 10,
-      restaurant_id: staff?.restaurant_id || 0,
-      password: '',
+      role: staff?.role || 5, // Default to Waiter
+      restaurant_id: staff?.restaurant_ids?.[0] || staff?.restaurant_id || 0,
     },
   })
 
   const handleSubmit = async (data: StaffFormData) => {
     try {
-      // Don't send password if it's empty in edit mode
-      if (isEditMode && !data.password) {
-        const { password, ...dataWithoutPassword } = data
-        await onSubmit(dataWithoutPassword as StaffFormData)
-      } else {
-        await onSubmit(data)
+      const payload = { ...data }
+
+      // Generate username if not present (especially for new staff creation)
+      if (!isEditMode && !payload.username) {
+        const baseName = payload.name.toLowerCase().replace(/\s+/g, '')
+        const randomSuffix = Math.floor(1000 + Math.random() * 9000) // Ensure 4 digits
+        payload.username = `${baseName}${randomSuffix}`
       }
+
+      await onSubmit(payload as StaffFormData)
     } catch (error) {
       console.error('Form submission error:', error)
     }
-  }
-
-  const getRoleName = (roleValue: number) => {
-    const roleMap: Record<number, string> = {
-      10: 'Staff',
-      50: 'Manager',
-      100: 'Admin',
-    }
-    return roleMap[roleValue] || `Role ${roleValue}`
   }
 
   return (
@@ -79,8 +85,10 @@ export function StaffForm({
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         {/* Basic Information Section */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Staff Information</h3>
-          
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+            Staff Information
+          </h3>
+
           <FormField
             control={form.control}
             name="restaurant_id"
@@ -90,7 +98,6 @@ export function StaffForm({
                 <Select
                   onValueChange={(value) => field.onChange(parseInt(value))}
                   value={field.value?.toString()}
-                  disabled={isEditMode}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -99,15 +106,15 @@ export function StaffForm({
                   </FormControl>
                   <SelectContent>
                     {restaurants.map((restaurant) => (
-                      <SelectItem key={restaurant.id} value={restaurant.id.toString()}>
+                      <SelectItem
+                        key={restaurant.id}
+                        value={restaurant.id.toString()}
+                      >
                         {restaurant.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <FormDescription>
-                  {isEditMode && 'Restaurant cannot be changed after creation'}
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -120,53 +127,26 @@ export function StaffForm({
               <FormItem>
                 <FormLabel>Full Name *</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Enter staff member name"
-                    {...field}
-                  />
+                  <Input placeholder="Enter staff member name" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email *</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="staff@example.com"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="phone_number"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="tel"
-                      placeholder="1234567890"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+          <FormField
+            control={form.control}
+            name="phone_number"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Phone Number</FormLabel>
+                <FormControl>
+                  <Input type="tel" placeholder="1234567890" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <FormField
             control={form.control}
@@ -184,39 +164,15 @@ export function StaffForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="10">Staff</SelectItem>
-                    <SelectItem value="50">Manager</SelectItem>
-                    <SelectItem value="100">Admin</SelectItem>
+                    {STAFF_ROLES.map((role) => (
+                      <SelectItem key={role.id} value={role.id.toString()}>
+                        {role.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormDescription>
                   Defines the access level and permissions for this staff member
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Password {isEditMode ? '(Optional)' : '*'}
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="password"
-                    placeholder={isEditMode ? 'Leave blank to keep current password' : 'Enter password'}
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>
-                  {isEditMode 
-                    ? 'Only enter a password if you want to change it'
-                    : 'Minimum 8 characters required'
-                  }
                 </FormDescription>
                 <FormMessage />
               </FormItem>

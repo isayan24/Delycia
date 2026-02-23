@@ -62,6 +62,8 @@ const getAllStaff = async (req) => {
       status = "",
     } = req.query;
 
+    console.log(req.query, "i have the staff req \n\n\n\n")
+
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
     // Build WHERE clause for filters
@@ -236,8 +238,9 @@ const createStaff = async (req) => {
       phone_number,
       role = 5, // Default to waiter role
       restaurant_id,
-      profile_pic = "https://static.delycia.com/icons/user.png",
+      profile_pic = "https://ik.imagekit.io/phy7j8tcu/profile-pictures/Delycia-logo.png",
     } = req.body;
+
 
     // Validate required fields
     if (!name || !restaurant_id) {
@@ -305,8 +308,8 @@ const createStaff = async (req) => {
     // Generate username if not provided
     const finalUsername =
       username ||
-      `${name.toLowerCase().replace(/\s+/g, "")}-${Math.floor(
-        Math.random() * 10000
+      `${name.toLowerCase().replace(/\s+/g, "")}${Math.floor(
+        1000 + Math.random() * 9000
       )}`;
 
     // Insert new staff member
@@ -372,7 +375,9 @@ const createStaff = async (req) => {
     delete staffData.restaurant_id;
     delete staffData.restaurant_name;
 
-    return apiResponse.success(201, "Staff member created successfully. Credentials have been sent to the staff's email.", {
+    console.log(staffData, "staffData i have \n\n\n")
+
+    return apiResponse.success(201, "Staff member created successfully", {
       data: staffData,
     });
   } catch (error) {
@@ -389,7 +394,7 @@ const updateStaff = async (req) => {
     const { id } = req.params;
     const updateData = req.body;
 
-    if (!id) {
+    if (!id || id === 'undefined') {
       return apiResponse.error(400, "Staff ID is required");
     }
 
@@ -621,6 +626,57 @@ const deactivateStaff = async (req) => {
 };
 
 /**
+ * Delete a staff member permanently (hard delete)
+ */
+const deleteStaff = async (req) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return apiResponse.error(400, "Staff ID is required");
+    }
+
+    // Check if staff exists
+    const [existing] = await pool.query(
+      "SELECT id FROM users WHERE id = ? AND role > 0",
+      [id]
+    );
+
+    if (!existing.length) {
+      return apiResponse.error(404, "Staff member not found");
+    }
+
+    // Begin a transaction to delete all dependent records
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+
+      // Delete restaurant access
+      await connection.query("DELETE FROM restaurant_access WHERE user_id = ?", [id]);
+
+      // Note: Orders placed by staff might need to be set to NULL or handled appropriately
+      // For now, depending on your FK constraints, it might cascade or require manual cleanup.
+      await connection.query("UPDATE orders SET placed_by_staff_id = NULL WHERE placed_by_staff_id = ?", [id]);
+
+      // Delete user entirely
+      await connection.query("DELETE FROM users WHERE id = ?", [id]);
+
+      await connection.commit();
+
+      return apiResponse.success(200, "Staff member permanently deleted");
+    } catch (txError) {
+      await connection.rollback();
+      throw txError;
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error("Delete staff error:", error);
+    return apiResponse.error(500, "An error occurred while deleting staff member");
+  }
+};
+
+/**
  * Get staff activity logs
  */
 const getStaffActivity = async (req) => {
@@ -701,5 +757,6 @@ export default {
   createStaff,
   updateStaff,
   deactivateStaff,
+  deleteStaff,
   getStaffActivity,
 };

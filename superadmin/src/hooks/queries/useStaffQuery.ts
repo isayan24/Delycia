@@ -21,8 +21,7 @@ export function useStaffQuery(filters: StaffFilters = {}) {
     queryKey: ['superadmin', 'staff', filters],
     queryFn: async () => {
       const response = await getStaff({ data: filters })
-      const result: StaffResponse = await response.json()
-      return result
+      return response as StaffResponse
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
   })

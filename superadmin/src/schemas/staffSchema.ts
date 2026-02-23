@@ -8,9 +8,7 @@ export const staffSchema = z.object({
     .string()
     .min(1, 'Name is required')
     .max(100, 'Name must be less than 100 characters'),
-  email: z
-    .string()
-    .email('Invalid email address'),
+  email: z.string().email('Invalid email address').optional().or(z.literal('')),
   phone_number: z
     .string()
     .min(10, 'Phone number must be at least 10 digits')
@@ -21,10 +19,10 @@ export const staffSchema = z.object({
   role: z
     .number()
     .int()
-    .min(10, 'Role must be at least 10 (Staff)')
-    .max(100, 'Role must be at most 100 (Admin)')
+    .min(2, 'Role must be at least 2 (Admin)')
+    .max(7, 'Role must be at most 7 (Delivery)')
     .optional()
-    .default(10)
+    .default(5)
     .or(z.string().transform((val) => parseInt(val, 10))),
   restaurant_id: z
     .number()
@@ -36,6 +34,7 @@ export const staffSchema = z.object({
     .min(8, 'Password must be at least 8 characters')
     .optional()
     .or(z.literal('')),
+  username: z.string().optional(),
 })
 
 export type StaffFormData = z.infer<typeof staffSchema>

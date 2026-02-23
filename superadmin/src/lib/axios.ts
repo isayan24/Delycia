@@ -1,7 +1,21 @@
 import axios from 'axios'
 
-const SERVER_URL =
-  import.meta.env.VITE_SERVER_URL || 'http://localhost:8020/api'
+let SERVER_URL =
+  import.meta.env.VITE_SERVER_URL || 'http://localhost:8020/api/v1'
+
+// When running on the server (BFF), use the internal URL if provided.
+// This is necessary for Docker containers to route 'localhost' to the host machine.
+if (typeof window === 'undefined') {
+  const isDocker = process.env.IS_DOCKER === 'true'
+  if (
+    typeof process !== 'undefined' &&
+    process.env &&
+    process.env.VITE_INTERNAL_SERVER_URL &&
+    isDocker
+  ) {
+    SERVER_URL = process.env.VITE_INTERNAL_SERVER_URL
+  }
+}
 
 /**
  * Pre-configured axios instance for superadmin BFF server routes → backend API calls.

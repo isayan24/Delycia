@@ -2,7 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { useCategoriesQuery } from '@/hooks/queries'
 import { useInventoryItems } from '@/hooks/useInventoryItems'
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { ShoppingCart } from 'lucide-react'
 import { useTableStore } from '@/store/useTableStore'
 import OrderHeader from './OrderHeader'
@@ -27,7 +27,8 @@ export default function SelectOrder() {
   } = useTableStore()
 
   const { selectedRid } = useRestaurantSelector()
-  const isHidden = useScrollHide()
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const isHidden = useScrollHide(10, 50, scrollRef)
 
   const { data: categoriesData } = useCategoriesQuery(selectedRid)
 
@@ -171,59 +172,67 @@ export default function SelectOrder() {
   }
 
   return (
-    <div className="flex flex-col h-fulls overflow-hidden relative max-w-4xl mx-auto bg-[#fcfcfd] dark:bg-gray-950">
+    <div className="flex flex-col h-full overflow-hidden relative bg-[#fcfcfd] dark:bg-gray-950">
       <header className="py-4 px-4 border-b border-gray-100 dark:border-gray-800 flex-none bg-white dark:bg-gray-900">
-        <OrderHeader />
+        <div className="max-w-4xl mx-auto w-full">
+          <OrderHeader />
+        </div>
       </header>
 
       <Tabs value={categoryId} className="flex-1 flex flex-col min-h-0">
         <div className="overflow-x-auto no-scrollbar border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-4">
-          <TabsList className="bg-transparent! h-auto py-2 overflow-auto w-full rounded-none justify-start gap-1 flex-none">
-            {categories.length > 0 &&
-              categories.map((category: Category) => (
-                <TabsTrigger
-                  value={category.id}
-                  key={category.id}
-                  onClick={() => setCategoryId(category.id)}
-                  className="rounded-full px-4 py-1.5 text-sm font-medium data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all"
-                >
-                  {category.name}
-                </TabsTrigger>
-              ))}
-          </TabsList>
+          <div className="max-w-4xl mx-auto w-full">
+            <TabsList className="bg-transparent! h-auto py-2 overflow-auto w-full rounded-none justify-start gap-1 flex-none">
+              {categories.length > 0 &&
+                categories.map((category: Category) => (
+                  <TabsTrigger
+                    value={category.id}
+                    key={category.id}
+                    onClick={() => setCategoryId(category.id)}
+                    className="rounded-xl px-4 py-2 flex shrink-0 whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all font-medium border border-transparent data-[state=inactive]:border-gray-200 dark:data-[state=inactive]:border-gray-700 data-[state=inactive]:bg-transparent data-[state=inactive]:hover:bg-gray-50 dark:data-[state=inactive]:hover:bg-gray-800/50"
+                  >
+                    {category.name}
+                  </TabsTrigger>
+                ))}
+            </TabsList>
+          </div>
         </div>
 
-        {categories.map((category: Category) => (
-          <TabsContent
-            key={category.id}
-            value={category.id}
-            className="mt-0 px-4 py-4 overflow-y-auto flex-1 h-full"
-          >
-            {items.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground text-sm">
-                  No items available in this category
-                </p>
+        <div className="flex-1 overflow-y-auto relative" ref={scrollRef}>
+          {categories.map((category: Category) => (
+            <TabsContent
+              key={category.id}
+              value={category.id}
+              className="mt-0 px-4 py-4 h-full"
+            >
+              <div className="max-w-4xl mx-auto w-full">
+                {items.length === 0 ? (
+                  <div className="text-center py-12">
+                    <p className="text-muted-foreground text-sm">
+                      No items available in this category
+                    </p>
+                  </div>
+                ) : (
+                  <div className="border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden bg-white dark:bg-gray-900 shadow-sm">
+                    {items.map((item: Item, index) => {
+                      return (
+                        <InventoryItemRow
+                          key={item.id}
+                          item={item}
+                          getQuantity={getQuantity}
+                          onUpdateQuantity={handleQuantityUpdate}
+                          onAddItem={onAddItem}
+                          isLast={index === items.length - 1}
+                          highlightedItemId={highlightedItemId}
+                        />
+                      )
+                    })}
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden bg-white dark:bg-gray-900 shadow-sm">
-                {items.map((item: Item, index) => {
-                  return (
-                    <InventoryItemRow
-                      key={item.id}
-                      item={item}
-                      getQuantity={getQuantity}
-                      onUpdateQuantity={handleQuantityUpdate}
-                      onAddItem={onAddItem}
-                      isLast={index === items.length - 1}
-                      highlightedItemId={highlightedItemId}
-                    />
-                  )
-                })}
-              </div>
-            )}
-          </TabsContent>
-        ))}
+            </TabsContent>
+          ))}
+        </div>
       </Tabs>
 
       {/* Fixed Footer — hides/shows with MobileDock on scroll */}
@@ -240,7 +249,7 @@ export default function SelectOrder() {
               mass: 1.5,
               opacity: { duration: 0.2 },
             }}
-            className="fixed bottom-[110px] max-[540px]:bottom-[75px] min-[900px]:bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-[500px] z-50"
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-[500px] z-50"
           >
             <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
               <div className="flex items-center justify-between mb-3">
