@@ -35,16 +35,23 @@ export function useDirectLoginMutation() {
 
       const user = loginResponse.data.data.user
 
-      // todo generate a username for the user that has been created
-      // 2. Update name immediately
+      // Generate a username based on the provided name
+      const sanitizedName = name
+        ? name.trim().replace(/\s+/g, '').toLowerCase()
+        : 'user'
+      const randomNumber = Math.floor(1000 + Math.random() * 9000) // 4-digit random number
+      const generatedUsername = `${sanitizedName}${randomNumber}`
+
+      // 2. Update name and username immediately
       try {
         await axios.post('/api/user/update', {
           uid: user._id,
           name: name,
+          username: generatedUsername,
         })
 
         // Return updated user object
-        const updatedUser = { ...user, name }
+        const updatedUser = { ...user, name, username: generatedUsername }
         sessionService.setUserData(updatedUser)
 
         return updatedUser

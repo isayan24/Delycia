@@ -18,7 +18,7 @@ export const Route = createFileRoute('/api/restaurant/checkout')({
               orderItems,
               customer_id,
               party_size,
-            } = data  
+            } = data
 
             // Validation
             if (
@@ -56,7 +56,6 @@ export const Route = createFileRoute('/api/restaurant/checkout')({
               const signature = signatureService.generateOrderSignature(
                 transformedOrderItems,
               )
-              console.log(transformedOrderItems, "transformedOrderItems")
               const ordersResponse = await axiosInstance.post(
                 cryptoConfig.getOrdersEndpoint(),
                 transformedOrderItems,
