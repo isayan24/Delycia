@@ -2,8 +2,8 @@ import { createFileRoute } from '@tanstack/react-router'
 import { DashboardWrapper } from '@/components/admin/dashboard'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { requireAuth } from '@/middleware/auth'
-import LoadingScreen from '@/components/common/LoadingScreen'
 import { useEffect } from 'react'
+import { LoadingOverlay } from '@/components/smallComponents/LoadingOverlay'
 
 export const Route = createFileRoute('/dashboard')({
   beforeLoad: requireAuth,
@@ -23,7 +23,13 @@ function DashboardPage() {
 
   // Show loading while session is being established
   if (isLoading || !user) {
-    return <LoadingScreen message="Loading restaurant information..." />
+    return (
+      <LoadingOverlay
+        isVisible={true}
+        message="Opening Dashboard"
+        subtitle="Fetching complete details..."
+      />
+    )
   }
 
   // No restaurants assigned — show a clear message instead of infinite loading
@@ -56,7 +62,13 @@ function DashboardPage() {
 
   // Waiting for auto-select to complete
   if (!user.selected_rid) {
-    return <LoadingScreen message="Loading restaurant information..." />
+    return (
+      <LoadingOverlay
+        isVisible={true}
+        message="Opening Dashboard"
+        subtitle="Loading Information..."
+      />
+    )
   }
 
   return (

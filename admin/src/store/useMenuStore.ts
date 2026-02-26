@@ -32,6 +32,7 @@ interface MenuActions {
   // Category actions (UI State Only)
   selectCategory: (category: Category) => void
   setCurrentCategory: (category: Category | null) => void
+  clearSelection: () => void
 
   // Category dialog actions
   openEditCategoryDialog: (category: Category) => void
@@ -98,6 +99,12 @@ export const useMenuStore = create<MenuStore>()(
         }),
 
       setCurrentCategory: (category) => set({ currentCategory: category }),
+
+      clearSelection: () =>
+        set({
+          selectedCategoryId: null,
+          selectedCategory: null,
+        }),
 
       // Category dialog actions
       openEditCategoryDialog: (category) =>

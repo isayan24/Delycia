@@ -29,8 +29,8 @@ export interface RestaurantInfo {
   logo: string | null
   banner: string | null
   tax_percent: number
-  latitude: string | null
-  longitude: string | null
+  latitude?: number | null
+  longitude?: number | null
   commission_percent: number
   is_active: number // 0 or 1
   online_orders: number // 0 or 1
@@ -52,8 +52,8 @@ export interface UpdateRestaurantParams {
   is_active?: number
   is_veg_only?: number
   tax_percent?: number
-  latitude?: string
-  longitude?: string
+  latitude?: number | null
+  longitude?: number | null
   phone_number?: string
   email?: string
   address?: string

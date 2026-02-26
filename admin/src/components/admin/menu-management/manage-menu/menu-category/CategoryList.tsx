@@ -39,19 +39,21 @@ export const CategoryList = React.memo(
     if (orientation === 'horizontal') {
       return (
         <div className="w-full bg-white border-b shadow-sm">
-          <ScrollArea className="w-full whitespace-nowrap">
+          <ScrollArea className="w-full whitespace-nowrapa">
             <div className="flex items-start gap-1 p-2">
               {/* Compact Add Button */}
-              <div className="flex flex-col items-center gap-1.5 pt-0.5 shrink-0 w-[72px]">
-                <div className="w-14 h-14 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50 hover:bg-gray-100 cursor-pointer overflow-hidden">
-                  <AddCategory
-                    trigger={<Plus className="w-5 h-5 text-gray-400" />}
-                  />
-                </div>
-                <span className="text-[10px] text-center text-gray-500 font-medium">
-                  Add New
-                </span>
-              </div>
+              <AddCategory
+                trigger={
+                  <div className="flex flex-col items-center gap-1.5 pt-0.5 shrink-0 w-[72px]">
+                    <div className="w-14 h-14 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50 hover:bg-gray-100 cursor-pointer overflow-hidden">
+                      <Plus className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <span className="text-[10px] text-center text-gray-500 font-medium">
+                      Add New
+                    </span>
+                  </div>
+                }
+              />
 
               {categories.map((category: any) => (
                 <CompactCategoryItem

@@ -1,5 +1,6 @@
 import { createRouter } from '@tanstack/react-router'
 import { QueryClient, MutationCache } from '@tanstack/react-query'
+import { GlobalLoadingScreen } from '@/components/common/GlobalLoadingScreen'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
@@ -60,6 +61,9 @@ export const getRouter = () => {
     defaultPreload: 'intent',
     defaultPreloadStaleTime: 0,
     scrollRestoration: true,
+    defaultPendingComponent: GlobalLoadingScreen,
+    defaultPendingMs: 100,
+    defaultPendingMinMs: 500,
   })
 
   return router

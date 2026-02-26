@@ -27,7 +27,7 @@ import * as z from 'zod'
 
 const customCategorySchema = z.object({
   name: z.string().min(1, 'Category name is required'),
-  description: z.string().min(1, 'Description is required'),
+  description: z.string().optional(),
   cuisine_type: z.string().optional(), // Only required when saveAsTemplate is true
 })
 
@@ -152,7 +152,7 @@ export default function CustomCategoryForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-sm font-medium text-gray-700 mb-1.5 block">
-                    Description <span className="text-red-500">*</span>
+                    Description (Optional)
                   </FormLabel>
                   <FormControl>
                     <Textarea

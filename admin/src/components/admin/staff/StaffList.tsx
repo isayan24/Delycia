@@ -341,7 +341,7 @@ function ViewPasswordDialog({
           <DialogTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
             Security Check
           </DialogTitle>
-          <DialogDescription className="text-[10px] font-bold text-[#a16b45] uppercase tracking-widest opacity-60">
+          <DialogDescription className="text-[12px] font-[500] text-[#262626] opacity-60">
             Current access credentials for this staff account.
           </DialogDescription>
         </DialogHeader>
@@ -354,7 +354,7 @@ function ViewPasswordDialog({
               id="link"
               defaultValue={password || ''}
               readOnly
-              className="rounded-xl bg-slate-50 dark:bg-primary/5 border-[#ead9cd] dark:border-primary/5 pl-10 font-black text-xs text-slate-700 dark:text-slate-300"
+              className="rounded-xl bg-slate-50 dark:bg-primary/5 border-[#ead9cd] dark:border-primary/5 pl-10 text-sm text-slate-700 dark:text-slate-300"
             />
           </div>
         </div>
@@ -363,9 +363,9 @@ function ViewPasswordDialog({
             type="button"
             variant="ghost"
             onClick={() => onOpenChange(false)}
-            className="w-full rounded-xl text-[10px] font-black uppercase tracking-widest text-[#a16b45]"
+            className="w-full rounded-xl text-[14px] text-[#a16b45]"
           >
-            Acknowledge
+            Close
           </Button>
         </DialogFooter>
       </DialogContent>

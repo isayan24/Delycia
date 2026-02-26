@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useEffect } from 'react'
 import { useInventoryItems } from '@/hooks/useInventoryItems'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -40,12 +40,27 @@ export const ItemList = React.memo(() => {
     closeEditItemDialog,
     openDeleteItemDialog,
     closeDeleteItemDialog,
+    clearSelection,
   } = useMenuStore()
 
   const { items, loading, error, refetch } =
     useInventoryItems(selectedCategoryId)
 
   const isDesktop = useMediaQuery('(min-width: 768px)')
+
+  // Reactive state synchronization: Clear selection if selected category no longer exists
+  useEffect(() => {
+    if (selectedCategoryId && categoriesFromQuery.length > 0) {
+      const categoryStillExists = categoriesFromQuery.some(
+        (cat: any) => cat.id === selectedCategoryId
+      )
+      
+      if (!categoryStillExists) {
+        // Category was deleted - clear Zustand store to trigger placeholder display
+        clearSelection()
+      }
+    }
+  }, [selectedCategoryId, categoriesFromQuery, clearSelection])
 
   const itemList = useMemo(
     () =>
@@ -125,7 +140,7 @@ export const ItemList = React.memo(() => {
               )}
             </div>
             <div className="min-w-0">
-              <h2 className="text-md font-semibold sm:text-xl text-gray-900 truncate flex items-center gap-2">
+              <h2 className="text-md font-semibold sm:text-xl text-gray-900 truncate leading-5 flex items-center gap-2 text-wrap">
                 {selectedCategory.name}
               </h2>
               <div className="flex items-center gap-2 mt-0.5">

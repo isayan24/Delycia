@@ -127,6 +127,14 @@ export const CompactItemRow = React.memo<CompactItemRowProps>(
                       ? 'Low Stock'
                       : 'Out of Stock'}
                 </Badge>
+                
+                {/* Stock Display */}
+                {item.stock !== undefined && item.stock !== null && (
+                  <div className="flex items-center gap-1 text-[10px] text-gray-600 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-200">
+                    <span className="font-medium">Stock:</span>
+                    <span className="font-bold text-gray-900">{item.stock}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

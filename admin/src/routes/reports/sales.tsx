@@ -9,14 +9,12 @@ import {
   useRefreshDashboard,
 } from '@/hooks/queries/useDashboardQueries'
 import { useDateFilterStore } from '@/store/useDateFilterStore'
-import DashboardStatsComponent from '@/components/admin/dashboard/DashboardStats'
 import SalesTrendChart from '@/components/admin/dashboard/SalesTrendChart'
 import OrderStatusChart from '@/components/admin/dashboard/OrderStatusChart'
 import TopSellingItems from '@/components/admin/dashboard/TopSellingItems'
 import RevenueByCategoryChart from '@/components/admin/dashboard/RevenueByCategoryChart'
 import DeliveryTypeChart from '@/components/admin/dashboard/DeliveryTypeChart'
 import CustomerActivityTable from '@/components/admin/dashboard/CustomerInsights'
-import LoadingScreen from '@/components/common/LoadingScreen'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { useMemo } from 'react'
 import DateFilterComponent from '@/components/admin/dashboard/DateFilterComponent'
@@ -25,6 +23,7 @@ import { requireAuth } from '@/middleware/auth'
 import { FeatureGuard } from '@/components/common/FeatureGuard'
 
 import { z } from 'zod'
+import { LoadingOverlay } from '@/components/smallComponents/LoadingOverlay'
 
 const salesSearchSchema = z.object({
   tab: z
@@ -75,7 +74,12 @@ function SalesReportPage() {
   }
 
   if (isLoading && !statsQuery.data) {
-    return <LoadingScreen message="Loading sales report..." />
+    return (
+      <LoadingOverlay
+        isVisible={true}
+        message="Loading sales report" 
+      />
+    )
   }
 
   return (

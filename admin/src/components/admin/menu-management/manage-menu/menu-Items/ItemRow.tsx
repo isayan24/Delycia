@@ -56,7 +56,7 @@ export const ItemRow = React.memo<ItemRowProps>(
               <div className="flex items-start justify-between h-full">
                 <div className="flex-1 min-w-0 flex flex-col justify-between h-full gap-1.5">
                   <div className="space-y-0.5">
-                    <h3 className="md:text-lg font-[560] text-gray-900 truncate group-hover:text-green-600 transition-colors duration-300 tracking-tight">
+                    <h3 className="text-sm md:text-lg font-[560] text-gray-900 group-hover:text-green-600 transition-colors duration-300 tracking-tight line-clamp-2 break-words">
                       {item.name}
                     </h3>
 
@@ -110,6 +110,12 @@ const ItemPriceAndTags = ({ item }: { item: any }) => {
           <Badge className="text-[9px] md:text-[10px] font-medium border-2 border-red-50 text-red-700 bg-white px-2 py-0.5 rounded-lg shadow-none">
             Non-Veg
           </Badge>
+        )}
+        {item.stock !== undefined && item.stock !== null && (
+          <div className="flex items-center gap-1 text-[10px] text-gray-600 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-200">
+            <span className="font-medium">Stock:</span>
+            <span className="font-bold text-gray-900">{item.stock}</span>
+          </div>
         )}
       </div>
     </div>

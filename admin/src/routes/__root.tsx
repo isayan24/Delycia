@@ -28,6 +28,7 @@ import { SubscriptionGuard } from '@/components/admin/settings/SubscriptionGuard
 import { NotificationToastManager } from '@/components/common/NotificationToastManager'
 import { MobileDock } from '@/components/admin/layout/MobileDock'
 import { SessionExpiryWarning } from '@/components/SessionExpiryWarning'
+import { PageReloadHandler } from '@/components/common/PageReloadHandler'
 
 // Note: We don't define beforeLoad here because we get auth from component
 // and pass it via router instantiation in the app setup
@@ -122,6 +123,7 @@ function RootComponent() {
     <RootDocument>
       <QueryClientProvider client={queryClient}>
         <SoundProvider>
+          <PageReloadHandler />
           <NetworkOfflineNotification />
           <SessionExpiredNotification />
           {/* <SessionExpiryWarning/> */}

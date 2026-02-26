@@ -64,7 +64,7 @@ export const CompactCategoryItem = React.memo(function CompactCategoryItem({
               onClick={() => onDelete(category)}
               className="text-red-600 focus:text-red-600 focus:bg-red-50"
             >
-              <Trash2 className="mr-2 h-4 w-4" />
+              <Trash2 className="mr-2 h-4 w-4 text-red-600" />
               Delete Category
             </DropdownMenuItem>
           </DropdownMenuContent>

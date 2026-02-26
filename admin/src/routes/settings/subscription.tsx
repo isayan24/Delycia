@@ -3,10 +3,10 @@ import { useState, useEffect } from 'react'
 import { requireAuth } from '@/middleware/auth'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { useSubscriptionQuery } from '@/hooks/queries/useSubscriptionQuery'
-import LoadingScreen from '@/components/common/LoadingScreen'
 import { SubscriptionCard } from '@/components/admin/settings/SubscriptionCard'
 import { PlanComparison } from '@/components/admin/settings/PlanComparison'
 import { ArrowLeft } from 'lucide-react'
+import { LoadingOverlay } from '@/components/smallComponents/LoadingOverlay'
 
 export const Route = createFileRoute('/settings/subscription')({
   beforeLoad: requireAuth,
@@ -20,11 +20,15 @@ function SubscriptionPage() {
   const { data, isLoading, error } = useSubscriptionQuery(rid)
 
   if (!user || !rid) {
-    return <LoadingScreen message="Loading user information..." />
+    return (
+      <LoadingOverlay isVisible={true} message="Loading user information" />
+    )
   }
 
   if (isLoading) {
-    return <LoadingScreen message="Loading subscription details..." />
+    return (
+      <LoadingOverlay isVisible={true} message="Loading subscription details" />
+    )
   }
 
   if (error) {

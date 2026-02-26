@@ -137,7 +137,7 @@ export function EditStaffSheet({
                 )}
               />
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <FormField
                   control={form.control}
                   name="username"
@@ -188,7 +188,7 @@ export function EditStaffSheet({
                     </FormLabel>
                     <FormControl>
                       <Input
-                        type="password"
+                        type="text"
                         placeholder="Leave blank to keep current"
                         className="h-10 rounded-lg bg-white dark:bg-[#1a110a] border-slate-200 dark:border-primary/5 focus-visible:ring-slate-400 font-medium"
                         {...field}

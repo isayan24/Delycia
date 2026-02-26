@@ -5,8 +5,7 @@ import {
   useInventoryItemStats,
   useInfiniteInventoryItemOrdersQuery,
 } from '@/hooks/queries/useInventoryQueries'
-import { useLoadMore } from '@/hooks/useLoadMore'
-import LoadingScreen from '@/components/common/LoadingScreen'
+import { useLoadMore } from '@/hooks/useLoadMore' 
 import {
   ArrowLeft,
   Box,
@@ -35,6 +34,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { QuickRestockButton } from '@/components/admin/inventory/QuickRestockButton'
 
 import { requireAuth } from '@/middleware/auth'
+import { LoadingOverlay } from '@/components/smallComponents/LoadingOverlay'
 
 export const Route = createFileRoute('/reports/inventory/$inventoryId')({
   beforeLoad: requireAuth,
@@ -88,7 +88,10 @@ function InventoryItemDetailPage() {
 
   if (isLoading) {
     if (!user?.selected_rid) {
-      return <LoadingScreen message="Loading item details..." />
+      return <LoadingOverlay
+        isVisible={true}
+        message="Loading item details" 
+      /> 
     }
 
     return (
@@ -186,8 +189,8 @@ function InventoryItemDetailPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-6 bg-white min-h-screen">
       {/* Top Identity Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-gray-100/50">
-        <div className="flex items-center gap-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 pb-6 border-b border-gray-100/50">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6">
           <Button
             variant="ghost"
             size="icon"
@@ -197,8 +200,8 @@ function InventoryItemDetailPage() {
             <ArrowLeft className="w-4 h-4 text-gray-400" />
           </Button>
 
-          <div className="flex items-center gap-4">
-            <div className="h-20 w-32 shrink-0 rounded-xl border border-gray-100 bg-gray-50 overflow-hidden shadow-sm">
+          <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
+            <div className="h-16 w-24 sm:h-20 sm:w-32 shrink-0 rounded-xl border border-gray-100 bg-gray-50 overflow-hidden shadow-sm">
               {data.images && data.images.length > 0 ? (
                 <img
                   src={data.images[0]}
@@ -212,9 +215,9 @@ function InventoryItemDetailPage() {
               )}
             </div>
 
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-3">
-                <h1 className="text-xl font-bold text-gray-900 tracking-tight leading-none">
+            <div className="space-y-1.5 flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <h1 className="text-sm sm:text-lg font-[550] text-gray-900  ">
                   {data.name}
                 </h1>
                 <span
@@ -229,7 +232,7 @@ function InventoryItemDetailPage() {
                   {data.status}
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-xs text-gray-500 font-semibold uppercase tracking-wider">
+              <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 font-semibold uppercase tracking-wider">
                 <span className="bg-gray-100/80 px-2 py-0.5 rounded text-[10px] text-gray-500 border border-gray-200/50">
                   SKU: {data.id}
                 </span>
@@ -249,13 +252,13 @@ function InventoryItemDetailPage() {
             onStockUpdate={() => {}}
             className="h-9 px-4 text-xs font-bold rounded-lg shadow-xs hover:shadow-md transition-all"
           />
-          <Button
+          {/* <Button
             variant="ghost"
             size="icon"
             className="h-9 w-9 rounded-lg border border-gray-100 hover:bg-gray-50"
           >
             <MoreVertical className="w-4 h-4 text-gray-400" />
-          </Button>
+          </Button> */}
         </div>
       </div>
 

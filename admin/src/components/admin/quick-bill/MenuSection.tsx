@@ -7,8 +7,8 @@ import { useInventoryItems } from '@/hooks/useInventoryItems'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import { useCategoriesQuery } from '@/hooks/queries/useCategoriesQuery'
 import { Item, Variant } from '@/types/menu.types'
-import LoadingScreen from '@/components/common/LoadingScreen'
 import MenuGridItem from './MenuGridItem'
+import { LoadingOverlay } from '@/components/smallComponents/LoadingOverlay'
 
 interface MenuSectionProps {
   addToCart: (item: Item, behavior?: 'add' | 'toggle') => void
@@ -209,7 +209,10 @@ export default function MenuSection({ addToCart, cart }: MenuSectionProps) {
       <div className="sidebar:flex-1 sidebar:overflow-y-auto pr-2 custom-scrollbar scroll-smooth">
         {loadingCategories || (loadingItems && allItems.length === 0) ? (
           <div className="h-64 flex items-center justify-center">
-            <LoadingScreen message="Loading Menu..." />
+            <LoadingOverlay
+              isVisible={true}
+              message="Loading Menu Screen" 
+            />
           </div>
         ) : (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3">

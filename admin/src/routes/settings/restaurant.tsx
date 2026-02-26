@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
 import { requireAuth } from '@/middleware/auth'
 import {
   useRestaurantSettingsQuery,
@@ -7,7 +7,7 @@ import {
 } from '@/hooks/queries/useRestaurantSettingsQueries'
 import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
-import { ArrowLeft, Loader2, Save } from 'lucide-react'
+import { ArrowLeft, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { extractFileIdFromUrl } from '@/helpers/image/imagekitHelpers'
 import { useAuth } from '@/hooks/useAuth'
@@ -16,6 +16,8 @@ import { IdentitySection } from '@/components/admin/settings/restaurant/Identity
 import { LogisticsSection } from '@/components/admin/settings/restaurant/LogisticsSection'
 import { OperationsSection } from '@/components/admin/settings/restaurant/OperationsSection'
 import { ScheduleSection } from '@/components/admin/settings/restaurant/ScheduleSection'
+import { LoadingSpinner } from '@/components/smallComponents/LoadingSpinner'
+import { LoadingOverlay } from '@/components/smallComponents/LoadingOverlay'
 
 export const Route = createFileRoute('/settings/restaurant')({
   beforeLoad: requireAuth,
@@ -25,6 +27,7 @@ export const Route = createFileRoute('/settings/restaurant')({
 function RestaurantSettingsPage() {
   const { user } = useAuth()
   const rid = user?.selected_rid?.toString()
+  const router = useRouter()
 
   // Use the new production-grade query hook
   const {
@@ -62,8 +65,8 @@ function RestaurantSettingsPage() {
         is_active: restaurant.is_active,
         is_veg_only: restaurant.is_veg_only,
         tax_percent: restaurant.tax_percent,
-        latitude: restaurant.latitude || '',
-        longitude: restaurant.longitude || '',
+        latitude: restaurant.latitude || null,
+        longitude: restaurant.longitude ||  null,
         phone_number: restaurant.phone_number || '',
         email: restaurant.email || '',
         address: restaurant.address || '',
@@ -143,8 +146,8 @@ function RestaurantSettingsPage() {
       (position) => {
         setFormData((prev) => ({
           ...prev,
-          latitude: position.coords.latitude.toString(),
-          longitude: position.coords.longitude.toString(),
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
         }))
         setIsLocationLoading(false)
         showSuccess('Success', 'Location updated!')
@@ -251,15 +254,22 @@ function RestaurantSettingsPage() {
       }
 
       // Submit with updated URLs using the mutation hook
-      await mutation.mutateAsync({
+      const updatedData = {
         ...formData,
         logo: logoUrl,
         banner: bannerUrl,
-      } as UpdateRestaurantParams)
+      } as UpdateRestaurantParams
+
+      await mutation.mutateAsync(updatedData)
 
       showSuccess('Success', 'Settings updated successfully!')
       setLogoBase64('')
       setBannerBase64('')
+      
+      // Reload the entire page to reflect all changes
+      setTimeout(() => {
+        window.location.reload()
+      }, 1000)
     } catch (error: any) {
       console.error('Error submitting form:', error)
       showError(
@@ -273,9 +283,12 @@ function RestaurantSettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-[60vh]">
-        <Loader2 className="w-10 h-10 animate-spin text-violet-600" />
-      </div>
+      <LoadingSpinner
+        size="lg"
+        message="Loading restaurant settings..."
+        subtitle="Please wait a moment"
+        className="h-[60vh]"
+      />
     )
   }
 
@@ -289,20 +302,27 @@ function RestaurantSettingsPage() {
   }
 
   return (
-    <div className="max-w-[58rem] mx-auto pb-12">
-      <div className="mb-10 flex items-center justify-between">
-        <div className="flex items-center gap-5">
+    <div className="max-w-[58rem] mx-auto pb-12 max-[500px]:p-2 relative">
+      {/* Loading Overlay */}
+      <LoadingOverlay
+        isVisible={mutation.isPending || isSubmitting}
+        message="Saving Changes"
+        subtitle="Updating your restaurant settings..."
+      />
+
+      <div className="mb-6 md:mb-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="flex items-center gap-3 md:gap-5 w-full sm:w-auto">
           <Link
             to="/settings"
-            className="group flex items-center justify-center size-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-sm"
+            className="group flex items-center justify-center size-8 md:size-10 rounded-lg md:rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-sm shrink-0"
           >
-            <ArrowLeft className="w-5 h-5 text-slate-600 dark:text-slate-400 group-hover:-translate-x-0.5 transition-transform" />
+            <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 text-slate-600 dark:text-slate-400 group-hover:-translate-x-0.5 transition-transform" />
           </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-lg md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
               Restaurant Settings
             </h1>
-            <p className="text-slate-500 text-sm font-medium">
+            <p className="text-slate-500 text-xs md:text-sm font-medium">
               Configure your restaurant's digital storefront and operations
             </p>
           </div>
@@ -311,14 +331,19 @@ function RestaurantSettingsPage() {
         <Button
           onClick={handleSubmit}
           disabled={mutation.isPending || isSubmitting}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 dark:shadow-none transition-all px-6 rounded-xl"
+          className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 dark:shadow-none transition-all px-4 md:px-6 rounded-lg md:rounded-xl text-sm md:text-base h-9 md:h-10 w-full sm:w-auto shrink-0"
         >
           {mutation.isPending || isSubmitting ? (
-            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+            <>
+              <div className="w-3.5 h-3.5 md:w-4 md:h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+              Saving...
+            </>
           ) : (
-            <Save className="w-4 h-4 mr-2" />
+            <>
+              <Save className="w-3.5 h-3.5 md:w-4 md:h-4 mr-2" />
+              Save Settings
+            </>
           )}
-          Save Settings
         </Button>
       </div>
 

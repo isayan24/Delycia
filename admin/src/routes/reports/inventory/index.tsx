@@ -4,12 +4,12 @@ import { useInventoryLevelsQuery } from '@/hooks/queries/useDashboardQueries'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import { Input } from '@/components/ui/input'
 import { Search, Box, Filter } from 'lucide-react'
-import LoadingScreen from '@/components/common/LoadingScreen'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { requireAuth } from '@/middleware/auth'
 import { InventoryDesktopTable } from '@/components/admin/reports/InventoryDesktopTable'
 import { InventoryMobileCards } from '@/components/admin/reports/InventoryMobileCards'
+import { LoadingOverlay } from '@/components/smallComponents/LoadingOverlay'
 
 type InventoryFilter = 'all' | 'available' | 'low' | 'critical'
 
@@ -103,7 +103,13 @@ function InventoryReportPage() {
 
   if (isLoading) {
     if (!user?.selected_rid) {
-      return <LoadingScreen message="Loading inventory report..." />
+      return (
+        <LoadingOverlay
+          isVisible={true}
+          message="Loading inventory report"
+          subtitle="Loading Information..."
+        />
+      )
     }
 
     // Skeleton UI

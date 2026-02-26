@@ -8,8 +8,8 @@ import AddTablesComponent from './add-delete/AddTablesComponent'
 import DeleteTablesComponent from './add-delete/DeleteTablesComponent'
 import { useTablesQuery } from '@/hooks/queries/useTablesQuery'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
-import LoadingScreen from '@/components/common/LoadingScreen'
 import { motion, AnimatePresence } from 'motion/react'
+import { LoadingOverlay } from '@/components/smallComponents/LoadingOverlay'
 
 export default function BookTableMain() {
   const { changeState, currentState, setTable } = useTableStore()
@@ -45,7 +45,12 @@ export default function BookTableMain() {
   }
 
   if (loading) {
-    return <LoadingScreen message="Loading tables" />
+    return (
+      <LoadingOverlay
+        isVisible={true}
+        message="Loading Table Information" 
+      />
+    )
   }
 
   // Determine if an overlay is active (add/delete tables)

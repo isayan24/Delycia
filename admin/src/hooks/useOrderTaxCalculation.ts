@@ -22,11 +22,11 @@ interface OrderTaxCalculationResult {
 /**
  * Custom hook for calculating order tax breakdown
  * Follows TanStack best practices with proper memoization and error handling
- * 
+ *
  * Note: This hook may re-run when the restaurants object reference changes,
  * but the calculation itself is memoized based on actual values (subtotal, discount, taxPercent).
  * This is acceptable because TanStack Query caches the data and the calculation is lightweight.
- * 
+ *
  * @param options - Configuration object
  * @param options.subtotal - Pre-tax subtotal amount
  * @param options.discountAmount - Optional discount to apply before tax
@@ -39,11 +39,13 @@ export function useOrderTaxCalculation({
   rid,
 }: UseOrderTaxCalculationOptions): OrderTaxCalculationResult {
   // Get restaurant data from selector (already cached by TanStack Query)
-  const { restaurants, selectedRid, isLoadingRestaurants } = useRestaurantSelector()
-  
+  const { restaurants, selectedRid, isLoadingRestaurants } =
+    useRestaurantSelector()
+
   // Determine which restaurant to use
   const effectiveRid = rid || (selectedRid ? parseInt(selectedRid) : 0)
-  
+
+  // Fix the restaurant tax is mismatch from actual tax percent
   // Get tax percent from restaurant data
   // Note: This will re-run when restaurants object changes, but that's okay
   // because TanStack Query ensures the data is cached and stable
@@ -54,7 +56,7 @@ export function useOrderTaxCalculation({
     // Round inputs to prevent floating point precision issues
     const roundedSubtotal = Math.round(subtotal * 100) / 100
     const roundedDiscount = Math.round(discountAmount * 100) / 100
-    
+
     // Default values while loading or on error
     const defaultResult = {
       subtotal: roundedSubtotal,
@@ -72,7 +74,9 @@ export function useOrderTaxCalculation({
 
     // Validate tax_percent
     if (taxPercent < 0 || taxPercent > 100) {
-      console.error(`Invalid tax_percent for rid ${effectiveRid}: ${taxPercent}`)
+      console.error(
+        `Invalid tax_percent for rid ${effectiveRid}: ${taxPercent}`,
+      )
       return defaultResult
     }
 

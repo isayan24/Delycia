@@ -156,8 +156,7 @@ export default function BillingSheet({
       {floatingBar}
 
       <DrawerContent className="h-[90vh]">
-        <div className="mx-auto w-12 h-1.5 shrink-0 rounded-full bg-slate-200 my-4" />
-        <DrawerHeader className="pt-0">
+        <DrawerHeader className="pt-4">
           <DrawerTitle className="text-center text-xl">
             Confirm Order
           </DrawerTitle>

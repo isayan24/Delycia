@@ -3,6 +3,8 @@ import { requireAuth } from '@/middleware/auth'
 import { StaffList } from '@/components/admin/staff/StaffList'
 import { CreateStaffDialog } from '@/components/admin/staff/CreateStaffDialog'
 import { FeatureGuard } from '@/components/common/FeatureGuard'
+import { useStaffQuery } from '@/hooks/queries/useStaffQueries'
+import { LoadingOverlay } from '@/components/smallComponents/LoadingOverlay'
 
 export const Route = createFileRoute('/staff/')({
   component: StaffManagementPage,
@@ -10,6 +12,14 @@ export const Route = createFileRoute('/staff/')({
 })
 
 function StaffManagementPage() {
+  const { isLoading } = useStaffQuery()
+
+  if (isLoading) {
+    return (
+      <LoadingOverlay isVisible={true} message="Loading Staff Information" />
+    )
+  }
+
   return (
     <FeatureGuard feature="staff_management">
       <div className="bg-white dark:bg-[#0f0a07] font-sans px-4 py-6 max-w-7xl mx-auto space-y-6 min-h-screen">

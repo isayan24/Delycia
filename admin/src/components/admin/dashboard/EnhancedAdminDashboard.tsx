@@ -6,9 +6,9 @@ import {
   useRefreshDashboard,
 } from '@/hooks/queries/useDashboardQueries'
 import OverviewPage from './OverviewPage'
-import LoadingScreen from '@/components/common/LoadingScreen'
 import { AnimatePresence, motion } from 'motion/react'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
+import { LoadingOverlay } from '@/components/smallComponents/LoadingOverlay'
 
 interface EnhancedAdminDashboardProps {
   rid: string
@@ -79,7 +79,12 @@ export const EnhancedAdminDashboard: React.FC<EnhancedAdminDashboardProps> = ({
   // Show loading state on initial load only if absolutely necessary (e.g. no RID)
   // For data refetching, we pass through to OverviewPage which handles skeletons
   if (!rid) {
-    return <LoadingScreen message="Initializing dashboard..." />
+    return (
+      <LoadingOverlay
+        isVisible={true}
+        message="Initializing Dashboard" 
+      />
+    )
   }
 
   return (

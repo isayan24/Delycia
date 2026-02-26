@@ -70,7 +70,6 @@ export default function CategoryWizard({
   // Helper to check form validity
   const isCustomFormValid =
     !!wizardState.currentCustomCategory.name &&
-    !!wizardState.currentCustomCategory.description &&
     !!wizardState.currentCustomCategory.image
 
   const handleSubmit = async () => {
@@ -392,53 +391,53 @@ export default function CategoryWizard({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-4xl w-full h-full md:h-auto md:max-h-[90vh] p-0 overflow-hidden flex flex-col gap-0 md:rounded-lg rounded-none">
-        <DialogHeader className="p-4 border-b shrink-0 bg-white">
-          <DialogTitle className="text-lg md:text-xl font-bold">
+      <DialogContent className="sm:max-w-4xl w-[95%] max-w-[95%] sm:w-full h-[85vh] sm:h-auto md:max-h-[90vh] p-0 overflow-hidden flex flex-col gap-0 rounded-lg">
+        <DialogHeader className="p-3 md:p-4 border-b shrink-0 bg-white">
+          <DialogTitle className="text-base md:text-lg lg:text-xl font-bold">
             Add Categories
           </DialogTitle>
         </DialogHeader>
 
         {/* Stepper */}
-        <div className="shrink-0 bg-gray-50/50 border-b ">
+        <div className="shrink-0 bg-gray-50/50 border-b">
           <WizardStepper steps={STEPS} currentStep={wizardState.currentStep} />
         </div>
 
         {/* Step Content */}
-        <div className="flex-1 overflow-y-auto px-4 py-2 bg-gray-50/30">
+        <div className="flex-1 overflow-y-auto px-3 py-3 md:px-4 md:py-4 bg-gray-50/30">
           {renderStepContent()}
         </div>
 
         {/* Navigation Footer */}
-        <div className="flex items-center justify-between p-4 border-t bg-white shrink-0 mt-auto gap-3">
+        <div className="flex items-center justify-between p-3 md:p-4 border-t bg-white shrink-0 mt-auto gap-2 md:gap-3">
           <div className="flex items-center gap-2">
             {showBackButton && (
               <Button
                 variant="outline"
                 size="icon"
                 onClick={goToPrevStep}
-                className="h-10 w-10 shrink-0"
+                className="h-9 w-9 md:h-10 md:w-10 shrink-0"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             )}
           </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar ">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
             <Button
               variant="ghost"
               size="icon"
               onClick={handleClose}
-              className="h-10 w-10 shrink-0 text-red-500 hover:bg-red-50 hover:text-red-600"
+              className="h-9 w-9 md:h-10 md:w-10 shrink-0 text-red-500 hover:bg-red-50 hover:text-red-600"
             >
-              <Trash2 className="h-5 w-5" />
+              <Trash2 className="h-4 w-4 md:h-5 md:w-5" />
             </Button>
 
             {wizardState.currentStep === 3 ? (
               <Button
                 onClick={handleSubmit}
                 disabled={submitting || totalItems === 0}
-                className="bg-green-500 hover:bg-green-600 text-white shrink-0 whitespace-nowrap"
+                className="bg-green-500 hover:bg-green-600 text-white shrink-0 whitespace-nowrap text-sm h-9 md:h-10 px-3 md:px-4"
               >
                 {submitting ? (
                   <>
@@ -462,7 +461,7 @@ export default function CategoryWizard({
                       }}
                       disabled={!isCustomFormValid}
                       variant="outline"
-                      className="border-orange-300 text-orange-600 hover:bg-orange-50 shrink-0 whitespace-nowrap"
+                      className="border-orange-300 text-orange-600 hover:bg-orange-50 shrink-0 whitespace-nowrap text-sm h-9 md:h-10 px-3 md:px-4"
                     >
                       Add Another
                     </Button>
@@ -470,7 +469,7 @@ export default function CategoryWizard({
                   <Button
                     onClick={handleNextWithAdd}
                     disabled={isNextDisabled}
-                    className="bg-orange-500 hover:bg-orange-600 text-white shrink-0 whitespace-nowrap"
+                    className="bg-orange-500 hover:bg-orange-600 text-white shrink-0 whitespace-nowrap text-sm h-9 md:h-10 px-3 md:px-4"
                   >
                     {wizardState.source === 'custom' &&
                     wizardState.customCategories.length === 0

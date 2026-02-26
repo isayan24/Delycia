@@ -3,10 +3,10 @@ import ErrorBoundary from './ErrorBoundary'
 import { UseAdminOrderHistory } from './hooks/UseAdminOrderHistory'
 import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import OrderHistoryTablePaginated from './OrderHistoryTablePaginated'
-import LoadingScreen from '@/components/common/LoadingScreen'
 import { useState, useCallback, useMemo } from 'react'
 import { useMergeOrders } from '@/hooks/mutations/useMergeOrders'
 import useToast from '@/hooks/UseToast'
+import { LoadingOverlay } from '@/components/smallComponents/LoadingOverlay'
 
 export default function OrderHistoryMain() {
   const { user } = useAdminAuthQuery()
@@ -17,7 +17,12 @@ export default function OrderHistoryMain() {
   const sessionError = !user?.restaurant_rids?.[0] || !rid
 
   if (sessionError) {
-    return <LoadingScreen message="Authenticating..." />
+    return (
+      <LoadingOverlay
+        isVisible={true}
+        message="Authenticating" 
+      />
+    )
   }
 
   // Use the refactored hook with pagination and search - only when rid is valid

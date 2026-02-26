@@ -11,7 +11,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { signInSchema } from '@/schemas/signInSchema'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2, Lock, Shield, LogIn } from 'lucide-react'
+import { Loader2, Lock, Shield, LogIn, Eye, EyeOff } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -27,6 +27,7 @@ export const Route = createFileRoute('/login')({
 
 function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const { showError, showSuccess } = useToast()
   const navigate = useNavigate()
 
@@ -95,7 +96,7 @@ function LoginPage() {
             Admin Portal
           </h1>
           <p className="text-gray-600 text-sm md:text-base">
-            Securely access the restaurant management system
+            Securely access the management system portal
           </p>
         </div>
 
@@ -139,11 +140,22 @@ function LoginPage() {
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                       <Input
-                        type="password"
+                        type={showPassword ? 'text' : 'password'}
                         placeholder="Enter your password"
-                        className="pl-10 py-2 md:py-3 text-sm md:text-base rounded-lg focus:ring-2 focus:ring-purple-500 transition-all duration-200"
+                        className="pl-10 pr-10 py-2 md:py-3 text-sm md:text-base rounded-lg focus:ring-2 focus:ring-purple-500 transition-all duration-200"
                         {...field}
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
                     </div>
                   </FormControl>
                   <FormMessage className="text-xs md:text-sm" />
