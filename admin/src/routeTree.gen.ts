@@ -13,6 +13,7 @@ import { Route as SupportRouteImport } from './routes/support'
 import { Route as StaffRouteImport } from './routes/staff'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as QrCodesRouteImport } from './routes/qr-codes'
 import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventoryRouteImport } from './routes/inventory'
@@ -69,6 +70,7 @@ import { Route as DemoApiNamesRouteImport } from './routes/demo/api.names'
 import { Route as ApiUsersSearchRouteImport } from './routes/api/users.search'
 import { Route as ApiSubscriptionPlansRouteImport } from './routes/api/subscription.plans'
 import { Route as ApiStaffReportsStaffIdRouteImport } from './routes/api/staff-reports/$staffId'
+import { Route as ApiQrCodesCreateTablesRouteImport } from './routes/api/qr-codes/create-tables'
 import { Route as ApiOrdersOrderHistoryRouteImport } from './routes/api/orders/order-history'
 import { Route as ApiOrdersByTableRouteImport } from './routes/api/orders/by-table'
 import { Route as ApiOrdersActionsRouteImport } from './routes/api/orders/actions'
@@ -109,6 +111,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const ReportsRoute = ReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QrCodesRoute = QrCodesRouteImport.update({
+  id: '/qr-codes',
+  path: '/qr-codes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrdersRoute = OrdersRouteImport.update({
@@ -392,6 +399,11 @@ const ApiStaffReportsStaffIdRoute = ApiStaffReportsStaffIdRouteImport.update({
   path: '/$staffId',
   getParentRoute: () => ApiStaffReportsRoute,
 } as any)
+const ApiQrCodesCreateTablesRoute = ApiQrCodesCreateTablesRouteImport.update({
+  id: '/api/qr-codes/create-tables',
+  path: '/api/qr-codes/create-tables',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiOrdersOrderHistoryRoute = ApiOrdersOrderHistoryRouteImport.update({
   id: '/order-history',
   path: '/order-history',
@@ -508,6 +520,7 @@ export interface FileRoutesByFullPath {
   '/inventory': typeof InventoryRouteWithChildren
   '/login': typeof LoginRoute
   '/orders': typeof OrdersRouteWithChildren
+  '/qr-codes': typeof QrCodesRoute
   '/reports': typeof ReportsRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/staff': typeof StaffRouteWithChildren
@@ -567,6 +580,7 @@ export interface FileRoutesByFullPath {
   '/api/orders/actions': typeof ApiOrdersActionsRoute
   '/api/orders/by-table': typeof ApiOrdersByTableRoute
   '/api/orders/order-history': typeof ApiOrdersOrderHistoryRoute
+  '/api/qr-codes/create-tables': typeof ApiQrCodesCreateTablesRoute
   '/api/staff-reports/$staffId': typeof ApiStaffReportsStaffIdRoute
   '/api/subscription/plans': typeof ApiSubscriptionPlansRoute
   '/api/users/search': typeof ApiUsersSearchRoute
@@ -588,6 +602,7 @@ export interface FileRoutesByTo {
   '/affiliate': typeof AffiliateRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/qr-codes': typeof QrCodesRoute
   '/support': typeof SupportRoute
   '/api/addons': typeof ApiAddonsRoute
   '/api/category': typeof ApiCategoryRouteWithChildren
@@ -644,6 +659,7 @@ export interface FileRoutesByTo {
   '/api/orders/actions': typeof ApiOrdersActionsRoute
   '/api/orders/by-table': typeof ApiOrdersByTableRoute
   '/api/orders/order-history': typeof ApiOrdersOrderHistoryRoute
+  '/api/qr-codes/create-tables': typeof ApiQrCodesCreateTablesRoute
   '/api/staff-reports/$staffId': typeof ApiStaffReportsStaffIdRoute
   '/api/subscription/plans': typeof ApiSubscriptionPlansRoute
   '/api/users/search': typeof ApiUsersSearchRoute
@@ -669,6 +685,7 @@ export interface FileRoutesById {
   '/inventory': typeof InventoryRouteWithChildren
   '/login': typeof LoginRoute
   '/orders': typeof OrdersRouteWithChildren
+  '/qr-codes': typeof QrCodesRoute
   '/reports': typeof ReportsRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/staff': typeof StaffRouteWithChildren
@@ -728,6 +745,7 @@ export interface FileRoutesById {
   '/api/orders/actions': typeof ApiOrdersActionsRoute
   '/api/orders/by-table': typeof ApiOrdersByTableRoute
   '/api/orders/order-history': typeof ApiOrdersOrderHistoryRoute
+  '/api/qr-codes/create-tables': typeof ApiQrCodesCreateTablesRoute
   '/api/staff-reports/$staffId': typeof ApiStaffReportsStaffIdRoute
   '/api/subscription/plans': typeof ApiSubscriptionPlansRoute
   '/api/users/search': typeof ApiUsersSearchRoute
@@ -754,6 +772,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/login'
     | '/orders'
+    | '/qr-codes'
     | '/reports'
     | '/settings'
     | '/staff'
@@ -813,6 +832,7 @@ export interface FileRouteTypes {
     | '/api/orders/actions'
     | '/api/orders/by-table'
     | '/api/orders/order-history'
+    | '/api/qr-codes/create-tables'
     | '/api/staff-reports/$staffId'
     | '/api/subscription/plans'
     | '/api/users/search'
@@ -834,6 +854,7 @@ export interface FileRouteTypes {
     | '/affiliate'
     | '/dashboard'
     | '/login'
+    | '/qr-codes'
     | '/support'
     | '/api/addons'
     | '/api/category'
@@ -890,6 +911,7 @@ export interface FileRouteTypes {
     | '/api/orders/actions'
     | '/api/orders/by-table'
     | '/api/orders/order-history'
+    | '/api/qr-codes/create-tables'
     | '/api/staff-reports/$staffId'
     | '/api/subscription/plans'
     | '/api/users/search'
@@ -914,6 +936,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/login'
     | '/orders'
+    | '/qr-codes'
     | '/reports'
     | '/settings'
     | '/staff'
@@ -973,6 +996,7 @@ export interface FileRouteTypes {
     | '/api/orders/actions'
     | '/api/orders/by-table'
     | '/api/orders/order-history'
+    | '/api/qr-codes/create-tables'
     | '/api/staff-reports/$staffId'
     | '/api/subscription/plans'
     | '/api/users/search'
@@ -998,6 +1022,7 @@ export interface RootRouteChildren {
   InventoryRoute: typeof InventoryRouteWithChildren
   LoginRoute: typeof LoginRoute
   OrdersRoute: typeof OrdersRouteWithChildren
+  QrCodesRoute: typeof QrCodesRoute
   ReportsRoute: typeof ReportsRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
   StaffRoute: typeof StaffRouteWithChildren
@@ -1029,6 +1054,7 @@ export interface RootRouteChildren {
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthRefreshRoute: typeof ApiAuthRefreshRoute
   ApiAuthSessionRoute: typeof ApiAuthSessionRoute
+  ApiQrCodesCreateTablesRoute: typeof ApiQrCodesCreateTablesRoute
   DemoApiNamesRoute: typeof DemoApiNamesRoute
   DemoStartApiRequestRoute: typeof DemoStartApiRequestRoute
   DemoStartServerFuncsRoute: typeof DemoStartServerFuncsRoute
@@ -1066,6 +1092,13 @@ declare module '@tanstack/react-router' {
       path: '/reports'
       fullPath: '/reports'
       preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/qr-codes': {
+      id: '/qr-codes'
+      path: '/qr-codes'
+      fullPath: '/qr-codes'
+      preLoaderRoute: typeof QrCodesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/orders': {
@@ -1460,6 +1493,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStaffReportsStaffIdRouteImport
       parentRoute: typeof ApiStaffReportsRoute
     }
+    '/api/qr-codes/create-tables': {
+      id: '/api/qr-codes/create-tables'
+      path: '/api/qr-codes/create-tables'
+      fullPath: '/api/qr-codes/create-tables'
+      preLoaderRoute: typeof ApiQrCodesCreateTablesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/orders/order-history': {
       id: '/api/orders/order-history'
       path: '/order-history'
@@ -1823,6 +1863,7 @@ const rootRouteChildren: RootRouteChildren = {
   InventoryRoute: InventoryRouteWithChildren,
   LoginRoute: LoginRoute,
   OrdersRoute: OrdersRouteWithChildren,
+  QrCodesRoute: QrCodesRoute,
   ReportsRoute: ReportsRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,
   StaffRoute: StaffRouteWithChildren,
@@ -1854,6 +1895,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthRefreshRoute: ApiAuthRefreshRoute,
   ApiAuthSessionRoute: ApiAuthSessionRoute,
+  ApiQrCodesCreateTablesRoute: ApiQrCodesCreateTablesRoute,
   DemoApiNamesRoute: DemoApiNamesRoute,
   DemoStartApiRequestRoute: DemoStartApiRequestRoute,
   DemoStartServerFuncsRoute: DemoStartServerFuncsRoute,

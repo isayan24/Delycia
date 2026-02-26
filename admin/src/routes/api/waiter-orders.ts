@@ -180,7 +180,7 @@ export const Route = createFileRoute('/api/waiter-orders')({
                   capacity: table.capacity,
                 }
                 try {
-                  await axiosInstance.patch(`/admin/tables/`, tableData, {
+                  await axiosInstance.patch(`/api/v1/admin/tables`, tableData, {
                     headers: {
                       Authorization: `Bearer ${accessToken}`,
                     },

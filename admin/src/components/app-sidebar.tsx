@@ -9,6 +9,7 @@ import {
   BarChart3,
   Users,
   LifeBuoy,
+  QrCode,
 } from 'lucide-react'
 
 import { NavMain } from '@/components/nav-main'
@@ -121,6 +122,12 @@ const navMain = [
     url: '/staff',
     icon: Users,
     color: 'text-purple-500',
+  },
+  {
+    title: 'QR Codes',
+    url: '/qr-codes',
+    icon: QrCode,
+    color: 'text-cyan-500',
   },
 ]
 
