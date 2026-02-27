@@ -363,21 +363,53 @@ export default function FoodItemInfo({
 
       {/* Mobile layout */}
       <div className="md:hidden p-2 max-h-[80vh] overflow-y-auto">
-        <div className="relative w-full h-56">
+        <div className="relative w-full h-64">
           <ImageCarousel
             images={images}
             className="w-full h-full overflow-hidden rounded-xl"
           />
-          {/* ... existing badges ... */}
+
+          {/* Discount Badge */}
+          {discount > 0 && (
+            <div className="absolute top-4 right-4 bg-yellow-400 text-black font-bold px-3 py-1 rounded-full shadow-lg z-10">
+              {discount}% OFF
+            </div>
+          )}
+
+          {/* Veg/Non-veg Badge */}
+          <div className="absolute top-4 left-4 bg-white p-2 rounded-full shadow-lg z-10">
+            {isVeg ? (
+              <div className="border-2 rounded-sm border-green-500 p-1">
+                <div className="rounded-full bg-green-500 h-2 w-2"></div>
+              </div>
+            ) : (
+              <div className="border-2 rounded-sm border-red-500 p-1">
+                <Triangle className="text-red-500 h-2 w-2 fill-current" />
+              </div>
+            )}
+          </div>
+
+          {/* Title Overlay with Gradient */}
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 to-transparent rounded-b-xl flex items-end p-4">
+            <DialogTitle className="text-white text-2xl font-bold drop-shadow-md">
+              {name}
+            </DialogTitle>
+          </div>
         </div>
 
         <div className="py-6 w-full">
           <div className="bg-gray-50 rounded-xl p-4 -mt-6 relative z-10 shadow-md">
-            {/* ... header info ... */}
-            <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-2xl font-bold text-btnColor">
-                ₹{getCurrentPrice().toFixed(2)}
-              </span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-btnColor">
+                  ₹{getCurrentPrice().toFixed(2)}
+                </span>
+              </div>
+              <div
+                className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${currentStatus.color}`}
+              >
+                {currentStatus.label}
+              </div>
             </div>
           </div>
 
@@ -389,41 +421,32 @@ export default function FoodItemInfo({
           {/* Variants */}
           {variants && variants.length > 0 && (
             <div className="mb-6 px-2">
-              {/* ... variants ui ... */}
               <h3 className="text-lg font-semibold mb-2">Size</h3>
-              {/* ... options ... */}
               <div className="space-y-3">
-                {/* Original */}
                 <div
                   onClick={() => setSelectedVariant(null)}
                   className={`flex items-center justify-between cursor-pointer p-3 border rounded-lg ${
-                    !selectedVariant ? 'border-btnColor' : 'border-gray-300'
+                    !selectedVariant
+                      ? 'border-btnColor bg-orange-50/50'
+                      : 'border-gray-200'
                   } transition-colors`}
                 >
-                  <div className="flex items-center gap-3">
-                    {/* ... radio ... */}
-                    <span className="font-medium">Regular</span>
-                  </div>
+                  <span className="font-medium">Regular</span>
                   <span className="text-btnColor font-semibold">
                     ₹{price.toFixed(0)}
                   </span>
                 </div>
-
-                {/* Variants */}
                 {variants.map((variant: any) => (
                   <div
                     key={variant.id}
                     onClick={() => setSelectedVariant(variant)}
                     className={`flex items-center justify-between cursor-pointer p-3 border rounded-lg ${
                       selectedVariant?.id === variant.id
-                        ? 'border-btnColor'
-                        : 'border-gray-300'
+                        ? 'border-btnColor bg-orange-50/50'
+                        : 'border-gray-200'
                     } transition-colors`}
                   >
-                    {/* ... */}
-                    <div className="flex items-center gap-3">
-                      <span className="font-medium">{variant.name}</span>
-                    </div>
+                    <span className="font-medium">{variant.name}</span>
                     <span className="text-btnColor font-semibold">
                       ₹{variant.price.toFixed(0)}
                     </span>
@@ -442,18 +465,18 @@ export default function FoodItemInfo({
             />
           </div>
 
-          <div className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-[0_-2px_10px_rgba(0,0,0,0.1)] flex gap-3 z-20">
+          <div className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-[0_-2px_10px_rgba(0,0,0,0.1)] flex gap-3 z-30">
             <Button
               onClick={handleAddToCart}
               disabled={isPending || status === 'out_of_stock'}
-              className={`w-full bg-btnColor hover:bg-btnColor/90 text-white rounded-xl text-[1rem] h-12 ${status === 'out_of_stock' ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className="w-full bg-btnColor hover:bg-btnColor/90 text-white rounded-xl text-[1rem] h-12"
             >
               {isPending ? (
                 <Loader2 className="h-5 w-5 animate-spin mr-2" />
               ) : (
                 <ShoppingCart className="h-5 w-5 mr-2" />
               )}
-              Add to Cart ₹{getCurrentPrice()}
+              Add to Cart ₹{getCurrentPrice().toFixed(0)}
             </Button>
           </div>
 

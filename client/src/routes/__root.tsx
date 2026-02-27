@@ -17,7 +17,10 @@ import CartWrapper from '@/components/restaurant/cart/CartWrapper'
 import MobileNav from '@/components/navigation/MobileNav'
 import LoginWrapper from '@/components/smallComponents/LoginWrapper'
 import HeaderWrapper from '@/components/header/HeaderWrapper'
-import { InitialLoader } from '@/components/loader/InitialLoader'
+import { InitialLoader } from '@/components/loader/InitialLoader' 
+
+// Hooks
+import { usePullToRefresh } from '@/hooks/usePullToRefresh'
 
 // Global Styles
 import '../styles.css'
@@ -69,6 +72,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { useRouteContext } from '@tanstack/react-router'
 import { createQueryClient, RouterContext } from '../router'
 import { useRef } from 'react'
+import { PullToRefreshIndicator } from '@/components/ui/PullToRefreshIndicator'
 
 // ... existing code
 
@@ -85,23 +89,7 @@ function RootComponent() {
       </head>
       <body className="font-jost antialiased bg-[#fcfeff] dark:bg-[#1f1f1f]d">
         <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <StoreProvider>
-              {/* <InitialLoader /> */}
-              <HeaderWrapper />
-              <div className="relative min-h-screen flex flex-col">
-                <Toaster position="top-center" />
-                <LoginWrapper />
-                <div className="flex-grow">
-                  <Outlet />
-                </div>
-              </div>
-              <div className="mt-[6rem]">
-                <CartWrapper />
-              </div>
-              <MobileNav />
-            </StoreProvider>
-          </AuthProvider>
+          <RootContent />
         </QueryClientProvider>
         <TanStackDevtools
           config={{
@@ -117,5 +105,38 @@ function RootComponent() {
         <Scripts />
       </body>
     </html>
+  )
+}
+
+function RootContent() {
+  // Initialize pull-to-refresh hook inside QueryClientProvider context
+  const { state: pullToRefreshState, containerRef } = usePullToRefresh()
+
+  return (
+    <>
+      <PullToRefreshIndicator
+        isPulling={pullToRefreshState.isPulling}
+        pullDistance={pullToRefreshState.pullDistance}
+        isRefreshing={pullToRefreshState.isRefreshing}
+        isError={pullToRefreshState.isError}
+      />
+      <AuthProvider>
+        <StoreProvider>
+          {/* <InitialLoader /> */}
+          <HeaderWrapper />
+          <div className="relative min-h-screen flex flex-col">
+            <Toaster position="top-center" />
+            <LoginWrapper />
+            <div className="flex-grow">
+              <Outlet />
+            </div>
+          </div>
+          <div className="mt-[6rem]">
+            <CartWrapper />
+          </div>
+          <MobileNav />
+        </StoreProvider>
+      </AuthProvider>
+    </>
   )
 }

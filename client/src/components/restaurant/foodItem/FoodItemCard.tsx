@@ -369,11 +369,11 @@ export default function FoodItemCard({
           >
             {/* Veg/Non-veg indicator for desktop */}
 
-            <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 leading-tight max-[700px]:text-[16px] max-[700px]:leading-tight max-[700px]:mb-1">
+            <h3 className="text-lg max-[500px]:text-[16px] max-[500px]:font-[500] font-semibold text-gray-900 mb-2 line-clamp-2 leading-tight max-[700px]:text-[16px] max-[700px]:leading-tight max-[700px]:mb-1">
               {name}
             </h3>
 
-            <p className="text-sm min-[700px]:italic text-gray-500 line-clamp-2 mb-2 leading-[1.3] max-[700px]:my-2 max-[700px]:text-gray-500">
+            <p className="text-xs min-[700px]:italic text-gray-500 line-clamp-2 mb-2 leading-[1.3] max-[700px]:my-2 max-[700px]:text-gray-500">
               {description}
             </p>
 

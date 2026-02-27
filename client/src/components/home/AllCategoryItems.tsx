@@ -115,7 +115,7 @@ export default function AllCategoryItems({
                 />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h2 className="text-2xl  font-bold text-gray-900">
                   {category.name}
                 </h2>
                 <p className="text-gray-500">{items.length} items available</p>
@@ -134,7 +134,7 @@ export default function AllCategoryItems({
                 height={30}
               />
             </div>
-            <h2 className="text-xl font-bold text-gray-900 ">
+            <h2 className="text-lg font-bold text-gray-900 ">
               {category.name}
             </h2>
           </div>

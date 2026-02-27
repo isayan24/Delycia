@@ -48,49 +48,62 @@ export default function HomePageFilter() {
   // Memoize desktop category tabs to prevent unnecessary re-renders
   const desktopCategoryTabs = useMemo(() => {
     return (
-      <TabsList className="w-full bg-transparent  pb-2 h-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      <TabsList className="w-full bg-transparent pb-8 h-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8">
         <TabsTrigger
           value="All"
-          className="bg-white !overflow-hidden !rounded-2xl p-6 flex flex-col items-center gap-3 hover:shadow-lg transition-all duration-300 border border-gray-100 group cursor-pointer data-[state=active]:bg-orange-50 data-[state=active]:border-orange-200 h-auto"
+          className="relative bg-white/90 backdrop-blur-md rounded-xl p-5 flex flex-col items-center justify-center gap-4 hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] transition-all duration-500 border border-gray-100/50 group cursor-pointer data-[state=active]:bg-white data-[state=active]:border-orange-200 h-full min-h-[180px] whitespace-normal!"
         >
-          <div className="w-16 h-16 bg-gradient-to-br from-orange-100 to-orange-200 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-            <img
-              src="/allFood.png"
-              alt="All Food"
-              className="h-full w-full object-cover rounded-lg"
-              // width={80}
-              // height={80}
-            />
+          <div className="relative">
+            <div className="w-16 h-16 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 overflow-hidden">
+              <img
+                src="/allFood.png"
+                alt="All Food"
+                className="object-cover group-hover:scale-110 transition-transform duration-200 rounded-xl"
+              />
+            </div>
           </div>
-          <div className="text-center">
-            <h3 className="font-[500] text-gray-900 text-[1rem]">All Items</h3>
-            <p className="text-xs text-gray-500 mt-1">Everything</p>
+          <div className="text-center flex flex-col items-center gap-1.5 flex-1 justify-center w-full min-w-0">
+            <h3 className="font-bold text-gray-900 text-[1rem] tracking-tight leading-tight line-clamp-2 whitespace-normal wrap-break-word w-full">
+              All Items
+            </h3>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500/0 group-data-[state=active]:text-orange-500 transition-all duration-500 translate-y-2 group-data-[state=active]:translate-y-0">
+              Everything
+            </span>
           </div>
+
+          {/* Active bottom bar indicator */}
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 w-0 h-1.5 bg-orange-400 rounded-full transition-all duration-500 group-data-[state=active]:w-12" />
         </TabsTrigger>
 
         {category.map((link: any) => (
           <TabsTrigger
             key={link.id}
             value={link.name}
-            className="bg-white rounded-2xl p-6 flex flex-col items-center gap-3 hover:shadow-lg transition-all duration-300 border border-gray-100 group cursor-pointer data-[state=active]:bg-orange-50 data-[state=active]:border-orange-200 h-auto"
+            className="relative bg-white/90 backdrop-blur-md rounded-xl p-5 flex flex-col items-center justify-center gap-4 hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] transition-all duration-500 border border-gray-100/50 group cursor-pointer data-[state=active]:bg-white data-[state=active]:border-orange-200 h-full min-h-[180px] whitespace-normal!"
           >
-            <div className="w-16 h-16 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 overflow-hidden">
-              <UseOptimizeImage
-                src={link.img}
-                alt={link.name}
-                rounded="rounded-xl"
-                width={48}
-                height={48}
-                className="object-cover"
-              />
-              {/* <img src={link.img} alt={link.name} /> */}
+            <div className="relative">
+              <div className="w-16 h-16 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 overflow-hidden">
+                <UseOptimizeImage
+                  src={link.img}
+                  alt={link.name}
+                  rounded="rounded-xl"
+                  width={48}
+                  height={48}
+                  className="object-cover group-hover:scale-110 transition-transform duration-200"
+                />
+              </div>
             </div>
-            <div className="text-center">
-              <h3 className="font-[500] text-gray-900 text-[1rem]">
+            <div className="text-center flex flex-col items-center gap-1.5 flex-1 justify-center w-full min-w-0">
+              <h3 className="font-bold text-gray-900 text-[1rem] tracking-tight leading-tight line-clamp-2 whitespace-normal wrap-break-word w-full">
                 {link.name}
               </h3>
-              <p className="text-xs text-gray-500 mt-1">Fresh & Quality</p>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500/0 group-data-[state=active]:text-orange-500 transition-all duration-500 translate-y-2 group-data-[state=active]:translate-y-0">
+                Fresh & Quality
+              </span>
             </div>
+
+            {/* Active bottom bar indicator */}
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 w-0 h-1.5 bg-orange-400 rounded-full transition-all duration-500 group-data-[state=active]:w-12" />
           </TabsTrigger>
         ))}
       </TabsList>
