@@ -56,3 +56,20 @@ export const HORIZONTAL_THRESHOLD = 10
  * The user must pull down at least this distance before isPulling becomes true.
  */
 export const PULL_ACTIVATION_THRESHOLD = 30
+
+/**
+ * CSS selectors for elements that should prevent pull-to-refresh activation.
+ * These are typically modals, dialogs, bottom sheets, or other overlay components.
+ */
+export const PULL_TO_REFRESH_EXCLUDE_SELECTORS = [
+  '[role="dialog"]',
+  '[role="alertdialog"]',
+  '[data-vaul-drawer]', // Vaul drawer (bottom sheet)
+  '[data-vaul-drawer-wrapper]',
+  '[data-radix-dialog-content]', // Radix UI Dialog
+  '[data-radix-alert-dialog-content]', // Radix UI Alert Dialog
+  '.modal',
+  '.drawer',
+  '.bottom-sheet',
+  '[data-pull-to-refresh-ignore]', // Custom attribute for any element
+].join(', ')

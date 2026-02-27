@@ -9,7 +9,8 @@ import {
   MIN_LOADING_DURATION,
   ERROR_DISPLAY_DURATION,
   HORIZONTAL_THRESHOLD,
-  PULL_ACTIVATION_THRESHOLD
+  PULL_ACTIVATION_THRESHOLD,
+  PULL_TO_REFRESH_EXCLUDE_SELECTORS
 } from '../config/pullToRefresh'
 
 /**
@@ -66,6 +67,38 @@ export function usePullToRefresh(): UsePullToRefreshReturn {
   // Detect mobile device using media query with 900px breakpoint
   const isMobile = useMediaQuery(`(max-width: ${MOBILE_BREAKPOINT}px)`)
 
+  /**
+   * Check if the touch event originated from an excluded element
+   * (modal, dialog, bottom sheet, or scrollable container)
+   */
+  const isTouchOnExcludedElement = useCallback((target: EventTarget | null): boolean => {
+    if (!(target instanceof Element)) return false
+
+    // Check if touch is on an excluded element (modal, dialog, etc.)
+    const isOnExcludedElement = target.closest(PULL_TO_REFRESH_EXCLUDE_SELECTORS) !== null
+
+    if (isOnExcludedElement) return true
+
+    // Check if touch is on a scrollable element that's not at the top
+    let element: Element | null = target
+    while (element && element !== document.body) {
+      const style = window.getComputedStyle(element)
+      const isScrollable = 
+        style.overflowY === 'auto' || 
+        style.overflowY === 'scroll' ||
+        style.overflow === 'auto' ||
+        style.overflow === 'scroll'
+
+      if (isScrollable && element.scrollTop > 0) {
+        return true // Element is scrollable and not at top
+      }
+
+      element = element.parentElement
+    }
+
+    return false
+  }, [])
+
   // Reset state to idle
   const resetState = useCallback(() => {
     setIsPulling(false)
@@ -107,6 +140,9 @@ export function usePullToRefresh(): UsePullToRefreshReturn {
     // Only activate if on mobile, at scroll position 0, and not already refreshing
     if (!isMobile || isRefreshing) return
 
+    // Check if touch is on an excluded element (modal, dialog, scrollable content)
+    if (isTouchOnExcludedElement(e.target)) return
+
     // Check scroll position
     const scrollY = window.scrollY || window.pageYOffset
     if (scrollY > 0) return
@@ -115,7 +151,7 @@ export function usePullToRefresh(): UsePullToRefreshReturn {
     startX.current = e.touches[0].clientX
     isTouching.current = true
     // Don't set isPulling yet - wait for activation threshold
-  }, [isMobile, isRefreshing])
+  }, [isMobile, isRefreshing, isTouchOnExcludedElement])
 
   // Handle touchmove event
   const handleTouchMove = useCallback((e: TouchEvent) => {
