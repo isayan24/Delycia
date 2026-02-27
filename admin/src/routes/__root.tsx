@@ -27,8 +27,9 @@ import WaiterHeader from '@/components/admin/header/WaiterHeader'
 import { SubscriptionGuard } from '@/components/admin/settings/SubscriptionGuard'
 import { NotificationToastManager } from '@/components/common/NotificationToastManager'
 import { MobileDock } from '@/components/admin/layout/MobileDock'
-import { SessionExpiryWarning } from '@/components/SessionExpiryWarning'
 import { PageReloadHandler } from '@/components/common/PageReloadHandler'
+import { usePullToRefresh } from '@/hooks/usePullToRefresh'
+import { PullToRefreshIndicator } from '@/components/ui/PullToRefreshIndicator'
 
 // Note: We don't define beforeLoad here because we get auth from component
 // and pass it via router instantiation in the app setup
@@ -122,8 +123,40 @@ function RootComponent() {
   return (
     <RootDocument>
       <QueryClientProvider client={queryClient}>
-        <SoundProvider>
-          <PageReloadHandler />
+        <AppContent 
+          useSidebarLayout={useSidebarLayout}
+          showHeader={showHeader}
+          getHeaderType={getHeaderType}
+        />
+      </QueryClientProvider>
+    </RootDocument>
+  )
+}
+
+// Separate component to use pull-to-refresh inside QueryClientProvider
+function AppContent({ 
+  useSidebarLayout, 
+  showHeader, 
+  getHeaderType 
+}: { 
+  useSidebarLayout: boolean
+  showHeader: boolean
+  getHeaderType: string
+}) {
+  // Initialize pull-to-refresh hook (must be inside QueryClientProvider)
+  const { state: pullToRefreshState } = usePullToRefresh()
+
+  return (
+    <SoundProvider>
+      {/* Pull-to-refresh indicator */}
+      <PullToRefreshIndicator
+        isPulling={pullToRefreshState.isPulling}
+        pullDistance={pullToRefreshState.pullDistance}
+        isRefreshing={pullToRefreshState.isRefreshing}
+        isError={pullToRefreshState.isError}
+      />
+      
+      <PageReloadHandler />
           <NetworkOfflineNotification />
           <SessionExpiredNotification />
           {/* <SessionExpiryWarning/> */}
@@ -173,12 +206,14 @@ function RootComponent() {
           {/* Notification Toast Pop-ups */}
           <NotificationToastManager />
         </SoundProvider>
-      </QueryClientProvider>
-    </RootDocument>
   )
 }
 
-function RootDocument({ children }: { children: React.ReactNode }) {
+function RootDocument({ 
+  children
+}: { 
+  children: React.ReactNode
+}) {
   return (
     <html
       lang="en"
@@ -188,7 +223,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body className="antialiased" suppressHydrationWarning>
+      <body 
+        className="antialiased" 
+        suppressHydrationWarning
+      >
         {children}
 
         {/* TanStack Devtools - only in development */}
