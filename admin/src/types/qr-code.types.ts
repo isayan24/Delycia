@@ -32,7 +32,9 @@ export interface QRCode {
  * Used to configure the parameters for a single QR code generation request.
  */
 export interface QRCodeGenerationConfig {
-  /** Table number (null for general QR codes) */
+  /** Table ID (primary key from tables table) - used in URL */
+  tableId: number | null
+  /** Table number (for display purposes only) */
   tableNumber: string | null
   /** Custom text displayed above the QR code */
   topText: string
@@ -46,7 +48,9 @@ export interface QRCodeGenerationConfig {
  * Contains the generated QR code image data and metadata for download/preview.
  */
 export interface GeneratedQRCode {
-  /** Table number (null for general QR codes) */
+  /** Table ID (primary key from tables table) */
+  tableId: number | null
+  /** Table number (for display purposes) */
   tableNumber: string | null
   /** Encoded URL in the QR code */
   url: string

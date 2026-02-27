@@ -123,12 +123,6 @@ const navMain = [
     icon: Users,
     color: 'text-purple-500',
   },
-  {
-    title: 'QR Codes',
-    url: '/qr-codes',
-    icon: QrCode,
-    color: 'text-cyan-500',
-  },
 ]
 
 const navSecondary = [

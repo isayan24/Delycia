@@ -13,6 +13,7 @@ import { Route as SupportRouteImport } from './routes/support'
 import { Route as StaffRouteImport } from './routes/staff'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as QrCodesOldBackupRouteImport } from './routes/qr-codes-old-backup'
 import { Route as QrCodesRouteImport } from './routes/qr-codes'
 import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as LoginRouteImport } from './routes/login'
@@ -111,6 +112,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const ReportsRoute = ReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QrCodesOldBackupRoute = QrCodesOldBackupRouteImport.update({
+  id: '/qr-codes-old-backup',
+  path: '/qr-codes-old-backup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QrCodesRoute = QrCodesRouteImport.update({
@@ -521,6 +527,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/orders': typeof OrdersRouteWithChildren
   '/qr-codes': typeof QrCodesRoute
+  '/qr-codes-old-backup': typeof QrCodesOldBackupRoute
   '/reports': typeof ReportsRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/staff': typeof StaffRouteWithChildren
@@ -603,6 +610,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/qr-codes': typeof QrCodesRoute
+  '/qr-codes-old-backup': typeof QrCodesOldBackupRoute
   '/support': typeof SupportRoute
   '/api/addons': typeof ApiAddonsRoute
   '/api/category': typeof ApiCategoryRouteWithChildren
@@ -686,6 +694,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/orders': typeof OrdersRouteWithChildren
   '/qr-codes': typeof QrCodesRoute
+  '/qr-codes-old-backup': typeof QrCodesOldBackupRoute
   '/reports': typeof ReportsRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/staff': typeof StaffRouteWithChildren
@@ -773,6 +782,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/orders'
     | '/qr-codes'
+    | '/qr-codes-old-backup'
     | '/reports'
     | '/settings'
     | '/staff'
@@ -855,6 +865,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/qr-codes'
+    | '/qr-codes-old-backup'
     | '/support'
     | '/api/addons'
     | '/api/category'
@@ -937,6 +948,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/orders'
     | '/qr-codes'
+    | '/qr-codes-old-backup'
     | '/reports'
     | '/settings'
     | '/staff'
@@ -1023,6 +1035,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   OrdersRoute: typeof OrdersRouteWithChildren
   QrCodesRoute: typeof QrCodesRoute
+  QrCodesOldBackupRoute: typeof QrCodesOldBackupRoute
   ReportsRoute: typeof ReportsRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
   StaffRoute: typeof StaffRouteWithChildren
@@ -1092,6 +1105,13 @@ declare module '@tanstack/react-router' {
       path: '/reports'
       fullPath: '/reports'
       preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/qr-codes-old-backup': {
+      id: '/qr-codes-old-backup'
+      path: '/qr-codes-old-backup'
+      fullPath: '/qr-codes-old-backup'
+      preLoaderRoute: typeof QrCodesOldBackupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/qr-codes': {
@@ -1864,6 +1884,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   OrdersRoute: OrdersRouteWithChildren,
   QrCodesRoute: QrCodesRoute,
+  QrCodesOldBackupRoute: QrCodesOldBackupRoute,
   ReportsRoute: ReportsRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,
   StaffRoute: StaffRouteWithChildren,

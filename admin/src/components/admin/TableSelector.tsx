@@ -34,6 +34,7 @@ interface TableSelectorProps {
   selectedTables: string[]
   onTablesChange: (tables: string[]) => void
   onTableZoneMapChange?: (zoneMap: Map<string, string>) => void
+  onTableIdMapChange?: (idMap: Map<string, number>) => void
 }
 
 export function TableSelector({
@@ -41,6 +42,7 @@ export function TableSelector({
   selectedTables,
   onTablesChange,
   onTableZoneMapChange,
+  onTableIdMapChange,
 }: TableSelectorProps) {
   const [newTableNumber, setNewTableNumber] = useState('')
   const [newTableZone, setNewTableZone] = useState('')
@@ -49,6 +51,8 @@ export function TableSelector({
   const [error, setError] = useState<string | null>(null)
   // Track zone assignments for new tables
   const [tableZoneMap, setTableZoneMap] = useState<Map<string, string>>(new Map())
+  // Track table IDs for existing tables
+  const [tableIdMap, setTableIdMap] = useState<Map<string, number>>(new Map())
 
   // Fetch tables and zones using separate hooks
   const { data: tablesData, isLoading: tablesLoading } = useTablesQuery(restaurantId, !!restaurantId)
@@ -140,8 +144,14 @@ export function TableSelector({
     setTableZoneMap((prev) => {
       const newMap = new Map(prev)
       newMap.delete(tableNumber)
-      // Notify parent component of the updated map
       onTableZoneMapChange?.(newMap)
+      return newMap
+    })
+    // Also remove from ID map
+    setTableIdMap((prev) => {
+      const newMap = new Map(prev)
+      newMap.delete(tableNumber)
+      onTableIdMapChange?.(newMap)
       return newMap
     })
     setError(null)
@@ -153,6 +163,18 @@ export function TableSelector({
       setError(`Table ${tableNumber} is already selected`)
       return
     }
+    
+    // Find the table to get its ID
+    const table = tables.find((t) => t.table_number === tableNumber)
+    if (table) {
+      setTableIdMap((prev) => {
+        const newMap = new Map(prev)
+        newMap.set(tableNumber, table.id)
+        onTableIdMapChange?.(newMap)
+        return newMap
+      })
+    }
+    
     onTablesChange([...selectedTables, tableNumber])
     setError(null)
   }
@@ -164,6 +186,18 @@ export function TableSelector({
     const newSelections = zoneTableNumbers.filter((tn) => !selectedTables.includes(tn))
     
     if (newSelections.length > 0) {
+      // Update table ID map for all new selections
+      setTableIdMap((prev) => {
+        const newMap = new Map(prev)
+        zoneTables.forEach((table) => {
+          if (newSelections.includes(table.table_number)) {
+            newMap.set(table.table_number, table.id)
+          }
+        })
+        onTableIdMapChange?.(newMap)
+        return newMap
+      })
+      
       onTablesChange([...selectedTables, ...newSelections])
     }
   }

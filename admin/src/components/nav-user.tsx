@@ -4,6 +4,7 @@ import {
   ChevronsUpDown,
   CreditCard,
   LogOut,
+  QrCode,
   Settings,
 } from 'lucide-react'
 
@@ -115,6 +116,13 @@ export function NavUser({
                   <Bell />
                   Notifications
                 </DropdownMenuItem>
+
+                <Link to="/qr-codes">
+                  <DropdownMenuItem>
+                    <QrCode />
+                    QR Codes
+                  </DropdownMenuItem>
+                </Link>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem

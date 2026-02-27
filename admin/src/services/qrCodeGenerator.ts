@@ -25,7 +25,9 @@ export interface QRCodeGenerationOptions {
   topText: string
   /** Text to display below the QR code */
   bottomText: string
-  /** Table number (null for general QR codes) */
+  /** Table ID (primary key from tables table) */
+  tableId: number | null
+  /** Table number (for display/filename purposes) */
   tableNumber: string | null
   /** Restaurant username for filename generation */
   restaurantUsername: string
@@ -115,6 +117,7 @@ export class QRCodeGenerator {
         )
 
         return {
+          tableId: config.tableId,
           tableNumber: config.tableNumber,
           url: config.url,
           dataUrl: result.dataUrl,

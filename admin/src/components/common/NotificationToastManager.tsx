@@ -59,40 +59,32 @@ export function NotificationToastManager() {
     const toastType = getToastType(notification)
 
     const toastContent = (
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          {getIcon(notification.type)}
-          <span className="font-semibold">{notification.title}</span>
+      <div className="flex items-start gap-2 w-full">
+        {getIcon(notification.type)}
+        <div className="flex flex-col gap-1.5 flex-1">
+          <span className="font-semibold text-gray-900">{notification.title}</span>
+          <p className="text-sm text-gray-600">{notification.message}</p>
+          {notification.action_url && (
+            <Link
+              to={notification.action_url}
+              className="text-sm text-blue-600 font-medium hover:underline mt-0.5"
+            >
+              {notification.action_label || 'View Details'} →
+            </Link>
+          )}
         </div>
-        <p className="text-sm text-gray-600 pl-7">{notification.message}</p>
-        {notification.action_url && (
-          <Link
-            to={notification.action_url}
-            className="text-sm text-blue-600 font-medium hover:underline pl-7 mt-1"
-          >
-            {notification.action_label || 'View Details'} →
-          </Link>
-        )}
       </div>
     )
 
-    // Use different toast methods based on priority
-    if (toastType === 'error') {
-      toast.error(toastContent, {
-        duration: 8000,
-        id: `notification-${notification.id}`,
-      })
-    } else if (toastType === 'warning') {
-      toast.warning(toastContent, {
-        duration: 6000,
-        id: `notification-${notification.id}`,
-      })
-    } else {
-      toast.info(toastContent, {
-        duration: 5000,
-        id: `notification-${notification.id}`,
-      })
-    }
+    // Get duration based on priority
+    const duration = toastType === 'error' ? 8000 : toastType === 'warning' ? 6000 : 5000
+
+    // Use toast() with custom styling to avoid default icons
+    toast(toastContent, {
+      duration,
+      id: `notification-${notification.id}`,
+      unstyled: false,
+    })
   }
 
   // Show initial unread notifications on mount
