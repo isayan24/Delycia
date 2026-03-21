@@ -10,7 +10,8 @@ import {
   REFRESH_THRESHOLD,
   MIN_LOADING_DURATION,
   ERROR_DISPLAY_DURATION,
-  PULL_ACTIVATION_THRESHOLD
+  PULL_ACTIVATION_THRESHOLD,
+  PULL_TO_REFRESH_EXCLUDE_SELECTORS
 } from '../config/pullToRefresh'
 
 /**
@@ -73,11 +74,44 @@ export function usePullToRefresh(): UsePullToRefreshReturn {
   })
 
   /**
+   * Check if the touch event originated from an excluded element
+   * (modal, dialog, bottom sheet, or scrollable container)
+   */
+  const isTouchOnExcludedElement = (target: EventTarget | null): boolean => {
+    if (!(target instanceof Element)) return false
+
+    // Check if touch is on an excluded element (modal, dialog, etc.)
+    const isOnExcludedElement = target.closest(PULL_TO_REFRESH_EXCLUDE_SELECTORS) !== null
+
+    if (isOnExcludedElement) return true
+
+    // Check if touch is on a scrollable element that's not at the top
+    let element: Element | null = target
+    while (element && element !== document.body) {
+      const style = window.getComputedStyle(element)
+      const isScrollable = 
+        style.overflowY === 'auto' || 
+        style.overflowY === 'scroll' ||
+        style.overflow === 'auto' ||
+        style.overflow === 'scroll'
+
+      if (isScrollable && element.scrollTop > 0) {
+        return true // Element is scrollable and not at top
+      }
+
+      element = element.parentElement
+    }
+
+    return false
+  }
+
+  /**
    * Handle touchstart event
    * Checks conditions before enabling the pull gesture:
    * - Must be on mobile device
    * - Scroll position must be 0
    * - Must not already be refreshing
+   * - Must not be on an excluded element (modal, dialog, etc.)
    * 
    * @requirement 1.2 - Enable gesture detection when scroll position is 0
    * @requirement 1.3 - Disable gesture detection when scroll position > 0
@@ -90,6 +124,15 @@ export function usePullToRefresh(): UsePullToRefreshReturn {
 
     // Check if already refreshing
     if (isRefreshing) return
+
+    // Check if touch is on an excluded element (modal, dialog, scrollable content)
+    if (isTouchOnExcludedElement(e.target)) return
+
+    // Check if already refreshing
+    if (isRefreshing) return
+
+    // Check if touch is on an excluded element (modal, dialog, scrollable content)
+    if (isTouchOnExcludedElement(e.target)) return
 
     // Check scroll position - must be at top (0)
     const scrollY = window.scrollY || window.pageYOffset
