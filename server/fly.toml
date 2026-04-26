@@ -1,0 +1,47 @@
+# fly.toml — Fly.io deployment configuration for Delycia Server
+# Docs: https://fly.io/docs/reference/configuration/
+#
+# Deploy from the Fly.io dashboard:
+#   - Working directory: server
+#   - Config path:       server/fly.toml
+#
+# Or via CLI from inside the /server directory:
+#   fly deploy
+
+app = "delycia-server"        # Change this to your unique Fly.io app name
+primary_region = "sin"        # Singapore — closest free region to India
+
+# ─── Build ────────────────────────────────────────────────────────────────────
+[build]
+  dockerfile = "Dockerfile"   # Uses the existing Dockerfile in /server
+
+# ─── Non-secret environment variables ─────────────────────────────────────────
+# Secrets (DB_PASS, JWT secrets, API keys, etc.) must be set via:
+#   fly secrets set KEY=value
+[env]
+  NODE_ENV = "production"
+  PORT     = "8020"
+
+# ─── HTTP Service ─────────────────────────────────────────────────────────────
+[http_service]
+  internal_port        = 8020   # Must match PORT / EXPOSE in Dockerfile
+  force_https          = true
+
+  # Keep at least 1 machine always running:
+  #   - Required for Socket.IO persistent connections
+  #   - Required for setInterval-based cron jobs (scheduler.js)
+  auto_stop_machines   = false
+  auto_start_machines  = true
+  min_machines_running = 1
+
+  # Connection concurrency limits
+  [http_service.concurrency]
+    type       = "connections"
+    hard_limit = 500
+    soft_limit = 300
+
+# ─── Machine size ──────────────────────────────────────────────────────────────
+# Free tier: shared-cpu-1x with 256MB is included at no cost
+[[vm]]
+  size   = "shared-cpu-1x"
+  memory = "256mb"
