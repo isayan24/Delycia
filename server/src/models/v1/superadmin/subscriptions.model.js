@@ -167,6 +167,8 @@ const createPlan = async (req) => {
  */
 const updatePlan = async (req) => {
   try {
+    console.log("Changed the plan \n\n\n", req.params)
+
     const { id } = req.params;
     const updateData = req.body;
 
@@ -329,6 +331,8 @@ const deactivatePlan = async (req) => {
  * Assign subscription plan to restaurant
  */
 const assignPlan = async (req) => {
+  console.log("Changed the plan \n\n\n", req.body)
+
   try {
     const {
       restaurant_id,
@@ -562,6 +566,7 @@ const getSubscriptionHistory = async (req) => {
  */
 const changePlan = async (req) => {
   try {
+    console.log("Changed the plan \n\n\n", req.params)
     const { id } = req.params;
     const {
       subscription_plan_id,
