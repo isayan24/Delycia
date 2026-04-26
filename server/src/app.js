@@ -89,11 +89,6 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
-// Extra origins can be injected via ALLOWED_ORIGINS env var (comma-separated)
-const extraOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
-  : [];
-
 const allowedOrigins = [
   "http://localhost:4000",
   "http://localhost:4500",
@@ -103,8 +98,7 @@ const allowedOrigins = [
   "http://192.168.0.115:5173",
   "http://72.61.255.194:4000",
   "http://192.168.0.110:4500/",
-  "http://192.168.0.110:4000/",
-  ...extraOrigins,
+  "http://192.168.0.110:4000/"
 ];
 app.use(
   cors({
@@ -245,9 +239,4 @@ import cronJobs from "./routes/v1/system/crons.routes.js";
 app.use("/api/v1/system/embedding", systemEmbeddingRoutes);
 app.use("/api/v1/system/cronJobs", cronJobs);
 
-// Named exports — used by src/index.js
-export { app, server, io };
-
-// Default export is the raw Express app.
-// Vercel's @vercel/node runtime expects a Node.js http.RequestListener as the default export.
-export default app;
+export default { server, io };
