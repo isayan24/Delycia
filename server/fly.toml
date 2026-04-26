@@ -8,8 +8,8 @@
 # Or via CLI from inside the /server directory:
 #   fly deploy
 
-app = "delycia-server"        # Change this to your unique Fly.io app name
-primary_region = "sin"        # Singapore — closest free region to India
+app = "delycia-server-api"  # Fly.io app names are globally unique — change if still taken
+primary_region = "bom"           # Mumbai, India
 
 # ─── Build ────────────────────────────────────────────────────────────────────
 [build]
