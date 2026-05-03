@@ -1,0 +1,48 @@
+{
+  "buildCommand": "pnpm run build",
+  "outputDirectory": ".output/public",
+  "devCommand": "pnpm run dev",
+  "installCommand": "pnpm install",
+  "framework": null,
+  "regions": ["iad1"],
+  "env": {
+    "VITE_API_BASE_URL": "@vite_api_base_url",
+    "VITE_APP_URL": "@vite_app_url",
+    "RESEND_API_KEY": "@resend_api_key",
+    "GOOGLE_CLIENT_ID": "@google_client_id",
+    "GOOGLE_CLIENT_SECRET": "@google_client_secret",
+    "IMAGEKIT_PUBLIC_URL_ENDPOINT": "@imagekit_public_url_endpoint",
+    "IMAGEKIT_PUBLIC_KEY": "@imagekit_public_key",
+    "IMAGEKIT_PRIVATE_KEY": "@imagekit_private_key",
+    "CRYPTO_SECRET_KEY": "@crypto_secret_key"
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
+    }
+  ]
+}
