@@ -6,6 +6,11 @@ interface BillPreviewProps {
   restaurantName: string
 }
 
+// Utility function to detect guest users
+const isGuestUser = (customerName: string): boolean => {
+  return customerName === 'Guest'
+}
+
 export function BillPreview({
   billData,
   taxBreakdown,
@@ -21,6 +26,14 @@ export function BillPreview({
         lineHeight: '1.4',
       }}
     >
+      {/* Top Decorative Border */}
+      <div
+        style={{
+          borderTop: '1px dashed #000',
+          marginBottom: '12px',
+        }}
+      />
+
       {/* Header */}
       <div
         className="text-center mb-4 border-b pb-2"
@@ -47,22 +60,30 @@ export function BillPreview({
         className="space-y-1"
         style={{ marginBottom: '16px', marginTop: '10px' }}
       >
-        <div className="flex justify-between font-bold text-lg border-b border-black pb-2 mb-2">
-          <span>Table: {billData.tableNo}</span>
-        </div>
-        {billData.tableZone && (
-          <div className="flex justify-between font-bold text-sm border-b border-black pb-2 mb-2">
-            <span>{billData.tableZone}</span>
-          </div>
+        {billData.tableNo !== 'N/A' && (
+          <>
+            <div className="flex justify-between font-bold text-lg border-b border-black pb-2 mb-2">
+              <span>Table: {billData.tableNo}</span>
+            </div>
+            {billData.tableZone && (
+              <div className="flex justify-between font-bold text-sm border-b border-black pb-2 mb-2">
+                <span>{billData.tableZone}</span>
+              </div>
+            )}
+          </>
         )}
-        <div className="flex justify-between text-sm">
-          <span>Customer:</span>
-          <span className="font-bold">{billData.customerName}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>Phone No:</span>
-          <span>{billData.customerPhone}</span>
-        </div>
+        {!isGuestUser(billData.customerName) && (
+          <>
+            <div className="flex justify-between text-sm">
+              <span>Customer:</span>
+              <span className="font-bold">{billData.customerName}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Phone No:</span>
+              <span>{billData.customerPhone}</span>
+            </div>
+          </>
+        )}
         <div className="flex justify-between">
           <span>Date:</span>
           <span>{billData.orderDate}</span>
@@ -71,10 +92,10 @@ export function BillPreview({
 
       {/* Items */}
       <div
-        className="border-t border-b py-2 mb-2"
+        className="border-t py-2 mb-2"
         style={{
           borderTop: '1px solid #000',
-          borderBottom: '1px solid #000',
+          borderBottom: taxBreakdown.taxPercent > 0 ? '1px solid #000' : 'none',
           padding: '8px 0',
           marginBottom: '8px',
         }}
@@ -152,12 +173,14 @@ export function BillPreview({
       )}
 
       {/* Subtotal */}
-      <div className="py-1" style={{ padding: '4px 0' }}>
-        <div className="flex justify-between" style={{ fontSize: '12px' }}>
-          <span>Subtotal:</span>
-          <span>₹{taxBreakdown.subtotal.toFixed(2)}</span>
+      {taxBreakdown.taxPercent > 0 && (
+        <div className="py-1" style={{ padding: '4px 0' }}>
+          <div className="flex justify-between" style={{ fontSize: '12px' }}>
+            <span>Subtotal:</span>
+            <span>₹{taxBreakdown.subtotal.toFixed(2)}</span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Discount */}
       {billData.discountAmount !== undefined && billData.discountAmount > 0 && (
@@ -170,12 +193,14 @@ export function BillPreview({
       )}
 
       {/* Tax */}
-      <div className="py-1" style={{ padding: '4px 0' }}>
-        <div className="flex justify-between" style={{ fontSize: '12px' }}>
-          <span>Tax ({taxBreakdown.taxPercent}%):</span>
-          <span>₹{taxBreakdown.taxAmount.toFixed(2)}</span>
+      {taxBreakdown.taxPercent > 0 && (
+        <div className="py-1" style={{ padding: '4px 0' }}>
+          <div className="flex justify-between" style={{ fontSize: '12px' }}>
+            <span>Tax ({taxBreakdown.taxPercent}%):</span>
+            <span>₹{taxBreakdown.taxAmount.toFixed(2)}</span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Total */}
       <div
@@ -211,6 +236,14 @@ export function BillPreview({
         <div>Thank you for your visit!</div>
         <div>Please come again</div>
       </div>
+
+      {/* Bottom Decorative Border */}
+      <div
+        style={{
+          borderBottom: '1px dashed #000',
+          marginTop: '12px',
+        }}
+      />
     </div>
   )
 }

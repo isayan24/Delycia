@@ -1,16 +1,11 @@
 Priority Fix:  
-  ☐ i want you to make another login system in #client side
-    - this will be my backup system for user login
-    - the feature will be
-      - suppose a user scans qr code -> opened teh menu -> select item -> while placing order -> there will be a phone number field(text will be like, the number is needed for parsing the order) , and a name input field (text will be like, the name is needed for taking the order to the person).
-      - and after succcessfully ordered with the phn number and name -> the user will be logged in with that details automatically
-      - this system is for when my whatsapp otp will be ended i'll start this service
-      - so build a shortcut in the codebase for #client, like if i comment the whatsapp magic link login and uncomment the no otp/magic link login -> the service will start working immidiately, else no code changing needed for running the service...
-    ____________________________________________________ 
-    first analyze my app architecture, see how the data is flowing, and storing to the database you have to analyze my app full structure in these codebases #client #server
-    _________________________________________________
-    then implement the system as a senior developer youre, and follow the production ready approach #tanstack
-  
+  ☐ Add option in the admin panel, to quickly add table qr codes - that i can download and print
+  ☐ Bug - in managemenu / bulk inventory item adding - the veg non-veg switch is not working
+  ☐ don't show the guest name and phone number, while printing it, just the items and ordervalue is enough
+  ☐ do one thing - in quick bill, when res admin ordering via quick bill, instantly print the bill without again pressing the btn, and you can also generate two papers of each order, one for the res admin and another for the customer.
+    - Also do the same thing while a admin accept incoming orders, instantly prints it as well
+
+  ☐ If someone wants to cancel - accepted order items, so now, how can they??
 
   ☐ Fix variant deletion not working on a existing item
   ☐ in the orders history page, the timing showing its wrong!!
@@ -23,7 +18,6 @@ Todo:
  
 
   Client-Side:
-    ☐ Add preparation time for order if not exist
     ☐ Fixed the scanner issue, means if there is no table stored in the cookie.. then a scanner can be oppened after clicking on the scanner btn
 
 Features:  

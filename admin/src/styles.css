@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import url('https://fonts.googleapis.com/css2?family=Arvo:wght@400;700&family=Dancing+Script:wght@400;700&family=Roboto+Slab:wght@400;700&family=Sancreek&display=swap');
 
 @custom-variant dark (&:is(.dark *));
 
@@ -495,7 +496,8 @@
   }
 }
 
-html, body {
+html,
+body {
   height: var(--vh) !important;
   overscroll-behavior-y: none;
 }
@@ -514,6 +516,8 @@ html, body {
 
 /* Hide scrollbar for IE, Edge and Firefox */
 .no-scrollbar {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }

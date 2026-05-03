@@ -1,1076 +1,757 @@
-# Delycia — Full-Stack Architecture
+# Delycia — Full Architecture Analysis
 
-> **Author**: Auto-generated from deep codebase analysis · **Date**: 2026-02-21  
-> **Stack**: TanStack Start (Vite), Node.js/Express, MariaDB, Redis, Socket.IO  
-
----
-
-## Table of Contents
-
-1. [System Overview](#1-system-overview)
-2. [Application Breakdown](#2-application-breakdown)
-3. [Authentication Architecture](#3-authentication-architecture)
-4. [Database Schema](#4-database-schema)
-5. [Server (API) Architecture](#5-server-api-architecture)
-6. [Admin Application Architecture](#6-admin-application-architecture)
-7. [Client Application Architecture](#7-client-application-architecture)
-8. [Real-time Communication (WebSockets)](#8-real-time-communication-websockets)
-9. [Roles & RBAC](#9-roles--rbac)
-10. [Subscription & Billing](#10-subscription--billing)
-11. [Feature Inventory](#11-feature-inventory)
-12. [Infrastructure & Deployment](#12-infrastructure--deployment)
-13. [Security Architecture](#13-security-architecture)
-14. [Data Flow Diagrams](#14-data-flow-diagrams)
+> **Platform**: Restaurant SaaS (multi-tenant)
+> **Migrated From**: Next.js → TanStack Start
+> **Date**: 2026-04-03
 
 ---
 
-## 1. System Overview
+## 1. High-Level Overview
 
-Delycia is a **multi-tenant SaaS restaurant management platform**. It enables restaurants to manage menu, inventory, tables, staff, orders, and customers — all in real time. It also provides customers a mobile-friendly web interface to browse menus and place orders via QR code.
+Delycia is a **multi-tenant restaurant management SaaS** platform. It allows restaurant owners to manage menus, orders, tables, staff, and customers — all from a centralized system with a per-restaurant subscription model.
 
+```mermaid
+graph TB
+    subgraph Frontends["Frontend Apps (TanStack Start)"]
+        Client["Client App<br/>:4000<br/>Customer-facing"]
+        Admin["Admin App<br/>:4500<br/>Restaurant owner/staff"]
+        SuperAdmin["SuperAdmin App<br/>:5000<br/>Platform management"]
+    end
+
+    subgraph Backend["Backend Server (Express.js)"]
+        API["REST API<br/>:3000"]
+        WS["WebSocket<br/>Socket.IO"]
+    end
+
+    subgraph Data["Data Layer"]
+        MariaDB["MariaDB<br/>Primary DB"]
+        Redis["Redis<br/>Cache + Sessions"]
+    end
+
+    Client -->|"BFF Proxy<br/>/api/*"| API
+    Admin -->|"BFF Proxy<br/>/api/*"| API
+    SuperAdmin -->|"BFF Proxy<br/>/api/*"| API
+    Client -.->|"Real-time"| WS
+    Admin -.->|"Real-time"| WS
+    API --> MariaDB
+    API --> Redis
 ```
-┌───────────────────────────┐    ┌────────────────────────────┐
-│   Client App (TanStack)   │    │   Admin App (TanStack)     │
-│   Port 4000 · Customer UI │    │   Port 4500 · Staff UI     │
-└──────────┬────────────────┘    └────────────┬───────────────┘
-           │ BFF /api/*                        │ BFF /api/*
-           │ (Server-side routes)              │ (Server-side routes)
-           ▼                                   ▼
-┌──────────────────────────────────────────────────────────────┐
-│                  Node.js / Express Server                     │
-│  ┌─────────────────────────────────────────────────────────┐ │
-│  │              REST API  /api/v1/...                      │ │
-│  │  web/* · admin/* · app/* · superadmin/* · system/*     │ │
-│  └─────────────────────────────────────────────────────────┘ │
-│  ┌──────────────────────┐ ┌──────────────────────────────┐   │
-│  │  Socket.IO Namespaces│ │  Background Services         │   │
-│  │  /orders             │ │  Redis SessionService        │   │
-│  │  /qrcode             │ │  TokenCacheService           │   │
-│  │  /temp-sessions      │ │  RateLimiterService          │   │
-│  └──────────────────────┘ └──────────────────────────────┘   │
-└──────────────────────────────────────────────────────────────┘
-           │
-           ▼
-┌──────────────────────┐   ┌──────────────────┐
-│  MariaDB 11.8        │   │  Redis (Cache +  │
-│  u419451251_Delycia  │   │  Sessions)       │
-└──────────────────────┘   └──────────────────┘
-```
-
-Also in the ecosystem:
-- **Landing** app (`/landing`) — public-facing marketing site
-- **Superadmin** app (`/superadmin`) — platform-level admin panel
-- **ImageKit** — CDN for all image hosting (logos, banners, inventory images)
-- **ElevenLabs** — AI voice synthesis for QR order confirmation
 
 ---
 
-## 2. Application Breakdown
+## 2. Monorepo Structure
 
-| App | Framework | Default Port | Purpose |
-|-----|-----------|-------------|---------|
-| `admin` | TanStack Start (Vite + React) | 4500 | Restaurant staff dashboard (POS, orders, inventory, reports) |
-| `client` | TanStack Start (Vite + React) | 4000 | Customer-facing menu & ordering web app |
-| `server` | Node.js + Express | 3000 | REST API + WebSocket server |
-| `superadmin` | TanStack Start (Vite + React) | 5000 | Platform-level admin panel |
-| `landing` | TanStack Start / HTML | — | Public marketing site |
+```
+Delycia/
+├── server/          # Express.js REST API + WebSocket server
+├── client/          # TanStack Start — customer-facing app (:4000)
+├── admin/           # TanStack Start — restaurant admin panel (:4500)
+├── superadmin/      # TanStack Start — platform super-admin (:5000)
+├── landing/         # Landing/marketing page
+├── design/          # Design assets
+├── skills/          # AI/agent skills
+└── delycia_db_structure.sql  # Full MariaDB schema dump
+```
 
-**Shared patterns:**
-- Both `admin` and `client` use **TanStack Router** with file-based routing
-- Both use **TanStack Query** for all data fetching/mutations
-- Both implement a **BFF (Backend For Frontend)** layer via TanStack Start server-side handlers under `/api/` routes
-- **Axios** with automatic token-refresh interceptors for all API calls
+> [!IMPORTANT]
+> Each frontend app (`client`, `admin`, `superadmin`) is an **independent TanStack Start application** with its own `package.json`, `vite.config.ts`, routing, and build pipeline. They are NOT a monorepo workspace — they share structure conventions but are deployed separately.
 
 ---
 
-## 3. Authentication Architecture
+## 3. Technology Stack
 
-Delycia implements a **dual-token, cookie-based JWT authentication** system with a BFF proxy layer to protect secrets.
+### 3.1 Backend (`server/`)
 
-### 3.1 Token Strategy
+| Layer | Technology |
+|-------|-----------|
+| **Runtime** | Node.js (ESM) |
+| **Framework** | Express.js v4 |
+| **Database** | MariaDB 11.8 via `mysql2` (connection pool, 50 connections) |
+| **Cache/Sessions** | Redis v5.6 (`redis` npm) |
+| **Auth** | JWT (`jsonwebtoken`) — access + refresh tokens |
+| **Real-time** | Socket.IO v4 |
+| **Rate Limiting** | `express-rate-limit` + custom Redis-based limiter |
+| **CSRF** | `csrf-csrf` (Double Submit Cookie pattern) |
+| **AI** | Google GenAI, OpenAI |
+| **Search** | Qdrant vector DB |
+| **Jobs** | `node-cron` scheduled tasks |
+| **QR Codes** | `qrcode` |
 
-| Token | Storage | Lifetime | Purpose |
-|-------|---------|---------|---------|
-| Access Token (JWT) | `httpOnly` cookie | 15 min | API authentication |
-| Refresh Token (JWT) | `httpOnly` cookie | 30 days | Silent access token renewal |
-| Session ID | Redis | 30 days | Server-side session tracking per device |
+### 3.2 Frontend Apps (`client/`, `admin/`, `superadmin/`)
 
-JWT payload contains: `{ uid, id, role, iat, exp }`
-
-### 3.2 Admin Auth Flow
-
-```
-User enters credentials (phone/username + password)
-            │
-            ▼
-Admin App (React) ──POST /api/auth/login──► [BFF Server Route]
-                                                    │
-                                        ┌───────────▼────────────┐
-                                        │ BFF: routes/api/auth/  │
-                                        │ login.ts               │
-                                        │ POST → backend         │
-                                        │ /api/v1/admin/auth     │
-                                        └───────────┬────────────┘
-                                                    │
-                                        ┌───────────▼────────────┐
-                                        │ Express Server         │
-                                        │ validates credentials, │
-                                        │ creates JWT pair,      │
-                                        │ creates Redis session  │
-                                        └───────────┬────────────┘
-                                                    │
-                                        BFF sets httpOnly cookies:
-                                        - delycia_admin_token
-                                        - delycia_admin_refresh
-                                        - session_id
-                                            │
-                                            ▼
-                                User data stored in localStorage
-                                (selected_rid, restaurant_rids)
-```
-
-### 3.3 Session Validation (BFF `withAuth` Pattern)
-
-Every admin API call goes through `withAuth()`:
-
-```
-Request with httpOnly cookies
-        │
-        ▼
-withAuth(request, callback)
-        │
-        ├─ Extract access token from cookie
-        ├─ Try callback with current token
-        │       │
-        │       ├─ SUCCESS → return response + propagate fresh cookies
-        │       │
-        │       └─ 401 Error (token expired)
-        │               │
-        │               ▼
-        │       RefreshCoordinator (singleton mutex)
-        │       ├─ POST /api/v1/users/auth/refresh ← backend
-        │       ├─ Receive new access + refresh tokens
-        │       ├─ Retry original callback with new token
-        │       └─ Set updated cookies in response
-        │
-        └─ Auth failure → 401 to client → useAuth.logout()
-```
-
-**Key files:**
-- `admin/src/lib/withAuth.ts` — BFF proxy utility
-- `admin/src/routes/api/auth/session.ts` — Session check endpoint
-- `admin/src/routes/api/auth/refresh.ts` — Token refresh endpoint
-- `admin/src/hooks/useAuth.ts` — Client-side auth state management
-- `admin/src/services/sessionService.ts` — localStorage session persistence
-- `admin/src/services/sessionCleanupService.ts` — Idle session cleanup
-- `admin/src/services/tokenService.ts` — Axios token interceptors
-
-### 3.4 Client Auth Flow (Customer)
-
-```
-Customer visits /:username (restaurant page)
-        │
-        ├─ QR Code scan → temp_sessions table (table_id + rid)
-        │
-        ├─ Phone number entry → OTP via login_tokens table
-        │        └─ Token stored as SHA256 hash
-        │
-        ├─ OTP verified → JWT pair issued → httpOnly cookies
-        │
-        └─ Guest login → auto-created guest user record
-```
-
-**Key client auth files:**
-- `client/src/routes/api/auth/` — 6 BFF auth handlers
-- `client/src/routes/api/app.temp-session.ts` — QR session init
-- `server/src/routes/v1/web/auth.routes.js` — OTP & JWT endpoints
-
-### 3.5 Redis Session Service
-
-```
-SessionService (server/src/services/session.service.js)
-│
-├─ createSession(userId, refreshToken, req)
-│     └─ Stores session object in Redis:
-│           delycia:session:{sessionId}
-│           delycia:user:sessions:{userId}  (list of session IDs)
-│
-├─ getSession(sessionId)
-├─ updateSessionActivity(sessionId)
-├─ deleteSession(sessionId) / deleteUserSessions(userId)
-└─ cleanupExpiredSessions() — called by cron job
-```
-
-Session object includes: `{ sessionId, userId, refreshToken, deviceType, browser, os, ip, createdAt, lastActivity, expiresAt }`
+| Layer | Technology |
+|-------|-----------|
+| **Framework** | TanStack Start (file-based routing with SSR) |
+| **Build** | Vite v7 |
+| **Routing** | TanStack Router (file-based, type-safe) |
+| **State** | TanStack Query v5 + Zustand |
+| **UI** | Radix UI primitives + shadcn/ui |
+| **Styling** | Tailwind CSS v4 |
+| **Forms** | react-hook-form + zod |
+| **HTTP** | Axios |
+| **Animation** | Framer Motion |
+| **Icons** | Lucide React, Tabler Icons, MUI Icons |
+| **Real-time** | Socket.IO Client |
 
 ---
 
-## 4. Database Schema
-
-**Database**: MariaDB 11.8 · `u419451251_Delycia_DB` · charset: `utf8mb4_unicode_ci`
-
-### 4.1 Core Tables
+## 4. Server Architecture (`server/src/`)
 
 ```
-┌─────────────────────┐    ┌─────────────────────┐
-│      users          │    │    restaurants      │
-├─────────────────────┤    ├─────────────────────┤
-│ id (INT PK)         │    │ id (INT PK)         │
-│ uid (VARCHAR UUID)  │◄───│ ← role-based access │
-│ name                │    │ name, username      │
-│ email               │    │ phone_number        │
-│ username            │    │ address, city, state│
-│ phone_number        │    │ tax_percent (INT)   │
-│ country_code        │    │ commission_percent  │
-│ password (hashed)   │    │ is_active           │
-│ role (INT FK→roles) │    │ online_orders       │
-│ access_token        │    │ open_time/close_time│
-│ refresh_token       │    │ active_days (bitmask│
-│ register_at         │    │   1=Mon…64=Sun)     │
-└─────────────────────┘    └─────────────────────┘
-         │                           │
-         │                  ┌────────▼────────────┐
-         │                  │  restaurant_access  │
-         │                  ├─────────────────────┤
-         │                  │ user_id (FK→users)  │
-         └─────────────────►│ rid (FK→restaurants)│
-                            └─────────────────────┘
+server/src/
+├── index.js                  # Entry point — starts Express + Redis
+├── app.js                    # Express app config, CORS, routes
+├── config/
+│   ├── db.connection.js      # MariaDB connection pool
+│   └── db.Init.js            # DB initialization
+├── controller/v1/
+│   ├── web/                  # Customer-facing controllers
+│   ├── admin/                # Restaurant admin controllers
+│   ├── superadmin/           # Platform admin controllers
+│   ├── app/                  # Mobile/QR app controllers
+│   └── system/               # System/internal controllers
+├── routes/v1/
+│   ├── web/                  # /api/v1/users, /api/v1/orders, etc.
+│   ├── admin/                # /api/v1/admin/*
+│   ├── superadmin/           # /api/v1/superadmin/*
+│   ├── app/                  # /api/v1/app/*
+│   └── system/               # /api/v1/system/*
+├── middlewares/
+│   ├── auth.middleware.js     # JWT verification (all users)
+│   ├── admin.middleware.js    # Admin role check
+│   ├── superadmin.middleware.js # Superadmin role check (role=1 or 1000)
+│   ├── csrf.middleware.js     # CSRF Double Submit Cookie
+│   ├── rateLimiter.middleware.js # Redis-backed rate limiting
+│   ├── sanitizeInputs.middleware.js # XSS/injection prevention
+│   └── ws.auth.middleware.js  # WebSocket authentication
+├── services/
+│   ├── redis.service.js       # Redis singleton client
+│   ├── session.service.js     # Redis-based session management
+│   ├── tokenCache.service.js  # Redis-based token caching
+│   └── rateLimiter.service.js # Redis-based rate limiting
+├── sockets/                   # Socket.IO namespaces
+├── cron_jobs/                 # Scheduled background tasks
+├── jobs/                      # Job scheduler
+├── helpers/                   # Utility helpers
+├── utils/                     # Shared utilities
+├── models/                    # Data models
+└── validations/               # Request validation schemas
 ```
 
-### 4.2 Menu & Inventory
+### 4.1 API Route Groups
 
-```
-┌─────────────────────┐    ┌─────────────────────┐
-│    categories       │    │    inventories      │
-├─────────────────────┤    ├─────────────────────┤
-│ id, rid, template_id│    │ id, rid, category_id│
-│ name, description   │    │ name, description   │
-│ img, is_active      │    │ images (JSON array) │
-│ display_order       │    │ is_veg, cost, price │
-└─────────────────────┘    │ status: available / │
-         │                 │   out_of_stock /    │
-         ▼                 │   low_stock /       │
-┌─────────────────────┐    │   unavailable       │
-│ category_templates  │    │ stock, recommend, ai│
-├─────────────────────┤    └──────────┬──────────┘
-│ id, name, cuisine   │               │
-│ img, tags (JSON)    │    ┌──────────▼──────────┐
-│ usage_count         │    │    variants         │
-└─────────────────────┘    ├─────────────────────┤
-                           │ id, inventory_id    │
-                           │ name, price         │
-                           └─────────────────────┘
-                                      │
-                           ┌──────────▼──────────┐
-                           │   inventory_addons  │
-                           ├─────────────────────┤
-                           │ inventory_id        │
-                           │ addon_id (FK→addons)│
-                           │ is_default, max_qty │
-                           └─────────────────────┘
+| Prefix | Purpose | Auth Required |
+|--------|---------|---------------|
+| `/api/v1/users/auth` | Customer auth (login, register, OTP) | No |
+| `/api/v1/users` | Customer profile | Yes (JWT) |
+| `/api/v1/orders` | Customer orders | Yes (JWT) |
+| `/api/v1/inventory` | Menu browsing (public data) | Partial |
+| `/api/v1/restaurant` | Restaurant info (public) | No |
+| `/api/v1/tables` | Table management | Yes (JWT) |
+| `/api/v1/sessions` | Session management | Yes (JWT) |
+| `/api/v1/admin/auth` | Admin login | No |
+| `/api/v1/admin/*` | Admin dashboard, inventory, orders, CRM, etc. | Yes (JWT + Admin) |
+| `/api/v1/superadmin/auth` | Superadmin login | No |
+| `/api/v1/superadmin/*` | Platform management | Yes (JWT + Superadmin) |
+| `/api/v1/app/*` | QR codes, temp sessions, voice | Varies |
+| `/api/v1/system/*` | Embeddings, cron jobs, upsells | Internal |
 
-┌─────────────────────┐    ┌─────────────────────┐
-│      addons         │    │  inventory_stats    │
-├─────────────────────┤    ├─────────────────────┤
-│ id, rid, name       │    │ item_id (FK)        │
-│ description, price  │    │ order_count         │
-│ is_veg, is_active   │    │ units_sold          │
-└─────────────────────┘    │ total_revenue       │
-                           │ popularity_score    │
-                           │ last_ordered_at     │
-                           └─────────────────────┘
-```
+---
 
-> **DB Trigger**: `trg_update_inventories_status_on_category_change` — auto-updates inventory `status` when a category is toggled active/inactive.
+## 5. Redis Implementation
 
-### 4.3 Orders & Carts
+> [!NOTE]
+> Redis is implemented **only on the backend server** (`server/src/services/`). The frontend apps never talk to Redis directly — they interact with it through the backend REST API.
 
-```
-┌─────────────────────┐    ┌─────────────────────┐
-│       carts         │    │       orders        │
-├─────────────────────┤    ├─────────────────────┤
-│ cart_id (VARCHAR PK)│◄───│ cart_id (FK)        │
-│ customer_id         │    │ id, rid             │
-│ discount_amount     │    │ customer_id         │
-│ total_amount        │    │ placed_by_staff_id  │
-│ payment_status:     │    │ placed_by_role_id   │
-│   pending/completed │    │ item_id, variant_id │
-│ payment_method:     │    │ display_name        │
-│   upi/cash/card/    │    │ quantity            │
-│   others            │    │ order_status:       │
-│ delivery_type:      │    │   pending/ready/    │
-│   dine-in/takeaway/ │    │   processing/       │
-│   delivery          │    │   completed/settled/│
-└─────────────────────┘    │   cancelled         │
-                           │ payment_status      │
-                           │ payment_method      │
-                           │ special_instructions│
-                           │ delivery_type       │
-                           │ discount_amount     │
-                           │ total_amount        │
-                           │ preparation_time    │
-                           │ table_id, table_no  │
-                           │ party_size          │
-                           └─────────────────────┘
-                                      │
-                           ┌──────────▼──────────┐
-                           │    order_addons     │
-                           ├─────────────────────┤
-                           │ order_id, addon_id  │
-                           │ quantity, price      │
-                           └─────────────────────┘
+Redis is used for **three distinct purposes**, all via a single `RedisService` singleton:
+
+### 5.1 Redis Service (`redis.service.js`)
+
+- **Singleton** pattern — one connection shared across the entire server
+- Auto-reconnection with **exponential backoff** (1s, 2s, 4s... max 30s, 10 attempts)
+- **Graceful degradation** — all operations return fallback values if Redis is down
+- Health check endpoint at `GET /health/redis`
+- Connection initialized non-blockingly on server startup
+
+```mermaid
+graph LR
+    subgraph RedisService["RedisService (Singleton)"]
+        R["redis.service.js<br/>get/set/del/incr/ttl/keys"]
+    end
+
+    TC["tokenCache.service.js<br/>Token Caching"] --> R
+    SS["session.service.js<br/>Session Management"] --> R
+    RL["rateLimiter.service.js<br/>Rate Limiting"] --> R
 ```
 
-> **Stored Procedure**: `sp_refresh_inventory_stats(p_rid)` — recalculates `inventory_stats` from completed orders, weighted by discount.  
-> **Stored Procedure**: `sp_reset_occupied_tables()` — marks tables `available` if last updated > 1 hour ago.
+### 5.2 Token Cache (`tokenCache.service.js`)
 
-### 4.4 Restaurant & Table Management
+| Aspect | Detail |
+|--------|--------|
+| **Purpose** | Cache access tokens to reduce backend auth load by ~80% |
+| **Key format** | `delycia:token:{last-32-chars-of-refresh-token}` |
+| **TTL** | 5 seconds |
+| **Operations** | `cacheToken()`, `getCachedToken()`, `invalidateToken()`, `invalidateUserTokens()` |
+| **Metrics** | hit/miss/error counters exposed at `/health/cache` |
 
-```
-┌─────────────────────┐    ┌─────────────────────┐
-│      tables         │    │  restaurant_hours   │
-├─────────────────────┤    ├─────────────────────┤
-│ id, rid             │    │ id, rid             │
-│ table_number        │    │ day_of_week (enum)  │
-│ capacity            │    │ open_time/close_time│
-│ zone                │    └─────────────────────┘
-│ status:             │
-│  available/occupied/│    ┌─────────────────────┐
-│  reserved           │    │  restaurant_status  │
-└─────────────────────┘    │  (VIEW)             │
-                           ├─────────────────────┤
-                           │ + is_open_now (calc)│
-                           │ + status_message    │
-                           └─────────────────────┘
-```
+### 5.3 Session Management (`session.service.js`)
 
-### 4.5 Users & Sessions
+| Aspect | Detail |
+|--------|--------|
+| **Purpose** | Track user sessions across multiple devices |
+| **Key format (session)** | `delycia:session:{uuid}` |
+| **Key format (user lookup)** | `delycia:user:sessions:{userId}` |
+| **TTL** | 30 days |
+| **Stored data** | sessionId, userId, refreshToken, deviceType, browser, OS, IP, timestamps |
+| **Operations** | `createSession()`, `getSession()`, `getSessionByRefreshToken()`, `updateSessionActivity()`, `deleteSession()`, `getUserSessions()`, `deleteUserSessions()`, `cleanupExpiredSessions()` |
+| **Metrics** | Stats exposed at `/health/sessions` |
 
-```
-┌─────────────────────┐    ┌─────────────────────┐
-│    user_sessions    │    │   temp_sessions     │
-├─────────────────────┤    ├─────────────────────┤
-│ (JWT session data)  │    │ user_id, table_no   │
-│ access_token        │    │ rid, login_at       │
-│ refresh_token       │    └─────────────────────┘
-│ device info, IP     │    (Created when customer
-└─────────────────────┘     scans a QR code)
+### 5.4 Rate Limiter (`rateLimiter.service.js`)
 
-┌─────────────────────┐    ┌─────────────────────┐
-│    login_tokens     │    │      otps           │
-├─────────────────────┤    ├─────────────────────┤
-│ phone_number        │    │ (OTP storage for    │
-│ user_id             │    │  phone verification)│
-│ token_hash (SHA256) │    └─────────────────────┘
-│ expires_at, used_at │
-│ attempt_count       │
-└─────────────────────┘
-```
+| Aspect | Detail |
+|--------|--------|
+| **Purpose** | Prevent abuse of refresh/login/API endpoints |
+| **Key format** | `delycia:ratelimit:{type}:{action}:{identifier}` |
+| **Algorithm** | Sliding window counter |
+| **User limits** | 5 refresh/min, 5 login/5min |
+| **IP limits** | 10 refresh/min, 10 login/5min, 100 API/min |
+| **Fail mode** | Fail open (allow on Redis error) |
+| **Metrics** | Stats exposed at `/health/ratelimit` |
 
-### 4.6 Notifications & CRM
+---
 
-```
-┌─────────────────────────────────────┐
-│            notifications            │
-├─────────────────────────────────────┤
-│ id, restaurant_id, user_id          │
-│ type: low_stock / out_of_stock /    │
-│   plan_expiring / plan_expired /    │
-│   new_order / order_cancelled /     │
-│   payment_failed / ...             │
-│ title, message, data (JSON)         │
-│ priority: low/medium/high/critical  │
-│ is_read, read_at                    │
-│ action_url, action_label            │
-│ sent_via_app/email/sms              │
-│ expires_at                          │
-└─────────────────────────────────────┘
+## 6. Authentication & Session Management
 
-┌─────────────────────┐    ┌─────────────────────┐
-│   favourite_list    │    │      memories       │
-├─────────────────────┤    ├─────────────────────┤
-│ uid, list (JSON)    │    │ uid, img, msg       │
-└─────────────────────┘    │ rating (0-5)        │
-                           └─────────────────────┘
-```
+### 6.1 Token Architecture
 
-### 4.7 Subscriptions
+The system uses a **dual JWT token** strategy:
 
-```
-┌─────────────────────┐    ┌─────────────────────┐
-│  subscription_plans │    │    subscriptions    │
-├─────────────────────┤    ├─────────────────────┤
-│ id, plan_code       │    │ id, restaurant_id   │
-│ plan_name           │◄───│ plan_id (FK)        │
-│ price, currency     │    │ plan_type:          │
-│ billing_period:     │    │   trial/monthly/    │
-│   month/year/trial  │    │   annual            │
-│ billing_days        │    │ start_date/end_date │
-│ savings             │    │ status:             │
-│ is_popular          │    │   active/expired/   │
-│ features (JSON)     │    │   cancelled         │
-│ max_restaurants     │    │ amount, auto_renew  │
-└─────────────────────┘    └─────────────────────┘
-```
+| Token | Lifetime | Storage | Purpose |
+|-------|----------|---------|---------|
+| **Access Token** | 15 minutes | httpOnly cookie | API authorization (short-lived) |
+| **Refresh Token** | 30 days | httpOnly cookie + DB + Redis | Token renewal (long-lived) |
 
-**Plans:**
+> [!IMPORTANT]
+> Token cookie names differ per app:
+> - **Client**: `access_token`, `refresh_token`
+> - **Admin**: `admin_access_token`, `admin_refresh_token`
+> - **Superadmin**: Uses superadmin-specific cookies
 
-| Plan | Code | Price | Duration |
-|------|------|-------|----------|
-| Free Trial | `trial` | ₹0 | 14 days |
-| Monthly | `monthly` | ₹499 | 30 days |
-| Multi-Restaurant | `monthly_multi` | ₹549 | 30 days |
-| Yearly | `yearly` | ₹4,999 | 365 days |
+### 6.2 Token Lifecycle
 
-### 4.8 QR Codes
+```mermaid
+sequenceDiagram
+    participant Browser
+    participant BFF as TanStack Start BFF
+    participant Backend as Express API
+    participant Redis
+    participant DB as MariaDB
 
-```
-┌─────────────────────┐
-│      qr_codes       │
-├─────────────────────┤
-│ id (VARCHAR)        │ ← format: {hash}-{rid}-{table_no}
-│ rid, table_no       │
-│ status (0/1)        │
-│ url (PNG URL)       │
-└─────────────────────┘
+    Note over Browser, DB: 1. LOGIN FLOW
+    Browser->>BFF: POST /api/auth/login {phone, password}
+    BFF->>Backend: POST /api/v1/admin/auth/login
+    Backend->>DB: Verify credentials
+    DB-->>Backend: User data
+    Backend->>Backend: Generate access_token (15min) + refresh_token (30d)
+    Backend->>DB: Store refresh_token in users table
+    Backend->>Redis: Create session (30d TTL)
+    Backend->>Redis: Cache access_token (5s TTL)
+    Backend-->>BFF: {access_token, refresh_token, user}
+    BFF->>BFF: Set httpOnly cookies
+    BFF-->>Browser: 200 + Set-Cookie headers
+
+    Note over Browser, DB: 2. AUTHENTICATED REQUEST
+    Browser->>BFF: GET /api/orders (with cookies)
+    BFF->>BFF: withAuth() extracts access_token from cookie
+    BFF->>Backend: GET /api/v1/orders (Authorization: Bearer token)
+    Backend->>Backend: auth.middleware verifies JWT
+    Backend-->>BFF: Order data
+    BFF-->>Browser: Order data
+
+    Note over Browser, DB: 3. TOKEN REFRESH (when access_token expires)
+    Browser->>BFF: GET /api/orders (expired access_token)
+    BFF->>BFF: withAuth() → request fails with 401/403
+    BFF->>BFF: RefreshCoordinator.refreshTokens()
+    BFF->>BFF: POST /api/auth/refresh (using refresh_token cookie)
+    BFF->>Backend: POST /api/v1/users/auth/refresh
+    Backend->>Redis: Check token cache
+    Backend->>DB: Validate refresh_token
+    Backend->>Backend: Issue new token pair
+    Backend->>Redis: Cache new access_token
+    Backend-->>BFF: {access_token, refresh_token}
+    BFF->>BFF: Update httpOnly cookies
+    BFF->>Backend: Retry original request with NEW token
+    Backend-->>BFF: Order data
+    BFF-->>Browser: Order data + Set-Cookie (new tokens)
 ```
 
-### 4.9 Other Tables
+### 6.3 Dual Storage: DB + Redis Sessions
+
+The system maintains sessions in **two places**:
+
+| Storage | Table/Key | Purpose |
+|---------|-----------|---------|
+| **MariaDB** | `user_sessions` table | Persistent audit trail, survives Redis restart |
+| **Redis** | `delycia:session:{id}` | Fast lookup, TTL-based expiry, multi-device tracking |
+
+The `user_sessions` table in MariaDB stores:
+- `user_id`, `refresh_token`, `device_info`, `ip_address`, `user_agent`
+- `created_at`, `last_used_at`, `expires_at`
+
+Redis sessions add real-time capabilities: activity tracking, device info parsing, multi-device logout.
+
+---
+
+## 7. What is `withAuth()`?
+
+> [!IMPORTANT]
+> `withAuth()` is the **core BFF (Backend-for-Frontend) auth helper** used in TanStack Start server routes. It is the central mechanism that makes the httpOnly cookie authentication work transparently.
+
+### 7.1 Purpose
+
+`withAuth()` is a server-side function that wraps any BFF API route handler. It:
+
+1. **Extracts** the access token from httpOnly cookies
+2. **Passes** it to your handler function
+3. **Catches** 401/403 errors (token expired)
+4. **Refreshes** the token automatically via `RefreshCoordinator`
+5. **Retries** the original request with the new token
+6. **Sets** updated cookies in the response
+
+### 7.2 Where It's Used
+
+`withAuth()` exists in **two implementations**:
+
+| File | App | Cookie Names |
+|------|-----|-------------|
+| [client/src/lib/withAuth.ts](file:///mnt/SharedFolders/Documents/Coding/Tanstack-Start/Delycia/client/src/lib/withAuth.ts) | Client | `access_token`, `refresh_token` |
+| [admin/src/lib/withAuth.ts](file:///mnt/SharedFolders/Documents/Coding/Tanstack-Start/Delycia/admin/src/lib/withAuth.ts) | Admin | `admin_access_token`, `admin_refresh_token` |
+
+### 7.3 Usage Pattern
+
+Every authenticated BFF route follows this pattern:
+
+```typescript
+// Example: admin/src/routes/api/orders.ts
+export const ServerRoute = createServerFileRoute('/api/orders').methods({
+  GET: async ({ request }) => {
+    return withAuth(request, async (accessToken, authHeaders, req) => {
+      const res = await axiosInstance.get('/admin/orders', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+      return jsonResponse(res.data, 200, authHeaders)
+    })
+  },
+})
+```
+
+### 7.4 Flow Diagram
+
+```mermaid
+flowchart TD
+    A["BFF Route Handler"] --> B{"withAuth()"}
+    B --> C["Clone request<br/>(for retry)"]
+    C --> D{"Access token<br/>in cookie?"}
+
+    D -->|No| E{"requireAuth?"}
+    E -->|No| F["Call handler<br/>without token"]
+    E -->|Yes| G["RefreshCoordinator<br/>.refreshTokens()"]
+    G -->|Success| H["Call handler<br/>with new token"]
+    G -->|Failure| I["401 Response<br/>Clear cookies"]
+
+    D -->|Yes| J["Call handler<br/>with token"]
+    J -->|Success| K["Return response"]
+    J -->|401/403| L["Token expired"]
+    J -->|Other error| M["Rethrow"]
+
+    L --> N["RefreshCoordinator<br/>.refreshTokens()"]
+    N -->|Success| O["Retry with<br/>cloned request"]
+    N -->|Failure| P["401 Response<br/>Clear cookies<br/>sessionExpired: true"]
+
+    O -->|Success| Q["Return response<br/>+ Set-Cookie"]
+    O -->|401/403| R["Force logout"]
+    O -->|Other error| S["Rethrow"]
+```
+
+### 7.5 Key Design Decisions
+
+| Decision | Rationale |
+|----------|-----------|
+| **Request cloning** | `request.clone()` before first attempt — allows body re-read on retry |
+| **Single retry** | Prevents infinite refresh loops (`_isRetry` flag in admin) |
+| **RefreshCoordinator** | Deduplicates concurrent refresh attempts (Promise-based singleton) |
+| **Circuit breaker** | Opens after 5 consecutive failures, blocks for 30s |
+| **Exponential backoff** | 1s → 2s → 4s retry delays |
+| **Cookie scoping** | Admin uses `admin_` prefix to avoid cookie collision with client |
+| **Timeout handling** | Returns 504 on backend timeout (ECONNABORTED/ETIMEDOUT) |
+
+---
+
+## 8. RefreshCoordinator
+
+The `RefreshCoordinator` is a **singleton** that ensures only one token refresh happens at a time, even when multiple concurrent BFF requests detect an expired token.
+
+| Feature | Detail |
+|---------|--------|
+| **Pattern** | Promise-based deduplication |
+| **Retry** | 3 attempts with exponential backoff (1s, 2s, 4s) |
+| **Circuit breaker** | Opens after 5 failures, tries again after 30s |
+| **Rate limit handling** | Honors 429 responses, stops retrying |
+| **Singleton** | One per process (server-side) |
+
+Files:
+- [client/src/lib/refreshCoordinator.ts](file:///mnt/SharedFolders/Documents/Coding/Tanstack-Start/Delycia/client/src/lib/refreshCoordinator.ts)
+- [admin/src/lib/refreshCoordinator.ts](file:///mnt/SharedFolders/Documents/Coding/Tanstack-Start/Delycia/admin/src/lib/refreshCoordinator.ts)
+
+---
+
+## 9. Server Middleware Chain
+
+Requests flow through these middlewares in order:
+
+```mermaid
+flowchart LR
+    A["Request"] --> B["express.json<br/>(50kb limit)"]
+    B --> C["cookieParser"]
+    C --> D["CORS"]
+    D --> E["Global Rate Limit<br/>(1000/min)"]
+    E --> F{"Route Group"}
+
+    F -->|"/api/v1/users"| G["sanitizeInput"]
+    F -->|"/api/v1/admin/*"| H["sanitizeInput"]
+    F -->|"/api/v1/superadmin/*"| I["sanitizeInput"]
+
+    G --> J["Route Handler"]
+    H --> K["authMiddleware"] --> L["verifyAdmin"] --> M["Route Handler"]
+    I --> N["authMiddleware"] --> O["verifySuperadmin<br/>(role=1)"] --> P["Route Handler"]
+```
+
+### 9.1 Middleware Details
+
+| Middleware | File | Purpose |
+|-----------|------|---------|
+| `authMiddleware` | [auth.middleware.js](file:///mnt/SharedFolders/Documents/Coding/Tanstack-Start/Delycia/server/src/middlewares/auth.middleware.js) | Verifies JWT from `Authorization` header or `access_token` cookie. Attaches `req.user`. Returns 401 (no token) or 403 (invalid/expired). |
+| `verifyAdmin` | [admin.middleware.js](file:///mnt/SharedFolders/Documents/Coding/Tanstack-Start/Delycia/server/src/middlewares/admin.middleware.js) | Checks user exists in DB by `uid`. Simple existence check. |
+| `verifySuperadmin` | [superadmin.middleware.js](file:///mnt/SharedFolders/Documents/Coding/Tanstack-Start/Delycia/server/src/middlewares/superadmin.middleware.js) | Checks user has `role = 1` (Super Admin) in DB. |
+| `sanitizeInput` | sanitizeInputs.middleware.js | XSS/injection prevention on all inputs. |
+| `csrfProtection` | [csrf.middleware.js](file:///mnt/SharedFolders/Documents/Coding/Tanstack-Start/Delycia/server/src/middlewares/csrf.middleware.js) | Double Submit Cookie CSRF pattern for state-changing operations. |
+| `rateLimiter` | rateLimiter.middleware.js | Redis-backed per-user and per-IP rate limiting. |
+
+---
+
+## 10. Database Schema (MariaDB)
+
+> Database: `u419451251_Delycia_DB` on MariaDB 11.8
+
+### 10.1 Core Tables
+
+```mermaid
+erDiagram
+    users ||--o{ restaurant_access : "has access to"
+    users ||--o{ orders : "places"
+    users ||--o{ user_sessions : "has sessions"
+    users ||--o{ user_restaurant_visits : "visits"
+    restaurants ||--o{ categories : "has"
+    restaurants ||--o{ inventories : "has"
+    restaurants ||--o{ orders : "receives"
+    restaurants ||--o{ tables : "has"
+    restaurants ||--o{ subscriptions : "subscribes to"
+    restaurants ||--o{ restaurant_access : "grants access"
+    categories ||--o{ inventories : "contains"
+    inventories ||--o{ variants : "has"
+    inventories ||--o{ inventory_addons : "links"
+    addons ||--o{ inventory_addons : "linked via"
+    orders ||--o{ order_addons : "includes"
+    subscription_plans ||--o{ subscriptions : "defines"
+    category_templates ||--o{ categories : "templates"
+
+    users {
+        int id PK
+        varchar uid UK
+        varchar name
+        varchar username UK
+        varchar phone_number UK
+        int role FK
+        text access_token
+        text refresh_token
+    }
+
+    restaurants {
+        int id PK
+        varchar name
+        varchar username UK
+        decimal tax_percent
+        tinyint is_active
+        tinyint online_orders
+    }
+
+    orders {
+        int id PK
+        int customer_id FK
+        int rid FK
+        varchar cart_id FK
+        int item_id FK
+        int table_id FK
+        enum payment_status
+        enum delivery_type
+    }
+```
+
+### 10.2 Table Inventory
 
 | Table | Purpose |
 |-------|---------|
-| `roles` | Role definitions with power levels (0–1000) |
-| `coupon_codes` | Discount coupons (fixed/percentage) |
-| `cities` | Indian cities/states reference data |
-| `config` | Global server config (ElevenLabs API key, voice script prompt) |
-| `user_restaurant_visits` | CRM visit tracking |
-| `v_staff_order_performance` | View for staff performance analytics |
+| `users` | All user accounts (customers, admins, staff, superadmin) |
+| `roles` | Role definitions (0=Customer, 1=SuperAdmin, 2=Admin, 3=Owner, 4=Manager, 5=Waiter, 6=Kitchen, 7=Delivery) |
+| `restaurants` | Restaurant profiles and settings |
+| `restaurant_access` | Many-to-many: which users have access to which restaurants |
+| `categories` | Menu categories per restaurant |
+| `category_templates` | Shared category templates across restaurants |
+| `inventories` | Menu items (food) |
+| `variants` | Item size/price variants |
+| `addons` | Extra toppings/sides |
+| `inventory_addons` | Many-to-many: which addons available for which items |
+| `orders` | Individual order line items |
+| `order_addons` | Addons attached to specific orders |
+| `carts` | Cart grouping for multi-item orders |
+| `tables` | Restaurant table management (number, capacity, zone, status) |
+| `subscriptions` | Active restaurant subscriptions |
+| `subscription_plans` | Available plans (trial, monthly, yearly) |
+| `user_sessions` | Persistent session tracking (refresh tokens) |
+| `user_restaurant_visits` | CRM: visit tracking per user per restaurant |
+| `temp_sessions` | QR code scan temporary sessions |
+| `notifications` | In-app notification system |
+| `coupon_codes` | Discount codes |
+| `favourite_list` | User favorites |
+| `memories` | AI-related user memories |
+| `cities` | Indian cities lookup (for registration) |
+| `config` | System configuration |
+| `login_tokens` | OTP/magic link tokens |
+| `inventory_stats` | Precomputed item analytics (popularity, revenue) |
+| `qr_codes` | Generated QR codes |
+| `restaurant_hours` | Operating hours per day |
 
----
+### 10.3 Stored Procedures & Triggers
 
-## 5. Server (API) Architecture
-
-**Location**: `server/src/app.js`  
-**Runtime**: Node.js with ES Modules  
-**Framework**: Express.js + Socket.IO
-
-### 5.1 Middleware Stack (in order)
-
-```
-1. express.urlencoded + express.json (limit: 50kb)
-2. Static files → /public
-3. cookieParser
-4. SyntaxError handler (malformed JSON → 400)
-5. CORS (origin whitelist + *.delycia.com wildcard)
-6. express-rate-limit (1000 req/min per IP)
-7. sanitizeInput middleware (per-route, on sensitive endpoints)
-```
-
-**CORS allowed origins**: `localhost:4000`, `localhost:4500`, `localhost:5000`, `delycia.com`, `*.delycia.com`
-
-### 5.2 Route Groups
-
-#### Web Routes (Customer-facing) `/api/v1/`
-| Route | Module |
-|-------|--------|
-| `/users` / `/users/auth` | User registration, OTP login |
-| `/sessions` | Session management |
-| `/` | Categories (public) |
-| `/inventory` | Menu items (public) |
-| `/variants` | Item variants |
-| `/orders` | Place & track orders |
-| `/search` | Menu search |
-| `/restaurant` | Restaurant info |
-| `/tables` | Table status |
-| `/users/addons` | Item addons |
-
-#### Admin Routes `/api/v1/admin/`
-| Route | Feature |
-|-------|---------|
-| `/auth` | Admin login/logout/refresh |
-| `/users` | User management |
-| `/inventory` + `/inventory-stats` | Menu management + analytics |
-| `/variants` | Variant CRUD |
-| `/orders` | Order management |
-| `/restaurants` | Restaurant settings |
-| `/tables` | Table CRUD |
-| `/dashboard` | Dashboard analytics |
-| `/addons` | Addon management |
-| `/crm` | Customer relationship management |
-| `/staff-reports` | Staff performance reports |
-| `/subscriptions` | Subscription management |
-| `/notifications` | Notification center |
-
-#### App Routes (Mobile Kiosk) `/api/v1/app/`
-| Route | Purpose |
-|-------|---------|
-| `/qrcode` | QR code generation |
-| `/temp-session` | Temporary session init from QR scan |
-| `/voice` | ElevenLabs voice synthesis for order confirmation |
-
-#### Superadmin Routes `/api/v1/superadmin/`
-| Route | Purpose |
-|-------|---------|
-| `/auth` | Superadmin login |
-| `/restaurants` | Manage all restaurants |
-| `/subscriptions` | Manage all subscriptions |
-| `/users` | Manage all users |
-| `/menus` | Category templates |
-| `/staff` | Staff CRUD across restaurants |
-| `/dashboard` | Platform analytics |
-
-#### System Routes `/api/v1/system/`
-| Route | Purpose |
-|-------|---------|
-| `/upsells` | System upsell data |
-| `/embedding` | AI embedding operations |
-| `/cronJobs` | Manual cron trigger endpoints |
-
-### 5.3 Middleware Modules
-
-| File | Purpose |
+| Name | Purpose |
 |------|---------|
-| `auth.middleware.js` | JWT verification from Bearer header |
-| `admin.middleware.js` | Admin role check (role ≥ 3) |
-| `adminFlag.middleware.js` | Admin header flag check |
-| `superadmin.middleware.js` | Superadmin role check (role ≥ 1000) |
-| `csrf.middleware.js` | CSRF token validation (double-submit pattern) |
-| `rateLimiter.middleware.js` | Route-specific rate limiting via Redis |
-| `sanitizeInputs.middleware.js` | Input sanitization (XSS/injection prevention) |
-| `ws.auth.middleware.js` | WebSocket JWT authentication |
+| `sp_refresh_inventory_stats` | Recomputes order_count, units_sold, revenue, popularity_score |
+| `sp_reset_occupied_tables` | Auto-resets tables occupied for >1 hour |
+| `trg_update_inventories_status_on_category_change` | Cascades category active/inactive to items |
+| `trg_update_inventories_status_on_category_update` | Same as above but on UPDATE |
 
-### 5.4 Services
+---
 
-| Service | Purpose |
-|---------|---------|
-| `redis.service.js` | Redis client wrapper with graceful degradation |
-| `session.service.js` | Redis-backed session CRUD (30-day TTL) |
-| `tokenCache.service.js` | In-memory JWT verification cache (reduces DB lookups) |
-| `rateLimiter.service.js` | Configurable per-route rate limiting with Redis backend |
+## 11. Frontend Architecture
 
-### 5.5 Cron Jobs
+### 11.1 Client App (`client/`)
 
-| Job | Schedule | Purpose |
-|-----|----------|---------|
-| `notification.cron.js` | Periodic | Sends low stock / plan expiry notifications |
-| `otps.cron.js` | Periodic | Cleans expired OTPs |
-| `tables.cron.js` | Periodic | Resets stale occupied tables (`sp_reset_occupied_tables`) |
-| `temp_sessions.cron.js` | Periodic | Cleans expired temp sessions |
-
-### 5.6 Health Endpoints
+The **customer-facing** app for browsing restaurants, viewing menus, placing orders.
 
 ```
-GET /health           → Server status
-GET /health/redis     → Redis connectivity
-GET /health/cache     → Token cache stats
-GET /health/sessions  → Active session count
-GET /health/ratelimit → Rate limiter stats
+client/src/
+├── routes/
+│   ├── __root.tsx           # Root layout + AuthProvider
+│   ├── index.tsx            # Home page
+│   ├── $username.tsx        # Restaurant page (dynamic)
+│   ├── category.tsx         # Category browsing
+│   ├── cart.tsx / checkout.tsx / order-placed.tsx
+│   ├── orders.tsx           # Order history
+│   ├── auth/                # Login, register
+│   ├── user/                # User profile
+│   └── api/                 # BFF server routes
+│       ├── auth/session.ts  # Session validation
+│       ├── users.ts         # User CRUD
+│       ├── orders.ts        # Orders
+│       ├── inventory.ts     # Menu items
+│       ├── categories.ts    # Categories
+│       ├── tables.ts        # Table management
+│       └── restaurant.checkout.ts
+├── lib/
+│   ├── withAuth.ts          # BFF auth helper
+│   ├── refreshCoordinator.ts # Token refresh dedup
+│   ├── circuitBreaker.ts    # Circuit breaker pattern
+│   └── server-cookies.ts    # Cookie parsing utilities
+├── hooks/
+│   ├── queries/             # TanStack Query hooks
+│   ├── mutations/           # TanStack Mutation hooks
+│   ├── useSessionStatus.ts  # Session expiry monitoring
+│   └── useRestaurantUsername.tsx
+├── context/
+│   ├── AuthProvider.tsx     # Auth wrapper (thin; logic in useAuthQuery)
+│   └── StoreProvider.tsx    # Zustand store provider
+├── store/                   # Zustand state management
+├── services/                # API service layer
+├── config/                  # App configuration
+├── schemas/                 # Zod validation schemas
+└── types/                   # TypeScript types
+```
+
+### 11.2 Admin App (`admin/`)
+
+The **restaurant dashboard** for owners and staff. Manages orders, inventory, tables, staff, QR codes, reports, billing.
+
+```
+admin/src/
+├── routes/
+│   ├── __root.tsx           # Root layout with auth gate
+│   ├── login.tsx            # Admin login
+│   ├── dashboard.tsx        # Analytics dashboard
+│   ├── inventory/           # Menu management
+│   ├── orders/              # Order management (real-time)
+│   ├── staff/               # Staff management
+│   ├── reports/             # Analytics reports
+│   ├── settings/            # Restaurant settings
+│   ├── billing/             # Subscription billing
+│   ├── qr-codes.tsx         # QR code generator
+│   └── api/                 # BFF server routes (50+ endpoints)
+├── lib/
+│   ├── withAuth.ts          # BFF auth (admin cookies)
+│   ├── refreshCoordinator.ts # Admin-specific refresh
+│   ├── circuitBreaker.ts
+│   ├── axios.ts             # Axios instance config
+│   └── server-cookies.ts
+├── hooks/
+│   ├── useAuth.ts           # Full auth state management
+│   ├── useDashboardData.ts  # Dashboard analytics
+│   ├── useWebSocketManager.ts # Real-time order updates
+│   ├── useRestaurantSelector.tsx # Multi-restaurant switching
+│   └── useSessionStatus.ts
+├── services/
+│   ├── sessionService.ts    # Client-side session (localStorage)
+│   ├── sessionCleanupService.ts # Auto-cleanup
+│   └── tokenService.ts      # Client-side token management
+└── middleware/               # Route-level middleware
+```
+
+### 11.3 SuperAdmin App (`superadmin/`)
+
+The **platform management** panel for managing all restaurants, users, subscriptions, and system health.
+
+```
+superadmin/src/
+├── routes/
+│   ├── __root.tsx          # Root layout
+│   ├── login.tsx           # Superadmin login
+│   ├── dashboard.tsx       # Platform overview
+│   ├── restaurants/        # Manage all restaurants
+│   ├── users/              # Manage all users
+│   ├── subscriptions/      # Subscription management
+│   ├── menus/              # Menu template management
+│   ├── staff/              # Staff across restaurants
+│   └── api/                # BFF routes
+├── services/
+│   ├── sessionService.ts
+│   └── tokenService.ts
+├── hooks/                  # Custom hooks
+├── middleware/             # Auth middleware
+└── schemas/                # Validation schemas
 ```
 
 ---
 
-## 6. Admin Application Architecture
+## 12. BFF (Backend-for-Frontend) Pattern
 
-**Location**: `admin/src/`  
-**Framework**: TanStack Start (Vite + React 18 + TanStack Router)  
-**Port**: 4500  
+> [!NOTE]
+> The frontend apps NEVER call the Express backend directly from the browser. All API calls go through TanStack Start **server routes** that act as a BFF proxy.
 
-### 6.1 Route Tree
-
-```
-__root.tsx (auth guard, RestaurantSelector context)
-├── login.tsx                          Public
-├── index.tsx → /dashboard            Protected
-├── dashboard.tsx (layout)
-│   └── /dashboard                    Dashboard overview + charts
-├── orders.tsx (layout)
-│   ├── /orders                       Order overview (live feed)
-│   ├── /orders/overview              Pending/Processing/Ready tabs
-│   └── /orders/history               Historical orders
-├── inventory.tsx (layout)
-│   ├── /inventory                    Menu grid + CRUD
-│   ├── /inventory/menu               Full menu management
-│   └── /inventory/stock              Stock levels
-├── reports.tsx (layout)
-│   ├── /reports                      Sales analytics
-│   ├── /reports/sales                Revenue charts
-│   ├── /reports/crm                  Customer activity
-│   ├── /reports/inventory            Stock analytics + popularity
-│   ├── /reports/inventory/index      Inventory overview
-│   ├── /reports/inventory/details    Per-item stats
-│   └── /reports/staff                Staff performance
-├── settings.tsx (layout)
-│   ├── /settings                     Restaurant general settings
-│   ├── /settings/restaurant          Restaurant profile CRUD
-│   ├── /settings/account             Admin account settings
-│   └── /settings/subscription        Billing & plan management
-├── staff.tsx (layout)
-│   └── /staff                        Staff list + CRUD + roles
-├── billing.tsx / /billing            Billing overview
-├── affiliate.tsx / /affiliate        Affiliate program
-├── support.tsx / /support            Support center
-├── demo/ (7 routes)                  Feature demos
-└── api/ (40 BFF server routes)       ← TanStack Start SSR handlers
+```mermaid
+flowchart LR
+    Browser["Browser<br/>(Client-side JS)"] -->|"GET /api/orders<br/>(with cookies)"| BFF["TanStack Start<br/>Server Route<br/>(runs on Node.js)"]
+    BFF -->|"GET /api/v1/orders<br/>Authorization: Bearer token"| Backend["Express API<br/>:3000"]
+    Backend -->|"JSON data"| BFF
+    BFF -->|"JSON data<br/>+ Set-Cookie (if refreshed)"| Browser
 ```
 
-### 6.2 BFF API Routes (`admin/src/routes/api/`)
-
-The admin app acts as a BFF, proxying all requests with auth handling:
-
-```
-api/
-├── auth/
-│   ├── login.ts           POST → /api/v1/admin/auth/login
-│   ├── logout.ts          POST → /api/v1/admin/auth/logout
-│   ├── session.ts         GET  → /api/v1/admin/users?id={id}
-│   ├── refresh.ts         POST → /api/v1/users/auth/refresh
-│   └── create-admin.ts    POST → /api/v1/admin/auth/create
-├── inventory.ts           CRUD → /api/v1/admin/inventory
-├── inventory.bulk.ts      Bulk operations
-├── inventory-stats.ts     GET  → /api/v1/admin/inventory-stats
-├── category.ts + category/  CRUD → /api/v1/admin/categories
-├── orders.ts + orders/    GET/PATCH → /api/v1/admin/orders
-├── quick-bill.ts          POST → /api/v1/admin/orders (staff-placed)
-├── waiter-orders.ts       GET/POST → waiter order context
-├── tables.ts              CRUD → /api/v1/admin/tables
-├── addons.ts              CRUD → /api/v1/admin/addons
-├── variants.ts            CRUD → /api/v1/admin/variants
-├── restaurant.ts          GET/PUT → /api/v1/admin/restaurants
-├── dashboard.ts           GET → /api/v1/admin/dashboard
-├── crm.ts + crm/          GET → /api/v1/admin/crm
-├── staff-reports.ts       GET → /api/v1/admin/staff-reports
-├── subscription.ts        GET/POST → /api/v1/admin/subscriptions
-├── subscription.plans.ts  GET plans list
-├── notifications.ts       GET/PATCH notifications
-├── users.ts               GET/PATCH user profile
-├── imagekit.ts            POST image upload via ImageKit
-├── support.ts             POST support tickets
-└── ws-token.ts            GET → WebSocket auth token
-```
-
-### 6.3 State Management
-
-| Store | Library | Purpose |
-|-------|---------|---------|
-| `useMenuStore` | Zustand | Quick Bill cart state, item selection |
-| `useCartStore` | Zustand | Cart items + totals |
-| `useTableStore` | Zustand | Selected table context |
-| `useGlobalOrderPopupStore` | Zustand | Order detail popup state |
-| `useDateFilterStore` | Zustand | Date range for reports |
-
-### 6.4 Key Custom Hooks
-
-| Hook | Purpose |
-|------|---------|
-| `useAuth` | Auth state, login/logout/refresh |
-| `useRestaurantSelector` | Multi-restaurant `selected_rid` management |
-| `useRestaurantSession` | Restaurant session context |
-| `useSessionStatus` | Session validity + activity tracking |
-| `useWebSocketManager` | Socket.IO connection lifecycle |
-| `useDashboardData` | Dashboard aggregate queries |
-| `useOrderTaxCalculation` | Tax computation from restaurant tax% |
-| `useVirtualizedOrders` | Virtualized list for large order sets |
-| `useLoadMore` | Intersection Observer-based pagination |
-| `useNetworkQuality` | Network quality detection |
-| `useChangeTracking` | Form dirty state for unsaved changes |
-| `useOptimizedCountdown` | Order preparation timer |
-
-### 6.5 Query Architecture
-
-TanStack Query with:
-- `staleTime: 60_000` (1 min) for session/user queries  
-- Background refetch on window focus  
-- Optimistic updates for order status changes  
-- `useInfiniteQuery` for order history pagination
+**Why BFF?**
+1. **Security**: httpOnly cookies never exposed to JavaScript
+2. **Token refresh**: Automatic and transparent to the client
+3. **Cookie management**: Server-side cookie reading/writing
+4. **CORS simplification**: Same-origin requests from browser perspective
 
 ---
 
-## 7. Client Application Architecture
+## 13. Role-Based Access Control (RBAC)
 
-**Location**: `client/src/`  
-**Framework**: TanStack Start (Vite + React 18 + TanStack Router)  
-**Port**: 4000  
+```mermaid
+graph TB
+    subgraph Roles["Role Hierarchy"]
+        SuperAdmin["Super Admin<br/>role: 1 or 1000<br/>power: 100"]
+        Admin["Admin<br/>role: 2<br/>power: 90"]
+        Owner["Restaurant Owner<br/>role: 3<br/>power: 80"]
+        Manager["Manager<br/>role: 4<br/>power: 70"]
+        Waiter["Waiter<br/>role: 5<br/>power: 60"]
+        Kitchen["Kitchen Staff<br/>role: 6<br/>power: 50"]
+        Delivery["Delivery<br/>role: 7<br/>power: 40"]
+        Customer["Customer<br/>role: 0<br/>power: 0"]
+    end
 
-### 7.1 Route Tree
-
-```
-__root.tsx (global providers, session restoration)
-├── index.tsx → /                     Discovery / landing
-├── delycias.tsx / /delycias          Restaurant directory
-├── $username.tsx / /:username        Restaurant home page
-├── category.tsx / /category          Category-filtered menu
-├── cart.tsx / /cart                  Cart review
-├── checkout.tsx / /checkout           Checkout page
-├── order-placed.tsx / /order-placed   Order confirmation
-├── orders.tsx / /orders              Order history
-├── user/
-│   ├── profile.tsx                   User profile
-│   ├── favorites.tsx                 Saved favorites
-│   └── memories.tsx                  Past order memories
-├── auth/
-│   └── verify.tsx                    Phone OTP verification
-├── res.$username.tsx                 Restaurant redirect
-├── clear-cookies.tsx                 Cookie cleanup utility
-└── api/ (18 BFF server routes)       ← TanStack Start SSR handlers
+    SuperAdmin --> Admin
+    Admin --> Owner
+    Owner --> Manager
+    Manager --> Waiter
+    Manager --> Kitchen
+    Manager --> Delivery
+    Customer -.->|"No staff access"| Customer
 ```
 
-### 7.2 Client BFF API Routes (`client/src/routes/api/`)
-
-```
-api/
-├── auth/                  (6 routes: login, logout, session, refresh, OTP, verify)
-├── app.temp-session.ts    POST → /api/v1/app/temp-session (QR init)
-├── categories.ts          GET  → /api/v1/categories
-├── inventory.ts           GET  → /api/v1/inventory
-├── orders.ts              GET/POST → /api/v1/orders
-├── restaurant.ts          GET  → /api/v1/restaurant
-├── restaurant.checkout.ts POST → checkout (multi-step: cart + orders)
-├── tables.ts              GET  → /api/v1/tables
-├── users.ts               GET  → /api/v1/users
-├── user.update.ts         PATCH → user profile
-├── reverification-code.ts POST → resend OTP
-└── imagekit.ts            POST → profile image upload
-```
-
-### 7.3 State Management
-
-| Store | Library | Purpose |
-|-------|---------|---------|
-| `useCartStore` | Zustand | Cart items, quantities, totals |
-| `useUserStore` | Zustand | Authenticated user data |
-| `useRestaurantStore` | Zustand | Current restaurant context |
-
-### 7.4 Key Client Hooks
-
-| Hook | Purpose |
-|------|---------|
-| `useScrollHide` | Hide header on scroll-down |
-| `useMobileViewport` | Mobile viewport detection |
-| `useLoadMore` | Infinite scroll pagination |
-| `useNetworkStatus` | Offline/online detection |
+| Role | App Access | Capabilities |
+|------|-----------|--------------|
+| Customer (0) | Client | Browse, order, pay |
+| Waiter (5) | Admin | View/create/update orders |
+| Kitchen (6) | Admin | Order management |
+| Delivery (7) | Admin | Track deliveries |
+| Manager (4) | Admin | Full restaurant operations |
+| Owner (3) | Admin | Full control of own restaurant |
+| Admin (2) | Admin | High-level management |
+| SuperAdmin (1/1000) | SuperAdmin | Full system control |
 
 ---
 
-## 8. Real-time Communication (WebSockets)
-
-**Library**: Socket.IO  
-**Mount**: Same HTTP server as Express
-
-### 8.1 Namespaces
+## 14. Real-Time Layer (WebSocket)
 
 ```
-/orders         ← Order lifecycle events
-/qrcode         ← QR code scan events
-/temp-sessions  ← Temp session management events
+server/src/sockets/
+├── index.js              # Socket.IO namespace setup
+└── namespaces/           # Event handlers per namespace
 ```
 
-### 8.2 Orders Namespace (`/orders`)
+Socket.IO is used for **real-time order updates** in the admin panel:
+- New order notifications
+- Order status changes
+- Table status updates
+- Kitchen display system updates
 
-```
-Events emitted by server:
-  order:new      → new order placed
-  order:updated  → status changed (pending→processing→ready→completed)
-  order:settled  → order settled/paid
-
-Client subscribes to:
-  - Restaurant room: rid-{restaurantId}
-  - Table room: table-{tableId}
-```
-
-### 8.3 QR Code Namespace (`/qrcode`)
-
-```
-Events:
-  qr:scanned     → customer scanned QR → temp session created
-  qr:session     → session info pushed to kiosk display
-```
-
-### 8.4 Temp Sessions Namespace (`/temp-sessions`)
-
-```
-Events:
-  session:created   → temp session initialized
-  session:expired   → cleanup event for expired sessions
-```
-
-### 8.5 Admin WebSocket Connection
-
-```
-Admin connects via useWebSocketManager hook:
-  1. GET /api/ws-token → BFF fetches WebSocket auth token
-  2. Connect to server with token in auth header
-  3. Join restaurant room (rid-{selected_rid})
-  4. Listen for order events → update TanStack Query cache
-```
+The admin app connects via `useWebSocketManager.ts` hook.
 
 ---
 
-## 9. Roles & RBAC
+## 15. Deployment Architecture
 
-| Role ID | Name | Power | Capabilities |
-|---------|------|-------|-------------|
-| 0 | Customer | 0 | Browse menu, place orders, order history |
-| 1 | Super Admin | 100 | Full platform management |
-| 2 | Admin | 90 | Manage restaurants, approve onboarding |
-| 3 | Restaurant Owner | 80 | Full control of own restaurant(s) |
-| 4 | Restaurant Manager | 70 | Manage operations, orders, staff scheduling |
-| 5 | Waiter | 60 | View, create, update orders (Quick Bill) |
-| 6 | Kitchen Staff | 50 | Order status management (kitchen display) |
-| 7 | Delivery | 40 | View assigned orders, delivery status |
-| 1000 | Super Administrator | 1000 | Root platform access |
+Each app has its own `Dockerfile` and `docker-compose.yml`:
 
-**Access control enforcement:**
-- **Server**: `admin.middleware.js` checks `role >= 3`, `superadmin.middleware.js` checks `role >= 1000`
-- **Admin app**: `useAuth` + route middleware redirects unauthenticated users to `/login`
-- **restaurant_access**: Maps users to their authorized restaurant IDs (supports multi-restaurant)
+| Service | Port | Dockerfile |
+|---------|------|-----------|
+| Server (API) | 3000 | `server/Dockerfile` |
+| Client | 4000 | `client/Dockerfile` |
+| Admin | 4500 | `admin/Dockerfile` |
+| SuperAdmin | 5000 | `superadmin/Dockerfile` |
+| MariaDB | 3306 | Managed service |
+| Redis | 6379 | Managed service |
 
 ---
 
-## 10. Subscription & Billing
+## 16. Key Architectural Patterns Summary
 
-```
-Restaurant created
-        │
-        ▼
-    Free Trial (14 days, plan_id: 1)
-        │
-        ├─ Trial expires → email/SMS notification
-        │
-        ▼
-    Paid Plan selection
-        │
-        ├─ Monthly  (₹499/30 days) — single restaurant
-        ├─ Monthly+ (₹549/30 days) — multi-restaurant (up to 999)
-        └─ Yearly   (₹4,999/365 days) — multi-restaurant + savings
-```
-
-**Subscription checks:**
-- `notification.cron.js` sends `plan_expiring` notifications before expiry
-- Subscription status checked on admin app boot
-- Expired subscriptions lock access to admin features
-
----
-
-## 11. Feature Inventory
-
-### Admin App Features
-
-| Feature | Routes | Description |
-|---------|--------|-------------|
-| **Dashboard** | `/dashboard` | Revenue, orders, top items, staff overview |
-| **Quick Bill (POS)** | `/orders` | Staff-placed orders with cart UI, table assign, payment |
-| **Order Management** | `/orders/overview`, `/history` | Live order feed, status updates, thermal bill printing |
-| **Inventory Management** | `/inventory/menu` | CRUD food items, images, pricing, stock |
-| **Stock Management** | `/inventory/stock` | Stock level tracking, bulk updates |
-| **Category Management** | Via inventory | Category CRUD, template library, display order |
-| **Variant Management** | Inline | Item variant sizes/types (Half, Full etc.) |
-| **Addon Management** | Inline | Add-ons per item (Extra Cheese, etc.) |
-| **Table Management** | `/settings/restaurant` | Table CRUD, zone assignment, QR generation |
-| **QR Code Generation** | Settings | Per-table QR code gen + PNG download |
-| **Reports - Sales** | `/reports/sales` | Revenue trends, daily/weekly/monthly breakdown |
-| **Reports - Inventory** | `/reports/inventory` | Popularity scores, low stock alerts, revenue per item |
-| **Reports - CRM** | `/reports/crm` | Customer visits, order frequency, value |
-| **Reports - Staff** | `/reports/staff` | Per-staff order counts, performance metrics |
-| **Notifications** | Bell icon | Real-time alerts (low stock, plan expiry, new orders) |
-| **Staff Management** | `/staff` | Staff CRUD, role assignment, name-confirm deletion |
-| **Restaurant Settings** | `/settings/restaurant` | Profile, tax %, opening hours, active days, online ordering |
-| **Account Settings** | `/settings/account` | Admin profile, password change, 2FA |
-| **Subscription** | `/settings/subscription` | Current plan, upgrade options |
-| **Multi-restaurant** | Top selector | Switch between owned/managed restaurants |
-| **Waiter Mode** | Via role | Waiter-specific order placement interface |
-| **Voice Announcement** | On order | ElevenLabs TTS announces order status |
-
-### Client App Features
-
-| Feature | Routes | Description |
-|---------|--------|-------------|
-| **Restaurant Discovery** | `/delycias` | Browse restaurants by location |
-| **Public Menu** | `/:username` | Restaurant landing + menu browse |
-| **Category Filter** | `/category` | Filter items by food category |
-| **QR Order** | Via QR → temp session | Auto-fill table + restaurant context |
-| **Cart Management** | `/cart` | Item qty, addon selection, discount display |
-| **Checkout** | `/checkout` | Payment method, delivery type, table |
-| **Order Confirmation** | `/order-placed` | Cart → orders → confirmation |
-| **Order History** | `/orders` | Past orders with status + reorder |
-| **User Profile** | `/user/profile` | Name, phone, profile pic management |
-| **Favorites** | `/user/favorites` | Saved favorite items |
-| **Memories** | `/user/memories` | Past dining photos + ratings |
-| **OTP Auth** | `/auth/verify` | Phone-based OTP sign-in |
-| **Guest Mode** | Auto | Anonymous ordering without login |
-| **Online Ordering** | Configurable | Toggle per restaurant |
-| **Delivery Types** | Cart/Checkout | Dine-in / Takeaway / Delivery |
-| **Notifications** | Push/WebSocket | Order status updates in real time |
-
----
-
-## 12. Infrastructure & Deployment
-
-### 12.1 Docker Setup
-
-Each app has individual `Dockerfile` + `docker-compose.yml`:
-
-```
-admin/Dockerfile        Multi-stage build (Node → Nginx serve)
-client/Dockerfile       Multi-stage build (Node → Nginx serve)
-server/Dockerfile       Single-stage Node.js
-```
-
-**Admin docker-compose** services: `admin-app` + optional reverse proxy  
-**Server docker-compose** services: `server` + MariaDB + Redis
-
-### 12.2 Environment Variables
-
-**Admin `.env`:**
-```
-VITE_API_BASE_URL=http://localhost:3000/api/v1
-VITE_SERVER_URL=http://localhost:3000
-VITE_SOCKET_URL=ws://localhost:3000
-IMAGEKIT_PUBLIC_KEY, IMAGEKIT_PRIVATE_KEY, IMAGEKIT_URL_ENDPOINT
-```
-
-**Client `.env`:**
-```
-VITE_API_BASE_URL=...
-VITE_IMAGEKIT_*=...
-```
-
-**Server `.env`:**
-```
-DB_HOST, DB_USER, DB_PASSWORD, DB_NAME
-REDIS_URL
-JWT_SECRET, JWT_REFRESH_SECRET
-ELEVENLABS_API_KEY (also in DB config table)
-```
-
-### 12.3 POS Kiosk Mode
-
-The admin app includes `start-pos-kiosk.sh` — a shell script to launch the admin in a locked-down kiosk browser session (Chromium fullscreen, no address bar), intended for dedicated POS terminals.
-
----
-
-## 13. Security Architecture
-
-### 13.1 CSRF Protection
-
-Double-submit cookie pattern implemented in `csrf.middleware.js`:
-- Server generates CSRF token on login
-- Client sends token in `x-csrf-token` header on state-changing requests
-- Superadmin routes enforce CSRF on all mutating operations
-
-### 13.2 Input Sanitization
-
-`sanitizeInputs.middleware.js` applied to all admin and web auth routes:
-- Strips HTML tags from string inputs
-- Prevents XSS via encoded chars
-- Applied before route handlers
-
-### 13.3 Rate Limiting
-
-Two layers:
-1. **Global**: `express-rate-limit` → 1000 req/min per IP on all routes
-2. **Per-route**: `rateLimiter.service.js` via Redis → configurable per endpoint (e.g., tighter limits on `/auth` routes)
-
-### 13.4 Token Security
-
-- Access tokens: 15-minute expiry, short blast radius
-- Refresh tokens: 30-day expiry, stored in httpOnly cookie (not accessible to JS)
-- `tokenCache.service.js`: In-memory LRU cache for JWT verification → reduces redundant DB token lookups
-- Tokens also persisted to `users.access_token` / `users.refresh_token` for server-side validation
-
----
-
-## 14. Data Flow Diagrams
-
-### 14.1 Customer Ordering Flow (QR)
-
-```
-1. Customer scans QR code (table-specific URL)
-         │
-         ▼
-2. Client app loads /:username?table={id}
-         │
-         ▼
-3. POST /api/app.temp-session → creates temp_sessions record
-         │
-         ▼
-4. Customer browses menu (public data, no auth required)
-         │
-         ▼
-5. Customer adds items → Cart (Zustand store)
-         │
-         ▼
-6. Customer logs in via phone OTP (or continues as guest)
-         │
-         ▼
-7. POST /api/restaurant.checkout
-         │
-         ├─ BFF creates cart record (carts table)
-         ├─ BFF creates order records (orders table, one per item)
-         └─ BFF emits order:new via Socket.IO
-         │
-         ▼
-8. Admin app receives WebSocket event → order appears in feed
-         │
-         ▼
-9. Staff processes order: pending → processing → ready
-         (PATCH /api/v1/admin/orders/:id)
-         │
-         ▼
-10. ElevenLabs voice announcement (if enabled)
-```
-
-### 14.2 Quick Bill Flow (Staff POS)
-
-```
-Staff selects table → useTableStore
-         │
-         ▼
-Staff searches/browses menu → useMenuStore
-         │
-         ▼
-Staff adds items → useCartStore (with variants, addons, quantities)
-         │
-         ▼
-Staff selects payment method + delivery type
-         │
-         ▼
-POST /api/quick-bill → BFF
-         │
-         ├─ Bearer token attached (admin access token)
-         ├─ Calls POST /api/v1/admin/orders
-         ├─ Server: placed_by_staff_id = decoded.id
-         └─ Server emits order:new via Socket.IO
-         │
-         ▼
-Order appears in live feed immediately
-```
-
-### 14.3 Token Refresh Flow
-
-```
-Axios request with expired access token
-         │
-         ▼
-Server returns 401
-         │
-         ▼
-Axios interceptor (tokenService.ts) intercepts
-         │
-         ▼
-POST /api/auth/refresh (BFF)
-         │
-         ├─ BFF reads refresh token from httpOnly cookie
-         ├─ Calls backend /api/v1/users/auth/refresh
-         ├─ Receives new access + refresh tokens
-         └─ Sets new httpOnly cookies in response
-         │
-         ▼
-Original request retried with new token
-         │
-         ▼
-Response returned to component
-```
-
----
-
-*This document reflects the application state as of **2026-02-21**. For DB schema reference see [`delycia_db_structure.sql`](./delycia_db_structure.sql).*
+| Pattern | Where | Purpose |
+|---------|-------|---------|
+| **BFF (Backend-for-Frontend)** | All frontend apps | Proxy API calls, manage httpOnly cookies |
+| **withAuth() wrapper** | All BFF routes | Transparent token refresh |
+| **RefreshCoordinator (Singleton)** | Per frontend app | Deduplicate concurrent refresh attempts |
+| **Circuit Breaker** | RefreshCoordinator | Prevent cascading failures |
+| **Graceful Degradation** | All Redis services | App works without Redis (reduced features) |
+| **Dual Token Strategy** | Auth system | Short-lived access + long-lived refresh |
+| **Double Submit Cookie** | CSRF | Protect state-changing operations |
+| **Multi-tenant scoping** | DB queries (`rid` param) | Restaurant isolation via restaurant ID |
+| **Role-based middleware chain** | Server routes | `auth → admin/superadmin → handler` |
+| **Event-driven real-time** | Socket.IO | Live order & table updates |

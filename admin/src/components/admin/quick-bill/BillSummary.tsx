@@ -9,6 +9,7 @@ import { useAdminAuthQuery } from '@/hooks/queries/useAdminAuthQuery'
 import useToast from '@/hooks/UseToast'
 import { useRestaurantSelector } from '@/hooks/useRestaurantSelector'
 import { useCreateGuestCustomer } from '@/hooks/mutations/useCreateGuestCustomer'
+import { useAutoPrint } from '@/hooks/useAutoPrint'
 
 interface BillSummaryProps {
   cart: any[]
@@ -42,6 +43,23 @@ export default function BillSummary({
   const [completedOrderData, setCompletedOrderData] = useState<any>(null)
   const { showSuccess, showError } = useToast()
   const createGuestCustomer = useCreateGuestCustomer()
+
+  // Auto-print hook
+  const { printBill } = useAutoPrint({
+    onFallbackToPreview: () => {
+      // Show bill preview dialog if auto-print fails or user cancels
+      setShowBillDialog(true)
+    },
+    onPrintSuccess: () => {
+      console.log('Print dialog opened successfully')
+      // Don't show preview - user is already printing
+    },
+    onPrintError: (error) => {
+      console.error('Print error:', error)
+      // Show preview as fallback
+      setShowBillDialog(true)
+    },
+  })
 
   // Ensure discount doesn't exceed subtotal
   // Note: Parent component handles calculation, this is just for input validation visuals if needed
@@ -138,7 +156,19 @@ export default function BillSummary({
 
         setCompletedOrderData(billData)
         onOrderComplete()
-        setShowBillDialog(true)
+        
+        // Auto-print with fallback to preview
+        await printBill(
+          billData,
+          {
+            subtotal,
+            taxAmount,
+            taxPercent,
+            totalAmount,
+          },
+          selectedRestaurant?.name || 'Restaurant',
+          selectedRestaurant?.id // Pass restaurant ID for preferences
+        )
       } else {
         showError(
           'Error',

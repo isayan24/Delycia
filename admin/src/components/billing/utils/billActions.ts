@@ -94,19 +94,34 @@ export function printBill(billHTML: string, orderId: string): void {
     <!DOCTYPE html>
     <html>
       <head>
-        <title>Bill - Order ${orderId}</title>
+        <title></title>
         <style>
-          body {
+          @page {
             margin: 0;
-            padding: 20px;
+            size: 80mm auto;
+          }
+          html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          body {
             font-family: 'Courier New', monospace;
             font-size: 12px;
             line-height: 1.4;
-            width: 80mm;
             background: white;
           }
           * { box-sizing: border-box; }
-          .bill-container { width: 100%; max-width: 80mm; margin: 0 auto; }
+          .bill-container { 
+            width: 80mm;
+            max-width: 80mm;
+            margin: 0 auto;
+            padding: 10mm;
+          }
           .text-center { text-align: center; }
           .font-bold { font-weight: bold; }
           .border-b { border-bottom: 1px solid #000; }
@@ -119,8 +134,25 @@ export function printBill(billHTML: string, orderId: string): void {
           .justify-between { justify-content: space-between; }
           .space-y-1 > * + * { margin-top: 4px; }
           @media print {
-            body { margin: 0; padding: 0; }
-            .bill-container { max-width: none; }
+            @page {
+              margin: 0;
+              size: 80mm auto;
+            }
+            html, body {
+              margin: 0;
+              padding: 0;
+              height: 100%;
+              width: 100%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+            .bill-container { 
+              max-width: none;
+              padding: 10mm;
+            }
           }
         </style>
       </head>

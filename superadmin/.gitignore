@@ -12,3 +12,6 @@ count.txt
 __unconfig*
 todos.json
 frontend-design/
+
+.env
+.env.production
