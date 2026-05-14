@@ -1,0 +1,51 @@
+name: Deploy Backend to EC2
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "server/**"
+      - ".github/workflows/deploy.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+
+            cd ~/tanstack-delycia
+
+            echo "Pulling latest code..."
+            git pull origin main
+
+            echo "Going to server folder..."
+            cd server
+
+            echo "Creating .env file..."
+            cat > .env << 'EOF'
+            NODE_ENV=production
+            PORT=8020
+
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_PORT=${{ secrets.DB_PORT }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_NAME=${{ secrets.DB_NAME }}
+
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            EOF
+
+            echo "Rebuilding Docker container..."
+            docker compose down
+            docker compose up -d --build
+
+            echo "Deployment finished."
