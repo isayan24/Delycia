@@ -2,18 +2,18 @@ import axios from 'axios'
 import { parseCookies } from './server-cookies'
 import { createCircuitBreaker, CircuitBreaker } from './circuitBreaker'
 
-/**
- * Result of a successful token refresh
- */
+ 
+// Result of a successful token refresh
+ 
 export interface RefreshResult {
   accessToken: string
   refreshToken: string
   setCookieHeaders: string[]
 }
 
-/**
- * Reason why refresh failed (helps withAuth decide whether to trigger logout)
- */
+
+// Reason why refresh failed (helps withAuth decide whether to trigger logout)
+
 export enum RefreshFailureReason {
   NO_COOKIES = 'NO_COOKIES', // This request had no cookies (SSR race condition)
   BACKEND_ERROR = 'BACKEND_ERROR', // Backend rejected the refresh (true session expiry)
@@ -22,16 +22,16 @@ export enum RefreshFailureReason {
   CIRCUIT_OPEN = 'CIRCUIT_OPEN', // Circuit breaker is open
 }
 
-/**
- * Extended result that includes failure reason
- */
+// 
+// Extended result that includes failure reason
+// 
 export type RefreshResultOrFailure =
   | RefreshResult
   | { failed: true; reason: RefreshFailureReason }
 
-/**
- * Retry configuration
- */
+
+// Retry configuration
+
 interface RetryConfig {
   maxAttempts: number
   baseDelay: number // Base delay in ms (will be exponentially increased)
@@ -126,17 +126,17 @@ class RefreshCoordinator {
   ): Promise<RefreshResultOrFailure | null> {
     const requestId = `req_${++this.requestCounter}`
 
-    // Case 1: Refresh already in progress → wait for it
+    // 1: Refresh already in progress → wait for it
     if (this.refreshPromise) {
       return this.refreshPromise
     }
 
-    // Case 2: Refreshed recently → return cached result
+    // 2: Refreshed recently → return cached result
     if (this.shouldSkipRefresh() && this.lastRefreshResult) {
       return this.lastRefreshResult
     }
 
-    // Case 3: Check circuit breaker
+    // 3: Check circuit breaker
     if (this.circuitBreaker.isOpen()) {
       console.warn(
         `[RefreshCoordinator:${requestId}] Circuit breaker is OPEN - blocking refresh attempt`,
@@ -144,7 +144,7 @@ class RefreshCoordinator {
       return { failed: true, reason: RefreshFailureReason.CIRCUIT_OPEN }
     }
 
-    // Case 4: Perform new refresh with retry logic
+    // 4: Perform new refresh with retry logic
     this.refreshPromise = this.performRefreshWithRetry(request, requestId)
 
     try {

@@ -67,6 +67,8 @@ web_modules/
 
 # dotenv environment variable files
 .env
+**/.env
+**/.env.*
 .env.production
 # .env.*
 # !.env.example
@@ -155,3 +157,4 @@ skills/
 interview-prep.md
 prep.md
 delycia_db_structure.sql
+temp

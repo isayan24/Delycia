@@ -8,19 +8,6 @@ import { parseCookies } from './server-cookies'
  * This helper uses the RefreshCoordinator to ensure only ONE token refresh
  * happens at a time, even when multiple concurrent requests need a refresh.
  *
- * Usage in any BFF route handler:
- * ```ts
- * return withAuth(request, async (token, headers) => {
- *   const res = await axiosInstance.get('/admin/dashboard/stats', {
- *     headers: { Authorization: `Bearer ${token}` },
- *   })
- *   return new Response(JSON.stringify(res.data), {
- *     status: 200,
- *     headers: { ...Object.fromEntries(headers.entries()), 'Content-Type': 'application/json' },
- *   })
- * })
- * ```
- *
  * The helper:
  * 1. Extracts access token from request cookies
  * 2. Calls your function with the token
@@ -32,9 +19,7 @@ import { parseCookies } from './server-cookies'
  */
 
 interface WithAuthOptions {
-  /** If true, returns 401 immediately when no access token is found (default: true) */
   requireAuth?: boolean
-  /** Internal: tracks if this is a retry after refresh (prevents infinite loops) */
   _isRetry?: boolean
 }
 
@@ -49,9 +34,6 @@ interface WithAuthOptions {
  * @param fn - Your handler function. Receives (accessToken, responseHeaders, request).
  *             The request parameter is a fresh clone on retry attempts.
  *             The responseHeaders may contain Set-Cookie for refreshed tokens.
- *             You should include these headers in your Response.
- * @param options - Optional configuration
- * @returns Response from your handler, or a 401 Response if auth fails
  */
 export async function withAuth(
   request: Request,
