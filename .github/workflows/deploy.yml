@@ -22,6 +22,7 @@ jobs:
           script: |
             set -e
 
+            echo "Going to project folder..."
             cd ~/tanstack-delycia
 
             echo "Pulling latest code..."
@@ -30,22 +31,17 @@ jobs:
             echo "Going to server folder..."
             cd server
 
-            echo "Creating .env file..."
-            cat > .env << 'EOF'
-            NODE_ENV=production
-            PORT=8020
+            echo "Checking .env file..."
+            if [ ! -f .env ]; then
+              echo "ERROR: .env file not found at ~/tanstack-delycia/server/.env"
+              exit 1
+            fi
 
-            DB_HOST=${{ secrets.DB_HOST }}
-            DB_PORT=${{ secrets.DB_PORT }}
-            DB_USER=${{ secrets.DB_USER }}
-            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-            DB_NAME=${{ secrets.DB_NAME }}
-
-            JWT_SECRET=${{ secrets.JWT_SECRET }}
-            EOF
-
-            echo "Rebuilding Docker container..."
+            echo "Rebuilding backend container..."
             docker compose down
             docker compose up -d --build
+
+            echo "Checking running containers..."
+            docker ps
 
             echo "Deployment finished."
