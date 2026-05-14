@@ -581,5 +581,5 @@ For support, email support@delycia.com or open an issue in this repository.
 ---
 
 <div align="center">
-  <strong>Made with ❤️ by the Delycia Team</strong>
+  <strong>Made with ❤️ by Sayan</strong>
 </div>
