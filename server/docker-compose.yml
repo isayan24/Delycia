@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   delycia-server:
@@ -12,6 +12,10 @@ services:
     dns:
       - 8.8.8.8
       - 8.8.4.4
+
+    depends_on:
+      - delycia-redis
+
     environment:
       # Database
       - DB_HOST=${DB_HOST}
@@ -20,25 +24,41 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASS=${DB_PASS}
       - DB_DIALECT=${DB_DIALECT}
-      
+
       # Server config
       - PORT=8020
       - NODE_ENV=production
-      
+
+      # Redis
+      - REDIS_HOST=delycia-redis
+      - REDIS_PORT=6379
+      - REDIS_URL=redis://delycia-redis:6379
+
       # Secrets
       - ACCESS_SECRET=${ACCESS_SECRET}
       - REFRESH_SECRET=${REFRESH_SECRET}
       - HMAC_SECRECT=${HMAC_SECRECT}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - CSRF_SECRET=${CSRF_SECRET}
-      
+
       # CORS
       - ORIGIN=${ORIGIN}
       - SSL=${SSL}
-      
+
       # MSG91 WhatsApp
       - MSG91_AUTH_KEY=${MSG91_AUTH_KEY}
       - MSG91_INTEGRATED_NUMBER=${MSG91_INTEGRATED_NUMBER}
       - MSG91_TEMPLATE_NAMESPACE=${MSG91_TEMPLATE_NAMESPACE}
       - MAGIC_LINK_BASE_URL=${MAGIC_LINK_BASE_URL}
       - MAGIC_LINK_EXPIRY_MINUTES=${MAGIC_LINK_EXPIRY_MINUTES}
+
+  delycia-redis:
+    image: redis:7-alpine
+    container_name: delycia-redis-container
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - delycia_redis_data:/data
+
+volumes:
+  delycia_redis_data:
