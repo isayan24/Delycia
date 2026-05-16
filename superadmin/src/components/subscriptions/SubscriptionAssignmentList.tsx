@@ -9,9 +9,16 @@ import {
   useRestaurantsQuery,
   type Restaurant,
 } from '@/hooks/queries/useRestaurantsQuery'
-import { useAssignSubscriptionMutation } from '@/hooks/mutations/useSubscriptionMutations'
+import {
+  useAssignSubscriptionMutation,
+  useChangePlanMutation,
+} from '@/hooks/mutations/useSubscriptionMutations'
 import { SubscriptionAssignmentForm } from './SubscriptionAssignmentForm'
-import type { SubscriptionAssignmentFormData } from '@/schemas/subscriptionSchema'
+import { SubscriptionUpdateForm } from './SubscriptionUpdateForm'
+import type {
+  SubscriptionAssignmentFormData,
+  SubscriptionUpdateFormData,
+} from '@/schemas/subscriptionSchema'
 import {
   Table,
   TableBody,
@@ -31,15 +38,17 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
-import { Plus, Store } from 'lucide-react'
+import { Plus, Store, RefreshCw } from 'lucide-react'
 
 export function SubscriptionAssignmentList() {
   const { data, isLoading, isError, error } = useRestaurantsQuery({
     limit: 500,
   })
   const assignMutation = useAssignSubscriptionMutation()
+  const updateMutation = useChangePlanMutation()
   const { toast } = useToast()
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [updateSheetOpen, setUpdateSheetOpen] = useState(false)
 
   const handleAssign = async (formData: SubscriptionAssignmentFormData) => {
     try {
@@ -62,6 +71,31 @@ export function SubscriptionAssignmentList() {
         variant: 'destructive',
         title: 'Error',
         description: err?.message || 'Failed to assign subscription',
+      })
+    }
+  }
+
+  const handleUpdate = async (formData: SubscriptionUpdateFormData) => {
+    try {
+      const result = await updateMutation.mutateAsync(formData)
+      if (result?.statusCode === 200 || result?.status) {
+        toast({
+          title: 'Subscription updated',
+          description: 'Plan has been updated successfully.',
+        })
+        setUpdateSheetOpen(false)
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: result?.error || 'Failed to update subscription',
+        })
+      }
+    } catch (err: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: err?.message || 'Failed to update subscription',
       })
     }
   }
@@ -166,10 +200,16 @@ export function SubscriptionAssignmentList() {
               View and assign subscription plans to restaurants
             </p>
           </div>
-          <Button onClick={() => setSheetOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Assign Plan
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setUpdateSheetOpen(true)}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Update Plan
+            </Button>
+            <Button onClick={() => setSheetOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Assign Plan
+            </Button>
+          </div>
         </div>
 
         {/* Table */}
@@ -245,6 +285,24 @@ export function SubscriptionAssignmentList() {
               onSubmit={handleAssign}
               onCancel={() => setSheetOpen(false)}
               isSubmitting={assignMutation.isPending}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
+      {/* Update Sheet */}
+      <Sheet open={updateSheetOpen} onOpenChange={setUpdateSheetOpen}>
+        <SheetContent className="sm:max-w-lg overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Update Subscription Plan</SheetTitle>
+            <SheetDescription>
+              Change the plan or update details for an existing subscription
+            </SheetDescription>
+          </SheetHeader>
+          <div className="mt-6">
+            <SubscriptionUpdateForm
+              onSubmit={handleUpdate}
+              onCancel={() => setUpdateSheetOpen(false)}
+              isSubmitting={updateMutation.isPending}
             />
           </div>
         </SheetContent>

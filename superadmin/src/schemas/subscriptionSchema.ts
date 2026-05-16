@@ -67,3 +67,24 @@ export const subscriptionAssignmentSchema = z
 export type SubscriptionAssignmentFormData = z.infer<
   typeof subscriptionAssignmentSchema
 >
+
+// ─────────────────────────────────────────────────────────
+// Subscription Update Schema (for useChangePlanMutation)
+// ─────────────────────────────────────────────────────────
+
+export const subscriptionUpdateSchema = z.object({
+  id: z.number().int().positive('Subscription ID is required'),
+  subscription_plan_id: z.number().int().positive('Subscription plan is required').optional(),
+  start_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Start date must be in YYYY-MM-DD format')
+    .optional(),
+  end_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'End date must be in YYYY-MM-DD format')
+    .optional(),
+  auto_renew: z.boolean().optional(),
+  status: z.enum(['active', 'expired', 'cancelled']).optional(),
+})
+
+export type SubscriptionUpdateFormData = z.infer<typeof subscriptionUpdateSchema>

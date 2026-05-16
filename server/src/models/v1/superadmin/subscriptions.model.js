@@ -163,11 +163,10 @@ const createPlan = async (req) => {
 };
 
 /**
- * Update subscription plan
+ * Update subscription plan details
  */
 const updatePlan = async (req) => {
   try {
-    console.log("Changed the plan \n\n\n", req.params)
 
     const { id } = req.params;
     const updateData = req.body;
@@ -331,7 +330,6 @@ const deactivatePlan = async (req) => {
  * Assign subscription plan to restaurant
  */
 const assignPlan = async (req) => {
-  console.log("Changed the plan \n\n\n", req.body)
 
   try {
     const {
@@ -373,15 +371,17 @@ const assignPlan = async (req) => {
       [restaurant_id]
     );
 
+
     if (!restaurant.length) {
       return apiResponse.error(404, "Restaurant not found");
     }
 
     // Validate subscription plan exists and is active
     const [plan] = await pool.query(
-      "SELECT id, plan_name, is_active FROM subscription_plans WHERE id = ?",
+      "SELECT id, plan_name, price, currency, billing_period, is_active FROM subscription_plans WHERE id = ?",
       [subscription_plan_id]
     );
+
 
     if (!plan.length) {
       return apiResponse.error(404, "Subscription plan not found");
@@ -391,26 +391,25 @@ const assignPlan = async (req) => {
       return apiResponse.error(400, "Cannot assign inactive subscription plan");
     }
 
-    // Check if restaurant already has an active subscription
-    const [activeSubscription] = await pool.query(
-      "SELECT id FROM subscriptions WHERE restaurant_id = ? AND status = 'active'",
+    // Delete any existing subscription for this restaurant to avoid unique constraint violation on restaurant_id
+    await pool.query(
+      "DELETE FROM subscriptions WHERE restaurant_id = ?",
       [restaurant_id]
     );
-
-    if (activeSubscription.length > 0) {
-      return apiResponse.error(409, "Restaurant already has an active subscription. Use change plan endpoint to modify.");
-    }
 
     // Create subscription assignment
     const insertQuery = `
       INSERT INTO subscriptions (
-        restaurant_id, plan_id, start_date, end_date, auto_renew, status
-      ) VALUES (?, ?, ?, ?, ?, 'active')
+        restaurant_id, plan_id, plan_type, amount, currency, start_date, end_date, auto_renew, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')
     `;
 
     const [result] = await pool.query(insertQuery, [
       restaurant_id,
       subscription_plan_id,
+      plan[0].billing_period,
+      plan[0].price,
+      plan[0].currency,
       start_date,
       end_date || null,
       auto_renew,
@@ -562,12 +561,12 @@ const getSubscriptionHistory = async (req) => {
 };
 
 /**
- * Change restaurant subscription plan
+ * // fix Change restaurant subscription plan
  */
 const changePlan = async (req) => {
   try {
-    console.log("Changed the plan \n\n\n", req.params)
     const { id } = req.params;
+
     const {
       subscription_plan_id,
       start_date,
@@ -584,14 +583,16 @@ const changePlan = async (req) => {
       return apiResponse.error(400, "Missing required field: subscription_plan_id");
     }
 
+
     // Check if current assignment exists and is active
     const [currentAssignment] = await pool.query(
-      `SELECT sa.*, r.name as restaurant_name, r.status as restaurant_status
+      `SELECT sa.*, r.name as restaurant_name
        FROM subscriptions sa
        JOIN restaurants r ON sa.restaurant_id = r.id
        WHERE sa.id = ?`,
       [id]
     );
+
 
     if (!currentAssignment.length) {
       return apiResponse.error(404, "Subscription assignment not found");
@@ -601,16 +602,19 @@ const changePlan = async (req) => {
       return apiResponse.error(400, "Cannot change plan for inactive subscription");
     }
 
+
     // Validate restaurant is still active
-    if (currentAssignment[0].restaurant_status !== "active") {
-      return apiResponse.error(400, "Cannot change plan for inactive restaurant");
-    }
+    // if (currentAssignment[0].restaurant_status !== "active") {
+    //   return apiResponse.error(400, "Cannot change plan for inactive restaurant");
+    // }
+
 
     // Validate new subscription plan exists and is active
     const [newPlan] = await pool.query(
-      "SELECT id, plan_name, is_active FROM subscription_plans WHERE id = ?",
+      "SELECT id, plan_name, plan_code, price, currency, billing_period, is_active FROM subscription_plans WHERE id = ?",
       [subscription_plan_id]
     );
+    console.log(newPlan, "new plan detail")
 
     if (!newPlan.length) {
       return apiResponse.error(404, "Subscription plan not found");
@@ -653,30 +657,29 @@ const changePlan = async (req) => {
     await connection.beginTransaction();
 
     try {
-      // Mark old assignment as expired (preserve history)
+      // Delete old assignment to avoid unique constraint violation on restaurant_id
       await connection.query(
-        `UPDATE subscriptions 
-         SET status = 'expired', 
-             end_date = ?,
-             updated_at = CURRENT_TIMESTAMP
-         WHERE id = ?`,
-        [newStartDate, id]
+        `DELETE FROM subscriptions WHERE id = ?`,
+        [id]
       );
 
       // Create new assignment
       const insertQuery = `
         INSERT INTO subscriptions (
-          restaurant_id, plan_id, start_date, end_date, auto_renew, status
-        ) VALUES (?, ?, ?, ?, ?, 'active')
+          restaurant_id, plan_id, plan_type, amount, currency, start_date, end_date, auto_renew, status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')
       `;
-
       const [result] = await connection.query(insertQuery, [
         currentAssignment[0].restaurant_id,
         subscription_plan_id,
+        newPlan[0].plan_code,
+        newPlan[0].price,
+        newPlan[0].currency,
         newStartDate,
         end_date || null,
         auto_renew,
       ]);
+
 
       // Fetch the new assignment with plan details
       const [newAssignment] = await connection.query(
@@ -696,10 +699,10 @@ const changePlan = async (req) => {
 
       await connection.commit();
 
-      return apiResponse.success(200, "Subscription plan changed successfully. Previous subscription has been archived.", {
+      return apiResponse.success(200, "Subscription plan changed successfully.", {
         data: {
           new_assignment: newAssignment[0],
-          previous_assignment_id: parseInt(id),
+          removed_assignment_id: parseInt(id),
         },
       });
     } catch (error) {
