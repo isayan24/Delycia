@@ -20,7 +20,9 @@ export default function Footer() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand */}
           <div>
-            <h3 className="text-2xl font-extrabold gradient-text mb-3">Delycia</h3>
+            <h3 className="text-2xl font-extrabold gradient-text mb-3">
+              Delycia
+            </h3>
             <p className="text-sm text-primary-foreground/60 leading-relaxed">
               Turn every table into a smart dining experience.
             </p>
@@ -50,7 +52,7 @@ export default function Footer() {
             © 2026 Delycia. All rights reserved.
           </p>
           <p className="text-xs text-primary-foreground/40">
-            contact@delycia.com | +91 8768683848
+            contact@delycia.com
           </p>
         </div>
       </div>
