@@ -108,8 +108,8 @@ function QRCodeGeneratorPage() {
         const tableId = tableIdMap.get(tableNumber)
         return {
           url: tableId 
-            ? `order.delycia.com/${selectedRestaurant.username}?table=${tableId}`
-            : `order.delycia.com/${selectedRestaurant.username}`,
+            ? `cousins.delycia.com/${selectedRestaurant.username}?table=${tableId}`
+            : `cousins.delycia.com/${selectedRestaurant.username}`,
           topText,
           bottomText,
           tableId: tableId || null,

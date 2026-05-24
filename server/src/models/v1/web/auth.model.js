@@ -7,7 +7,7 @@ import msg91 from "../../../utils/msg91.js";
 
 // Configuration
 const MAGIC_LINK_EXPIRY_MINUTES = parseInt(process.env.MAGIC_LINK_EXPIRY_MINUTES) || 5;
-const MAGIC_LINK_BASE_URL = process.env.MAGIC_LINK_BASE_URL || "https://order.delycia.com";
+const MAGIC_LINK_BASE_URL = process.env.MAGIC_LINK_BASE_URL || "https://cousins.delycia.com";
 const RATE_LIMIT_MAX_ATTEMPTS = 5;
 const RATE_LIMIT_WINDOW_MINUTES = 60;
 
